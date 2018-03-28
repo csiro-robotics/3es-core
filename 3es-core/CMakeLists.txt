@@ -6,7 +6,6 @@ set(TES_CORE_ONLY Off)
 # Project setup if this is being built as a stand alone project.
 if(NOT DEFINED CMAKE_PROJECT_NAME OR CMAKE_PROJECT_NAME STREQUAL "3es-core")
   project(3es-core)
-  set(ConfigPackageLocation lib/cmake/3es)
 
   cmake_minimum_required(VERSION 3.5)
 
@@ -17,6 +16,10 @@ if(NOT DEFINED CMAKE_PROJECT_NAME OR CMAKE_PROJECT_NAME STREQUAL "3es-core")
 
   set(TES_CORE_ONLY On)
 endif(NOT DEFINED CMAKE_PROJECT_NAME OR CMAKE_PROJECT_NAME STREQUAL "3es-core")
+
+if(NOT ConfigPackageLocation)
+  set(ConfigPackageLocation lib/cmake/3es)
+endif(NOT ConfigPackageLocation)
 
 #-------------------------------------------------------------------------------
 # Version setup

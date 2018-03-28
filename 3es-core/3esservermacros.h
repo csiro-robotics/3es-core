@@ -283,6 +283,32 @@
 /// @param ... Additional arguments follow, passed to @p Arrow() constructor.
 #define TES_ARROW_W(server, colour, ...) if (server) { (server)->create(tes::Arrow(__VA_ARGS__).setColour(colour).setWireframe(true)); }
 
+#define _TES_MAKE_AABB(c, s, minExt, maxExt) \
+    tes::V3Arg iext(minExt), mext(maxExt); \
+    tes::Vector3f c = 0.5f * (iext.v3 + mext.v3); \
+    tes::Vector3f s = (mext.v3 - iext.v3)
+
+#define TES_BOX_AABB(server, colour, id, minExt, maxExt) \
+  if (server)\
+  { \
+    _TES_MAKE_AABB(c, s, minExt, maxExt); \
+    (server)->create(tes::Box(id, c, s).setColour(colour)); \
+  }
+
+#define TES_BOX_AABB_T(server, colour, id, minExt, maxExt) \
+  if (server)\
+  { \
+    _TES_MAKE_AABB(c, s, minExt, maxExt); \
+    (server)->create(tes::Box(id, c, s).setColour(colour).setTransparent(true)); \
+  }
+
+#define TES_BOX_AABB_W(server, colour, id, minExt, maxExt) \
+  if (server)\
+  { \
+    _TES_MAKE_AABB(c, s, minExt, maxExt); \
+    (server)->create(tes::Box(id, c, s).setColour(colour).setWireframe(true)); \
+  }
+
 /// @ingroup tesmacros
 /// Solid box.
 /// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
@@ -382,7 +408,7 @@
 #define TES_LINE(server, colour, v0, v1, ...) \
   if (server) \
   { \
-    const tes::Vector3f _line[2] = { tes::Vector3f(v0), tes::Vector3f(v1) }; \
+    const tes::V3Arg _line[2] = { tes::V3Arg(v0), tes::V3Arg(v1) }; \
     tes::MeshShape shape(tes::DtLines, _line[0].v, 2, sizeof(_line[0]), ##__VA_ARGS__); shape.setColour(colour); \
     (server)->create(shape); \
   }
@@ -425,6 +451,13 @@
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_POINTS(server, colour, ...) if (server) { (server)->create(tes::MeshShape(tes::DtPoints, ##__VA_ARGS__).setColour(colour)); }
+
+/// @ingroup tesmacros
+/// Render a small set of points with per point colours.
+/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param colours A @c uint32_t array of colours. The number of elements must match the number of points pass in ...
+/// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
+#define TES_POINTS_C(server, colours, ...) if (server) { (server)->create(tes::MeshShape(tes::DtPoints, ##__VA_ARGS__).setColours(colours)); }
 
 /// @ingroup tesmacros
 /// Render a small set of points, calling @c MeshShape::expandVertices().
@@ -584,8 +617,8 @@
 #define TES_TRIANGLE(server, colour, v0, v1, v2, ...) \
   if (server) \
   { \
-    const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-    tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(tes::Vector3f), ##__VA_ARGS__); \
+    const tes::V3Arg _tri[3] = { tes::V3Arg(v0), tes::V3Arg(v1), tes::V3Arg(v2) }; \
+    tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(tes::Vector3f), ##__VA_ARGS__); \
     shape.setColour(colour).setTwoSided(true); \
     (server)->create(shape); \
   }
@@ -601,8 +634,8 @@
 #define TES_TRIANGLE_W(server, colour, v0, v1, v2, ...) \
 if (server) \
 { \
-  const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-  tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(_tri[0]), ##__VA_ARGS__); shape.setColour(colour); \
+  const tes::V3Arg _tri[3] = { tes::V3Arg(v0), tes::V3Arg(v1), tes::V3Arg(v2) }; \
+  tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(_tri[0]), ##__VA_ARGS__); shape.setColour(colour); \
   shape.setWireframe(true); \
   (server)->create(shape); \
 }
@@ -616,8 +649,8 @@ if (server) \
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_TRIANGLE_T(server, colour, v0, v1, v2, ...) \
   { \
-    const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-    tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(_tri[0]), ##__VA_ARGS__); \
+    const tes::V3Arg _tri[3] = { tes::V3Arg(v0), tes::V3Arg(v1), tes::V3Arg(v2) }; \
+    tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(_tri[0]), ##__VA_ARGS__); \
     shape.setColour(colour); \
     shape.setTransparent(true).setTwoSided(true); \
     (server)->create(shape); \
@@ -640,8 +673,8 @@ if (server) \
 #define TES_TRIANGLE_I(server, colour, verts, i0, i1, i2, ...) \
   if (server) \
   { \
-    const tes::Vector3f _tri[3] = { tes::Vector3f((verts) + (i0 * 3)), tes::Vector3f((verts) + (i1 * 3)), tes::Vector3f((verts) + (i2 * 3)) }; \
-    tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(_tri[0]), ##__VA_ARGS__); \
+    const tes::V3Arg _tri[3] = { tes::V3Arg((verts) + (i0 * 3)), tes::V3Arg((verts) + (i1 * 3)), tes::V3Arg((verts) + (i2 * 3)) }; \
+    tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(_tri[0]), ##__VA_ARGS__); \
     shape.setColour(colour); \
     (server)->create(shape); \
   }
@@ -663,8 +696,8 @@ if (server) \
 #define TES_TRIANGLE_IW(server, colour, verts, i0, i1, i2, ...) \
   if (server) \
   { \
-    const tes::Vector3f _tri[3] = { tes::Vector3f((verts) + (i0 * 3)), tes::Vector3f((verts) + (i1 * 3)), tes::Vector3f((verts) + (i2 * 3)) }; \
-    tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(_tri[0]), ##__VA_ARGS__); \
+    const tes::V3Arg _tri[3] = { tes::V3Arg((verts) + (i0 * 3)), tes::V3Arg((verts) + (i1 * 3)), tes::V3Arg((verts) + (i2 * 3)) }; \
+    tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(_tri[0]), ##__VA_ARGS__); \
     shape.setColour(colour); \
     shape.setWireframe(true); \
     (server)->create(shape); \
@@ -687,8 +720,8 @@ if (server) \
 #define TES_TRIANGLE_IT(server, colour, verts, i0, i1, i2, ...) \
   if (server) \
   { \
-    const tes::Vector3f _tri[3] = { tes::Vector3f((verts) + (i0 * 3)), tes::Vector3f((verts) + (i1 * 3)), tes::Vector3f((verts) + (i2 * 3)) }; \
-    tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(_tri[0]), ##__VA_ARGS__); \
+    const tes::V3Arg _tri[3] = { tes::V3Arg((verts) + (i0 * 3)), tes::V3Arg((verts) + (i1 * 3)), tes::V3Arg((verts) + (i2 * 3)) }; \
+    tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(_tri[0]), ##__VA_ARGS__); \
     shape.setColour(colour); \
     shape.setTransparent(true).setTwoSided(true); \
     (server)->create(shape); \
@@ -955,6 +988,9 @@ if (server) \
 #define TES_ARROW(...)
 #define TES_ARROW_T(...)
 #define TES_ARROW_W(...)
+#define TES_BOX_AABB(...)
+#define TES_BOX_AABB_T(...)
+#define TES_BOX_AABB_W(...)
 #define TES_BOX(...)
 #define TES_BOX_T(...)
 #define TES_BOX_W(...)
@@ -976,6 +1012,7 @@ if (server) \
 #define TES_PLANE_W(...)
 #define TES_POINTCLOUDSHAPE(...)
 #define TES_POINTS(...)
+#define TES_POINTS_C(...)
 #define TES_POINTS_E(...)
 #define TES_VOXELS(...)
 #define TES_SPHERE(...)
