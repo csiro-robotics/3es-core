@@ -522,7 +522,7 @@ std::ostream &logShapeExtensions(std::ostream &o, const MeshSet &shape, const st
 
   std::string indent2 = indent + "  ";
   std::string indent3 = indent2 + "  ";
-  for (int i = 0; i < shape.partCount(); ++i)
+  for (unsigned i = 0; i < shape.partCount(); ++i)
   {
     if (i > 0)
     {

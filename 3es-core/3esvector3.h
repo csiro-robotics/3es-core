@@ -231,8 +231,8 @@ namespace tes
     inline Vector3<T> zyx() const { return Vector3<T>(x, y, x); }
   };
 
-  template class _3es_coreAPI Vector3<float>;
-  template class _3es_coreAPI Vector3<double>;
+  _3es_extern template class _3es_coreAPI Vector3<float>;
+  _3es_extern template class _3es_coreAPI Vector3<double>;
 
 
   //---------------------------------------------------------------------------

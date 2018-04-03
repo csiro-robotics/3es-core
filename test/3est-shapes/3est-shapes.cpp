@@ -376,7 +376,7 @@ namespace tes
 
     EXPECT_EQ(shape.partCount(), reference.partCount());
 
-    for (int i = 0; i < std::min(shape.partCount(), reference.partCount()); ++i)
+    for (unsigned i = 0; i < std::min(shape.partCount(), reference.partCount()); ++i)
     {
       // Remember, the mesh in shape is only a placeholder for the ID. The real mesh is in resources.
       // Validate resources. Fetch the transferred resource and compare against the reference resource.

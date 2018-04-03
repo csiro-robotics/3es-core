@@ -229,8 +229,8 @@ namespace tes
     inline Vector3<T> xyz() const { return Vector3<T>(x, y, z); }
   };
 
-  template class _3es_coreAPI Vector4<float>;
-  template class _3es_coreAPI Vector4<double>;
+  _3es_extern template class _3es_coreAPI Vector4<float>;
+  _3es_extern template class _3es_coreAPI Vector4<double>;
 
   //---------------------------------------------------------------------------
   // Arithmetic operators

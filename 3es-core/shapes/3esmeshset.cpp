@@ -130,7 +130,7 @@ bool MeshSet::readCreate(PacketReader &stream)
     _partCount = numberOfParts;
   }
 
-  for (int i = 0; i < _partCount; ++i)
+  for (unsigned i = 0; i < _partCount; ++i)
   {
     transformToQuaternionTranslation(_transforms[i], rot, pos, scale);
 
@@ -218,7 +218,7 @@ void MeshSet::cleanupParts()
 {
   if (_ownParts && _parts)
   {
-    for (int i = 0; i < _partCount; ++i)
+    for (unsigned i = 0; i < _partCount; ++i)
     {
       delete _parts[i];
     }

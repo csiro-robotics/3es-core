@@ -8,6 +8,13 @@
 #include "3es-core-export.h"
 #include "3esmeta.h"
 
+#ifdef TES_STATIC
+/// Macro for defining extern templates. Only use extern for static library.
+#define _3es_extern extern
+#else  // TES_STATIC
+#define _3es_extern
+#endif // TES_STATIC
+
 // Version setup.
 #define TES_VERSION_MAJOR @TES_VERSION_MAJOR@
 #define TES_VERSION_MINOR @TES_VERSION_MINOR@

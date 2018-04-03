@@ -45,18 +45,18 @@ namespace tes
 /// @param o The stream to set the mode for.
 /// @param mode The mode to set. See @c tes::MatMode
 /// @return @c o
-std::ostream & _3es_coreAPI matmode(std::ostream &o, int mode);
+std::ostream _3es_coreAPI &matmode(std::ostream &o, int mode);
 /// @ingroup tesiostream
 /// Set the @c tes::WMode used to display @c tes::Vector4 in a stream.
 /// @param o The stream to set the mode for.
 /// @param mode The mode to set. See @c tes::WMode
 /// @return @c o
-std::ostream & _3es_coreAPI v4wmode(std::ostream &o, int mode);
+std::ostream _3es_coreAPI &v4wmode(std::ostream &o, int mode);
 /// @ingroup tesiostream
 /// Set the @c tes::WMode used to display @c tes::Quaternion in a stream.
 /// @param o The stream to set the mode for.
 /// @param mode The mode to set. See @c tes::WMode
 /// @return @c o
-std::ostream & _3es_coreAPI quatwmode(std::ostream &o, int mode);
+std::ostream _3es_coreAPI &quatwmode(std::ostream &o, int mode);
 
 #endif // _3ESMATHSMANIP_H_

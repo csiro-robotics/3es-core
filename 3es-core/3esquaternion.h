@@ -199,8 +199,8 @@ namespace tes
   /// Defines a double precision quaternion.
   typedef Quaternion<double> Quaterniond;
 
-  template class _3es_coreAPI Quaternion<float>;
-  template class _3es_coreAPI Quaternion<double>;
+  _3es_extern template class _3es_coreAPI Quaternion<float>;
+  _3es_extern template class _3es_coreAPI Quaternion<double>;
 }
 
 #include "3esquaternion.inl"

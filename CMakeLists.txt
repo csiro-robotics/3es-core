@@ -11,7 +11,8 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 # Add cmake directory to the modules path.
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_LIST_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 
 # Ensure debug libraries are built with different named to release builds. This is to address issues such as MSVC
 # having different debug and release runtime libraries. For a well setup API, one which hides resource allocation and
@@ -43,6 +44,9 @@ endif(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang.*")
 # shipping an SDK. The last point is to address MSVC linked warnings which are impossible to suppress without providing
 # PDB files.
 if(MSVC)
+  # Enable multi processor compilation
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Zi")
   set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "/debug ${CMAKE_MODULE_LINKER_FLAGS_RELEASE}")

@@ -3,4 +3,8 @@
 // 
 #include "3esmatrix4.h" 
 
-using namespace tes;
+namespace tes
+{
+  template class Matrix4<float>;
+  template class Matrix4<double>;
+}
