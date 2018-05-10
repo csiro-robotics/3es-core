@@ -19,7 +19,7 @@ namespace tes
   {
   public:
     /// Creates a new packet reader for the given packet and its CRC.
-    PacketReader(const PacketHeader &packet);
+    PacketReader(const PacketHeader *packet);
 
     /// Calculates the CRC value, returning true if it matches. This also sets
     /// @c isCrcValid() on success.

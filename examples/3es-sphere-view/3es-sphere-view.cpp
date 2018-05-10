@@ -315,7 +315,7 @@ int main(int argc, char **argvNonConst)
 
   // Initialise settings: zero flags: no cache, compression or collation.
 #ifdef TES_ENABLE
-  unsigned serverFlags = 0;
+  unsigned serverFlags = tes::SF_NakedFrameMessage;
   if (haveOption("collate", argc, argv))
   {
     serverFlags = tes::SF_Collate;

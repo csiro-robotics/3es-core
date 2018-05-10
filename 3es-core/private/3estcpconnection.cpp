@@ -178,15 +178,14 @@ int TcpConnection::send(const CollatedPacket &collated)
 }
 
 
-int TcpConnection::send(const uint8_t *data, int byteCount)
+int TcpConnection::send(const uint8_t *data, int byteCount, bool allowCollation)
 {
   if (!_active)
   {
     return 0;
   }
 
-  //std::lock_guard<Lock> guard(_lock);
-  return writePacket(data, byteCount);
+  return writePacket(data, byteCount, allowCollation);
 }
 
 
@@ -202,7 +201,7 @@ int TcpConnection::create(const Shape &shape)
   if (shape.writeCreate(*_packet))
   {
     _packet->finalise();
-    writePacket(_packetBuffer.data(), _packet->packetSize());
+    writePacket(_packetBuffer.data(), _packet->packetSize(), true);
     unsigned writeSize = _packet->packetSize();
 
     // Write complex shape data.
@@ -217,7 +216,7 @@ int TcpConnection::create(const Shape &shape)
           return -1;
         }
 
-        writeSize += writePacket(_packetBuffer.data(), _packet->packetSize());
+        writeSize += writePacket(_packetBuffer.data(), _packet->packetSize(), true);
 
         if (res == 0)
         {
@@ -292,7 +291,7 @@ int TcpConnection::destroy(const Shape &shape)
   if (shape.writeDestroy(*_packet))
   {
     _packet->finalise();
-    writePacket(_packetBuffer.data(), _packet->packetSize());
+    writePacket(_packetBuffer.data(), _packet->packetSize(), true);
     return _packet->packetSize();
   }
   return -1;
@@ -311,7 +310,7 @@ int TcpConnection::update(const Shape &shape)
   {
     _packet->finalise();
 
-    writePacket(_packetBuffer.data(), _packet->packetSize());
+    writePacket(_packetBuffer.data(), _packet->packetSize(), true);
     return _packet->packetSize();
   }
   return -1;
@@ -336,7 +335,7 @@ int TcpConnection::updateTransfers(unsigned byteLimit)
       if (_currentResource->nextPacket(*_packet, byteLimit ? byteLimit - transfered : 0))
       {
         _packet->finalise();
-        writePacket(_packet->data(), _packet->packetSize());
+        writePacket(_packet->data(), _packet->packetSize(), true);
         transfered += _packet->packetSize();
       }
 
@@ -398,7 +397,7 @@ int TcpConnection::updateFrame(float dt, bool flush)
   if (msg.write(*_packet))
   {
     _packet->finalise();
-    wrote = writePacket(_packetBuffer.data(), _packet->packetSize());
+    wrote = writePacket(_packetBuffer.data(), _packet->packetSize(), !(_serverFlags & SF_NakedFrameMessage));
   }
   flushCollatedPacket();
   return wrote;
@@ -465,7 +464,7 @@ unsigned TcpConnection::releaseResource(uint64_t resourceId)
         _packet->reset();
         existing->second.resource->destroy(*_packet);
         _packet->finalise();
-        writePacket(_packetBuffer.data(), _packet->packetSize());
+        writePacket(_packetBuffer.data(), _packet->packetSize(), true);
       }
 
       _resources.erase(existing);
@@ -499,10 +498,16 @@ void TcpConnection::flushCollatedPacketUnguarded()
 }
 
 
-int TcpConnection::writePacket(const uint8_t *buffer, uint16_t byteCount)
+int TcpConnection::writePacket(const uint8_t *buffer, uint16_t byteCount, bool allowCollation)
 {
   std::unique_lock<Lock> guard(_sendLock);
-  if ((SF_Collate & _serverFlags) == 0)
+
+  if ((SF_Collate & _serverFlags) == 0 && !allowCollation)
+  {
+    flushCollatedPacketUnguarded();
+  }
+
+  if ((SF_Collate & _serverFlags) == 0 || !allowCollation)
   {
     return _client->write(buffer, byteCount);
   }

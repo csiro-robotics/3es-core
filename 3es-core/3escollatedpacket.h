@@ -202,8 +202,9 @@ namespace tes
     /// Aliased to @p add().
     /// @param buffer The data to add.
     /// @param bufferSize The number of bytes in @p buffer.
+    /// @param allowCollation Ignored in this context.
     /// @return The <tt>packet.packetSize()</tt> on success, or -1 on failure.
-    int send(const uint8_t *data, int byteCount) override;
+    int send(const uint8_t *data, int byteCount, bool allowCollation = true) override;
 
   private:
     /// Initialise the buffer.

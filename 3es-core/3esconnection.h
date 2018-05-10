@@ -111,12 +111,13 @@ namespace tes
     /// Send pre-prepared message data to all connections.
     /// @param data Data buffer to send.
     /// @param byteCount Number of bytes to send.
-    virtual int send(const uint8_t *data, int byteCount) = 0;
+    /// @param allowCollation True to allow the message to be collated (and compressed) with other messages.
+    virtual int send(const uint8_t *data, int byteCount, bool allowCollation = true) = 0;
 
     /// @overload
-    inline int send(const int8_t *data, int byteCount)
+    inline int send(const int8_t *data, int byteCount, bool allowCollation = true)
     {
-      return send((const uint8_t*)data, byteCount);
+      return send((const uint8_t*)data, byteCount, allowCollation);
     }
   };
 }

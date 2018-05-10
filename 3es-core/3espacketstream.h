@@ -47,33 +47,33 @@ namespace tes
 
     /// Create a stream to read from beginning at @p packet.
     /// @param packet The beginning of the data packet.
-    PacketStream(HEADER &packet);
+    PacketStream(HEADER *packet);
 
     // PacketHeader member access. Ensures network endian swap as required.
     /// Fetch the marker bytes in local endian.
     /// @return The @c PacketHeader::marker bytes.
-    uint32_t marker() const { return networkEndianSwapValue(_packet.marker); }
+    uint32_t marker() const { return networkEndianSwapValue(_packet->marker); }
     /// Fetch the major version bytes in local endian.
     /// @return The @c PacketHeader::versionMajor bytes.
-    uint16_t versionMajor() const { return networkEndianSwapValue(_packet.versionMajor); }
+    uint16_t versionMajor() const { return networkEndianSwapValue(_packet->versionMajor); }
     /// Fetch the minor version bytes in local endian.
     /// @return The @c PacketHeader::versionMinor bytes.
-    uint16_t versionMinor() const { return networkEndianSwapValue(_packet.versionMinor); }
+    uint16_t versionMinor() const { return networkEndianSwapValue(_packet->versionMinor); }
     /// Fetch the payload size bytes in local endian.
     /// @return The @c PacketHeader::payloadSize bytes.
-    uint16_t payloadSize() const { return networkEndianSwapValue(_packet.payloadSize); }
+    uint16_t payloadSize() const { return networkEndianSwapValue(_packet->payloadSize); }
     /// Returns the size of the packet plus payload, giving the full data packet size including the CRC.
     /// @return PacketHeader data size (bytes).
     uint16_t packetSize() const { return sizeof(HEADER) + payloadSize() + (((packet().flags & PF_NoCrc) == 0) ? sizeof(CrcType) : 0); }
     /// Fetch the routing ID bytes in local endian.
     /// @return The @c PacketHeader::routingId bytes.
-    uint16_t routingId() const { return networkEndianSwapValue(_packet.routingId); }
+    uint16_t routingId() const { return networkEndianSwapValue(_packet->routingId); }
     /// Fetch the message ID bytes in local endian.
     /// @return The @c PacketHeader::messageId bytes.
-    uint16_t messageId() const { return networkEndianSwapValue(_packet.messageId); }
+    uint16_t messageId() const { return networkEndianSwapValue(_packet->messageId); }
     /// Fetch the flags bytes in local endian.
     /// @return the @c PacketHeader::flags bytes.
-    uint8_t flags() const { return networkEndianSwapValue(_packet.flags); }
+    uint8_t flags() const { return networkEndianSwapValue(_packet->flags); }
     /// Fetch the CRC bytes in local endian.
     /// Invalid for packets with the @c PF_NoCrc flag set.
     /// @return The packet's CRC value.
@@ -122,7 +122,7 @@ namespace tes
     const uint8_t *payload() const;
 
   protected:
-    HEADER &_packet;    ///< Packet header and buffer start address.
+    HEADER *_packet;    ///< Packet header and buffer start address.
     uint16_t _status;   ///< @c Status bits.
     uint16_t _payloadPosition;  ///< Payload cursor.
 
@@ -149,7 +149,7 @@ namespace tes
   _3es_extern template class _3es_coreAPI PacketStream<const PacketHeader>;
 
   template <class HEADER>
-  PacketStream<HEADER>::PacketStream(HEADER &packet)
+  PacketStream<HEADER>::PacketStream(HEADER *packet)
     : _packet(packet)
     , _status(Ok)
     , _payloadPosition(0u)
@@ -167,7 +167,7 @@ namespace tes
     switch (pos)
     {
     case Begin:
-      if (offset <= _packet.payloadSize)
+      if (offset <= _packet->payloadSize)
       {
         _payloadPosition = offset;
         return true;
@@ -175,7 +175,7 @@ namespace tes
       break;
 
     case Current:
-      if (offset >= 0 && offset + _payloadPosition <= _packet.payloadSize ||
+      if (offset >= 0 && offset + _payloadPosition <= _packet->payloadSize ||
         offset < 0 && _payloadPosition >= -offset)
       {
         _payloadPosition += offset;
@@ -184,9 +184,9 @@ namespace tes
       break;
 
     case End:
-      if (offset < _packet.payloadSize)
+      if (offset < _packet->payloadSize)
       {
-        _payloadPosition = _packet.payloadSize - 1 - offset;
+        _payloadPosition = _packet->payloadSize - 1 - offset;
         return true;
       }
       break;
@@ -204,7 +204,7 @@ namespace tes
   {
     // CRC appears after the payload.
     // TODO: fix the const correctness of this.
-    uint8_t *pos = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&_packet)) + sizeof(HEADER) + payloadSize();
+    uint8_t *pos = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(_packet)) + sizeof(HEADER) + payloadSize();
     return reinterpret_cast<CrcType*>(pos);
   }
 
@@ -213,7 +213,7 @@ namespace tes
   const typename PacketStream<HEADER>::CrcType *PacketStream<HEADER>::crcPtr() const
   {
     // CRC appears after the payload.
-    const uint8_t *pos = reinterpret_cast<const uint8_t*>(&_packet) + sizeof(HEADER) + payloadSize();
+    const uint8_t *pos = reinterpret_cast<const uint8_t*>(_packet) + sizeof(HEADER) + payloadSize();
     return reinterpret_cast<const CrcType*>(pos);
   }
 
@@ -227,7 +227,7 @@ namespace tes
   template <class HEADER>
   inline HEADER &PacketStream<HEADER>::packet() const
   {
-    return _packet;
+    return *_packet;
   }
 
   template <class HEADER>
@@ -239,7 +239,7 @@ namespace tes
   template <class HEADER>
   inline const uint8_t *PacketStream<HEADER>::payload() const
   {
-    return reinterpret_cast<const uint8_t*>(&_packet) + sizeof(HEADER);
+    return reinterpret_cast<const uint8_t*>(_packet) + sizeof(HEADER);
   }
 }
 

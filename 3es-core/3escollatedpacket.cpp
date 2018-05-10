@@ -7,43 +7,14 @@
 #include "3esmaths.h"
 #include "3esmessages.h"
 
-#include "shapes/3esshape.h"
+#include "private/3escollatedpacketzip.h"
 
-#ifdef TES_ZLIB
-#include <zlib.h>
-#endif // TES_ZLIB
+#include "shapes/3esshape.h"
 
 #include <algorithm>
 #include <cstring>
 
 using namespace tes;
-
-namespace tes
-{
-  struct CollatedPacketZip
-  {
-#ifdef TES_ZLIB
-    /// ZLib stream.
-    z_stream stream;
-
-    CollatedPacketZip()
-    {
-      memset(&stream, 0, sizeof(stream));
-    }
-
-    ~CollatedPacketZip()
-    {
-      // Ensure clean up
-      if (stream.total_out)
-      {
-        deflate(&stream, Z_FINISH);
-        deflateEnd(&stream);
-      }
-    }
-#else  // TES_ZLIB
-#endif // TES_ZLIB
-  };
-}
 
 namespace
 {
@@ -202,7 +173,7 @@ bool CollatedPacket::finalise()
     const int GZipEncoding = 16;
     //Z_BEST_COMPRESSION
     // params: stream,level, method, window bits, memLevel, strategy
-    deflateInit2(&_zip->stream, Z_BEST_COMPRESSION, Z_DEFLATED, windowBits | GZipEncoding, 8, Z_DEFAULT_STRATEGY);
+    deflateInit2(&_zip->stream, Z_BEST_COMPRESSION, Z_DEFLATED, CollatedPacketZip::WindowBits | CollatedPacketZip::GZipEncoding, 8, Z_DEFAULT_STRATEGY);
     _zip->stream.next_out = (Bytef *)_finalBuffer + InitialCursorOffset;
     _zip->stream.avail_out = (uInt)(_finalBufferSize - Overhead);
 
@@ -315,7 +286,7 @@ int CollatedPacket::create(const Shape &shape)
   PacketWriter writer(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
   // Keep trying to write the packet while we don't have a fatal error.
   // Supports resizing the buffer.
-  while (wroteMessage && written != -1)
+  while (!wroteMessage && written != -1)
   {
     wroteMessage = shape.writeCreate(writer);
     if (wroteMessage)
@@ -588,7 +559,7 @@ bool CollatedPacket::sendServerInfo(const ServerInfoMessage &info)
 }
 
 
-int CollatedPacket::send(const uint8_t *data, int byteCount)
+int CollatedPacket::send(const uint8_t *data, int byteCount, bool /*allowCollation*/)
 {
   if (!_active)
   {
@@ -618,7 +589,11 @@ void CollatedPacket::init(bool compress, unsigned bufferSize, unsigned maxPacket
 #ifdef TES_ZLIB
   if (compress)
   {
-    _zip = new CollatedPacketZip;
+    _zip = new CollatedPacketZip(false);
+  }
+  else
+  {
+    delete _zip;
   }
 #endif // TES_ZLIB
 }

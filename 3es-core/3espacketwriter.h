@@ -44,7 +44,7 @@ namespace tes
     /// @param packet The packet to write to.
     /// @param maxPayloadSize Specifies the space available for the payload (bytes).
     ///   This is in excess of the packet size, not the total buffer size.
-    PacketWriter(PacketHeader &packet, uint16_t maxPayloadSize, uint16_t routingId = 0, uint16_t messageId = 0);
+    PacketWriter(PacketHeader *packet, uint16_t maxPayloadSize, uint16_t routingId = 0, uint16_t messageId = 0);
 
     /// Creates a @c PacketWriter to write to the given byte buffer.
     ///
@@ -161,7 +161,7 @@ namespace tes
 
     template <typename T>
     size_t writeArray(const T *elements, size_t elementCount);
-
+    
     template <typename T>
     PacketWriter &operator >> (T &val);
 
@@ -174,22 +174,22 @@ namespace tes
 
   inline void PacketWriter::setRoutingId(uint16_t routingId)
   {
-    _packet.routingId = routingId;
+    _packet->routingId = routingId;
   }
 
   inline PacketHeader &PacketWriter::packet() const
   {
-    return _packet;
+    return *_packet;
   }
 
   inline const uint8_t *PacketWriter::data() const
   {
-    return reinterpret_cast<uint8_t*>(&_packet);
+    return reinterpret_cast<uint8_t*>(_packet);
   }
 
   inline uint8_t *PacketWriter::payload()
   {
-    return reinterpret_cast<uint8_t*>(&_packet) + sizeof(PacketHeader);
+    return reinterpret_cast<uint8_t*>(_packet) + sizeof(PacketHeader);
   }
 
   template <typename T>

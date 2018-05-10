@@ -288,9 +288,9 @@ unsigned TcpServer::releaseResource(const Resource *resource)
 }
 
 
-int TcpServer::send(const PacketWriter &packet)
+int TcpServer::send(const PacketWriter &packet, bool allowCollation)
 {
-  return send(packet.data(), packet.packetSize());
+  return send(packet.data(), packet.packetSize(), allowCollation);
 }
 
 
@@ -317,7 +317,7 @@ int TcpServer::send(const CollatedPacket &collated)
 }
 
 
-int TcpServer::send(const uint8_t *data, int byteCount)
+int TcpServer::send(const uint8_t *data, int byteCount, bool allowCollation)
 {
   if (!_active)
   {
@@ -329,7 +329,7 @@ int TcpServer::send(const uint8_t *data, int byteCount)
   std::lock_guard<Lock> guard(_lock);
   for (TcpConnection *con : _connections)
   {
-    sent = con->send(data, byteCount);
+    sent = con->send(data, byteCount, allowCollation);
     if (sent == -1)
     {
       failed = true;

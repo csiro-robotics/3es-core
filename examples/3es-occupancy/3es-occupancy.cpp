@@ -578,7 +578,7 @@ int main(int argc, char *argv[])
   }
 
   // Initialise TES
-  TES_SETTINGS(settings, tes::SF_Compress | tes::SF_Collate);
+  TES_SETTINGS(settings, tes::SF_Default);
   // Initialise server info.
   TES_SERVER_INFO(info, tes::XYZ);
   // Create the server. Use tesServer declared globally above.

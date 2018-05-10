@@ -84,7 +84,7 @@ PacketHeader *PacketBuffer::extractPacket()
     // Remember, the CRC appears after the packet payload. We have to include
     // that in our mem copy.
     PacketHeader *pending = reinterpret_cast<PacketHeader*>(_packetBuffer);
-    PacketReader reader(*pending);
+    PacketReader reader(pending);
     if (sizeof(PacketHeader) + reader.payloadSize() + sizeof(PacketReader::CrcType) <= _byteCount)
     {
       // We have a full packet. Allocate a copy and extract the full packet data.
@@ -121,9 +121,9 @@ PacketHeader *PacketBuffer::extractPacket()
 }
 
 
-void PacketBuffer::releasePacket(PacketHeader *packet)
+void PacketBuffer::releasePacket(const PacketHeader *packet)
 {
-  delete[] reinterpret_cast<uint8_t *>(packet);
+  delete[] reinterpret_cast<const uint8_t *>(packet);
 }
 
 

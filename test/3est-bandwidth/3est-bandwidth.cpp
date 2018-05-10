@@ -113,7 +113,7 @@ int main(int argc, char **argvNonConst)
   ServerInfoMessage info;
   initDefaultServerInfo(&info);
   info.coordinateFrame = XYZ;
-  unsigned serverFlags = SF_Collate;
+  unsigned serverFlags = SF_DefaultNoCompression;
   if (haveOption("compress", argc, argv))
   {
     serverFlags |= SF_Compress;

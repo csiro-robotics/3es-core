@@ -3,6 +3,7 @@ list(APPEND PUBLIC_HEADERS
   # General headers
   3esbounds.h
   3escollatedpacket.h
+  3escollatedpacketdecoder.h
   3escolour.h
   3esconnection.h
   3esconnectionmonitor.h
@@ -80,6 +81,7 @@ list(APPEND PUBLIC_SHAPE_HEADERS
 list(APPEND SOURCES
   3esbounds.cpp
   3escollatedpacket.cpp
+  3escollatedpacketdecoder.cpp
   3escolour.cpp
   3escoreutil.cpp
   3escrc.cpp
@@ -123,6 +125,7 @@ list(APPEND SOURCES
 )
 
 list(APPEND PRIVATE_SOURCES
+  private/3escollatedpacketzip.h
   private/3esitemtransfer.h
   private/3estcpconnection.cpp
   private/3estcpconnection.h

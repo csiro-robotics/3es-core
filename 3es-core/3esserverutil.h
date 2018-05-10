@@ -21,16 +21,17 @@ namespace tes
   /// @param connection The @c Server or @c Connection to send the message via (@c Connection::send()).
   /// @param routingId The ID of the message handler which will decode the message.
   /// @param message The message data to pack.
+  /// @param allowCollation Allow collation with other messages? False to disallow collation and compression for @p message.
   /// @return The number of bytes written to @p connection, or -1 on failure.
   template <class MESSAGE, unsigned BufferSize = 256>
-  int sendMessage(Connection &connection, uint16_t routingId, uint16_t messageId, const MESSAGE &message)
+  int sendMessage(Connection &connection, uint16_t routingId, uint16_t messageId, const MESSAGE &message, bool allowCollation = true)
   {
     uint8_t buffer[BufferSize];
     PacketWriter writer(buffer, BufferSize);
     writer.reset(routingId, messageId);
     if (message.write(writer) && writer.finalise())
     {
-      return connection.send(writer.data(), writer.packetSize());
+      return connection.send(writer.data(), writer.packetSize(), allowCollation);
     }
 
     return -1;
