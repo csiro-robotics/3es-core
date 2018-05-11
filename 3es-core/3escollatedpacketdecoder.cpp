@@ -55,6 +55,11 @@ namespace tes
         return false;
       }
 
+      if (buffer.size() < DefaultBufferSize)
+      {
+        buffer.resize(DefaultBufferSize);
+      }
+
       PacketReader reader(packet);
       if (reader.routingId() == MtCollatedPacket)
       {
@@ -196,7 +201,7 @@ namespace tes
           return nullptr;
         }
 
-        decodedBytes = zip.stream.total_out;
+        decodedBytes = unsigned(zip.stream.total_out);
 
         if (!reader.checkCrc())
         {

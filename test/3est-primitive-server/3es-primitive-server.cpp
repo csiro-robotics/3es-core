@@ -132,11 +132,11 @@ PointCloudShape *createCloud(unsigned id, const std::vector<Vector3f> &vertices,
 
 MeshSet *createMeshSet(unsigned id, const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices, std::vector<MeshResource *> &resources)
 {
-  int partCount = 5;
+  const unsigned partCount = 5;
 
   MeshSet *shape = new MeshSet(id, 0, partCount);
 
-  for (int i = 0; i < partCount; ++i)
+  for (unsigned i = 0; i < partCount; ++i)
   {
     SimpleMesh *mesh = new SimpleMesh(id * 100 + i, unsigned(vertices.size()), unsigned(indices.size()));
     mesh->addComponents(SimpleMesh::Normal);
@@ -189,7 +189,7 @@ bool haveOption(const char *opt, int argc, const char **argv)
 }
 
 
-void defineCategory(Server *server, const char *name, unsigned id, unsigned parentId, bool active)
+void defineCategory(Server *server, const char *name, uint16_t id, uint16_t parentId, bool active)
 {
   CategoryNameMessage msg;
   msg.categoryId = id;
@@ -223,6 +223,9 @@ T *initShape(T *shape)
 template <class T>
 std::ostream &logShapeExtensions(std::ostream &o, const T &shape, const std::string &indent)
 {
+  TES_UNUSED(o);
+  TES_UNUSED(shape);
+  TES_UNUSED(indent);
   return o;
 }
 
@@ -627,6 +630,7 @@ void addShape(T *shape, Server *server, std::vector<Shape *> &shapes, const char
 
 void showUsage(int argc, char **argv)
 {
+  TES_UNUSED(argc);
   std::cout << "Usage:\n";
   std::cout << argv[0] << " [options] [shapes]\n";
   std::cout << "\nValid options:\n";

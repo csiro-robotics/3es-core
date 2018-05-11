@@ -41,7 +41,7 @@ namespace
     // - tupleSize = 3
     // - dataSizeBytes = sizeof(float)
     // - dataStrideBytes = 16
-    int tupleSize;
+    unsigned tupleSize;
   };
 
 
@@ -335,7 +335,6 @@ int MeshShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
   // Local byte overhead needs to account for the size of sendType, offset and itemCount.
   // Use a larger value as I haven't got the edge cases quite right yet.
   const size_t localByteOverhead = 100;
-  const unsigned colourCount = (_colours) ? _vertexCount : 0;
   msg.id = _data.id;
   stream.reset(routingId(), DataMessage::MessageId);
   ok = msg.write(stream);
@@ -346,7 +345,7 @@ int MeshShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
   uint16_t sendType;
 
   // Resolve what we are currently sending.
-  int phaseIndex = 0;
+  unsigned phaseIndex = 0;
   unsigned previousPhaseOffset = 0;
 
   // Order to send data in and information required to automate sending.
@@ -374,7 +373,7 @@ int MeshShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
   {
     const DataPhase &phase = phases[phaseIndex];
     // Send part of current phase.
-    const int maxItemCout = MeshResource::estimateTransferCount(phase.dataSizeByte * phase.tupleSize, 0, sizeof(DataMessage) + localByteOverhead);
+    const unsigned maxItemCout = MeshResource::estimateTransferCount(phase.dataSizeByte * phase.tupleSize, 0, sizeof(DataMessage) + localByteOverhead);
     offset = progressMarker - previousPhaseOffset;
     itemCount = uint32_t(std::min<uint32_t>(phase.itemCount - offset, maxItemCout));
 

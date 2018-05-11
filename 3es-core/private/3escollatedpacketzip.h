@@ -4,6 +4,8 @@
 
 #include "3es-core.h"
 
+#include "3escompressionlevel.h"
+
 #ifdef TES_ZLIB
 #include <cstring>
 
@@ -12,11 +14,14 @@
 
 namespace tes
 {
+  extern const int TesToGZipCompressionLevel[CL_Levels];
+
   struct CollatedPacketZip
   {
 #ifdef TES_ZLIB
     static const int WindowBits = 15;
     static const int GZipEncoding = 16;
+    static const int DefaultCompressionLevel;
 
     /// ZLib stream.
     z_stream stream;

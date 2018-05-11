@@ -169,7 +169,7 @@ namespace tes
     case Begin:
       if (offset <= _packet->payloadSize)
       {
-        _payloadPosition = offset;
+        _payloadPosition = uint16_t(offset);
         return true;
       }
       break;
@@ -186,7 +186,7 @@ namespace tes
     case End:
       if (offset < _packet->payloadSize)
       {
-        _payloadPosition = _packet->payloadSize - 1 - offset;
+        _payloadPosition = uint16_t(_packet->payloadSize - 1 - offset);
         return true;
       }
       break;

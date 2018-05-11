@@ -56,6 +56,7 @@ bool haveOption(const char *opt, int argc, const char **argv)
 
 void showUsage(int argc, char **argv)
 {
+  TES_UNUSED(argc);
   std::cout << "Usage:\n";
   std::cout << argv[0] << " [options] [shapes]\n";
   std::cout << "\nValid options:\n";
@@ -121,7 +122,6 @@ int main(int argc, char **argvNonConst)
 
   Server *server = Server::create(ServerSettings(serverFlags), &info);
 
-  const unsigned targetFrameTimeMs = 1000 / 30;
   float time = 0;
   auto lastTime = std::chrono::system_clock::now();
 
@@ -137,10 +137,6 @@ int main(int argc, char **argvNonConst)
     time += dt;
 
     // Send triangle data in chunks.
-    size_t offset = 0;
-    size_t count = 0;
-    const size_t limit = 64998; // Must be divisible by 3.
-
     MeshShape shape(DtTriangles, triangles.data()->v, (unsigned)triangles.size(), sizeof(*triangles.data()));  // Transient triangles.
     server->create(shape);
 

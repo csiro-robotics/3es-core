@@ -157,7 +157,7 @@ namespace tes
   Quaternion<T> Quaternion<T>::normalised(const T &epsilon) const
   {
     Quaternion<T> q = *this;
-    q.normalise();
+    q.normalise(epsilon);
     return q;
   }
 

@@ -34,9 +34,8 @@ namespace tes
 
     /// Create a new connection using the given @p clientSocket.
     /// @param clientSocket The socket to communicate on.
-    /// @param serverFlags @c ServerFlag values affecting the connection.
-    ///   Not all have an effect on the connection.
-    TcpConnection(TcpSocket *clientSocket, unsigned serverFlags, uint16_t bufferSize);
+    /// @param settings Various server settings to initialise with.
+    TcpConnection(TcpSocket *clientSocket, const ServerSettings &settings);
     ~TcpConnection();
 
     /// Close the socket connection.

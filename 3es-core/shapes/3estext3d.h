@@ -155,6 +155,7 @@ namespace tes
   {
     setPosition(pos);
     setText(text, (uint16_t)strlen(text));
+    setFacing(facing);
     setFontSize(fontSize);
   }
 
@@ -177,6 +178,7 @@ namespace tes
   {
     setPosition(pos);
     setText(text, (uint16_t)strlen(text));
+    setFacing(facing);
     setFontSize(fontSize);
   }
 
@@ -199,6 +201,7 @@ namespace tes
   {
     setPosition(pos);
     setText(text, (uint16_t)strlen(text));
+    setFacing(facing);
     setFontSize(fontSize);
   }
 

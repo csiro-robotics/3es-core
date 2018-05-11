@@ -23,7 +23,7 @@ namespace
       {
         // First marker byte found. Check for the rest.
         bool found = true;
-        for (int j = 1; j < sizeof(packetMarker); ++j)
+        for (unsigned j = 1; j < sizeof(packetMarker); ++j)
         {
           found = found && bytes[i + j] == markerBytes[j];
         }
@@ -70,7 +70,7 @@ int PacketBuffer::addBytes(const uint8_t *bytes, size_t byteCount)
   if (markerPos >= 0)
   {
     _markerFound = true;
-    appendData(bytes + markerPos, byteCount - markerPos);
+    appendData(bytes + markerPos, byteCount - size_t(markerPos));
   }
 
   return -1;

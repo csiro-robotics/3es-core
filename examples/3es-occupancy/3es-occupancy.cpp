@@ -96,6 +96,8 @@ namespace
 
   bool optionValue(const char *arg, int argc, char *argv[], std::string &value)
   {
+    TES_UNUSED(argc);
+    TES_UNUSED(argv);
     if (*arg == '=')
     {
       ++arg;
@@ -243,7 +245,6 @@ int populateMap(const Options &opt)
     // Compute free ray.
     map.computeRayKeys(p2p(origin), p2p(sample), rayKeys);
     // Draw intersected voxels.
-    const size_t rayKeyCount = rayKeys.size();
     keyIndex = 0;
     for (auto key : rayKeys)
     {
@@ -452,6 +453,8 @@ void initialiseDebugCategories(const Options &opt)
 int main(int argc, char *argv[])
 {
   Options opt;
+
+  signal(SIGINT, onSignal);
 
   if (argc < 3)
   {

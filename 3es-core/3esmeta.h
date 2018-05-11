@@ -9,6 +9,8 @@
 
 // Do not include 3es-core for now. That would be circular.
 
+#define TES_UNUSED(x) (void)(x)
+
 #ifdef __clang__
 #define TES_FALLTHROUGH [[clang::fallthrough]]
 #endif // __clang__

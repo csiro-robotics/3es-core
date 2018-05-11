@@ -97,7 +97,7 @@ namespace tes
     /// @param[in,out] progress A progress marker tracking how much has already been transferred, and
     ///     updated to indicate what has been added to @p packet.
     /// @return Zero on success, an error code otherwise.
-    virtual int transfer(PacketWriter &packet, int byteLimit, TransferProgress &progress) const = 0;
+    virtual int transfer(PacketWriter &packet, unsigned byteLimit, TransferProgress &progress) const = 0;
 
     virtual bool readCreate(PacketReader &packet) = 0;
     virtual bool readTransfer(int messageType, PacketReader &packet) = 0;

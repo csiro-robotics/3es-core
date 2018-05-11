@@ -86,7 +86,7 @@ namespace tes
     /// This may be TCP specific.
     ///
     /// @return The port connections are being monitored on.
-    virtual int port() const = 0;
+    virtual unsigned short port() const = 0;
 
     /// Starts the monitor listening in the specified mode.
     ///

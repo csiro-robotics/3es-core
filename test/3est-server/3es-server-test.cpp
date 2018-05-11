@@ -81,7 +81,7 @@ public:
 
   virtual void reset() {}
 
-  virtual void update(float time, float dt) {}
+  virtual void update(float time, float dt) { TES_UNUSED(time); TES_UNUSED(dt); }
 
 protected:
   virtual void onShapeChange() {}
@@ -96,8 +96,8 @@ class Oscilator : public ShapeMover
 public:
   inline Oscilator(Shape *shape, float amplitude = 1.0f, float period = 5.0f, const Vector3f &axis = Vector3f(0, 0, 1))
     : ShapeMover(shape)
-    , _axis(axis)
     , _referencePos(shape ? shape->position() : Vector3f::zero)
+    , _axis(axis)
     , _amplitude(amplitude)
     , _period(period)
   {
@@ -116,6 +116,7 @@ public:
 
   void update(float time, float dt) override
   {
+    TES_UNUSED(dt);
     Vector3f pos = _referencePos + _amplitude * std::sin(time) * _axis;
     shape()->setPosition(pos);
   }
@@ -197,6 +198,8 @@ bool haveOption(const char *opt, int argc, const char **argv)
 
 void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<ShapeMover *> &movers, std::vector<Resource *> &resources, int argc, const char **argv)
 {
+  TES_UNUSED(movers);
+  TES_UNUSED(resources);
   if (!haveOption("noaxes", argc, argv))
   {
     const float arrowLength = 1.0f;
@@ -501,6 +504,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
 void showUsage(int argc, char **argv)
 {
+  TES_UNUSED(argc);
   std::cout << "Usage:\n";
   std::cout << argv[0] << " [options] [shapes]\n";
   std::cout << "\nValid options:\n";

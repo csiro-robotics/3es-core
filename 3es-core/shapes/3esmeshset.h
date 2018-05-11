@@ -70,7 +70,7 @@ namespace tes
 
     /// Enumerate the mesh resources for this shape.
     /// @todo Add material resources.
-    int enumerateResources(const Resource **resources, int capacity, int fetchOffset = 0) const override;
+    unsigned enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset = 0) const override;
 
     /// Clone the mesh shape. @c MeshResource objects are shared.
     /// @return The cloned shape.

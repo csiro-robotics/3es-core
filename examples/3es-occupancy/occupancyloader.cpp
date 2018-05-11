@@ -168,7 +168,7 @@ bool OccupancyLoader::nextPoint(tes::Vector3f &sample, tes::Vector3f &origin, do
   {
     const liblas::Point &p = _imp->sampleReader->GetPoint();
     const double timestamp = p.GetTime();
-    if (*timestampOut)
+    if (timestampOut)
     {
       *timestampOut = timestamp;
     }

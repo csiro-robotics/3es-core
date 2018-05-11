@@ -24,11 +24,19 @@ namespace tes
   class Matrix3
   {
   public:
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma GCC diagnostic ignored "-Wnested-anon-types"
+#endif // __GNUC__
     union
     {
       T rc[3][3]; ///< Row/column indexing representation.
       T m[9];     ///< Array representation.
     };
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif // __GNUC__
     static const Matrix3<T> zero; ///< A matrix with all zero elements.
     static const Matrix3<T> identity; ///< The identity matrix.
 

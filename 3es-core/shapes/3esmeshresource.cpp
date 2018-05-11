@@ -22,8 +22,12 @@ namespace
   {
     MeshComponentMessage msg;
     const unsigned elementSize = sizeof(T) * ELEMCOUNT;
-    int effectiveByteLimit = packet.bytesRemaining() - (sizeof(msg) + sizeof(PacketWriter::CrcType));
-    if (effectiveByteLimit < 0)
+    unsigned effectiveByteLimit;
+    if (packet.bytesRemaining() >= (sizeof(msg) + sizeof(PacketWriter::CrcType)))
+    {
+      effectiveByteLimit = packet.bytesRemaining() - (sizeof(msg) + sizeof(PacketWriter::CrcType));
+    }
+    else
     {
       effectiveByteLimit = 0;
     }
@@ -31,11 +35,11 @@ namespace
     // FIXME: Without the additional overhead I was getting missing messages at the client with
     // no obvious error path.
     byteLimit = std::min(byteLimit, 0xff00u);
-    effectiveByteLimit = byteLimit ? std::min<int>(effectiveByteLimit, byteLimit) : effectiveByteLimit;
+    effectiveByteLimit = byteLimit ? std::min(effectiveByteLimit, byteLimit) : effectiveByteLimit;
     uint16_t transferCount = MeshResource::estimateTransferCount(elementSize, effectiveByteLimit, int(sizeof(MeshComponentMessage)));
     if (transferCount > componentCount - offset)
     {
-      transferCount = componentCount - offset;
+      transferCount = uint16_t(componentCount - offset);
     }
 
     msg.meshId = meshId;
@@ -75,7 +79,7 @@ namespace
 }
 
 
-int MeshResource::estimateTransferCount(size_t elementSize, unsigned byteLimit, int overhead)
+uint16_t MeshResource::estimateTransferCount(size_t elementSize, unsigned byteLimit, unsigned overhead)
 {
   //                                    packet header           message                         crc
   const size_t maxTransfer = (0xffffu - (sizeof(PacketHeader) + overhead + sizeof(uint16_t))) / elementSize;
@@ -141,7 +145,7 @@ int MeshResource::destroy(PacketWriter &packet) const
 }
 
 
-int MeshResource::transfer(PacketWriter &packet, int byteLimit, TransferProgress &progress) const
+int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferProgress &progress) const
 {
   //packet.reset(typeId(), 0);
   if (progress.phase == 0)
@@ -254,8 +258,12 @@ unsigned MeshResource::writeIndices(PacketWriter &packet, uint32_t meshId,
   uint32_t index;
   MeshComponentMessage msg;
   const unsigned elementSize = sizeof(index);
-  int effectiveByteLimit = packet.bytesRemaining() - sizeof(msg) - sizeof(PacketWriter::CrcType);
-  if (effectiveByteLimit < 0)
+  unsigned effectiveByteLimit;
+  if (packet.bytesRemaining() >= sizeof(msg) + sizeof(PacketWriter::CrcType))
+  {
+    effectiveByteLimit = packet.bytesRemaining() - (sizeof(msg) + sizeof(PacketWriter::CrcType));
+  }
+  else
   {
     effectiveByteLimit = 0;
   }
@@ -263,7 +271,7 @@ unsigned MeshResource::writeIndices(PacketWriter &packet, uint32_t meshId,
   // FIXME: Without the additional overhead I was getting missing messages at the client with
   // no obvious error path.
   byteLimit = std::min(byteLimit, 0xff00u);
-  effectiveByteLimit = byteLimit ? std::min<int>(effectiveByteLimit, byteLimit) : effectiveByteLimit;
+  effectiveByteLimit = byteLimit ? std::min(effectiveByteLimit, byteLimit) : effectiveByteLimit;
   uint16_t transferCount = estimateTransferCount(elementSize, effectiveByteLimit, int(sizeof(MeshComponentMessage)));
   if (transferCount > componentCount - offset)
   {
@@ -489,47 +497,69 @@ void MeshResource::nextPhase(TransferProgress &progress) const
 
 bool MeshResource::processCreate(const MeshCreateMessage &msg)
 {
+  TES_UNUSED(msg);
   return false;
 }
 
 
 bool MeshResource::processVertices(const MeshComponentMessage &msg, const float *vertices, unsigned vertexCount)
 {
+  TES_UNUSED(msg);
+  TES_UNUSED(vertices);
+  TES_UNUSED(vertexCount);
   return false;
 }
 
 
 bool MeshResource::processIndices(const MeshComponentMessage &msg, const uint8_t *indices, unsigned indexCount)
 {
+  TES_UNUSED(msg);
+  TES_UNUSED(indices);
+  TES_UNUSED(indexCount);
   return false;
 }
 
 
 bool MeshResource::processIndices(const MeshComponentMessage &msg, const uint16_t *indices, unsigned indexCount)
 {
+  TES_UNUSED(msg);
+  TES_UNUSED(indices);
+  TES_UNUSED(indexCount);
   return false;
 }
 
 
 bool MeshResource::processIndices(const MeshComponentMessage &msg, const uint32_t *indices, unsigned indexCount)
 {
+  TES_UNUSED(msg);
+  TES_UNUSED(indices);
+  TES_UNUSED(indexCount);
   return false;
 }
 
 
 bool MeshResource::processColours(const MeshComponentMessage &msg, const uint32_t *colours, unsigned colourCount)
 {
+  TES_UNUSED(msg);
+  TES_UNUSED(colours);
+  TES_UNUSED(colourCount);
   return false;
 }
 
 
 bool MeshResource::processNormals(const MeshComponentMessage &msg, const float *normals, unsigned normalCount)
 {
+  TES_UNUSED(msg);
+  TES_UNUSED(normals);
+  TES_UNUSED(normalCount);
   return false;
 }
 
 
 bool MeshResource::processUVs(const MeshComponentMessage &msg, const float *uvs, unsigned uvCount)
 {
+  TES_UNUSED(msg);
+  TES_UNUSED(uvs);
+  TES_UNUSED(uvCount);
   return false;
 }

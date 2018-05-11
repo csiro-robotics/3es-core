@@ -58,7 +58,7 @@ bool ResourcePacker::nextPacket(PacketWriter &packet, unsigned byteLimit)
     return true;
   }
 
-  if (_resource->transfer(packet, (int)byteLimit, *_progress) != 0)
+  if (_resource->transfer(packet, byteLimit, *_progress) != 0)
   {
     _progress->failed = true;
     _resource = nullptr;

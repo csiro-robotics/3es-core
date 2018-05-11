@@ -189,7 +189,12 @@ namespace tes
     /// @return Indicates completion progress. 0 indicates completion,
     ///   1 indicates more data are available and more calls should be made.
     ///   -1 indicates an error. No more calls should be made.
-    virtual inline int writeData(PacketWriter &stream, unsigned &progressMarker) const { return 0; }
+    virtual inline int writeData(PacketWriter &stream, unsigned &progressMarker) const
+    {
+      TES_UNUSED(stream);
+      TES_UNUSED(progressMarker);
+      return 0;
+    }
 
     /// Writes the @c UpdateMessage to @c stream supporting a change in
     /// @c ObjectAttributes.
@@ -257,7 +262,7 @@ namespace tes
     /// @return The number of items added to @p resources when @p resources and @p capacity
     ///   are non zero. When @p resources is null or @p capacity zero, the return value
     ///   indicates the total number of resources used by the shape.
-    virtual int enumerateResources(const Resource **resources, int capacity, int fetchOffset = 0) const;
+    virtual unsigned enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset = 0) const;
 
     /// Deep copy clone.
     /// @return A deep copy.

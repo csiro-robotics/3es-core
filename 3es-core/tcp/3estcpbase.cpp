@@ -166,7 +166,7 @@ namespace tcpbase
       return false;
     }
 
-    return unsigned(1000u * tv.tv_sec + tv.tv_usec / 1000u);
+    return unsigned(1000 * tv.tv_sec + tv.tv_usec / 1000);
 #endif
   }
 
@@ -213,7 +213,7 @@ namespace tcpbase
       return false;
     }
 
-    return unsigned(1000u * tv.tv_sec + tv.tv_usec / 1000u);
+    return unsigned(1000 * tv.tv_sec + tv.tv_usec / 1000);
 #endif
   }
 
@@ -309,7 +309,7 @@ namespace tcpbase
 #endif // __APPLE__
     };
 
-    for (int i = 0; i < sizeof(dopt) / sizeof(dopt[0]); ++i)
+    for (int i = 0; i < int(sizeof(dopt) / sizeof(dopt[0])); ++i)
     {
       dumpSocOpt(socket, dopt[i].name, dopt[i].opt);
     }
@@ -478,7 +478,7 @@ namespace tcpbase
 #ifndef WIN32
     flags |= MSG_DONTWAIT;
 #endif // WIN32
-    int read = ::recv(socket, &ch, 1, flags);
+    int read = int(::recv(socket, &ch, 1, flags));
 
     if (read == 0)
     {
@@ -538,8 +538,9 @@ namespace tcpbase
   }
 
 
-  bool checkSend(int socket, int ret, bool reportDisconnect)
+  bool checkSend(int socket, int ret)
   {
+    TES_UNUSED(socket);
     if (ret < 0)
     {
 #ifdef WIN32
@@ -568,8 +569,9 @@ namespace tcpbase
   }
 
 
-  bool checkRecv(int socket, int ret, bool reportDisconnect)
+  bool checkRecv(int socket, int ret)
   {
+    TES_UNUSED(socket);
     if (ret < 0)
     {
 #ifdef WIN32
@@ -605,7 +607,6 @@ namespace tcpbase
 
   bool setSendBufferSize(int socket, int bufferSize)
   {
-    intVal_t bufferSizeVal = bufferSize;
     socklen_t len = sizeof(bufferSize);
     if (::setsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char *)&bufferSize, len) < 0)
     {
@@ -628,7 +629,6 @@ namespace tcpbase
 
   bool setReceiveBufferSize(int socket, int bufferSize)
   {
-    intVal_t bufferSizeVal = bufferSize;
     socklen_t len = sizeof(bufferSize);
     if (::setsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char *)&bufferSize, len) < 0)
     {

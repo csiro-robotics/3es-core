@@ -19,12 +19,12 @@ TcpConnectionMonitor::TcpConnectionMonitor(TcpServer &server)
   : _server(server)
   , _listen(nullptr)
   , _mode(None)
-  , _thread(nullptr)
-  , _listenPort(0)
   , _errorCode(0)
+  , _listenPort(0)
+  , _running(false)
+  , _quitFlag(false)
+  , _thread(nullptr)
 {
-  _running = false;
-  _quitFlag = false;
 }
 
 
@@ -62,7 +62,7 @@ int TcpConnectionMonitor::clearErrorCode()
 }
 
 
-int TcpConnectionMonitor::port() const
+unsigned short TcpConnectionMonitor::port() const
 {
   return _listenPort;
 }
@@ -254,7 +254,7 @@ void TcpConnectionMonitor::monitorConnections()
       newSocket->setSendBufferSize(0xffff);
 #endif // __apple__
 
-      TcpConnection* newConnection = new TcpConnection(newSocket, _server.settings().flags, _server.settings().clientBufferSize);
+      TcpConnection* newConnection = new TcpConnection(newSocket, _server.settings());
       // Lock for new connection.
       lock.lock();
       _connections.push_back(newConnection);

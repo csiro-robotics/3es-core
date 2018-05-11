@@ -15,6 +15,11 @@ namespace tes
   class Quaternion
   {
   public:
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma GCC diagnostic ignored "-Wnested-anon-types"
+#endif // __GNUC__
     union
     {
       struct
@@ -25,6 +30,9 @@ namespace tes
       /// Array representation of the vector members.
       T q[4];
     };
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif // __GNUC__
 
     /// The identity quaternion (0, 0, 0, 1).
     static const Quaternion<T> identity;

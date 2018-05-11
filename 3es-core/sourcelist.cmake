@@ -1,6 +1,7 @@
 
 list(APPEND PUBLIC_HEADERS
   # General headers
+  3esassertrange.h
   3esbounds.h
   3escollatedpacket.h
   3escollatedpacketdecoder.h
@@ -125,6 +126,7 @@ list(APPEND SOURCES
 )
 
 list(APPEND PRIVATE_SOURCES
+  private/3escollatedpacketzip.cpp
   private/3escollatedpacketzip.h
   private/3esitemtransfer.h
   private/3estcpconnection.cpp

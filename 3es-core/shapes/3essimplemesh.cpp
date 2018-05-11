@@ -576,6 +576,9 @@ bool SimpleMesh::processVertices(const MeshComponentMessage &msg, const float *v
 
 bool SimpleMesh::processIndices(const MeshComponentMessage &msg, const uint8_t *indices, unsigned indexCount)
 {
+  TES_UNUSED(msg);
+  TES_UNUSED(indices);
+  TES_UNUSED(indexCount);
   // Expect 4 byte indices.
   return false;
 }
@@ -583,6 +586,9 @@ bool SimpleMesh::processIndices(const MeshComponentMessage &msg, const uint8_t *
 
 bool SimpleMesh::processIndices(const MeshComponentMessage &msg, const uint16_t *indices, unsigned indexCount)
 {
+  TES_UNUSED(msg);
+  TES_UNUSED(indices);
+  TES_UNUSED(indexCount);
   // Expect 4 byte indices.
   return false;
 }

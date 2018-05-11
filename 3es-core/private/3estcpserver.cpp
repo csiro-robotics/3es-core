@@ -250,6 +250,7 @@ int TcpServer::updateTransfers(unsigned byteLimit)
 
 bool TcpServer::sendServerInfo(const ServerInfoMessage &info)
 {
+  TES_UNUSED(info);
   return false;
 }
 

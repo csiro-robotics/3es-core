@@ -104,7 +104,7 @@ namespace tes
     /// @param resources Resource output array.
     /// @param capacity of @p resources.
     /// @param fetchOffset Indexing offset for the resources in this object.
-    int enumerateResources(const Resource **resources, int capacity, int fetchOffset) const override;
+    unsigned enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset) const override;
 
     /// Deep copy clone. The source is only cloned if @c ownSource() is true.
     /// It is shared otherwise.

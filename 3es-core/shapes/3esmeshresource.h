@@ -27,7 +27,7 @@ namespace tes
     /// @param byteLimit The maximum number of bytes to transfer. Note: a hard limit of 0xffff,
     ///   packet header size and CRC is enforced. Zero indices use of the hard limit.
     /// @param Additional byte overhead to account for.
-    static int estimateTransferCount(size_t elementSize, unsigned byteLimit, int overhead = 0);
+    static uint16_t estimateTransferCount(size_t elementSize, unsigned byteLimit, unsigned overhead = 0);
 
     /// Returns @c MtMesh
     uint16_t typeId() const override;
@@ -115,7 +115,7 @@ namespace tes
     /// @param[in,out] progress A progress marker tracking how much has already been transfered, and
     ///     updated to indicate what has been added to @p packet.
     /// @return Zero on success, an error code otherwise.
-    int transfer(PacketWriter &packet, int byteLimit, TransferProgress &progress) const override;
+    int transfer(PacketWriter &packet, unsigned byteLimit, TransferProgress &progress) const override;
 
     /// Compose a mesh index component message in @p packet.
     ///

@@ -58,7 +58,7 @@ bool MeshSet::writeCreate(PacketWriter &stream) const
   Quaternionf rot;
   Vector3f pos, scale;
   uint32_t partId;
-  uint16_t numberOfParts = partCount();
+  uint16_t numberOfParts = uint16_t(partCount());
 
   memset(&attr, 0, sizeof(attr));
   attr.colour = 0xffffffffu;
@@ -160,22 +160,22 @@ bool MeshSet::readCreate(PacketReader &stream)
 }
 
 
-int MeshSet::enumerateResources(const Resource **resources, int capacity, int fetchOffset) const
+unsigned MeshSet::enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset) const
 {
   if (!resources || !capacity)
   {
     return _partCount;
   }
 
-  int copyCount = std::min<int>(capacity, _partCount - fetchOffset);
-  if (copyCount <= 0)
+  if (fetchOffset >= _partCount)
   {
     return 0;
   }
 
+  const unsigned copyCount = std::min(capacity, _partCount - fetchOffset);
   const MeshResource **src = _parts + fetchOffset;
   const Resource **dst = resources;
-  for (int i = 0; i < copyCount; ++i)
+  for (unsigned i = 0; i < copyCount; ++i)
   {
     *dst++ = *src++;
   }

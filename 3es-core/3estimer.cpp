@@ -159,21 +159,21 @@ void Timer::elapsedNow(Timing &timing)
 
 void Timer::split(long long timeNs, Timing &timing)
 {
-  long long us = timeNs / 1000ull;
-  long long ms = us / 1000ull;
-  timing.s = timeNs / 1000000000ull;
-  timing.ms = (unsigned short)(ms % 1000ull);
-  timing.us = (unsigned short)(us % 1000ull);
-  timing.ns = (unsigned short)(timeNs % 1000ull);
+  long long us = timeNs / 1000ll;
+  long long ms = us / 1000ll;
+  timing.s = timeNs / 1000000000ll;
+  timing.ms = (unsigned short)(ms % 1000ll);
+  timing.us = (unsigned short)(us % 1000ll);
+  timing.ns = (unsigned short)(timeNs % 1000ll);
 }
 
 
 void Timer::split(long long us, unsigned int& seconds, unsigned int& milliseconds, unsigned int& microseconds)
 {
-  long long ms = us / 1000ull;
-  seconds = (unsigned int)(ms / 1000ull);
-  milliseconds = (unsigned int)(ms % 1000ull);
-  microseconds = (unsigned int)(us % 1000ull);
+  long long ms = us / 1000ll;
+  seconds = (unsigned int)(ms / 1000ll);
+  milliseconds = (unsigned int)(ms % 1000ll);
+  microseconds = (unsigned int)(us % 1000ll);
 }
 
 

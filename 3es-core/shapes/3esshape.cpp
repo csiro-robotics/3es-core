@@ -88,12 +88,16 @@ bool Shape::readUpdate(PacketReader &stream)
 
 bool Shape::readData(PacketReader &stream)
 {
+  TES_UNUSED(stream);
   return false;
 }
 
 
-int Shape::enumerateResources(const Resource **resources, int capacity, int fetchOffset) const
+unsigned Shape::enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset) const
 {
+  TES_UNUSED(resources);
+  TES_UNUSED(capacity);
+  TES_UNUSED(fetchOffset);
   return 0;
 }
 

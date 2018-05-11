@@ -52,7 +52,7 @@ public:
 
   tes::Resource *clone() const override;
 
-  int transfer(tes::PacketWriter &packet, int byteLimit, tes::TransferProgress &progress) const override;
+  int transfer(tes::PacketWriter &packet, unsigned byteLimit, tes::TransferProgress &progress) const override;
 
   /// Updates noted changes to the debug view.
   /// @param occupiedChange Keys of voxels which have become occupied from free or uncertain since the last update.

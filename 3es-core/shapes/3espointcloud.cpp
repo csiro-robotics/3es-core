@@ -125,6 +125,7 @@ uint32_t PointCloud::tint() const
 
 uint8_t PointCloud::drawType(int stream) const
 {
+  TES_UNUSED(stream);
   return DtPoints;
 }
 
@@ -166,12 +167,14 @@ unsigned PointCloud::capacity() const
 
 unsigned PointCloud::vertexCount(int stream) const
 {
+  TES_UNUSED(stream);
   return _imp->vertexCount;
 }
 
 
 const float *PointCloud::vertices(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stream);
   stride = sizeof(Vector3f);
   return (_imp->vertices) ? &_imp->vertices->x : nullptr;
 }
@@ -185,18 +188,23 @@ const Vector3f *PointCloud::vertices() const
 
 unsigned PointCloud::indexCount(int stream) const
 {
+  TES_UNUSED(stream);
   return 0;
 }
 
 
 const uint8_t *PointCloud::indices(unsigned &stride, unsigned &width, int stream) const
 {
+  TES_UNUSED(stride);
+  TES_UNUSED(width);
+  TES_UNUSED(stream);
   return nullptr;
 }
 
 
 const float *PointCloud::normals(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stream);
   stride = sizeof(Vector3f);
   return (_imp->normals) ? &_imp->normals->x : nullptr;
 }
@@ -210,6 +218,7 @@ const Vector3f *PointCloud::normals() const
 
 const uint32_t *PointCloud::colours(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stream);
   stride = sizeof(Colour);
   return (_imp->colours) ? &_imp->colours->c : nullptr;
 }

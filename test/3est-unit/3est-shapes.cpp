@@ -148,7 +148,7 @@ namespace tes
         continue;
       }
 
-      packetBuffer.addBytes(readBuffer.data(), readCount);
+      packetBuffer.addBytes(readBuffer.data(), unsigned(readCount));
 
       while (const PacketHeader *primaryPacket = packetBuffer.extractPacket())
       {
@@ -173,7 +173,7 @@ namespace tes
             EXPECT_EQ(readServerInfo.defaultFrameTime, serverInfo.defaultFrameTime);
             EXPECT_EQ(readServerInfo.coordinateFrame, serverInfo.coordinateFrame);
 
-            for (int i = 0; i < sizeof(readServerInfo.reserved) / sizeof(readServerInfo.reserved[0]); ++i)
+            for (int i = 0; i < int(sizeof(readServerInfo.reserved) / sizeof(readServerInfo.reserved[0])); ++i)
             {
               EXPECT_EQ(readServerInfo.reserved[i], serverInfo.reserved[i]);
             }
@@ -394,7 +394,7 @@ namespace tes
       MeshSet set(42, 1, int(meshes.size()));
 
       Matrix4f transform = Matrix4f::identity;
-      for (int i = 0; i < int(meshes.size()); ++i)
+      for (unsigned i = 0; i < meshes.size(); ++i)
       {
         transform = prsTransform(Vector3f(i * 1.0f, i - 3.2f, 1.5f * i),
                                  Quaternionf().setAxisAngle(Vector3f(i * 1.0f, i + 1.0f, i - 3.0f).normalised(), degToRad((i + 1) * 6.0f)),

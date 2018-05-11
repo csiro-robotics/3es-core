@@ -87,7 +87,6 @@ void tes::sphereInitialise(std::vector<Vector3f> &vertices, std::vector<unsigned
 
   for (unsigned i = 0; i < initialVertexCount; ++i)
   {
-    unsigned idx = i;
     vertices.push_back(initialVertices[i]);
     if (vertexMap)
     {

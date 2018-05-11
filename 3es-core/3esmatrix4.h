@@ -27,11 +27,19 @@ namespace tes
   class Matrix4
   {
   public:
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma GCC diagnostic ignored "-Wnested-anon-types"
+#endif // __GNUC__
     union
     {
       T rc[4][4]; ///< Row/column indexing representation.
       T m[16];    ///< Array representation.
     };
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif // __GNUC__
 
     static const Matrix4<T> zero; ///< A matrix with all zero elements.
     static const Matrix4<T> identity; ///< The identity matrix.

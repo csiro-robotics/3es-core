@@ -18,6 +18,8 @@ namespace tes
   /// These map to the @c MessageHandler::routingId() member.
   ///
   /// Limited to 2^16 - 1.
+  ///
+  /// @todo Rename to RoutingIDs that is used first then a message ID is assigned.
   enum MessageTypeIDs
   {
     MtNull,

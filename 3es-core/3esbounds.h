@@ -78,11 +78,12 @@ namespace tes
     Vector3<T> _maximum;  ///< Maximum extents.
   };
 
+  _3es_extern template class _3es_coreAPI Bounds<float>;
+  _3es_extern template class _3es_coreAPI Bounds<double>;
+
   /// Single precision bounds.
-  template class _3es_coreAPI Bounds<float>;
-  /// Double precision bounds.
-  template class _3es_coreAPI Bounds<double>;
   typedef Bounds<float> Boundsf;
+  /// Double precision bounds.
   typedef Bounds<double> Boundsd;
 
   template <typename T>

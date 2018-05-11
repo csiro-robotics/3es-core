@@ -194,6 +194,7 @@ namespace tes
 
   void validateShape(const Shape &shape, const Shape &reference, const ResourceMap &resources)
   {
+    TES_UNUSED(resources);
     EXPECT_EQ(shape.routingId(), reference.routingId());
     EXPECT_EQ(shape.isComplex(), reference.isComplex());
 

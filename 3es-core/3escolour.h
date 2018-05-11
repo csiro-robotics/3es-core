@@ -19,6 +19,11 @@ namespace tes
   class _3es_coreAPI Colour
   {
   public:
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma GCC diagnostic ignored "-Wnested-anon-types"
+#endif // __GNUC__
     /// Channel index enumeration.
     enum Channels
     {
@@ -54,6 +59,9 @@ namespace tes
       };
       uint8_t rgba[4];  ///< Indexed channels.
     };
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif // __GNUC__
 
     /// Construct a colour with the given numeric value.
     /// @param c The integer colour representation: 0xRRGGBBAA.
@@ -189,7 +197,7 @@ namespace tes
     bool operator!=(const Colour &other) const;
 
     /// Enumerates a set of predefined colours ("web safe" colours).
-    enum Predefined
+    enum Predefined : unsigned
     {
       // Greys and blacks.
       Gainsboro,
@@ -364,7 +372,7 @@ namespace tes
     /// improvements to these colours sets.
     ///
     /// @see @c colourCycle()
-    enum ColourCycle
+    enum ColourCycle : unsigned
     {
       /// Standard colour set.
       StandardCycle,
@@ -387,10 +395,10 @@ namespace tes
     ///
     /// The colour set is initialised to try and provide sufficient contrast between
     /// each colour. Each element should be indexed into @p Colours.
-    static const int *ColourCycles[CycleCount];
+    static const unsigned *ColourCycles[CycleCount];
 
     /// Number of colours in each @p ColourCycles entry.
-    static const int CycleCounts[CycleCount];
+    static const unsigned CycleCounts[CycleCount];
 
     /// A utility function for colour cycling.
     ///
@@ -428,7 +436,7 @@ namespace tes
   inline Colour::Colour(const Colour &other, int a)
     : c(other.c)
   {
-    this->a = a;
+    this->a = uint8_t(a);
   }
 
 
@@ -440,16 +448,16 @@ namespace tes
 
 
   inline Colour::Colour(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-    : r(r), g(g), b(b), a(a)
   {
+    this->r = r;
+    this->g = g;
+    this->b = b;
+    this->a = a;
   }
 
 
   inline Colour::Colour(int r, int g, int b, int a)
-    : r(uint8_t(r))
-    , g(uint8_t(g))
-    , b(uint8_t(b))
-    , a(uint8_t(a))
+    : Colour(uint8_t(r), uint8_t(g), uint8_t(b), uint8_t(a))
   {
   }
 

@@ -374,7 +374,6 @@ namespace tes
            std::abs(m[5] - a.m[5]) <= epsilon &&
            std::abs(m[6] - a.m[6]) <= epsilon &&
            std::abs(m[7] - a.m[7]) <= epsilon &&
-           std::abs(m[8] - a.m[8]) <= epsilon &&
-           std::abs(m[9] - a.m[9]) <= epsilon;
+           std::abs(m[8] - a.m[8]) <= epsilon;
   }
 }

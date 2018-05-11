@@ -65,7 +65,7 @@ namespace tes
 
     /// Report the port on which the connection monitor is listening.
     /// @return The listen port or zero if not listening.
-    int port() const override;
+    unsigned short port() const override;
 
     /// Starts the monitor thread (asynchronous mode).
     bool start(Mode mode) override;
@@ -148,8 +148,8 @@ namespace tes
     Mode _mode; ///< Current execution mode.
     std::vector<TcpConnection *> _connections;
     std::vector<TcpConnection *> _expired;
-    std::atomic_int _listenPort;
     std::atomic_int _errorCode;
+    std::atomic_uint16_t _listenPort;
     std::atomic_bool _running;
     std::atomic_bool _quitFlag;
     mutable Lock _connectionLock;

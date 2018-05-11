@@ -19,6 +19,12 @@
 #include "3esmeshmessages.h"
 #include "shapes/3esshapes.h"
 
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#endif // __GNUC__
+
 //-----------------------------------------------------------------------------
 // General macros.
 //-----------------------------------------------------------------------------
@@ -97,7 +103,7 @@
     msg.categoryId = _categoryId; \
     msg.parentId = _parentId; \
     msg.defaultActive = (_active) ? 1 : 0; \
-    const size_t nameLen = (_name) ? strlen(_name) : 0u; \
+    const size_t nameLen = (_name != nullptr) ? strlen(_name) : 0u; \
     msg.nameLength = (uint16_t)((nameLen <= 0xffffu) ? nameLen : 0xffffu); \
     msg.name = _name; \
     tes::sendMessage(*(server), tes::MtCategory, tes::CategoryNameMessage::MessageId, msg); \
@@ -1073,3 +1079,7 @@ if (server) \
 #define TES_PRSC_UPDATE(...)
 
 #endif // TES_ENABLE
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif // __GNUC__

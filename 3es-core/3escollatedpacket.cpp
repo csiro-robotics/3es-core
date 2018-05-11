@@ -2,6 +2,7 @@
 // Author Kazys Stepanas
 #include "3escollatedpacket.h"
 
+#include "3escompressionlevel.h"
 #include "3escrc.h"
 #include "3esendian.h"
 #include "3esmaths.h"
@@ -53,12 +54,13 @@ const uint16_t CollatedPacket::MaxPacketSize = (uint16_t)~0u;
 CollatedPacket::CollatedPacket(bool compress, uint16_t bufferSize)
   : _zip(nullptr)
   , _buffer(nullptr)
-  , _bufferSize(0)
   , _finalBuffer(nullptr)
+  , _bufferSize(0)
   , _finalBufferSize(0)
   , _finalPacketCursor(0)
   , _cursor(0)
   , _maxPacketSize(0)
+  , _compressionLevel(CL_Default)
   , _finalised(false)
   , _active(true)
 {
@@ -77,6 +79,21 @@ CollatedPacket::~CollatedPacket()
   delete[] _buffer;
   delete[] _finalBuffer;
   delete _zip;
+}
+
+
+void CollatedPacket::setCompressionLevel(int level)
+{
+  if (CL_None <= level && level < CL_Levels)
+  {
+    _compressionLevel = (unsigned short)level;
+  }
+}
+
+
+int CollatedPacket::compressionLevel() const
+{
+  return _compressionLevel;
 }
 
 
@@ -169,11 +186,11 @@ bool CollatedPacket::finalise()
   {
     unsigned compressedBytes = 0;
 
-    const int windowBits = 15;
-    const int GZipEncoding = 16;
     //Z_BEST_COMPRESSION
     // params: stream,level, method, window bits, memLevel, strategy
-    deflateInit2(&_zip->stream, Z_BEST_COMPRESSION, Z_DEFLATED, CollatedPacketZip::WindowBits | CollatedPacketZip::GZipEncoding, 8, Z_DEFAULT_STRATEGY);
+    const int gzipCompressionLevel = tes::TesToGZipCompressionLevel[_compressionLevel];
+    deflateInit2(&_zip->stream, gzipCompressionLevel, Z_DEFLATED,
+                 CollatedPacketZip::WindowBits | CollatedPacketZip::GZipEncoding, 8, Z_DEFAULT_STRATEGY);
     _zip->stream.next_out = (Bytef *)_finalBuffer + InitialCursorOffset;
     _zip->stream.avail_out = (uInt)(_finalBufferSize - Overhead);
 
@@ -187,7 +204,7 @@ bool CollatedPacket::finalise()
     {
       // Compressed ok. Check size.
       // Update _cursor to reflect the number of bytes to write.
-      compressedBytes = _zip->stream.total_out;
+      compressedBytes = unsigned(_zip->stream.total_out);
       _zip->stream.total_out = 0;
 
       if (compressedBytes < collatedBytes())
@@ -487,19 +504,23 @@ int CollatedPacket::updateTransfers(unsigned /*byteLimit*/)
 
 int CollatedPacket::updateFrame(float dt, bool flush)
 {
+  TES_UNUSED(dt);
+  TES_UNUSED(flush);
   // Not supported
   return -1;
 }
 
 
-unsigned tes::CollatedPacket::referenceResource(const Resource *)
+unsigned tes::CollatedPacket::referenceResource(const Resource *resource)
 {
+  TES_UNUSED(resource);
   return 0;
 }
 
 
-unsigned tes::CollatedPacket::releaseResource(const Resource *)
+unsigned tes::CollatedPacket::releaseResource(const Resource *resource)
 {
+  TES_UNUSED(resource);
   return 0;
 }
 
@@ -566,7 +587,12 @@ int CollatedPacket::send(const uint8_t *data, int byteCount, bool /*allowCollati
     return 0;
   }
 
-  return add(data, byteCount);
+  if (byteCount > 0xffff)
+  {
+    return -1;
+  }
+
+  return add(data, uint16_t(byteCount));
 }
 
 

@@ -33,26 +33,7 @@ option(TES_BUILD_TESTS "Build unit tests?" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Manage warnings, disabling ones we want to ignore.
-# message("CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
-if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang.*")
-  add_compile_options("-Wno-logical-op-parentheses")
-endif(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang.*")
-
-# For Visual Studio, force PDB based debug information even in release builds.
-# This has a small impact on the size of the of the DLLs, but provides debug information for release mode crashes.
-# The PDBs can be kept for debugging specific releases, but do not need to be shipped as part of the runtime, unless
-# shipping an SDK. The last point is to address MSVC linked warnings which are impossible to suppress without providing
-# PDB files.
-if(MSVC)
-  # Enable multi processor compilation
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
-  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Zi")
-  set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "/debug ${CMAKE_MODULE_LINKER_FLAGS_RELEASE}")
-  set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "/debug ${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
-  set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/debug ${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
-endif(MSVC)
+include(compilerSetup)
 
 # Include sub projects.
 add_subdirectory(3es-core)

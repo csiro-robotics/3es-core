@@ -15,9 +15,9 @@ namespace
 
 namespace tes
 {
-  int getMatMode(std::ostream &o) { return o.iword(matModeId); }
-  int getQuatWMode(std::ostream &o) { return o.iword(v4WModeId); }
-  int getV4WMode(std::ostream &o) { return o.iword(quatWModeId); }
+  int getMatMode(std::ostream &o) { return int(o.iword(matModeId)); }
+  int getQuatWMode(std::ostream &o) { return int(o.iword(v4WModeId)); }
+  int getV4WMode(std::ostream &o) { return int(o.iword(quatWModeId)); }
 }
 
 std::ostream &matmode(std::ostream &o, int mode)

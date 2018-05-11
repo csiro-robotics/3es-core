@@ -144,7 +144,7 @@ bool PointCloudShape::readData(PacketReader &stream)
 }
 
 
-int PointCloudShape::enumerateResources(const Resource **resources, int capacity, int fetchOffset) const
+unsigned PointCloudShape::enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset) const
 {
   if (!resources || !capacity)
   {

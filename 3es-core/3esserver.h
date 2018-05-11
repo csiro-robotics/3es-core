@@ -6,6 +6,7 @@
 
 #include "3es-core.h"
 
+#include "3escompressionlevel.h"
 #include "3esconnection.h"
 
 #include <cstdint>
@@ -46,21 +47,30 @@ namespace tes
   struct _3es_coreAPI ServerSettings
   {
     /// First port to try listening on.
-    uint16_t listenPort;
+    uint16_t listenPort = 33500u;
     /// Additional number of ports the server may try listening on.
-    uint16_t portRange;
+    uint16_t portRange = 0;
     /// @c ServerFlag values.
-    unsigned flags;
+    unsigned flags = SF_Default;
     /// Timeout used to wait for the connection monitor to start (milliseconds). Only for asynchronous mode.
-    unsigned asyncTimeoutMs;
+    unsigned asyncTimeoutMs = 5000u;
     /// Size of the client packet buffers.
-    uint16_t clientBufferSize;
+    uint16_t clientBufferSize = 0xffe0u;
+    /// Compression level to use if enabled. See @c CompressionLevel.
+    uint16_t compressionLevel = CL_Default;
+
+    ServerSettings() = default;
+    inline ServerSettings(unsigned flags, uint16_t port = 33500u,
+                          uint16_t clientBufferSize = 0xffe0u,
+                          CompressionLevel compressionLevel = CL_Default)
+      : listenPort(port)
+      , flags(flags)
+      , clientBufferSize(clientBufferSize)
+      , compressionLevel(compressionLevel)
+    {
+    }
 
     // TODO: Allowed client IPs.
-
-    inline ServerSettings(unsigned flags = SF_Collate, uint16_t port = 33500u, uint16_t bufferSize = 0xffe0)
-      : listenPort(port), portRange(0), flags(flags), asyncTimeoutMs(5000u), clientBufferSize(bufferSize)
-      {}
   };
 
   /// Defines the interface for managing a 3es server.

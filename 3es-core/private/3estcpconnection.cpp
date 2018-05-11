@@ -18,20 +18,21 @@
 
 using namespace tes;
 
-TcpConnection::TcpConnection(TcpSocket *clientSocket, unsigned flags, uint16_t bufferSize)
+TcpConnection::TcpConnection(TcpSocket *clientSocket, const ServerSettings &settings)//unsigned flags, uint16_t bufferSize)
 : _packet(nullptr)
 , _client(clientSocket)
 , _currentResource(new ResourcePacker)
 , _secondsToTimeUnit(0)
-, _serverFlags(flags)
-, _collation(new CollatedPacket((flags & SF_Compress) != 0))
+, _serverFlags(settings.flags)
+, _collation(new CollatedPacket((settings.flags & SF_Compress) != 0))
 , _active(true)
 {
-  _packetBuffer.resize(bufferSize);
+  _packetBuffer.resize(settings.clientBufferSize);
   _packet = new PacketWriter(_packetBuffer.data(), (uint16_t)_packetBuffer.size());
   initDefaultServerInfo(&_serverInfo);
   const float secondsToMicroseconds = 1e6f;
   _secondsToTimeUnit = secondsToMicroseconds / (_serverInfo.timeUnit ? _serverInfo.timeUnit : 1.0f);
+  _collation->setCompressionLevel(settings.compressionLevel);
 }
 
 
@@ -167,14 +168,14 @@ int TcpConnection::send(const CollatedPacket &collated)
     {
       return -1;
     }
-    send((const uint8_t *)packet, packetSize);
+    send((const uint8_t *)packet, int(packetSize));
 
     // Next packet.
     processedBytes += packetSize;
     packet = (const PacketHeader *)(bytes + processedBytes);
   }
 
-  return processedBytes;
+  return int(processedBytes);
 }
 
 
@@ -185,7 +186,7 @@ int TcpConnection::send(const uint8_t *data, int byteCount, bool allowCollation)
     return 0;
   }
 
-  return writePacket(data, byteCount, allowCollation);
+  return writePacket(data, uint16_t(byteCount), allowCollation);
 }
 
 
@@ -202,7 +203,8 @@ int TcpConnection::create(const Shape &shape)
   {
     _packet->finalise();
     writePacket(_packetBuffer.data(), _packet->packetSize(), true);
-    unsigned writeSize = _packet->packetSize();
+    int writeSize = _packet->packetSize();
+    int wrote;
 
     // Write complex shape data.
     if (shape.isComplex())
@@ -216,7 +218,14 @@ int TcpConnection::create(const Shape &shape)
           return -1;
         }
 
-        writeSize += writePacket(_packetBuffer.data(), _packet->packetSize(), true);
+        wrote = writePacket(_packetBuffer.data(), _packet->packetSize(), true);
+
+        if (wrote < 0)
+        {
+          return -1;
+        }
+
+        writeSize += wrote;
 
         if (res == 0)
         {
@@ -234,14 +243,14 @@ int TcpConnection::create(const Shape &shape)
     // destroy won't be called and references won't be released.
     if (shape.id() != 0)
     {
-      const int resCapacity = 8;
+      const unsigned resCapacity = 8;
       const Resource *resources[resCapacity];
-      int totalResources = 0;
-      int resCount = 0;
+      unsigned totalResources = 0;
+      unsigned resCount = 0;
       do
       {
         resCount = shape.enumerateResources(resources, resCapacity, totalResources);
-        for (int i = 0; i < resCount; ++i)
+        for (unsigned i = 0; i < resCount; ++i)
         {
           referenceResource(resources[i]);
         }
@@ -249,9 +258,9 @@ int TcpConnection::create(const Shape &shape)
       } while (resCount);
     }
 
-    if (writeSize < unsigned(std::numeric_limits<int>::max()))
+    if (writeSize < std::numeric_limits<int>::max())
     {
-      return int(writeSize);
+      return writeSize;
     }
 
     return std::numeric_limits<int>::max();
@@ -273,14 +282,14 @@ int TcpConnection::destroy(const Shape &shape)
   // won't correctly release the resources. Check the ID because I'm paranoid.
   if (shape.id())
   {
-    const int resCapacity = 8;
+    const unsigned resCapacity = 8;
     const Resource *resources[resCapacity];
-    int totalResources = 0;
-    int resCount = 0;
+    unsigned totalResources = 0;
+    unsigned resCount = 0;
     do
     {
       resCount = shape.enumerateResources(resources, resCapacity, totalResources);
-      for (int i = 0; i < resCount; ++i)
+      for (unsigned i = 0; i < resCount; ++i)
       {
         releaseResource(resources[i]->uniqueKey());
       }
