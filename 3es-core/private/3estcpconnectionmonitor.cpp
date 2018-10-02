@@ -288,7 +288,7 @@ void TcpConnectionMonitor::commitConnections()
   {
     delete con;
   }
-  _expired.resize(0);
+  _expired.clear();
 }
 
 

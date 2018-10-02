@@ -492,7 +492,7 @@ namespace tes
     testShape(PointCloudShape(&cloud, 42, 0, 8));
 
     // Indexed (sub-sampled) cloud. Just use half the points.
-    indices.resize(0);
+    indices.clear();
     for (unsigned i = 0; i < unsigned(vertices.size()/2); ++i)
     {
       indices.push_back(i);

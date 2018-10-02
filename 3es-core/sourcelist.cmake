@@ -6,6 +6,7 @@ list(APPEND PUBLIC_HEADERS
   3escollatedpacket.h
   3escollatedpacketdecoder.h
   3escolour.h
+  3escompressionlevel.h
   3esconnection.h
   3esconnectionmonitor.h
   3escoordinateframe.h

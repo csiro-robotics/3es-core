@@ -73,11 +73,11 @@ namespace tes
     inline void clearArrays()
     {
       // Should only be called if the reference count is 1.
-      vertices.resize(0);
-      indices.resize(0);
-      colours.resize(0);
-      normals.resize(0);
-      uvs.resize(0);
+      vertices.clear();
+      indices.clear();
+      colours.clear();
+      normals.clear();
+      uvs.clear();
     }
   };
 }
@@ -235,7 +235,7 @@ void SimpleMesh::setComponents(unsigned comps)
   // Fix up discrepencies.
   if (!(_imp->components & Index) && !_imp->indices.empty())
   {
-    _imp->indices.resize(0);
+    _imp->indices.clear();
   }
 
   if ((_imp->components & Colour) && _imp->colours.empty())
@@ -244,7 +244,7 @@ void SimpleMesh::setComponents(unsigned comps)
   }
   else if (!(_imp->components & Colour) && !_imp->colours.empty())
   {
-    _imp->colours.resize(0);
+    _imp->colours.clear();
   }
 
   if ((_imp->components & Normal) && _imp->normals.empty())
@@ -253,7 +253,7 @@ void SimpleMesh::setComponents(unsigned comps)
   }
   else if (!(_imp->components & Normal) && !_imp->normals.empty())
   {
-    _imp->normals.resize(0);
+    _imp->normals.clear();
   }
 
   if ((_imp->components & Uv) && _imp->uvs.empty())
@@ -262,7 +262,7 @@ void SimpleMesh::setComponents(unsigned comps)
   }
   else if (!(_imp->components & Uv) && !_imp->uvs.empty())
   {
-    _imp->uvs.resize(0);
+    _imp->uvs.clear();
   }
 }
 
