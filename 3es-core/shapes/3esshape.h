@@ -345,8 +345,8 @@ namespace tes
 
   inline Shape &Shape::setWireframe(bool wire)
   {
-    _data.flags &= ~OFWire;
-    _data.flags |= OFWire * !!wire;
+    _data.flags = uint16_t(_data.flags & ~OFWire);
+    _data.flags |= uint16_t(_data.flags | (OFWire * !!wire));
     return *this;
   }
 
@@ -359,8 +359,8 @@ namespace tes
 
   inline Shape &Shape::setTransparent(bool transparent)
   {
-    _data.flags &= ~OFTransparent;
-    _data.flags |= OFTransparent * !!transparent;
+    _data.flags = uint16_t(_data.flags & ~OFTransparent);
+    _data.flags |= uint16_t(_data.flags | (OFTransparent * !!transparent));
     return *this;
   }
 
@@ -373,8 +373,8 @@ namespace tes
 
   inline Shape &Shape::setTwoSided(bool twoSided)
   {
-    _data.flags &= ~OFTwoSided;
-    _data.flags |= OFTwoSided * !!twoSided;
+    _data.flags = uint16_t(_data.flags & ~OFTwoSided);
+    _data.flags |= uint16_t(_data.flags | (OFTwoSided * !!twoSided));
     return *this;
   }
 

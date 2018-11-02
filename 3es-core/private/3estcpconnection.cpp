@@ -18,6 +18,11 @@
 
 using namespace tes;
 
+namespace
+{
+  const float kSecondsToMicroseconds = 1e6;
+}
+
 TcpConnection::TcpConnection(TcpSocket *clientSocket, const ServerSettings &settings)//unsigned flags, uint16_t bufferSize)
 : _packet(nullptr)
 , _client(clientSocket)
@@ -30,8 +35,7 @@ TcpConnection::TcpConnection(TcpSocket *clientSocket, const ServerSettings &sett
   _packetBuffer.resize(settings.clientBufferSize);
   _packet = new PacketWriter(_packetBuffer.data(), (uint16_t)_packetBuffer.size());
   initDefaultServerInfo(&_serverInfo);
-  const float secondsToMicroseconds = 1e6f;
-  _secondsToTimeUnit = secondsToMicroseconds / (_serverInfo.timeUnit ? _serverInfo.timeUnit : 1.0f);
+  _secondsToTimeUnit = kSecondsToMicroseconds / (_serverInfo.timeUnit ? float(_serverInfo.timeUnit) : 1.0f);
   _collation->setCompressionLevel(settings.compressionLevel);
 }
 
@@ -94,8 +98,7 @@ bool TcpConnection::sendServerInfo(const ServerInfoMessage &info)
   }
 
   _serverInfo = info;
-  const float secondsToMicroseconds = 1e6f;
-  _secondsToTimeUnit = secondsToMicroseconds / (_serverInfo.timeUnit ? _serverInfo.timeUnit : 1.0f);
+  _secondsToTimeUnit = kSecondsToMicroseconds / (_serverInfo.timeUnit ? float(_serverInfo.timeUnit) : 1.0f);
 
   if (isConnected())
   {
@@ -148,7 +151,7 @@ int TcpConnection::send(const CollatedPacket &collated)
   bool crcPreset = false;
   if (!(packet->flags & PF_NoCrc))
   {
-    processedBytes -= sizeof(PacketWriter::CrcType);
+    processedBytes -= unsigned(sizeof(PacketWriter::CrcType));
   }
   packet = (const PacketHeader *)(bytes + processedBytes);
   while (processedBytes + sizeof(PacketHeader) < collatedBytes)
@@ -158,10 +161,10 @@ int TcpConnection::send(const CollatedPacket &collated)
     payloadSize = packet->payloadSize;
     networkEndianSwap(payloadSize);
     // Add header size.
-    packetSize = payloadSize + sizeof(PacketHeader);
+    packetSize = payloadSize + unsigned(sizeof(PacketHeader));
     // Add Crc Size.
     crcPreset = (packet->flags & PF_NoCrc) == 0;
-    packetSize += !!crcPreset * sizeof(PacketWriter::CrcType);
+    packetSize += !!crcPreset * unsigned(sizeof(PacketWriter::CrcType));
 
     // Send packet.
     if (packetSize + processedBytes > collatedBytes)
@@ -334,18 +337,18 @@ int TcpConnection::updateTransfers(unsigned byteLimit)
   }
 
   std::lock_guard<Lock> guard(_packetLock);
-  unsigned transfered = 0;
+  unsigned transferred = 0;
 
-  while ((!byteLimit || transfered < byteLimit) && (!_currentResource->isNull() || !_resourceQueue.empty()))
+  while ((!byteLimit || transferred < byteLimit) && (!_currentResource->isNull() || !_resourceQueue.empty()))
   {
     bool startNext = false;
     if (!_currentResource->isNull())
     {
-      if (_currentResource->nextPacket(*_packet, byteLimit ? byteLimit - transfered : 0))
+      if (_currentResource->nextPacket(*_packet, byteLimit ? byteLimit - transferred : 0))
       {
         _packet->finalise();
         writePacket(_packet->data(), _packet->packetSize(), true);
-        transfered += _packet->packetSize();
+        transferred += _packet->packetSize();
       }
 
       // Completed

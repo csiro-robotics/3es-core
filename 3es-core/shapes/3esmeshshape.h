@@ -412,8 +412,8 @@ namespace tes
 
   inline MeshShape &MeshShape::setCalculateNormals(bool calculate)
   {
-    _data.flags &= ~MeshShapeCalculateNormals;
-    _data.flags |= MeshShapeCalculateNormals * !!calculate;
+    _data.flags = uint16_t(_data.flags & ~MeshShapeCalculateNormals);
+    _data.flags = uint16_t(_data.flags | MeshShapeCalculateNormals * !!calculate);
     return *this;
   }
 }

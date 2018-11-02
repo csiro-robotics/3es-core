@@ -90,7 +90,7 @@ namespace tes
 
     uint8_t *payload();
 
-    inline void invalidateCrc() { _status &= ~CrcValid; }
+    inline void invalidateCrc() { _status = uint16_t(_status & ~CrcValid); }
 
     /// Returns the number of bytes remaining available in the payload.
     /// This is calculated as the @c maxPayloadSize() - @c payloadSize().
@@ -161,7 +161,7 @@ namespace tes
 
     template <typename T>
     size_t writeArray(const T *elements, size_t elementCount);
-    
+
     template <typename T>
     PacketWriter &operator >> (T &val);
 

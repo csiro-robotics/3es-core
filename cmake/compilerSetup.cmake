@@ -7,8 +7,8 @@ macro(warnings_gcc)
     "-Wall"
     "-Wextra"
     "-Wconversion"
-    "-Werror=pedantic"
     "-Werror=vla"
+    "-Wno-parentheses"
   )
 endmacro(warnings_gcc)
 

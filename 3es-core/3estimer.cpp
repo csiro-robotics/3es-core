@@ -39,7 +39,7 @@ struct TimerData
   inline double elapsedS() const
   {
     long long elapsed = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
-    return elapsed * 1e-6;
+    return double(elapsed) * 1e-6;
   }
 
   inline long long elapsedMS() const

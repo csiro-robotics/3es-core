@@ -22,7 +22,11 @@
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
+#ifdef __clang__
 #pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#endif // __clang__
+#pragma GCC diagnostic ignored "-Waddress"
+#pragma GCC diagnostic ignored "-Wnonnull-compare"
 #endif // __GNUC__
 
 //-----------------------------------------------------------------------------

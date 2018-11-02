@@ -70,8 +70,8 @@ namespace tes
 #define _TES_INTARG_BOOL_OP(INT, INTARG, OP) \
   inline bool operator OP(INT a, const INTARG &b) { return a OP static_cast<INT>(b); } \
   inline bool operator OP(const INTARG &a, INT b) { return static_cast<INT>(a) OP b; }
-// #define _TES_INTARG_ARITH_OP(INT, INTARG, OP) \
-//  inline INT operator OP(INT a, const INTARG &b) { return a OP static_cast<INT>(b); } \
+// #define _TES_INTARG_ARITH_OP(INT, INTARG, OP)
+//  inline INT operator OP(INT a, const INTARG &b) { return a OP static_cast<INT>(b); }
 //  inline INT operator OP(const INTARG &a, INT b) { return static_cast<INT>(a) OP b; }
 
 // Comparison operators for @c IntArg and similar utilities.
@@ -82,9 +82,9 @@ namespace tes
   _TES_INTARG_BOOL_OP(INT, INTARG, >=) \
   _TES_INTARG_BOOL_OP(INT, INTARG, ==) \
   _TES_INTARG_BOOL_OP(INT, INTARG, !=)
-  // _TES_INTARG_ARITH_OP(INT, INTARG, +) \
-  // _TES_INTARG_ARITH_OP(INT, INTARG, -) \
-  // _TES_INTARG_ARITH_OP(INT, INTARG, *) \
+  // _TES_INTARG_ARITH_OP(INT, INTARG, +)
+  // _TES_INTARG_ARITH_OP(INT, INTARG, -)
+  // _TES_INTARG_ARITH_OP(INT, INTARG, *)
   // _TES_INTARG_ARITH_OP(INT, INTARG, /)
 
 #define TES_INTARG_OPERATORS_SELF(INTARG) \
@@ -99,12 +99,19 @@ namespace tes
   _TES_INTARG_ARITH_OP_SELF(INTARG, *) \
   _TES_INTARG_ARITH_OP_SELF(INTARG, /)
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif // __GNUC__
 TES_INTARG_OPERATORS(int, tes::IntArg);
 TES_INTARG_OPERATORS_SELF(tes::IntArg);
 TES_INTARG_OPERATORS(unsigned, tes::UIntArg);
 TES_INTARG_OPERATORS_SELF(tes::UIntArg);
 TES_INTARG_OPERATORS(size_t, tes::SizeTArg);
 TES_INTARG_OPERATORS_SELF(tes::SizeTArg);
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif // __GNUC__
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 

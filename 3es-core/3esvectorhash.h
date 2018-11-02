@@ -87,6 +87,10 @@ namespace tes
     }
 
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif // __GNUC__
     /// Generate a hash code for a 3-component vertex.
     /// @param x A vector coordinate.
     /// @param y A vector coordinate.
@@ -107,6 +111,9 @@ namespace tes
       return hashBits(*(const uint32_t *)&x, *(const uint32_t *)&y, *(const uint32_t *)&z, *(const uint32_t *)&w);
     }
   }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif // __GNUC__
 
 
   /// Hash structure for use with standard library maps.

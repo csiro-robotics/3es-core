@@ -1,7 +1,7 @@
 
 include(CMakeParseArguments)
 
-find_package(DOXYGEN)
+find_package(Doxygen)
 
 # doxygen_create(
 #   [DOXYFILE doxyfile.in]

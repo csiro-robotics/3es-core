@@ -25,7 +25,7 @@ namespace
     unsigned effectiveByteLimit;
     if (packet.bytesRemaining() >= (sizeof(msg) + sizeof(PacketWriter::CrcType)))
     {
-      effectiveByteLimit = packet.bytesRemaining() - (sizeof(msg) + sizeof(PacketWriter::CrcType));
+      effectiveByteLimit = packet.bytesRemaining() - unsigned(sizeof(msg) + sizeof(PacketWriter::CrcType));
     }
     else
     {
@@ -47,14 +47,17 @@ namespace
     msg.reserved = 0;
     msg.count = transferCount;
 
-    unsigned write;
-    write = msg.write(packet);
+    unsigned written = msg.write(packet);
     // Jump to offset.
     dataSource += dataStride * offset;
     for (unsigned i = 0; i < transferCount; ++i)
     {
       const T *element = reinterpret_cast<const T *>(dataSource);
-      write = unsigned(packet.writeArray(element, ELEMCOUNT));
+      written = unsigned(packet.writeArray(element, ELEMCOUNT));
+      if (written !=  ELEMCOUNT)
+      {
+        return i;
+      }
       dataSource += dataStride;
     }
 
@@ -261,7 +264,7 @@ unsigned MeshResource::writeIndices(PacketWriter &packet, uint32_t meshId,
   unsigned effectiveByteLimit;
   if (packet.bytesRemaining() >= sizeof(msg) + sizeof(PacketWriter::CrcType))
   {
-    effectiveByteLimit = packet.bytesRemaining() - (sizeof(msg) + sizeof(PacketWriter::CrcType));
+    effectiveByteLimit = packet.bytesRemaining() - unsigned(sizeof(msg) + sizeof(PacketWriter::CrcType));
   }
   else
   {

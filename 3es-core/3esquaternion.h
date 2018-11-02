@@ -17,8 +17,12 @@ namespace tes
   public:
 #ifdef __GNUC__
 #pragma GCC diagnostic push
+#if defined(__clang__)
 #pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
 #pragma GCC diagnostic ignored "-Wnested-anon-types"
+#else  // __clang__
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif // __clang__
 #endif // __GNUC__
     union
     {

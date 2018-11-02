@@ -241,7 +241,7 @@ namespace tcpbase
   {
     // Split into seconds an micro seconds.
     tv.tv_sec = milliseconds*1000;
-    tv.tv_usec = tv.tv_usec % 1000000;    // Convert to microseconds
+    tv.tv_usec = tv.tv_sec % 1000000;    // Convert to microseconds
     tv.tv_sec /= 1000000;
   }
 

@@ -64,7 +64,7 @@ namespace tes
     uint16_t payloadSize() const { return networkEndianSwapValue(_packet->payloadSize); }
     /// Returns the size of the packet plus payload, giving the full data packet size including the CRC.
     /// @return PacketHeader data size (bytes).
-    uint16_t packetSize() const { return sizeof(HEADER) + payloadSize() + (((packet().flags & PF_NoCrc) == 0) ? sizeof(CrcType) : 0); }
+    uint16_t packetSize() const { return uint16_t(sizeof(HEADER) + payloadSize() + (((packet().flags & PF_NoCrc) == 0) ? sizeof(CrcType) : 0)); }
     /// Fetch the routing ID bytes in local endian.
     /// @return The @c PacketHeader::routingId bytes.
     uint16_t routingId() const { return networkEndianSwapValue(_packet->routingId); }
@@ -178,7 +178,7 @@ namespace tes
       if (offset >= 0 && offset + _payloadPosition <= _packet->payloadSize ||
         offset < 0 && _payloadPosition >= -offset)
       {
-        _payloadPosition += offset;
+        _payloadPosition = uint16_t(_payloadPosition + offset);
         return true;
       }
       break;

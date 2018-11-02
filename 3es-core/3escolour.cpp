@@ -45,7 +45,7 @@ void Colour::hsvToRgb(float &r, float &g, float &b,
 {
   const float hSector = h / 60.0f; // sector 0 to 5
   const int sectorIndex = int(std::min<float>(std::max<float>(0.0f, std::floor(hSector)), 5.0f));
-  const float f = hSector - sectorIndex;
+  const float f = hSector - float(sectorIndex);
   const float p = v * (1 - s);
   const float q = v * (1 - s * f);
   const float t = v * (1 - s * (1 - f));

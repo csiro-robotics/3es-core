@@ -12,7 +12,7 @@ using namespace tes;
 
 PacketWriter::PacketWriter(PacketHeader *packet, uint16_t maxPayloadSize, uint16_t routingId, uint16_t messageId)
 : PacketStream<PacketHeader>(packet)
-, _bufferSize(maxPayloadSize + sizeof(PacketHeader))
+, _bufferSize(uint16_t(maxPayloadSize + sizeof(PacketHeader)))
 {
   _packet->marker = PacketMarker;
   _packet->versionMajor = PacketVersionMajor;
@@ -94,13 +94,13 @@ void PacketWriter::reset(uint16_t routingId, uint16_t messageId)
 
 uint16_t PacketWriter::bytesRemaining() const
 {
-  return maxPayloadSize() - payloadSize();
+  return uint16_t(maxPayloadSize() - payloadSize());
 }
 
 
 uint16_t PacketWriter::maxPayloadSize() const
 {
-  return (!isFail()) ? _bufferSize - sizeof(PacketHeader) : 0u;
+  return (!isFail()) ? uint16_t(_bufferSize - sizeof(PacketHeader)) : 0u;
 }
 
 
@@ -156,7 +156,7 @@ size_t PacketWriter::writeElement(const uint8_t *bytes, size_t elementSize)
   {
     memcpy(payloadWritePtr(), bytes, elementSize);
     networkEndianSwap(payloadWritePtr(), elementSize);
-    _payloadPosition += uint16_t(elementSize);
+    _payloadPosition = uint16_t(_payloadPosition + elementSize);
     incrementPayloadSize(elementSize);
     return elementSize;
   }
@@ -180,7 +180,7 @@ size_t PacketWriter::writeArray(const uint8_t *bytes, size_t elementSize, size_t
     }
 #endif // !TES_IS_NETWORK_ENDIAN
     incrementPayloadSize(elementSize * copyCount);
-    _payloadPosition += uint16_t(elementSize * copyCount);
+    _payloadPosition = uint16_t(_payloadPosition + elementSize * copyCount);
     return copyCount;
   }
 
@@ -193,7 +193,7 @@ size_t PacketWriter::writeRaw(const uint8_t *bytes, size_t byteCount)
   size_t copyCount = (byteCount <= bytesRemaining()) ? byteCount : bytesRemaining();
   memcpy(payloadWritePtr(), bytes, copyCount);
   incrementPayloadSize(copyCount);
-  _payloadPosition += uint16_t(copyCount);
+  _payloadPosition = uint16_t(_payloadPosition + copyCount);
   return copyCount;
 }
 

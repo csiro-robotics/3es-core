@@ -175,7 +175,7 @@ bool CollatedPacket::finalise()
 
   if (_finalBufferSize < _bufferSize + Overhead)
   {
-    expand(_bufferSize + Overhead - _finalBufferSize, _finalBuffer, _finalBufferSize, 0, _maxPacketSize);
+    expand(unsigned(_bufferSize + Overhead - _finalBufferSize), _finalBuffer, _finalBufferSize, 0, _maxPacketSize);
   }
 
   // Finalise the packet. If possible, we try compress the buffer. If that is smaller then we use
@@ -235,7 +235,7 @@ bool CollatedPacket::finalise()
   PacketWriter::CrcType *crcPtr = reinterpret_cast<PacketWriter::CrcType *>(_finalBuffer + _finalPacketCursor);
   *crcPtr = crc16(_finalBuffer, _finalPacketCursor);
   networkEndianSwap(*crcPtr);
-  _finalPacketCursor += sizeof(*crcPtr);
+  _finalPacketCursor += unsigned(sizeof(*crcPtr));
   _finalised = true;
   return true;
 }
@@ -628,7 +628,7 @@ void CollatedPacket::init(bool compress, unsigned bufferSize, unsigned maxPacket
 void CollatedPacket::expand(unsigned expandBy, uint8_t *&buffer, unsigned &bufferSize, unsigned currentDataCount, unsigned maxPacketSize)
 {
   // Buffer too small.
-  unsigned newBufferSize = std::min(nextLog2(bufferSize + expandBy + Overhead), maxPacketSize);
+  unsigned newBufferSize = std::min(nextLog2(unsigned(bufferSize + expandBy + Overhead)), maxPacketSize);
   uint8_t *newBuffer = new uint8_t[newBufferSize];
   if (buffer && currentDataCount)
   {

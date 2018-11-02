@@ -54,7 +54,7 @@ size_t PacketReader::readElement(uint8_t *bytes, size_t elementSize)
   {
     memcpy(bytes, payload() + _payloadPosition, elementSize);
     networkEndianSwap(bytes, elementSize);
-    _payloadPosition += uint16_t(elementSize);
+    _payloadPosition = uint16_t(_payloadPosition + elementSize);
     return elementSize;
   }
 
@@ -76,7 +76,7 @@ size_t PacketReader::readArray(uint8_t *bytes, size_t elementSize, size_t elemen
       networkEndianSwap(fixBytes, elementSize);
     }
 #endif // !TES_IS_NETWORK_ENDIAN
-    _payloadPosition += uint16_t(elementSize * copyCount);
+    _payloadPosition = uint16_t(_payloadPosition + elementSize * copyCount);
     return copyCount;
   }
 
@@ -88,7 +88,7 @@ size_t PacketReader::readRaw(uint8_t *bytes, size_t byteCount)
 {
   size_t copyCount = (byteCount <= bytesAvailable()) ? byteCount : bytesAvailable();
   memcpy(bytes, payload() + _payloadPosition, copyCount);
-  _payloadPosition += uint16_t(copyCount);
+  _payloadPosition = uint16_t(_payloadPosition + copyCount);
   return copyCount;
 }
 

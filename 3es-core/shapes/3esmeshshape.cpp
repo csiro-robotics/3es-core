@@ -497,7 +497,7 @@ bool MeshShape::readData(PacketReader &stream)
 
   // Record and mask out end flags.
   uint16_t endFlags = (dataType & (SDT_ExpectEnd | SDT_End));
-  dataType &= ~endFlags;
+  dataType = uint16_t(dataType & ~endFlags);
 
   // Can only read if we own the pointers.
   if (!_ownPointers)

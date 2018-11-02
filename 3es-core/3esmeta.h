@@ -11,9 +11,9 @@
 
 #define TES_UNUSED(x) (void)(x)
 
-#ifdef __clang__
+#ifdef __GNUC__
 #define TES_FALLTHROUGH [[clang::fallthrough]]
-#endif // __clang__
+#endif // __GNUC__
 
 
 // Fall back definitions.

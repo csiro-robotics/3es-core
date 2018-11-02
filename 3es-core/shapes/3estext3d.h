@@ -143,7 +143,7 @@ namespace tes
     , _textLength(0)
   {
     setPosition(pos);
-    setText(text, (uint16_t)strlen(text));
+    setText(text, text ? (uint16_t)strlen(text) : 0);
     setFontSize(fontSize);
   }
 
@@ -154,7 +154,7 @@ namespace tes
     , _textLength(0)
   {
     setPosition(pos);
-    setText(text, (uint16_t)strlen(text));
+    setText(text, text ? (uint16_t)strlen(text) : 0);
     setFacing(facing);
     setFontSize(fontSize);
   }
@@ -166,7 +166,7 @@ namespace tes
     , _textLength(0)
   {
     setPosition(pos);
-    setText(text, (uint16_t)strlen(text));
+    setText(text, text ? (uint16_t)strlen(text) : 0);
     setFontSize(fontSize);
   }
 
@@ -177,7 +177,7 @@ namespace tes
     , _textLength(0)
   {
     setPosition(pos);
-    setText(text, (uint16_t)strlen(text));
+    setText(text, text ? (uint16_t)strlen(text) : 0);
     setFacing(facing);
     setFontSize(fontSize);
   }
@@ -189,7 +189,7 @@ namespace tes
     , _textLength(0)
   {
     setPosition(pos);
-    setText(text, (uint16_t)strlen(text));
+    setText(text, text ? (uint16_t)strlen(text) : 0);
     setFontSize(fontSize);
   }
 
@@ -200,7 +200,7 @@ namespace tes
     , _textLength(0)
   {
     setPosition(pos);
-    setText(text, (uint16_t)strlen(text));
+    setText(text, text ? (uint16_t)strlen(text) : 0);
     setFacing(facing);
     setFontSize(fontSize);
   }
@@ -214,8 +214,8 @@ namespace tes
 
   inline Text3D &Text3D::setScreenFacing(bool worldSpace)
   {
-    _data.flags &= ~Text3DFScreenFacing;
-    _data.flags |= Text3DFScreenFacing * !!worldSpace;
+    _data.flags = uint16_t(_data.flags & ~Text3DFScreenFacing);
+    _data.flags = uint16_t(_data.flags | Text3DFScreenFacing * !!worldSpace);
     return *this;
   }
 

@@ -59,6 +59,8 @@ else()
   message(FATAL_ERROR "Unknown socket implementation specificed: ${TES_SOCKETS}")
 endif()
 
+find_package(Threads)
+
 #-------------------------------------------------------------------------------
 # Configuration header setup.
 #-------------------------------------------------------------------------------
@@ -135,6 +137,10 @@ target_include_directories(3es-core
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
     $<INSTALL_INTERFACE:include/3es-core>
 )
+
+if(CMAKE_THREAD_LIBS_INIT)
+  target_link_libraries(3es-core ${CMAKE_THREAD_LIBS_INIT})
+endif(CMAKE_THREAD_LIBS_INIT)
 
 # Need to explicitly define some compile flags because the target name starts with a number.
 if(BUILD_SHARED_LIBS)

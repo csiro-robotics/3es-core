@@ -273,7 +273,7 @@ namespace tes
       ok = reader.readElement(nameLength) == sizeof(nameLength) && ok;
       name = nameBuffer;
 
-      if (!nameBuffer && nameLength || nameLength + 1 > nameBufferSize)
+      if (!nameBuffer && nameLength || nameLength + 1u > nameBufferSize)
       {
         return false;
       }

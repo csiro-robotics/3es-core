@@ -101,7 +101,7 @@ namespace tes
 
   inline uint16_t PacketReader::bytesAvailable() const
   {
-    return payloadSize() - _payloadPosition;
+    return uint16_t(payloadSize() - _payloadPosition);
   }
 
   template <typename T>

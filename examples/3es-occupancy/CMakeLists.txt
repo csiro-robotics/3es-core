@@ -1,4 +1,4 @@
-find_package(octomap)
+find_package(octomap QUIET)
 
 # Handle older and newer octomap incldue dir variables.
 # Convert older (1.8) to newer (currently in devel)
