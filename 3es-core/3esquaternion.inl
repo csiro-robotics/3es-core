@@ -220,7 +220,7 @@ namespace tes
 
 
   template <typename T>
-  Quaternion<T> Quaternion<T>::slerp(const Quaternion<T> &from, const Quaternion<T> &to, const T &t)
+  Quaternion<T> Quaternion<T>::slerp(const Quaternion<T> &from, const Quaternion<T> &to, T t, T epsilon)
   {
     T dCoeff0, dCoeff1, dAngle, dSin, dCos, dInvSin;
 
@@ -250,7 +250,7 @@ namespace tes
       temp.w = to.w;
     }
 
-    if ((T(1) - dCos) > Vector3<T>::Epsilon)
+    if ((T(1) - dCos) > epsilon)
     {
       dAngle = std::acos(dCos);
       dSin = std::sin(dAngle);  // fSin >= 0 since fCos >= 0

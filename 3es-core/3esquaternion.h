@@ -185,7 +185,7 @@ namespace tes
     /// @param to The quaternion rotation to interpolate to.
     /// @param t The interpolation "time", [0, 1].
     /// @return The interpolated result.
-    static Quaternion<T> slerp(const Quaternion<T> &from, const Quaternion<T> &to, const T &t);
+    static Quaternion<T> slerp(const Quaternion<T> &from, const Quaternion<T> &to, T t, T epsilon = Vector3<T>::Epsilon);
 
     Quaternion<T> operator *= (const Quaternion<T> &other);
     inline Quaternion<T> operator *= (const T &scalar) { return multiply(scalar); }
