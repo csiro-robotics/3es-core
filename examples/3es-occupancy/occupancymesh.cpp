@@ -26,17 +26,17 @@ struct OccupancyMeshDetail
 
 namespace
 {
-  bool validateVertex(const Vector3f &v)
-  {
-    for (int i = 0; i < 3; ++i)
-    {
-      if (std::abs(v[i]) > 1e6f)
-      {
-        return false;
-      }
-    }
-    return true;
-  }
+  // bool validateVertex(const Vector3f &v)
+  // {
+  //   for (int i = 0; i < 3; ++i)
+  //   {
+  //     if (std::abs(v[i]) > 1e6f)
+  //     {
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // }
 
 
   uint32_t nodeColour(const octomap::OcTree::NodeType *node, const octomap::OcTree &map)
@@ -84,18 +84,21 @@ uint32_t OccupancyMesh::tint() const
 
 uint8_t OccupancyMesh::drawType(int stream) const
 {
+  TES_UNUSED(stream);
   return tes::DtVoxels;
 }
 
 
 unsigned OccupancyMesh::vertexCount(int stream) const
 {
+  TES_UNUSED(stream);
   return (unsigned)_detail->vertices.size();
 }
 
 
 unsigned OccupancyMesh::indexCount(int stream) const
 {
+  TES_UNUSED(stream);
   //return (unsigned)_detail->indices.size();
   return 0;
 }
@@ -103,6 +106,7 @@ unsigned OccupancyMesh::indexCount(int stream) const
 
 const float * OccupancyMesh::vertices(unsigned & stride, int stream) const
 {
+  TES_UNUSED(stream);
   stride = sizeof(Vector3f);
   return (!_detail->vertices.empty()) ? _detail->vertices.data()->v : nullptr;
 }
@@ -110,26 +114,33 @@ const float * OccupancyMesh::vertices(unsigned & stride, int stream) const
 
 const uint8_t * OccupancyMesh::indices(unsigned & stride, unsigned & width, int stream) const
 {
+  TES_UNUSED(stride);
+  TES_UNUSED(width);
+  TES_UNUSED(stream);
   //width = stride = sizeof(IndexType);
   //return (!_detail->indices.empty()) ? reinterpret_cast<const uint8_t *>(_detail->indices.data()) : nullptr;
   return nullptr;
 }
 
-const float * OccupancyMesh::normals(unsigned & stride, int stream) const
+const float * OccupancyMesh::normals(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stream);
   stride = sizeof(Vector3f);
   return (!_detail->normals.empty()) ? _detail->normals.data()->v : nullptr;
 }
 
 
-const float * OccupancyMesh::uvs(unsigned & stride, int stream) const
+const float * OccupancyMesh::uvs(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stream);
+  TES_UNUSED(stride);
   return nullptr;
 }
 
 
 const uint32_t * OccupancyMesh::colours(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stream);
   stride = sizeof(uint32_t);
   return (!_detail->colours.empty()) ? _detail->colours.data() : nullptr;
 }
@@ -142,7 +153,7 @@ tes::Resource *OccupancyMesh::clone() const
 }
 
 
-int OccupancyMesh::transfer(tes::PacketWriter & packet, int byteLimit, tes::TransferProgress & progress) const
+int OccupancyMesh::transfer(tes::PacketWriter & packet, unsigned byteLimit, tes::TransferProgress & progress) const
 {
   // Build the voxel set if required.
   if (_detail->voxelIndexMap.empty())
@@ -303,7 +314,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
   {
     const uint16_t transferLimit = 5001;
     // Send colour and position update.
-    cmpmsg.offset = oldVertexCount;
+    cmpmsg.offset = uint32_t(oldVertexCount);
 
     while (cmpmsg.offset < newVertexCount)
     {

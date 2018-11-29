@@ -254,7 +254,7 @@ int TcpSocket::read(char *buffer, int bufferLength) const
   }
 
   int flags = MSG_WAITALL;
-  int read = ::recv(_detail->socket, buffer, bufferLength, flags);
+  int read = int(::recv(_detail->socket, buffer, unsigned(bufferLength), flags));
   if (read < 0)
   {
     if (!tcpbase::checkRecv(_detail->socket, read))
@@ -280,7 +280,7 @@ int TcpSocket::readAvailable(char *buffer, int bufferLength) const
 #ifndef WIN32
   flags |= MSG_DONTWAIT;
 #endif // WIN32
-  int read = ::recv(_detail->socket, buffer, bufferLength, flags);
+  int read = int(::recv(_detail->socket, buffer, unsigned(bufferLength), flags));
   if (read == -1)
   {
     if (!tcpbase::checkRecv(_detail->socket, read))
@@ -315,7 +315,7 @@ int TcpSocket::write(const char *buffer, int bufferLength) const
     while (retry)
     {
       retry = false;
-      sent = ::send(_detail->socket, (char *)buffer + bytesSent, bufferLength - bytesSent, flags);
+      sent = int(::send(_detail->socket, (char *)buffer + bytesSent, unsigned(bufferLength - bytesSent), flags));
 #ifdef WIN32
       if (sent < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
 #else  // WIN32

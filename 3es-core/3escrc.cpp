@@ -24,7 +24,7 @@ namespace tes
     void initTable(CRC polynomial);
 
     const CRC Width = (8 * sizeof(CRC));
-    const CRC TopBit = (1 << ((8 * sizeof(CRC)) - 1));
+    const CRC TopBit = CRC(1 << ((8 * sizeof(CRC)) - 1));
   };
 
 
@@ -46,8 +46,8 @@ namespace tes
     // Divide the message by the polynomial, a byte at a time.
     for (size_t byte = 0u; byte < byteCount; ++byte)
     {
-      data = message[byte] ^ (remainder >> (Width - 8));
-      remainder = _crcTable[data] ^ (remainder << 8);
+      data = uint8_t(message[byte] ^ (remainder >> (Width - 8)));
+      remainder = CRC(_crcTable[data] ^ (remainder << 8));
     }
 
     // The final remainder is the CRC.
@@ -64,7 +64,7 @@ namespace tes
     for (int dividend = 0; dividend < 256; ++dividend)
     {
       // Start with the dividend followed by zeros.
-      remainder = dividend << (Width - 8);
+      remainder = CRC(dividend << (Width - 8));
 
       // Perform modulo-2 division, a bit at a time.
       for (uint8_t bit = 8; bit > 0; --bit)
@@ -72,11 +72,11 @@ namespace tes
         // Try to divide the current data bit.
         if (remainder & TopBit)
         {
-          remainder = (remainder << 1) ^ polynomial;
+          remainder = CRC((remainder << 1) ^ polynomial);
         }
         else
         {
-          remainder = (remainder << 1);
+          remainder = CRC(remainder << 1);
         }
       }
 

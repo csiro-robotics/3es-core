@@ -22,6 +22,15 @@ namespace tes
   class Vector4
   {
   public:
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma GCC diagnostic ignored "-Wnested-anon-types"
+#else  // __clang__
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif // __clang__
+#endif // __GNUC__
     union
     {
       struct
@@ -32,6 +41,9 @@ namespace tes
       /// Array representation of the vector members.
       T v[4];
     };
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif // __GNUC__
 
     /// The default epsilon value used comparison operators.
     static const T Epsilon;
@@ -229,8 +241,8 @@ namespace tes
     inline Vector3<T> xyz() const { return Vector3<T>(x, y, z); }
   };
 
-  template class _3es_coreAPI Vector4<float>;
-  template class _3es_coreAPI Vector4<double>;
+  _3es_extern template class _3es_coreAPI Vector4<float>;
+  _3es_extern template class _3es_coreAPI Vector4<double>;
 
   //---------------------------------------------------------------------------
   // Arithmetic operators

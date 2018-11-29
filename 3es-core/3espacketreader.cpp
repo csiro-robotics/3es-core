@@ -10,7 +10,7 @@
 
 using namespace tes;
 
-PacketReader::PacketReader(const PacketHeader &packet)
+PacketReader::PacketReader(const PacketHeader *packet)
 : PacketStream<const PacketHeader>(packet)
 {
   seek(0, Begin);
@@ -24,7 +24,7 @@ bool PacketReader::checkCrc()
     return true;
   }
 
-  if ((_packet.flags & PF_NoCrc))
+  if ((flags() & PF_NoCrc))
   {
     _status |= CrcValid;
     return true;
@@ -43,7 +43,7 @@ bool PacketReader::checkCrc()
 
 PacketReader::CrcType PacketReader::calculateCrc() const
 {
-  const CrcType crcVal = crc16(reinterpret_cast<const uint8_t *>(&_packet), sizeof(PacketHeader)+payloadSize());
+  const CrcType crcVal = crc16(reinterpret_cast<const uint8_t *>(_packet), sizeof(PacketHeader)+payloadSize());
   return crcVal;
 }
 
@@ -54,7 +54,7 @@ size_t PacketReader::readElement(uint8_t *bytes, size_t elementSize)
   {
     memcpy(bytes, payload() + _payloadPosition, elementSize);
     networkEndianSwap(bytes, elementSize);
-    _payloadPosition += uint16_t(elementSize);
+    _payloadPosition = uint16_t(_payloadPosition + elementSize);
     return elementSize;
   }
 
@@ -76,7 +76,7 @@ size_t PacketReader::readArray(uint8_t *bytes, size_t elementSize, size_t elemen
       networkEndianSwap(fixBytes, elementSize);
     }
 #endif // !TES_IS_NETWORK_ENDIAN
-    _payloadPosition += uint16_t(elementSize * copyCount);
+    _payloadPosition = uint16_t(_payloadPosition + elementSize * copyCount);
     return copyCount;
   }
 
@@ -88,6 +88,21 @@ size_t PacketReader::readRaw(uint8_t *bytes, size_t byteCount)
 {
   size_t copyCount = (byteCount <= bytesAvailable()) ? byteCount : bytesAvailable();
   memcpy(bytes, payload() + _payloadPosition, copyCount);
-  _payloadPosition += uint16_t(copyCount);
+  _payloadPosition = uint16_t(_payloadPosition + copyCount);
+  return copyCount;
+}
+
+
+size_t PacketReader::peek(uint8_t *dst, size_t byteCount, bool allowByteSwap)
+{
+  size_t copyCount = (byteCount <= bytesAvailable()) ? byteCount : bytesAvailable();
+  memcpy(dst, payload() + _payloadPosition, copyCount);
+  // Do not adjust the payload position.
+
+  if (allowByteSwap)
+  {
+    networkEndianSwap(dst, byteCount);
+  }
+
   return copyCount;
 }

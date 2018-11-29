@@ -15,6 +15,15 @@ namespace tes
   class Quaternion
   {
   public:
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma GCC diagnostic ignored "-Wnested-anon-types"
+#else  // __clang__
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif // __clang__
+#endif // __GNUC__
     union
     {
       struct
@@ -25,6 +34,9 @@ namespace tes
       /// Array representation of the vector members.
       T q[4];
     };
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif // __GNUC__
 
     /// The identity quaternion (0, 0, 0, 1).
     static const Quaternion<T> identity;
@@ -173,7 +185,7 @@ namespace tes
     /// @param to The quaternion rotation to interpolate to.
     /// @param t The interpolation "time", [0, 1].
     /// @return The interpolated result.
-    static Quaternion<T> slerp(const Quaternion<T> &from, const Quaternion<T> &to, const T &t);
+    static Quaternion<T> slerp(const Quaternion<T> &from, const Quaternion<T> &to, T t, T epsilon = Vector3<T>::Epsilon);
 
     Quaternion<T> operator *= (const Quaternion<T> &other);
     inline Quaternion<T> operator *= (const T &scalar) { return multiply(scalar); }
@@ -199,8 +211,8 @@ namespace tes
   /// Defines a double precision quaternion.
   typedef Quaternion<double> Quaterniond;
 
-  template class _3es_coreAPI Quaternion<float>;
-  template class _3es_coreAPI Quaternion<double>;
+  _3es_extern template class _3es_coreAPI Quaternion<float>;
+  _3es_extern template class _3es_coreAPI Quaternion<double>;
 }
 
 #include "3esquaternion.inl"

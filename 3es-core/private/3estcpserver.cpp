@@ -250,6 +250,7 @@ int TcpServer::updateTransfers(unsigned byteLimit)
 
 bool TcpServer::sendServerInfo(const ServerInfoMessage &info)
 {
+  TES_UNUSED(info);
   return false;
 }
 
@@ -288,9 +289,9 @@ unsigned TcpServer::releaseResource(const Resource *resource)
 }
 
 
-int TcpServer::send(const PacketWriter &packet)
+int TcpServer::send(const PacketWriter &packet, bool allowCollation)
 {
-  return send(packet.data(), packet.packetSize());
+  return send(packet.data(), packet.packetSize(), allowCollation);
 }
 
 
@@ -317,7 +318,7 @@ int TcpServer::send(const CollatedPacket &collated)
 }
 
 
-int TcpServer::send(const uint8_t *data, int byteCount)
+int TcpServer::send(const uint8_t *data, int byteCount, bool allowCollation)
 {
   if (!_active)
   {
@@ -329,7 +330,7 @@ int TcpServer::send(const uint8_t *data, int byteCount)
   std::lock_guard<Lock> guard(_lock);
   for (TcpConnection *con : _connections)
   {
-    sent = con->send(data, byteCount);
+    sent = con->send(data, byteCount, allowCollation);
     if (sent == -1)
     {
       failed = true;
@@ -407,7 +408,7 @@ void TcpServer::updateConnections(const std::vector<TcpConnection *> &connection
     }
   }
 
-  _connections.resize(0);
+  _connections.clear();
   std::for_each(connections.begin(), connections.end(),
                 [this] (TcpConnection *con){ _connections.push_back(con);});
 

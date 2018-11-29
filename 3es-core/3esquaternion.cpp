@@ -3,4 +3,8 @@
 // 
 #include "3esquaternion.h" 
 
-using namespace tes;
+namespace tes
+{
+  template class Quaternion<float>;
+  template class Quaternion<double>;
+}

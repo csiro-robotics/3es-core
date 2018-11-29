@@ -34,9 +34,8 @@ namespace tes
 
     /// Create a new connection using the given @p clientSocket.
     /// @param clientSocket The socket to communicate on.
-    /// @param serverFlags @c ServerFlag values affecting the connection.
-    ///   Not all have an effect on the connection.
-    TcpConnection(TcpSocket *clientSocket, unsigned serverFlags, uint16_t bufferSize);
+    /// @param settings Various server settings to initialise with.
+    TcpConnection(TcpSocket *clientSocket, const ServerSettings &settings);
     ~TcpConnection();
 
     /// Close the socket connection.
@@ -57,7 +56,7 @@ namespace tes
     bool sendServerInfo(const ServerInfoMessage &info) override;
 
     int send(const CollatedPacket &collated);// override;
-    int send(const uint8_t *data, int byteCount) override;
+    int send(const uint8_t *data, int byteCount, bool allowCollation = true) override;
 
     int create(const Shape &shape) override;
     int destroy(const Shape &shape) override;
@@ -95,7 +94,10 @@ namespace tes
     /// Write data to the client. Handles collation and compression if enabled.
     ///
     /// Note: the @c _lock must be locked before calling this function.
-    int writePacket(const uint8_t *buffer, uint16_t byteCount);
+    /// @param buffer The data buffer to send from.
+    /// @param byteCount Number of bytes from @p buffer to send.
+    /// @param True to allow collation and compression for this packet.
+    int writePacket(const uint8_t *buffer, uint16_t byteCount, bool allowCollation);
 
     void ensurePacketBufferCapacity(size_t size);
 

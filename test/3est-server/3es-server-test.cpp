@@ -81,7 +81,7 @@ public:
 
   virtual void reset() {}
 
-  virtual void update(float time, float dt) {}
+  virtual void update(float time, float dt) { TES_UNUSED(time); TES_UNUSED(dt); }
 
 protected:
   virtual void onShapeChange() {}
@@ -96,8 +96,8 @@ class Oscilator : public ShapeMover
 public:
   inline Oscilator(Shape *shape, float amplitude = 1.0f, float period = 5.0f, const Vector3f &axis = Vector3f(0, 0, 1))
     : ShapeMover(shape)
-    , _axis(axis)
     , _referencePos(shape ? shape->position() : Vector3f::zero)
+    , _axis(axis)
     , _amplitude(amplitude)
     , _period(period)
   {
@@ -116,6 +116,7 @@ public:
 
   void update(float time, float dt) override
   {
+    TES_UNUSED(dt);
     Vector3f pos = _referencePos + _amplitude * std::sin(time) * _axis;
     shape()->setPosition(pos);
   }
@@ -197,6 +198,8 @@ bool haveOption(const char *opt, int argc, const char **argv)
 
 void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<ShapeMover *> &movers, std::vector<Resource *> &resources, int argc, const char **argv)
 {
+  TES_UNUSED(movers);
+  TES_UNUSED(resources);
   if (!haveOption("noaxes", argc, argv))
   {
     const float arrowLength = 1.0f;
@@ -353,7 +356,16 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
       Vector3f(0, 0, 0), Vector3f(0.25f, 0, 1), Vector3f(0, -0.25f, 1)
     };
     const unsigned triVertexCount = sizeof(triangleSet) / sizeof(triangleSet[0]);
+    static const uint32_t colours[] =
+    {
+      Colour::Colours[Colour::Red].c, Colour::Colours[Colour::Red].c, Colour::Colours[Colour::Red].c,
+      Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Green].c,
+      Colour::Colours[Colour::Blue].c, Colour::Colours[Colour::Blue].c, Colour::Colours[Colour::Blue].c,
+      Colour::Colours[Colour::White].c, Colour::Colours[Colour::White].c, Colour::Colours[Colour::White].c
+    };
     MeshShape *triangles = new MeshShape(DtTriangles, triangleSet[0].v, triVertexCount, sizeof(triangleSet[0]), nextId++, CatTriangles);
+    triangles->setColours(colours);
+    triangles->duplicateArrays();
     shapes.push_back(triangles);
     // if (!noMove)
     // {
@@ -377,13 +389,23 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   {
     static const Vector3f pts[] =
     {
-      Vector3f(0, 0, 0), Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1),
-      Vector3f(0, 0, 0), Vector3f(-0.25f, 0, 1), Vector3f(0, 0.25f, 1),
-      Vector3f(0, 0, 0), Vector3f(0, -0.25f, 1), Vector3f(-0.25f, 0, 1),
-      Vector3f(0, 0, 0), Vector3f(0.25f, 0, 1), Vector3f(0, -0.25f, 1)
+      Vector3f(0, 0.25f, 1),
+      Vector3f(0.25f, 0, 1),
+      Vector3f(-0.25f, 0, 1),
+      Vector3f(0, -0.25f, 1),
+      Vector3f(0, -0.25f, 1)
     };
     const unsigned pointsCount = sizeof(pts) / sizeof(pts[0]);
+    static const uint32_t colours[] =
+    {
+      Colour::Colours[Colour::Black].c,
+      Colour::Colours[Colour::Red].c,
+      Colour::Colours[Colour::Green].c,
+      Colour::Colours[Colour::Blue].c,
+      Colour::Colours[Colour::White].c
+    };
     MeshShape *points = new MeshShape(DtPoints, pts[0].v, pointsCount, sizeof(pts[0]), nextId++, CatPoints);
+    points->setColours(colours);
     shapes.push_back(points);
     // if (!noMove)
     // {
@@ -482,6 +504,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
 void showUsage(int argc, char **argv)
 {
+  TES_UNUSED(argc);
   std::cout << "Usage:\n";
   std::cout << argv[0] << " [options] [shapes]\n";
   std::cout << "\nValid options:\n";
@@ -530,7 +553,7 @@ int main(int argc, char **argvNonConst)
   ServerInfoMessage info;
   initDefaultServerInfo(&info);
   info.coordinateFrame = XYZ;
-  unsigned serverFlags = SF_Collate;
+  unsigned serverFlags = SF_DefaultNoCompression;
   if (haveOption("compress", argc, argv))
   {
     serverFlags |= SF_Compress;
@@ -575,14 +598,20 @@ int main(int argc, char **argvNonConst)
     }
   };
 
+  server->connectionMonitor()->setConnectionCallback(onNewConnection);
+
+  if (!server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous))
+  {
+    std::cerr << "Failed to start listening." << std::endl;
+    return 1;
+  }
+  std::cout << "Listening on port " << server->connectionMonitor()->port() << std::endl;
+
   // Register shapes with server.
   for (Shape *shape : shapes)
   {
     server->create(*shape);
   }
-
-  server->connectionMonitor()->setConnectionCallback(onNewConnection);
-  server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous);
 
   while (!quit)
   {

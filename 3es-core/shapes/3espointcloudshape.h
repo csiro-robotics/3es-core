@@ -6,6 +6,7 @@
 
 #include "3es-core.h"
 
+#include "3esintarg.h"
 #include "3esshape.h"
 #include "3esmeshset.h"
 
@@ -28,10 +29,12 @@ namespace tes
     /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
     /// @param category The category grouping for the shape used for filtering.
     /// @param pointSize Desired point render size (pixels).
-    PointCloudShape(const MeshResource *mesh, uint32_t id = 0, uint16_t category = 0, uint8_t pointSize = 1);
+    PointCloudShape(const MeshResource *mesh = nullptr, uint32_t id = 0, uint16_t category = 0, uint8_t pointSize = 1);
 
     /// Destructor.
     ~PointCloudShape();
+
+    inline const char *type() const override { return "pointCloudShape"; }
 
     /// Set the desired point render size (pixels).
     /// @param size The desired render size (pixels).
@@ -40,6 +43,20 @@ namespace tes
     /// Get the desired point render size (pixels).
     /// @return The desired point render size.
     inline uint8_t pointSize() const { return _pointSize; }
+
+    /// Return the number of @c indices().
+    ///
+    /// Only non-zero when referencing a subset of @c mesh() vertices.
+    ///
+    /// @return Zero when using all @c mesh() vertices, non-zero when referencing a subset of @c mesh().
+    unsigned indexCount() const { return _indexCount; }
+
+    /// Return the index array when a subset of @c mesh() vertices.
+    ///
+    /// Indices are only set when overriding indexing from @c mesh().
+    ///
+    /// @return An array of indices, length @c indexCount(), or null when referencing all vertices from @c mesh().
+    const unsigned *indices() const { return _indices; }
 
     /// Sets the (optional) indices for this @c PointCloudShape @c Shape.
     /// This shape will only visualise the indexed points from its @c PointSource.
@@ -55,7 +72,7 @@ namespace tes
     /// @param indexCount The number of elements to copy from @p iter.
     /// @return This.
     template <typename I>
-    PointCloudShape &setIndices(I begin, uint32_t indexCount);
+    PointCloudShape &setIndices(I begin, const UIntArg &indexCount);
 
     /// Get the mesh resource containing the point data to render.
     /// @return The point cloud mesh resource.
@@ -64,7 +81,7 @@ namespace tes
     /// Writes the standard create message and appends the point cloud ID (@c uint32_t).
     /// @param stream The stream to write to.
     /// @return True on success.
-    virtual bool writeCreate(PacketWriter &stream) const override;
+    bool writeCreate(PacketWriter &stream) const override;
 
     /// Write index data set in @c setIndices() if any.
     /// @param stream The data stream to write to.
@@ -73,7 +90,11 @@ namespace tes
     /// @return Indicates completion progress. 0 indicates completion,
     ///   1 indicates more data are available and more calls should be made.
     ///   -1 indicates an error. No more calls should be made.
-    virtual int writeData(PacketWriter &stream, unsigned &progressMarker) const override;
+    int writeData(PacketWriter &stream, unsigned &progressMarker) const override;
+
+    bool readCreate(PacketReader &stream) override;
+
+    bool readData(PacketReader &stream) override;
 
     /// Defines this class as a complex shape. See Shape::isComplex().
     /// @return @c true
@@ -83,7 +104,7 @@ namespace tes
     /// @param resources Resource output array.
     /// @param capacity of @p resources.
     /// @param fetchOffset Indexing offset for the resources in this object.
-    int enumerateResources(const Resource **resources, int capacity, int fetchOffset) const override;
+    unsigned enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset) const override;
 
     /// Deep copy clone. The source is only cloned if @c ownSource() is true.
     /// It is shared otherwise.
@@ -93,6 +114,9 @@ namespace tes
   private:
     void onClone(PointCloudShape *copy) const;
 
+    /// Reallocate the index array preserving current data.
+    /// @param count The new element size for the array.
+    void reallocateIndices(uint32_t count);
     uint32_t *allocateIndices(uint32_t count);
     void freeIndices(const uint32_t *indices);
 
@@ -100,6 +124,7 @@ namespace tes
     uint32_t *_indices;
     uint32_t _indexCount;
     uint8_t _pointSize;
+    bool _ownMesh;
   };
 
 
@@ -109,18 +134,13 @@ namespace tes
     , _indices(nullptr)
     , _indexCount(0)
     , _pointSize(pointSize)
+    , _ownMesh(false)
   {
-  }
-
-
-  inline PointCloudShape::~PointCloudShape()
-  {
-    freeIndices(_indices);
   }
 
 
   template <typename I>
-  PointCloudShape &PointCloudShape::setIndices(I iter, uint32_t indexCount)
+  PointCloudShape &PointCloudShape::setIndices(I iter, const UIntArg &indexCount)
   {
     freeIndices(_indices);
     _indices = nullptr;

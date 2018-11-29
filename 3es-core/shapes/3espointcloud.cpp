@@ -6,6 +6,7 @@
 #include "3esspinlock.h"
 
 #include "3esmeshmessages.h"
+#include "3esrotation.h"
 
 #include <algorithm>
 #include <cstring>
@@ -124,11 +125,12 @@ uint32_t PointCloud::tint() const
 
 uint8_t PointCloud::drawType(int stream) const
 {
+  TES_UNUSED(stream);
   return DtPoints;
 }
 
 
-void PointCloud::reserve(unsigned size)
+void PointCloud::reserve(const UIntArg &size)
 {
   if (_imp->capacity < size)
   {
@@ -137,7 +139,7 @@ void PointCloud::reserve(unsigned size)
 }
 
 
-void PointCloud::resize(unsigned count)
+void PointCloud::resize(const UIntArg &count)
 {
   if (_imp->capacity < count)
   {
@@ -165,12 +167,14 @@ unsigned PointCloud::capacity() const
 
 unsigned PointCloud::vertexCount(int stream) const
 {
+  TES_UNUSED(stream);
   return _imp->vertexCount;
 }
 
 
 const float *PointCloud::vertices(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stream);
   stride = sizeof(Vector3f);
   return (_imp->vertices) ? &_imp->vertices->x : nullptr;
 }
@@ -184,18 +188,23 @@ const Vector3f *PointCloud::vertices() const
 
 unsigned PointCloud::indexCount(int stream) const
 {
+  TES_UNUSED(stream);
   return 0;
 }
 
 
 const uint8_t *PointCloud::indices(unsigned &stride, unsigned &width, int stream) const
 {
+  TES_UNUSED(stride);
+  TES_UNUSED(width);
+  TES_UNUSED(stream);
   return nullptr;
 }
 
 
 const float *PointCloud::normals(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stream);
   stride = sizeof(Vector3f);
   return (_imp->normals) ? &_imp->normals->x : nullptr;
 }
@@ -209,6 +218,7 @@ const Vector3f *PointCloud::normals() const
 
 const uint32_t *PointCloud::colours(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stream);
   stride = sizeof(Colour);
   return (_imp->colours) ? &_imp->colours->c : nullptr;
 }
@@ -226,14 +236,14 @@ const float *PointCloud::uvs(unsigned &, int) const
 }
 
 
-void PointCloud::addPoints(const Vector3f *points, unsigned count)
+void PointCloud::addPoints(const Vector3f *points, const UIntArg &count)
 {
   if (count)
   {
     copyOnWrite();
     unsigned initial = _imp->vertexCount;
-    resize(_imp->vertexCount + count);
-    memcpy(_imp->vertices + initial, points, sizeof(*points) * count);
+    resize(_imp->vertexCount + count.i);
+    memcpy(_imp->vertices + initial, points, sizeof(*points) * count.i);
 
     // Initialise other data
     for (unsigned i = initial; i < _imp->vertexCount; ++i)
@@ -250,15 +260,15 @@ void PointCloud::addPoints(const Vector3f *points, unsigned count)
 }
 
 
-void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, unsigned count)
+void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, const UIntArg &count)
 {
   if (count)
   {
     copyOnWrite();
     unsigned initial = _imp->vertexCount;
-    resize(_imp->vertexCount + count);
-    memcpy(_imp->vertices + initial, points, sizeof(*points) * count);
-    memcpy(_imp->normals + initial, normals, sizeof(*normals) * count);
+    resize(_imp->vertexCount + count.i);
+    memcpy(_imp->vertices + initial, points, sizeof(*points) * count.i);
+    memcpy(_imp->normals + initial, normals, sizeof(*normals) * count.i);
 
     // Initialise other data
     const Colour c = Colour::Colours[Colour::White];
@@ -270,106 +280,109 @@ void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, unsi
 }
 
 
-void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, const Colour *colours, unsigned count)
+void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, const Colour *colours, const UIntArg &count)
 {
   if (count)
   {
     copyOnWrite();
     unsigned initial = _imp->vertexCount;
-    resize(_imp->vertexCount + count);
-    memcpy(_imp->vertices + initial, points, sizeof(*points) * count);
-    memcpy(_imp->normals + initial, normals, sizeof(*normals) * count);
-    memcpy(_imp->colours + initial, colours, sizeof(*colours) * count);
+    resize(_imp->vertexCount + count.i);
+    memcpy(_imp->vertices + initial, points, sizeof(*points) * count.i);
+    memcpy(_imp->normals + initial, normals, sizeof(*normals) * count.i);
+    memcpy(_imp->colours + initial, colours, sizeof(*colours) * count.i);
   }
 }
 
 
-void PointCloud::setNormal(unsigned index, const Vector3f &normal)
+void PointCloud::setNormal(const UIntArg &index, const Vector3f &normal)
 {
   if (index < _imp->vertexCount)
   {
     copyOnWrite();
-    _imp->normals[index] = normal;
+    _imp->normals[index.i] = normal;
   }
 }
 
 
-void PointCloud::setColour(unsigned index, const Colour &colour)
+void PointCloud::setColour(const UIntArg &index, const Colour &colour)
 {
   if (index < _imp->vertexCount)
   {
     copyOnWrite();
-    _imp->colours[index] = colour;
+    _imp->colours[index.i] = colour;
   }
 }
 
 
-void PointCloud::setPoints(unsigned index, const Vector3f *points, unsigned count)
+void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const UIntArg &count)
 {
   if (index >= _imp->vertexCount)
   {
     return;
   }
 
-  if (index + count > _imp->vertexCount)
+  unsigned limitedCount = count;
+  if (index.i + limitedCount > _imp->vertexCount)
   {
-    count = index + count - _imp->vertexCount;
+    limitedCount = index.i + count.i - _imp->vertexCount;
   }
 
-  if (!count)
+  if (!limitedCount)
   {
     return;
   }
 
   copyOnWrite();
-  memcpy(_imp->vertices + index, points, sizeof(*points) * count);
+  memcpy(_imp->vertices + index.i, points, sizeof(*points) * limitedCount);
 }
 
 
-void PointCloud::setPoints(unsigned index, const Vector3f *points, const Vector3f *normals, unsigned count)
+void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals, const UIntArg &count)
 {
   if (index >= _imp->vertexCount)
   {
     return;
   }
 
-  if (index + count > _imp->vertexCount)
+  unsigned limitedCount = count;
+  if (index.i + limitedCount > _imp->vertexCount)
   {
-    count = index + count - _imp->vertexCount;
+    limitedCount = index.i + count.i - _imp->vertexCount;
   }
 
-  if (!count)
+  if (!limitedCount)
   {
     return;
   }
 
   copyOnWrite();
-  memcpy(_imp->vertices + index, points, sizeof(*points) * count);
-  memcpy(_imp->normals + index, normals, sizeof(*normals) * count);
+  memcpy(_imp->vertices + index.i, points, sizeof(*points) * limitedCount);
+  memcpy(_imp->normals + index.i, normals, sizeof(*normals) * limitedCount);
 }
 
 
-void PointCloud::setPoints(unsigned index, const Vector3f *points, const Vector3f *normals, const Colour *colours, unsigned count)
+void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals, const Colour *colours, const UIntArg &count)
 {
   if (index >= _imp->vertexCount)
   {
     return;
   }
 
-  if (index + count > _imp->vertexCount)
+  unsigned limitedCount = count;
+  if (index.i + limitedCount > _imp->vertexCount)
   {
-    count = index + count - _imp->vertexCount;
+    limitedCount = index.i + count.i - _imp->vertexCount;
   }
 
-  if (!count)
+  if (!limitedCount)
   {
     return;
   }
 
   copyOnWrite();
-  memcpy(_imp->vertices + index, points, sizeof(*points) * count);
-  memcpy(_imp->normals + index, normals, sizeof(*normals) * count);
-  memcpy(_imp->colours + index, colours, sizeof(*colours) * count);
+  memcpy(_imp->vertices + index.i, points, sizeof(*points) * limitedCount);
+  memcpy(_imp->normals + index.i, normals, sizeof(*normals) * limitedCount);
+  memcpy(_imp->colours + index.i, colours, sizeof(*colours) * limitedCount);
 }
 
 
@@ -434,4 +447,97 @@ void PointCloud::copyOnWrite()
     --_imp->references;
     _imp = _imp->clone();
   }
+}
+
+
+bool PointCloud::processCreate(const MeshCreateMessage &msg)
+{
+  if (msg.drawType != DtPoints)
+  {
+    return false;
+  }
+
+  copyOnWrite();
+  _imp->id = msg.meshId;
+
+  _imp->vertexCount = msg.vertexCount;
+  delete _imp->vertices;
+  delete _imp->normals;
+  delete _imp->colours;
+  _imp->capacity = msg.vertexCount;
+  _imp->vertices = new Vector3f[msg.vertexCount];
+  _imp->normals = nullptr; // Pending.
+  _imp->colours = nullptr; // Pending
+
+  Matrix4f transform = prsTransform(Vector3f(msg.attributes.position),
+                                    Quaternionf(msg.attributes.rotation),
+                                    Vector3f(msg.attributes.scale));
+
+  // Does not accept a transform.
+  if (!transform.equals(Matrix4f::identity))
+  {
+    return false;
+  }
+
+  // Does not accept a tint.
+  if (msg.attributes.colour != 0xffffffffu)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+
+bool PointCloud::processVertices(const MeshComponentMessage &msg, const float *vertices, unsigned vertexCount)
+{
+  static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Vertex size mismatch");
+  copyOnWrite();
+  unsigned wrote = 0;
+
+  for (unsigned i = 0; i + msg.offset < _imp->vertexCount && i < msg.count; ++i)
+  {
+    _imp->vertices[i + msg.offset] = Vector3f(vertices + i * 3);
+  }
+
+  return wrote == vertexCount;
+}
+
+
+bool PointCloud::processColours(const MeshComponentMessage &msg, const uint32_t *colours, unsigned colourCount)
+{
+  copyOnWrite();
+  unsigned wrote = 0;
+  if (_imp->colours == nullptr)
+  {
+    _imp->colours = new Colour[_imp->vertexCount];
+  }
+
+  for (unsigned i = 0; i + msg.offset < _imp->vertexCount && i < msg.count; ++i)
+  {
+    _imp->colours[i + msg.offset] = colours[i];
+  }
+
+  return wrote == colourCount;
+}
+
+
+bool PointCloud::processNormals(const MeshComponentMessage &msg, const float *normals, unsigned normalCount)
+{
+  static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Normal size mismatch");
+
+  copyOnWrite();
+  unsigned wrote = 0;
+  if (_imp->normals == nullptr)
+  {
+    _imp->normals = new Vector3f[_imp->vertexCount];
+  }
+
+  for (unsigned i = 0; i + msg.offset < _imp->vertexCount && i < msg.count; ++i)
+  {
+    _imp->normals[i + msg.offset] = Vector3f(normals + i * 3);
+    ++wrote;
+  }
+
+  return wrote == normalCount;
 }

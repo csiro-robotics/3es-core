@@ -7,6 +7,7 @@
 #include "3es-core.h"
 
 #include "3escolour.h"
+#include "3esintarg.h"
 #include "3esmeshresource.h"
 #include "3esmeshmessages.h"
 
@@ -36,7 +37,7 @@ namespace tes
     /// @param indexCount Number of indices to preallocate.
     /// @param drawType Defines the primitive type being indexed.
     /// @param components The components defined by this mesh. See @c ComponentFlag.
-    SimpleMesh(uint32_t id, unsigned vertexCount = 0, unsigned indexCount = 0, DrawType drawType = DtTriangles,
+    SimpleMesh(uint32_t id, const UIntArg &vertexCount = 0u, const UIntArg &indexCount = 0u, DrawType drawType = DtTriangles,
                unsigned components = Vertex | Index);
 
   protected:
@@ -103,45 +104,54 @@ namespace tes
 
     unsigned vertexCount() const;
     virtual unsigned vertexCount(int stream) const override;
-    void setVertexCount(unsigned count);
-    void reserveVertexCount(unsigned count);
+    void setVertexCount(const UIntArg &count);
+    void reserveVertexCount(const UIntArg &count);
 
     inline unsigned addVertex(const Vector3f &v) { return addVertices(&v, 1u); }
-    unsigned addVertices(const Vector3f *v, unsigned count);
-    inline bool setVertex(unsigned at, const Vector3f &v) { return setVertices(at, &v, 1u) == 1u; }
-    unsigned setVertices(unsigned at, const Vector3f *v, const unsigned count);
+    unsigned addVertices(const Vector3f *v, const UIntArg & count);
+    inline bool setVertex(const UIntArg &at, const Vector3f &v) { return setVertices(at, &v, 1u) == 1u; }
+    unsigned setVertices(const UIntArg &at, const Vector3f *v, const UIntArg &count);
     const Vector3f *vertices() const;
     virtual const float *vertices(unsigned &stride, int stream = 0) const override;
 
     unsigned indexCount() const;
     virtual unsigned indexCount(int stream) const override;
-    void setIndexCount(unsigned count);
-    void reserveIndexCount(unsigned count);
+    void setIndexCount(const UIntArg &count);
+    void reserveIndexCount(const UIntArg &count);
 
     inline void addIndex(uint32_t i) { return addIndices(&i, 1u); }
-    void addIndices(const uint32_t *idx, unsigned count);
-    inline bool setIndex(unsigned at, uint32_t i) { return setIndices(at, &i, 1u) == 1u; }
-    unsigned setIndices(unsigned at, const uint32_t *idx, unsigned count);
+    void addIndices(const uint32_t *idx, const UIntArg &count);
+    inline bool setIndex(const UIntArg &at, uint32_t i) { return setIndices(at, &i, 1u) == 1u; }
+    unsigned setIndices(const UIntArg &at, const uint32_t *idx, const UIntArg &count);
     const uint32_t *indices() const;
     virtual const uint8_t *indices(unsigned &stride, unsigned &width, int stream = 0) const override;
 
-    inline bool setNormal(unsigned at, const Vector3f &n) { return setNormals(at, &n, 1u) == 1u; }
-    unsigned setNormals(unsigned at, const Vector3f *n, const unsigned count);
+    inline bool setNormal(const UIntArg &at, const Vector3f &n) { return setNormals(at, &n, 1u) == 1u; }
+    unsigned setNormals(const UIntArg &at, const Vector3f *n, const UIntArg &count);
     const Vector3f *normals() const;
     virtual const float *normals(unsigned &stride, int stream) const override;
 
-    inline bool setColour(unsigned at, uint32_t c) { return setColours(at, &c, 1u) == 1u; }
-    unsigned setColours(unsigned at, const uint32_t *c, unsigned count);
+    inline bool setColour(const UIntArg &at, uint32_t c) { return setColours(at, &c, 1u) == 1u; }
+    unsigned setColours(const UIntArg &at, const uint32_t *c, const UIntArg &count);
     const uint32_t *colours() const;
     virtual const uint32_t *colours(unsigned &stride, int stream) const override;
 
-    inline bool setUv(unsigned at, float u, float v) { const float uv[2] = { u, v }; return setUvs(at, uv, 1u) == 1u; }
-    unsigned setUvs(unsigned at, const float *uvs, const unsigned count);
+    inline bool setUv(const UIntArg &at, float u, float v) { const float uv[2] = { u, v }; return setUvs(at, uv, 1u) == 1u; }
+    unsigned setUvs(const UIntArg &at, const float *uvs, const UIntArg &count);
     const float *uvs() const;
     virtual const float *uvs(unsigned &stride, int stream) const override;
 
   private:
     void copyOnWrite();
+
+    bool processCreate(const MeshCreateMessage &msg) override;
+    bool processVertices(const MeshComponentMessage &msg, const float *vertices, unsigned vertexCount) override;
+    bool processIndices(const MeshComponentMessage &msg, const uint8_t *indices, unsigned indexCount) override;
+    bool processIndices(const MeshComponentMessage &msg, const uint16_t *indices, unsigned indexCount) override;
+    bool processIndices(const MeshComponentMessage &msg, const uint32_t *indices, unsigned indexCount) override;
+    bool processColours(const MeshComponentMessage &msg, const uint32_t *colours, unsigned colourCount) override;
+    bool processNormals(const MeshComponentMessage &msg, const float *normals, unsigned normalCount) override;
+    bool processUVs(const MeshComponentMessage &msg, const float *uvs, unsigned uvCount) override;
 
     SimpleMeshImp *_imp;
   };

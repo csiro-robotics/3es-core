@@ -19,7 +19,7 @@ namespace tes
   /// A 1-byte value Endian swap: noop.
   /// For completeness.
   /// @param data The 1-byte buffer.
-  inline void endianSwap1(uint8_t *data) { return; } // No-op
+  inline void endianSwap1(uint8_t * /*data*/) { return; } // No-op
 
   /// Perform a 2-byte value Endian swap on @p data.
   /// Switches the byte order.
@@ -101,10 +101,10 @@ namespace tes
 
   /// Single byte "Endian swap" for completeness: noop.
   /// @param[in,out] data Value to swap the Endian of.
-  inline void endianSwap(uint8_t &data) {}
+  inline void endianSwap(uint8_t &/*data*/) {}
   /// Single byte "Endian swap" for completeness: noop.
   /// @param[in,out] data Value to swap the Endian of.
-  inline void endianSwap(int8_t &data) {}
+  inline void endianSwap(int8_t &/*data*/) {}
 
   /// Two byte integer Endian swap.
   /// @param[in,out] data Value to swap the Endian of.
@@ -159,10 +159,10 @@ namespace tes
 
   /// For completeness: noop.
   /// @param[in,out] data Value to potentially swap the Endian of.
-  inline void networkEndianSwap(uint8_t &data) {}
+  inline void networkEndianSwap(uint8_t &/*data*/) {}
   /// For completeness: noop.
   /// @param[in,out] data Value to potentially swap the Endian of.
-  inline void networkEndianSwap(int8_t &data) {}
+  inline void networkEndianSwap(int8_t &/*data*/) {}
 
   /// Two byte switch of @p data to/from network byte order.
   /// @param[in,out] data Value to potentially swap the Endian of.
@@ -247,6 +247,12 @@ namespace tes
     networkEndianSwap(val);
     return val;
   }
+
+
+  /// @overload
+  inline uint8_t networkEndianSwapValue(const uint8_t &data) { return data; }
+  /// @overload
+  inline int8_t networkEndianSwapValue(const int8_t &data) { return data; }
 }
 
 #endif // _3ESENDIAN_H_

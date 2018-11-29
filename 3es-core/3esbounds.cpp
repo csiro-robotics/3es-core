@@ -5,3 +5,8 @@
 
 using namespace tes;
 
+namespace tes
+{
+  template class Bounds<float>;
+  template class Bounds<double>;
+}

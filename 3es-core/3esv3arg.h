@@ -32,6 +32,10 @@ namespace tes
     /// @param z Z value.
     inline V3Arg(float x, float y, float z) : v3(x, y, z) {}
 
+    /// Copy constructor.
+    /// @param other The value to copy.
+    inline V3Arg(const V3Arg &other) : v3(other.v3) {};
+
     /// Convert to @c Vector3f.
     /// @return The single precision vector 3.
     inline operator Vector3f() const { return v3; }

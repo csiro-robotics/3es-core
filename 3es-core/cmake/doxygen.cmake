@@ -1,12 +1,13 @@
 
 include(CMakeParseArguments)
 
-find_package(DOXYGEN)
+find_package(Doxygen)
 
 # doxygen_create(
 #   [DOXYFILE doxyfile.in]
 #   [PROJECT name]
 #   [VERSION version]
+#   [BRIEF brief]
 #   [OUTPUT_DIR dir]
 #   [CSS style.css]
 #   [PUBLISHER name]
@@ -32,6 +33,7 @@ find_package(DOXYGEN)
 # DOXYFILE      | N/A                   | The input doxyfile to configure using configure_file.
 # PROJECT       | PROJECT_NAME          | Name of the project.
 # VERSION       | PROJECT_NUMBER        | Project version number, in the form <major>.<minor>[.<patch>]
+# BRIEF         | PROJECT_BRIEF         | Project brief comment.
 # OUTPUT_DIR    | HTML_OUPTUT           | HTML output directory under the build tree. Default is 'html'.
 # CSS           | HTML_STYLESHEET       | Style sheet to style the documentation pages with.
 # PUBLISHER     | DOCSET_PUBLISHER_NAME | Publisher name.
@@ -104,7 +106,7 @@ function(doxygen_create)
     set(DGEN_DOXYFILE "cmake/doxyfile.in")
   endif(NOT DGEN_DOXYFILE)
   configure_file("${DGEN_DOXYFILE}" "${CMAKE_CURRENT_BINARY_DIR}/doxyfile")
-  get_filename_component(DOXYFILE_PATH "cmake/doxyfile.in" ABSOLUTE)
+  get_filename_component(DOXYFILE_PATH "${DGEN_DOXYFILE}" ABSOLUTE)
 
   # Setup the Doxygen target.
   add_custom_target(${DGEN_PROJECT}-doc

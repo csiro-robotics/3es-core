@@ -6,6 +6,7 @@
 
 #include "3es-core.h"
 
+#include "3escompressionlevel.h"
 #include "3esconnection.h"
 
 #include <cstdint>
@@ -22,26 +23,54 @@ namespace tes
   /// Server option flags.
   enum ServerFlag
   {
+    /// Send frame update messages uncompressed and uncollated.
+    /// This can be used to clearly demarcate frame boundaries without the need to decode
+    /// collated and/or compressed data.
+    SF_NakedFrameMessage = (1<<0),
     /// Set to collate outgoing messages into larger packets.
     SF_Collate = (1<<1),
     /// Set to compress collated outgoing packets using GZip compression.
     /// Has no effect if @c SF_Collate is not set or if the library is not built against ZLib.
     SF_Compress = (1<<2),
+
+    /// The combination of @c SF_Collate and @c SF_Compress
+    SF_CollateAndCompress = SF_Collate | SF_Compress,
+    /// The default recommended flags for initialising the server.
+    /// This includes collation, compression and naked frame messages.
+    SF_Default = SF_NakedFrameMessage | SF_Collate,
+    /// The default recommended flags without compression.
+    /// This includes collation, compression and naked frame messages.
+    SF_DefaultNoCompression = (SF_Default & ~SF_Compress),
   };
 
+  /// Settings used to create the server.
   struct _3es_coreAPI ServerSettings
   {
-    /// Port to listen on.
-    uint16_t listenPort;
+    /// First port to try listening on.
+    uint16_t listenPort = 33500u;
+    /// Additional number of ports the server may try listening on.
+    uint16_t portRange = 0;
     /// @c ServerFlag values.
-    unsigned flags;
+    unsigned flags = SF_Default;
+    /// Timeout used to wait for the connection monitor to start (milliseconds). Only for asynchronous mode.
+    unsigned asyncTimeoutMs = 5000u;
     /// Size of the client packet buffers.
-    uint16_t clientBufferSize;
+    uint16_t clientBufferSize = 0xffe0u;
+    /// Compression level to use if enabled. See @c CompressionLevel.
+    uint16_t compressionLevel = CL_Default;
+
+    ServerSettings() = default;
+    inline ServerSettings(unsigned flags, uint16_t port = 33500u,
+                          uint16_t clientBufferSize = 0xffe0u,
+                          CompressionLevel compressionLevel = CL_Default)
+      : listenPort(port)
+      , flags(flags)
+      , clientBufferSize(clientBufferSize)
+      , compressionLevel(compressionLevel)
+    {
+    }
 
     // TODO: Allowed client IPs.
-
-    inline ServerSettings(unsigned flags = SF_Collate, uint16_t port = 33500u, uint16_t bufferSize = 0xffe0)
-      : listenPort(port), flags(flags), clientBufferSize(bufferSize) {}
   };
 
   /// Defines the interface for managing a 3es server.
@@ -87,7 +116,8 @@ namespace tes
     /// The @p packet must be finalised first.
     ///
     /// @param packet The packet to send.
-    virtual int send(const PacketWriter &packet) = 0;
+    /// @param allowCollation True to allow the message to be collated (and compressed) with other messages.
+    virtual int send(const PacketWriter &packet, bool allowCollation = true) = 0;
 
     /// Send a collated packet to all clients.
     ///

@@ -38,9 +38,9 @@ namespace tes
 
     bool _3es_coreAPI noDelay(int socket);
 
-    bool _3es_coreAPI checkSend(int socket, int ret, bool reportDisconnect = false);
+    bool _3es_coreAPI checkSend(int socket, int ret);
 
-    bool _3es_coreAPI checkRecv(int socket, int ret, bool reportDisconnect = false);
+    bool _3es_coreAPI checkRecv(int socket, int ret);
 
     int _3es_coreAPI getSendBufferSize(int socket);
 

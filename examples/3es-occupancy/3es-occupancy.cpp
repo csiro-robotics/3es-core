@@ -96,6 +96,8 @@ namespace
 
   bool optionValue(const char *arg, int argc, char *argv[], std::string &value)
   {
+    TES_UNUSED(argc);
+    TES_UNUSED(argv);
     if (*arg == '=')
     {
       ++arg;
@@ -243,7 +245,6 @@ int populateMap(const Options &opt)
     // Compute free ray.
     map.computeRayKeys(p2p(origin), p2p(sample), rayKeys);
     // Draw intersected voxels.
-    const size_t rayKeyCount = rayKeys.size();
     keyIndex = 0;
     for (auto key : rayKeys)
     {
@@ -305,7 +306,11 @@ int populateMap(const Options &opt)
       elapsedTime = std::min(elapsedTime, 1.0);
       firstBatchTimestamp = -1;
 
+#ifdef _MSC_VER
+      sprintf_s(timeStrBuffer, "%g", timestamp - timebase);
+#else  // _MSC_VER
       sprintf(timeStrBuffer, "%g", timestamp - timebase);
+#endif // _MSC_VER
       TES_TEXT2D_SCREEN(g_tesServer, TES_COLOUR(White), timeStrBuffer, 0u, CAT_Info, Vector3f(0.05f, 0.1f, 0.0f));
       // Draw sample lines.
       if (opt.rays & Rays_Lines)
@@ -449,6 +454,8 @@ int main(int argc, char *argv[])
 {
   Options opt;
 
+  signal(SIGINT, onSignal);
+
   if (argc < 3)
   {
     usage(opt);
@@ -574,7 +581,7 @@ int main(int argc, char *argv[])
   }
 
   // Initialise TES
-  TES_SETTINGS(settings, tes::SF_Compress | tes::SF_Collate);
+  TES_SETTINGS(settings, tes::SF_Default);
   // Initialise server info.
   TES_SERVER_INFO(info, tes::XYZ);
   // Create the server. Use tesServer declared globally above.

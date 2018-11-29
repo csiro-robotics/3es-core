@@ -1,16 +1,24 @@
 
 list(APPEND PUBLIC_HEADERS
+  # General headers
+  3esassertrange.h
   3esbounds.h
   3escollatedpacket.h
+  3escollatedpacketdecoder.h
   3escolour.h
+  3escompressionlevel.h
   3esconnection.h
   3esconnectionmonitor.h
   3escoordinateframe.h
   3escoreutil.h
   3escrc.h
+  3esdebug.h
   3esendian.h
   3esfeature.h
+  3esintarg.h
   3esmaths.h
+  3esmathsmanip.h
+  3esmathsstream.h
   3esmatrix3.h
   3esmatrix3.inl
   3esmatrix4.h
@@ -44,7 +52,12 @@ list(APPEND PUBLIC_HEADERS
   3estrigeom.inl
   3esv3arg.h
   3esvector3.h
+  3esvector4.h
+  3esvectorhash.h
+)
 
+list(APPEND PUBLIC_SHAPE_HEADERS
+  # Shape headers
   shapes/3esarrow.h
   shapes/3esbox.h
   shapes/3escapsule.h
@@ -70,11 +83,13 @@ list(APPEND PUBLIC_HEADERS
 list(APPEND SOURCES
   3esbounds.cpp
   3escollatedpacket.cpp
+  3escollatedpacketdecoder.cpp
   3escolour.cpp
   3escoreutil.cpp
   3escrc.cpp
   3esendian.cpp
   3esfeature.cpp
+  3esmathsmanip.cpp
   3esmatrix3.cpp
   3esmatrix4.cpp
   3esmessages.cpp
@@ -98,6 +113,7 @@ list(APPEND SOURCES
   shapes/3escone.cpp
   shapes/3escylinder.cpp
   shapes/3esmeshplaceholder.cpp
+  shapes/3esmeshresource.cpp
   shapes/3esmeshset.cpp
   shapes/3esmeshshape.cpp
   shapes/3esplane.cpp
@@ -111,6 +127,8 @@ list(APPEND SOURCES
 )
 
 list(APPEND PRIVATE_SOURCES
+  private/3escollatedpacketzip.cpp
+  private/3escollatedpacketzip.h
   private/3esitemtransfer.h
   private/3estcpconnection.cpp
   private/3estcpconnection.h
@@ -119,6 +137,16 @@ list(APPEND PRIVATE_SOURCES
   private/3estcpserver.cpp
   private/3estcpserver.h
 )
+
+if(MSVC)
+  list(APPEND PRIVATE_SOURCES
+    win/3esdebug.cpp
+  )
+else(MSVC)
+  list(APPEND PRIVATE_SOURCES
+    nix/3esdebug.cpp
+  )
+endif(MSVC)
 
 if(TES_SOCKETS STREQUAL "custom")
   list(APPEND PRIVATE_HEADERS

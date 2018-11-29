@@ -3,4 +3,8 @@
 // 
 #include "3espacketstream.h" 
 
-using namespace tes;
+namespace tes
+{
+  template class PacketStream<PacketHeader>;
+  template class PacketStream<const PacketHeader>;
+}

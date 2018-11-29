@@ -40,7 +40,7 @@ namespace tes
 
     /// Releases the memory for the given packet.
     /// @param packet The packet to release.
-    void releasePacket(PacketHeader *packet);
+    void releasePacket(const PacketHeader *packet);
 
   private:
     /// Grow the packet buffer with @p bytes.

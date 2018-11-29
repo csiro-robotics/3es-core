@@ -27,11 +27,23 @@ namespace tes
   class Matrix4
   {
   public:
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma GCC diagnostic ignored "-Wnested-anon-types"
+#else  // __clang__
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif // __clang__
+#endif // __GNUC__
     union
     {
       T rc[4][4]; ///< Row/column indexing representation.
       T m[16];    ///< Array representation.
     };
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif // __GNUC__
 
     static const Matrix4<T> zero; ///< A matrix with all zero elements.
     static const Matrix4<T> identity; ///< The identity matrix.
@@ -314,6 +326,13 @@ namespace tes
     /// Transforms the vector @p v by the rotation component of this matrix. No translation is applied.
     /// @return Av, where A is this matrix converted to a 3x3 rotation matrix (no translation).
     Vector4<T> rotate(const Vector4<T> &v) const;
+
+    /// Numerical equality comparison. Reports @c true if each element of this matrix is within of
+    /// @p Epsilon @p a (or equal to).
+    /// @return a Matrix to compare to.
+    /// @param epsilon Comparison tolerance value.
+    /// @return @c true when each element in this matrix is within @p epsilon of each element of @p a.
+    bool equals(const Matrix4<T> &a, const T epsilon = Vector3<T>::Epsilon) const;
   };
 
   /// Defines a single precision 4x4 matrix.
@@ -321,8 +340,8 @@ namespace tes
   /// Defines a double precision 4x4 matrix.
   typedef Matrix4<double> Matrix4d;
 
-  template class _3es_coreAPI Matrix4<float>;
-  template class _3es_coreAPI Matrix4<double>;
+  _3es_extern template class _3es_coreAPI Matrix4<float>;
+  _3es_extern template class _3es_coreAPI Matrix4<double>;
 
   /// Performs the matrix multiplication AB.
   /// @return The result of AB.

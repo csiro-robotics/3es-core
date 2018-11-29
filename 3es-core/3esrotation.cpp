@@ -3,4 +3,7 @@
 // 
 #include "3esrotation.h" 
 
-using namespace tes;
+namespace tes
+{
+  int suppressMsvcLinkWarning = 1;
+}

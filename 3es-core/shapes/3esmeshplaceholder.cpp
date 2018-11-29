@@ -53,31 +53,48 @@ unsigned MeshPlaceholder::indexCount(int /* stream */) const
 }
 
 
-const float *MeshPlaceholder::vertices(unsigned &stride, int /* stream */) const
+const float *MeshPlaceholder::vertices(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stride);
+  TES_UNUSED(stream);
   return nullptr;
 }
 
 
-const uint8_t *MeshPlaceholder::indices(unsigned &stride, unsigned &width, int /* stream */) const
+const uint8_t *MeshPlaceholder::indices(unsigned &stride, unsigned &width, int stream) const
 {
+  TES_UNUSED(stride);
+  TES_UNUSED(width);
+  TES_UNUSED(stream);
   return nullptr;
 }
 
 
-const float *MeshPlaceholder::normals(unsigned &stride, int /* stream */) const
+const float *MeshPlaceholder::normals(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stride);
+  TES_UNUSED(stream);
   return nullptr;
 }
 
 
-const float *MeshPlaceholder::uvs(unsigned &stride, int /* stream */) const
+const float *MeshPlaceholder::uvs(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stride);
+  TES_UNUSED(stream);
   return nullptr;
 }
 
 
-const uint32_t *MeshPlaceholder::colours(unsigned &stride, int /* stream */) const
+const uint32_t *MeshPlaceholder::colours(unsigned &stride, int stream) const
 {
+  TES_UNUSED(stride);
+  TES_UNUSED(stream);
   return nullptr;
+}
+
+
+Resource *MeshPlaceholder::clone() const
+{
+  return new MeshPlaceholder(_id);
 }

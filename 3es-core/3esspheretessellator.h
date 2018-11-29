@@ -47,6 +47,6 @@ namespace tes
 
   /// Tessellate a sphere using a subdivision technique starting from an icosahedron.
   void _3es_coreAPI sphereSubdivision(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius = 1.0f, const Vector3f &origin = Vector3f(0.0f), int depth = 2);
-};
+}
 
 #endif // _3ESSPHERETESSELLATOR_H_

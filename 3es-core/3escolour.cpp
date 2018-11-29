@@ -1,9 +1,9 @@
-// 
-// author Kazys Stepanas 
-// 
-// Copyright (c) Kazys Stepanas 2014 
-// 
-#include "3escolour.h" 
+//
+// author Kazys Stepanas
+//
+// Copyright (c) Kazys Stepanas 2014
+//
+#include "3escolour.h"
 
 #include <algorithm>
 
@@ -14,7 +14,7 @@ Colour Colour::adjust(float factor) const
   float h, s, v;
   Colour c;
   rgbToHsv(h, s, v, rf(), gf(), bf());
-  v = std::max(0.0f, std::min(v, 1.0f));
+  v = std::max(0.0f, std::min(v * factor, 1.0f));
   c.a = this->a;
   hsvToRgb(c.r, c.g, c.b, h, s, v);
   return c;
@@ -28,12 +28,12 @@ void Colour::rgbToHsv(float &h, float &s, float &v,
   const float cmax = std::max<float>(r, std::max<float>(g, b));
   const float delta = cmax - cmin;
 
-  const float yellowToMagenta = (r == cmax && cmax) ? 1.0f : 0.0f;
-  const float cyanToYellow = (g == cmax && cmax) ? 1.0f : 0.0f;
-  const float magentaToCyan = (b == cmax && cmax) ? 1.0f : 0.0f;
+  const float yellowToMagenta = (r == cmax && cmax != 0) ? 1.0f : 0.0f;
+  const float cyanToYellow = (g == cmax && cmax != 0) ? 1.0f : 0.0f;
+  const float magentaToCyan = (b == cmax && cmax != 0) ? 1.0f : 0.0f;
 
   v = cmax;
-  s = (cmax) ? delta / cmax : 0;
+  s = (cmax != 0) ? delta / cmax : 0;
   h = (yellowToMagenta * ((g - b) / delta) +
     cyanToYellow * ((g - b) / delta) +
     magentaToCyan * ((g - b) / delta)) * 60.0f;
@@ -45,7 +45,7 @@ void Colour::hsvToRgb(float &r, float &g, float &b,
 {
   const float hSector = h / 60.0f; // sector 0 to 5
   const int sectorIndex = int(std::min<float>(std::max<float>(0.0f, std::floor(hSector)), 5.0f));
-  const float f = hSector - sectorIndex;
+  const float f = hSector - float(sectorIndex);
   const float p = v * (1 - s);
   const float q = v * (1 - s * f);
   const float t = v * (1 - s * (1 - f));
@@ -62,9 +62,9 @@ void Colour::hsvToRgb(float &r, float &g, float &b,
   rgb[tindex[sectorIndex]] = t;
 
   // Handle achromatic here by testing s inline.
-  r = (s) ? rgb[0] : v;
-  g = (s) ? rgb[1] : v;
-  b = (s) ? rgb[2] : v;
+  r = (s != 0) ? rgb[0] : v;
+  g = (s != 0) ? rgb[1] : v;
+  b = (s != 0) ? rgb[2] : v;
 }
 
 
@@ -230,7 +230,7 @@ const Colour Colour::Colours[PredefinedCount] =
 };
 
 
-static const int DefaultColourSet[] =
+static const unsigned DefaultColourSet[] =
 {
   Colour::Red,
   Colour::Green,
@@ -328,7 +328,7 @@ static const int DefaultColourSet[] =
   Colour::SlateBlue
 };
 
-const int DeuteranomalyColourSet[] =
+const unsigned DeuteranomalyColourSet[] =
 {
   Colour::RoyalBlue,
   Colour::Yellow,
@@ -350,7 +350,7 @@ const int DeuteranomalyColourSet[] =
   Colour::MediumSlateBlue
 };
 
-const int ProtanomalyColourSet[] =
+const unsigned ProtanomalyColourSet[] =
 {
   Colour::Blue,
   Colour::Yellow,
@@ -371,7 +371,7 @@ const int ProtanomalyColourSet[] =
   Colour::DarkSlateBlue,
 };
 
-const int TritanomalyColourSet[] =
+const unsigned TritanomalyColourSet[] =
 {
   Colour::DeepSkyBlue,
   Colour::DeepPink,
@@ -393,7 +393,7 @@ const int TritanomalyColourSet[] =
   Colour::DarkSlateGrey,
 };
 
-const int GreyColourSet[] =
+const unsigned GreyColourSet[] =
 {
   Colour::Black,
   Colour::Silver,
@@ -403,7 +403,7 @@ const int GreyColourSet[] =
   Colour::SlateGrey,
 };
 
-const int Colour::CycleCounts[CycleCount] =
+const unsigned Colour::CycleCounts[CycleCount] =
 {
   sizeof(DefaultColourSet) / sizeof(DefaultColourSet[0]),
   sizeof(DeuteranomalyColourSet) / sizeof(DeuteranomalyColourSet[0]),
@@ -412,7 +412,7 @@ const int Colour::CycleCounts[CycleCount] =
   sizeof(GreyColourSet) / sizeof(GreyColourSet[0]),
 };
 
-const int *Colour::ColourCycles[CycleCount] =
+const unsigned *Colour::ColourCycles[CycleCount] =
 {
   DefaultColourSet,
   DeuteranomalyColourSet,

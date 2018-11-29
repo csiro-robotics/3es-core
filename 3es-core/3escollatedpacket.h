@@ -88,6 +88,15 @@ namespace tes
     /// @return True if compression is enabled.
     bool compressionEnabled() const;
 
+    /// Set the target compression level. Rejected if @p level is out of range of @c CompressionLevel.
+    /// May be set even if compression is not enabled, but will have no effect.
+    /// @param level The target level to set. See @c CompressionLevel.
+    void setCompressionLevel(int level);
+
+    /// Get the target compression level.
+    /// @return The current compression level @c CompressionLevel.
+    int compressionLevel() const;
+
     /// Return the capacity of the collated packet.
     ///
     /// This defaults to 64 * 1024 - 1 (the maximum for a 16-bit unsigned integer),
@@ -202,8 +211,9 @@ namespace tes
     /// Aliased to @p add().
     /// @param buffer The data to add.
     /// @param bufferSize The number of bytes in @p buffer.
+    /// @param allowCollation Ignored in this context.
     /// @return The <tt>packet.packetSize()</tt> on success, or -1 on failure.
-    int send(const uint8_t *data, int byteCount) override;
+    int send(const uint8_t *data, int byteCount, bool allowCollation = true) override;
 
   private:
     /// Initialise the buffer.
@@ -225,6 +235,7 @@ namespace tes
     unsigned _finalPacketCursor;  ///< End of data in @c _finalBuffer
     unsigned _cursor;         ///< Current write position in @c _buffer.
     unsigned _maxPacketSize;  ///< Maximum @p _bufferSize.
+    unsigned short _compressionLevel; ///< @c CompressionLevel
     bool _finalised;          ///< Finalisation flag.
     bool _active;             ///< For @c Connection::active().
   };

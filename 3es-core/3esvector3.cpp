@@ -3,4 +3,8 @@
 // 
 #include "3esvector3.h" 
 
-using namespace tes;
+namespace tes
+{
+  template class Vector3<float>;
+  template class Vector3<double>;
+}

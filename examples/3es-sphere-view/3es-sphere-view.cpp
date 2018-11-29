@@ -53,6 +53,7 @@ bool haveOption(const char *opt, int argc, const char **argv)
 
 void showUsage(int argc, char **argv)
 {
+  TES_UNUSED(argc);
   std::cout << "Usage:\n";
   std::cout << argv[0] << " [options] [iterations]\n";
   std::cout << "\nValid options:\n";
@@ -76,9 +77,9 @@ namespace
   typedef std::unordered_multimap<Vector3f, unsigned, SphereVertexHash> SphereVertexMap;
 
 
-  int tesUnrollDisplay(const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices)
+  unsigned tesUnrollDisplay(const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices)
   {
-    int shapeCount = 0;
+    unsigned shapeCount = 0;
     // Maximum 6500 vertices per message. Take it down to the nearest multiple of 3 (triangle).
     const size_t sendLimit = 64998;
     size_t cursor = 0;
@@ -187,7 +188,6 @@ namespace
 
     for (unsigned i = 0; i < initialVertexCount; ++i)
     {
-      unsigned idx = i;
       vertices.push_back(initialVertices[i]);
       if (vertexMap)
       {
@@ -315,7 +315,7 @@ int main(int argc, char **argvNonConst)
 
   // Initialise settings: zero flags: no cache, compression or collation.
 #ifdef TES_ENABLE
-  unsigned serverFlags = 0;
+  unsigned serverFlags = tes::SF_NakedFrameMessage;
   if (haveOption("collate", argc, argv))
   {
     serverFlags = tes::SF_Collate;
@@ -348,7 +348,7 @@ int main(int argc, char **argvNonConst)
 
 #ifdef TES_ENABLE
   // Start with one shape.
-  int shapeCount = 1;
+  unsigned shapeCount = 1;
 #endif // TES_ENABLE
 
   for (unsigned i = 0; i < iterations; ++i)
@@ -358,7 +358,7 @@ int main(int argc, char **argvNonConst)
     std::cout << label.str() << std::endl;
     subdivideUnitSphere(vertices, indices, sphereMap);
 #ifdef TES_ENABLE
-    for (int i = 0; i < shapeCount; ++i)
+    for (unsigned i = 0; i < shapeCount; ++i)
     {
       TES_TRIANGLES_END(tesServer, SPHERE_ID + i);
     }
