@@ -61,7 +61,7 @@ void TcpServer::close()
 
   std::lock_guard<Lock> guard(_lock);
 
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     con->close();
   }
@@ -109,7 +109,7 @@ int TcpServer::create(const Shape &shape)
   std::lock_guard<Lock> guard(_lock);
   int transferred = 0;
   bool error = false;
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     int txc = con->create(shape);
     if (txc >= 0)
@@ -136,7 +136,7 @@ int TcpServer::destroy(const Shape &shape)
   std::lock_guard<Lock> guard(_lock);
   int transferred = 0;
   bool error = false;
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     int txc = con->destroy(shape);
     if (txc >= 0)
@@ -163,7 +163,7 @@ int TcpServer::update(const Shape &shape)
   std::lock_guard<Lock> guard(_lock);
   int transferred = 0;
   bool error = false;
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     int txc = con->update(shape);
     if (txc >= 0)
@@ -190,7 +190,7 @@ int TcpServer::updateFrame(float dt, bool flush)
   std::unique_lock<Lock> guard(_lock);
   int transferred = 0;
   bool error = false;
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     int txc = con->updateFrame(dt, flush);
     if (txc >= 0)
@@ -231,7 +231,7 @@ int TcpServer::updateTransfers(unsigned byteLimit)
   std::lock_guard<Lock> guard(_lock);
   int transferred = 0;
   bool error = false;
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     int txc = con->updateTransfers(byteLimit);
     if (txc >= 0)
@@ -264,7 +264,7 @@ unsigned TcpServer::referenceResource(const Resource *resource)
 
   std::lock_guard<Lock> guard(_lock);
   unsigned lastCount = 0;
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     lastCount = con->referenceResource(resource);
   }
@@ -281,7 +281,7 @@ unsigned TcpServer::releaseResource(const Resource *resource)
 
   std::lock_guard<Lock> guard(_lock);
   unsigned lastCount = 0;
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     lastCount = con->releaseResource(resource);
   }
@@ -305,7 +305,7 @@ int TcpServer::send(const CollatedPacket &collated)
   int sent = 0;
   bool failed = false;
   std::lock_guard<Lock> guard(_lock);
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     sent = con->send(collated);
     if (sent == -1)
@@ -328,7 +328,7 @@ int TcpServer::send(const uint8_t *data, int byteCount, bool allowCollation)
   int sent = 0;
   bool failed = false;
   std::lock_guard<Lock> guard(_lock);
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     sent = con->send(data, byteCount, allowCollation);
     if (sent == -1)
@@ -376,7 +376,7 @@ const Connection *TcpServer::connection(unsigned index) const
 }
 
 
-void TcpServer::updateConnections(const std::vector<TcpConnection *> &connections, const std::function<void(Server &, Connection &)> &callback)
+void TcpServer::updateConnections(const std::vector<BaseConnection *> &connections, const std::function<void(Server &, Connection &)> &callback)
 {
   if (!_active)
   {
@@ -384,15 +384,15 @@ void TcpServer::updateConnections(const std::vector<TcpConnection *> &connection
   }
 
   std::lock_guard<Lock> guard(_lock);
-  std::vector<TcpConnection *> newConnections;
+  std::vector<BaseConnection *> newConnections;
 
   if (!connections.empty())
   {
     newConnections.reserve(32);
-    for (TcpConnection *con : connections)
+    for (BaseConnection *con : connections)
     {
       bool existing = false;
-      for (TcpConnection *exist : _connections)
+      for (BaseConnection *exist : _connections)
       {
         if (exist == con)
         {
@@ -410,10 +410,10 @@ void TcpServer::updateConnections(const std::vector<TcpConnection *> &connection
 
   _connections.clear();
   std::for_each(connections.begin(), connections.end(),
-                [this] (TcpConnection *con){ _connections.push_back(con);});
+                [this] (BaseConnection *con){ _connections.push_back(con);});
 
   // Send server info to new connections.
-  for (TcpConnection *con : newConnections)
+  for (BaseConnection *con : newConnections)
   {
     con->sendServerInfo(_serverInfo);
     if (callback)

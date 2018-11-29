@@ -15,7 +15,7 @@
 
 namespace tes
 {
-  class TcpConnection;
+  class BaseConnection;
   class TcpConnectionMonitor;
   class TcpListenSocket;
   class TcpServer;
@@ -90,11 +90,11 @@ namespace tes
 
     /// Updates the internal connections list to the given one.
     /// Intended only for use by the @c ConnectionMonitor.
-    void updateConnections(const std::vector<TcpConnection *> &connections, const std::function<void (Server &, Connection &)> &callback);
+    void updateConnections(const std::vector<BaseConnection *> &connections, const std::function<void (Server &, Connection &)> &callback);
 
   private:
     mutable Lock _lock;
-    std::vector<TcpConnection *> _connections;
+    std::vector<BaseConnection *> _connections;
     TcpConnectionMonitor *_monitor;
     ServerSettings _settings;
     ServerInfoMessage _serverInfo;

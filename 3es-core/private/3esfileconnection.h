@@ -1,29 +1,33 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESTCPCONNECTION_H_
-#define _3ESTCPCONNECTION_H_
+#ifndef _3ESFILECONNECTION_H_
+#define _3ESFILECONNECTION_H_
 
 #include "../3esserver.h"
 
 #include "3esbaseconnection.h"
 
+#include <fstream>
+#include <string>
+
 namespace tes
 {
-  class TcpSocket;
-
-  class TcpConnection : public BaseConnection
+  class FileConnection : public BaseConnection
   {
   public:
     /// Create a new connection using the given @p clientSocket.
-    /// @param clientSocket The socket to communicate on.
+    /// @param filename Path to the file to write to.
     /// @param settings Various server settings to initialise with.
-    TcpConnection(TcpSocket *clientSocket, const ServerSettings &settings);
-    ~TcpConnection();
+    FileConnection(const char *filename, const ServerSettings &settings);
+    ~FileConnection();
 
     /// Close the socket connection.
     void close() override;
 
+    const char *filename() const;
+
+    /// Aliases filename()
     const char *address() const override;
     uint16_t port() const override;
     bool isConnected() const override;
@@ -32,8 +36,10 @@ namespace tes
     int writeBytes(const uint8_t *data, int byteCount) override;
 
   private:
-    TcpSocket *_client;
+    mutable Lock _fileLock; ///< Lock for @c _outFile() operations
+    std::ofstream _outFile;
+    std::string _filename;
   };
 }
 
-#endif // _3ESTCPCONNECTION_H_
+#endif // _3ESFILECONNECTION_H_

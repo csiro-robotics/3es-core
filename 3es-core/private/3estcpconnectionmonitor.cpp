@@ -3,6 +3,7 @@
 //
 #include "3estcpconnectionmonitor.h"
 
+#include "3esfileconnection.h"
 #include "3estcpconnection.h"
 #include "3estcpserver.h"
 
@@ -33,12 +34,12 @@ TcpConnectionMonitor::~TcpConnectionMonitor()
   stop();
   join();
 
-  for (TcpConnection *con : _expired)
+  for (BaseConnection *con : _expired)
   {
     delete con;
   }
 
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     delete con;
   }
@@ -223,7 +224,7 @@ void TcpConnectionMonitor::monitorConnections()
   // Expire lost connections.
   for (auto iter = _connections.begin(); iter != _connections.end();)
   {
-    TcpConnection *connection = *iter;
+    BaseConnection *connection = *iter;
     if (connection->isConnected())
     {
       ++iter;
@@ -264,6 +265,21 @@ void TcpConnectionMonitor::monitorConnections()
 }
 
 
+Connection *TcpConnectionMonitor::openFileStream(const char *filePath)
+{
+  FileConnection *newConnection = new FileConnection(filePath, _server.settings());
+  if (!newConnection->isConnected())
+  {
+    delete newConnection;
+    return nullptr;
+  }
+
+  std::unique_lock<Lock> lock(_connectionLock);
+  _connections.push_back(newConnection);
+  return newConnection;
+}
+
+
 void TcpConnectionMonitor::setConnectionCallback(void(*callback)(Server &, Connection &, void *), void *user)
 {
   _onNewConnection = std::bind(callback, std::placeholders::_1, std::placeholders::_2, user);
@@ -276,6 +292,12 @@ void TcpConnectionMonitor::setConnectionCallback(const std::function<void(Server
 }
 
 
+const std::function<void(Server &, Connection &)> &TcpConnectionMonitor::connectionCallback() const
+{
+  return _onNewConnection;
+}
+
+
 void TcpConnectionMonitor::commitConnections()
 {
   std::unique_lock<Lock> lock(_connectionLock);
@@ -284,7 +306,7 @@ void TcpConnectionMonitor::commitConnections()
   lock.unlock();
 
   // Delete expired connections.
-  for (TcpConnection *con : _expired)
+  for (BaseConnection *con : _expired)
   {
     delete con;
   }
@@ -320,7 +342,7 @@ void TcpConnectionMonitor::stopListening()
   _listenPort = 0;
 
   // Close all connections.
-  for (TcpConnection *con : _connections)
+  for (BaseConnection *con : _connections)
   {
     con->close();
   }

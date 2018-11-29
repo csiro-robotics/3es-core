@@ -16,7 +16,7 @@
 
 namespace tes
 {
-  class TcpConnection;
+  class BaseConnection;
   class TcpServer;
   class TcpListenSocket;
 
@@ -104,6 +104,15 @@ namespace tes
     /// or internally in asynchronous mode.
     void monitorConnections() override;
 
+    /// Opens a @c Connection object which serialises directly to the local file system.
+    ///
+    /// The connection persisits until either the monitor is stopped, or until @p Connection::close() is called.
+    /// In asynchronous mode, the pointer cannot be used after @c close() is called.
+    ///
+    /// @param filePath The path to the file to open/write to.
+    /// @return A pointer to a @c Connection object which represents the file stream.
+    virtual Connection *openFileStream(const char *filePath) override;
+
     /// Sets the callback invoked for each new connection.
     ///
     /// This is invoked from @p commitConnections() for each new connection.
@@ -127,6 +136,10 @@ namespace tes
     /// @param callback The function to invoke for each new connection.
     void setConnectionCallback(const std::function<void(Server &, Connection &)> &callback) override;
 
+    /// Retrieve a function object representing the connection callback.
+    /// @return The current function wrapper invoked for each new connection.
+    const std::function<void(Server &, Connection &)> &connectionCallback() const override;
+
     /// Migrates new connections to the owning @c Server and removes expired
     /// connections.
     ///
@@ -146,8 +159,8 @@ namespace tes
     TcpListenSocket *_listen;
     std::function<void(Server &, Connection &)> _onNewConnection;
     Mode _mode; ///< Current execution mode.
-    std::vector<TcpConnection *> _connections;
-    std::vector<TcpConnection *> _expired;
+    std::vector<BaseConnection *> _connections;
+    std::vector<BaseConnection *> _expired;
     std::atomic_int _errorCode;
     std::atomic_uint16_t _listenPort;
     std::atomic_bool _running;
