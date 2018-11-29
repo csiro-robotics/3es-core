@@ -127,8 +127,12 @@ list(APPEND SOURCES
 )
 
 list(APPEND PRIVATE_SOURCES
+  private/3esbaseconnection.cpp
+  private/3esbaseconnection.h
   private/3escollatedpacketzip.cpp
   private/3escollatedpacketzip.h
+  private/3esfileconnection.cpp
+  private/3esfileconnection.h
   private/3esitemtransfer.h
   private/3estcpconnection.cpp
   private/3estcpconnection.h

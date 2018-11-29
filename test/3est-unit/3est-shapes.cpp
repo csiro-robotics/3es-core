@@ -24,6 +24,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <fstream>
 #include <thread>
 #include <vector>
 #include <unordered_map>
@@ -111,9 +112,11 @@ namespace tes
   }
 
 
+  typedef std::function<int (uint8_t *buffer, int bufferLength)> DataReadFunc;
+
   template <class T>
-  void validateClient(TcpSocket &socket, const T &referenceShape, const ServerInfoMessage &serverInfo,
-                      unsigned timeoutSec = 10)
+  void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape, const ServerInfoMessage &serverInfo,
+                        unsigned timeoutSec = 10)
   {
     typedef std::chrono::steady_clock Clock;
     ServerInfoMessage readServerInfo;
@@ -133,7 +136,7 @@ namespace tes
     // Keep looping until we get a CIdEnd ControlMessage or timeoutSec elapses.
     while (!endMsgReceived && std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - startTime).count() < timeoutSec)
     {
-      readCount = socket.readAvailable(readBuffer.data(), int(readBuffer.size()));
+      readCount = dataRead(readBuffer.data(), int(readBuffer.size()));
       // Assert no read errors.
       ASSERT_TRUE(readCount >= 0);
       if (readCount < 0)
@@ -229,8 +232,21 @@ namespace tes
   }
 
 
+
   template <class T>
-  void testShape(const T &shape)
+  void validateClient(TcpSocket &socket, const T &referenceShape, const ServerInfoMessage &serverInfo,
+                      unsigned timeoutSec = 10)
+  {
+    const DataReadFunc socketRead = [&socket] (uint8_t *buffer, int bufferLength)
+    {
+      return socket.readAvailable(buffer, bufferLength);
+    };
+    validateDataRead(socketRead, referenceShape, serverInfo, timeoutSec);
+  }
+
+
+  template <class T>
+  void testShape(const T &shape, ServerInfoMessage *infoOut = nullptr, const char *saveFilePath = nullptr)
   {
     // Initialise server.
     ServerInfoMessage info;
@@ -241,6 +257,11 @@ namespace tes
     ServerSettings serverSettings(serverFlags);
     serverSettings.portRange = 1000;
     Server *server = Server::create(serverSettings, &info);
+
+    if (infoOut)
+    {
+      *infoOut = info;
+    }
 
     // std::cout << "Start on port " << serverSettings.listenPort << std::endl;
     ASSERT_TRUE(server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous));
@@ -253,6 +274,14 @@ namespace tes
     // Wait for connection.
     if (server->connectionMonitor()->waitForConnection(5000U) > 0)
     {
+      server->connectionMonitor()->commitConnections();
+    }
+
+    // Setup saving to file.
+    if (saveFilePath && saveFilePath[0])
+    {
+      Connection *fileConnection = server->connectionMonitor()->openFileStream(saveFilePath);
+      ASSERT_NE(fileConnection, nullptr);
       server->connectionMonitor()->commitConnections();
     }
 
@@ -285,6 +314,27 @@ namespace tes
 
     server->dispose();
     server = nullptr;
+  }
+
+
+  template <class T>
+  void validateFileStream(const char *fileName, const T &referenceShape, const ServerInfoMessage &serverInfo)
+  {
+    // Load a file stream and validate the shape it generates.
+    std::ifstream inFile(fileName, std::ios::binary);
+
+    ASSERT_TRUE(inFile.is_open()) << "Failed to read file '" << fileName << "'";
+    const DataReadFunc fileRead = [&inFile] (uint8_t *buffer, int bufferLength)
+    {
+      const auto readBytes = inFile.readsome(reinterpret_cast<char *>(buffer), bufferLength);
+      if (inFile.bad())
+      {
+        return -1;
+      }
+      return int(readBytes);
+    };
+
+    validateDataRead(fileRead, referenceShape, serverInfo);
   }
 
   TEST(Shapes, Arrow)
@@ -396,8 +446,9 @@ namespace tes
       Matrix4f transform = Matrix4f::identity;
       for (unsigned i = 0; i < meshes.size(); ++i)
       {
-        transform = prsTransform(Vector3f(i * 1.0f, i - 3.2f, 1.5f * i),
-                                 Quaternionf().setAxisAngle(Vector3f(i * 1.0f, i + 1.0f, i - 3.0f).normalised(), degToRad((i + 1) * 6.0f)),
+        const float fi = float(i);
+        transform = prsTransform(Vector3f(fi * 1.0f, fi - 3.2f, 1.5f * fi),
+                                 Quaternionf().setAxisAngle(Vector3f(fi * 1.0f, fi + 1.0f, fi - 3.0f).normalised(), degToRad((fi + 1.0f) * 6.0f)),
                                  Vector3f(0.75f, 0.75f, 0.75f));
         set.setPart(i, meshes[i], transform);
       }
@@ -527,5 +578,14 @@ namespace tes
     testShape(Text3D("Persistent Text3D", 42, Vector3f(1.2f, 2.3f, 3.4f), 23));
     testShape(Text3D("Persistent oriented Text3D", 42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 2, 3).normalised(), 12));
     testShape(Text3D("Persistent, categorised, oriented Text3D", 42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 2, 3).normalised(), 15));
+  }
+
+  TEST(Shapes, FileStream)
+  {
+    const char *fileName = "sphere-stream.3es";
+    ServerInfoMessage serverInfo;
+    Sphere shape(42, Vector3f(1.2f, 2.3f, 3.4f), 1.26f);
+    testShape(shape, &serverInfo, fileName);
+    validateFileStream(fileName, shape, serverInfo);
   }
 }

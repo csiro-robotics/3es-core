@@ -135,6 +135,15 @@ namespace tes
     /// or internally in asynchronous mode.
     virtual void monitorConnections() = 0;
 
+    /// Opens a @c Connection object which serialises directly to the local file system.
+    ///
+    /// The connection persisits until either the monitor is stopped, or until @p Connection::close() is called.
+    /// In asynchronous mode, the pointer cannot be used after @c close() is called.
+    ///
+    /// @param filePath The path to the file to open/write to.
+    /// @return A pointer to a @c Connection object which represents the file stream.
+    virtual Connection *openFileStream(const char *filePath) = 0;
+
     /// Sets the callback invoked for each new connection.
     ///
     /// This is invoked from @p commitConnections() for each new connection.
@@ -157,6 +166,10 @@ namespace tes
     ///
     /// @param callback The function to invoke for each new connection.
     virtual void setConnectionCallback(const std::function<void(Server &, Connection &)> &callback) = 0;
+
+    /// Retrieve a function object representing the connection callback.
+    /// @return The current function wrapper invoked for each new connection.
+    virtual const std::function<void(Server &, Connection &)> &connectionCallback() const = 0;
 
     /// Migrates new connections to the owning @c Server and removes expired
     /// connections.

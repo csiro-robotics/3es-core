@@ -220,6 +220,15 @@
   }
 
 /// @ingroup tesmacros
+/// Open a local file stream to filename. All messages are streamed to this file.
+/// Note there is no way to close the file using the macro interface.
+#define TES_LOCAL_FILE_STREAM(server, filename) \
+  if (server) \
+  { \
+  (server)->connectionMonitor()->openFileStream(filename); \
+  }
+
+/// @ingroup tesmacros
 /// Check if @p server is enabled.
 /// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
 #define TES_ACTIVE(server) ((server) != nullptr && (server)->active())
@@ -983,6 +992,7 @@ if (server) \
 #define TES_SET_CONNECTION_CALLBACK(...)
 #define TES_SERVER_UPDATE(...)
 #define TES_SERVER_STOP(...)
+#define TES_LOCAL_FILE_STREAM(...)
 #define TES_ACTIVE(...) false
 #define TES_SET_ACTIVE(...)
 
