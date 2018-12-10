@@ -5,17 +5,17 @@
 #include "3est-common.h"
 
 #include <3escollatedpacketdecoder.h>
-#include <3escoordinateframe.h>
 #include <3esconnectionmonitor.h>
+#include <3escoordinateframe.h>
 #include <3esmaths.h>
 #include <3esmathsstream.h>
 #include <3esmessages.h>
 #include <3espacketbuffer.h>
 #include <3espacketreader.h>
 #include <3espacketwriter.h>
-#include <3estcpsocket.h>
 #include <3esserver.h>
 #include <3esserverutil.h>
+#include <3estcpsocket.h>
 #include <shapes/3espointcloud.h>
 #include <shapes/3esshapes.h>
 #include <shapes/3essimplemesh.h>
@@ -23,11 +23,11 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <thread>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace tes
 {
@@ -58,7 +58,6 @@ namespace tes
     }
   }
 
-
   void handleMeshMessage(PacketReader &reader, ResourceMap &resources)
   {
     uint32_t meshId = 0;
@@ -75,31 +74,31 @@ namespace tes
 
     switch (reader.messageId())
     {
-      case MmtInvalid:
-        EXPECT_TRUE(false) << "Invalid mesh message sent";
-        break;
+    case MmtInvalid:
+      EXPECT_TRUE(false) << "Invalid mesh message sent";
+      break;
 
-      case MmtDestroy:
-        delete mesh;
-        if (resIter != resources.end())
-        {
-          resources.erase(resIter);
-        }
-        break;
+    case MmtDestroy:
+      delete mesh;
+      if (resIter != resources.end())
+      {
+        resources.erase(resIter);
+      }
+      break;
 
-      case MmtCreate:
-        // Create message. Should not already exists.
-        EXPECT_EQ(mesh, nullptr) << "Recreating exiting mesh.";
-        delete mesh;
-        mesh = new SimpleMesh(meshId);
-        EXPECT_TRUE(mesh->readCreate(reader));
-        resources.insert(std::make_pair(mesh->uniqueKey(), mesh));
-        break;
+    case MmtCreate:
+      // Create message. Should not already exists.
+      EXPECT_EQ(mesh, nullptr) << "Recreating exiting mesh.";
+      delete mesh;
+      mesh = new SimpleMesh(meshId);
+      EXPECT_TRUE(mesh->readCreate(reader));
+      resources.insert(std::make_pair(mesh->uniqueKey(), mesh));
+      break;
 
-      // Not handling these messages.
-      case MmtRedefine:
-      case MmtFinalise:
-        break;
+    // Not handling these messages.
+    case MmtRedefine:
+    case MmtFinalise:
+      break;
 
     default:
       EXPECT_NE(mesh, nullptr);
@@ -111,8 +110,7 @@ namespace tes
     }
   }
 
-
-  typedef std::function<int (uint8_t *buffer, int bufferLength)> DataReadFunc;
+  typedef std::function<int(uint8_t *buffer, int bufferLength)> DataReadFunc;
 
   template <class T>
   void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape, const ServerInfoMessage &serverInfo,
@@ -134,7 +132,8 @@ namespace tes
     memset(&readServerInfo, 0, sizeof(readServerInfo));
 
     // Keep looping until we get a CIdEnd ControlMessage or timeoutSec elapses.
-    while (!endMsgReceived && std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - startTime).count() < timeoutSec)
+    while (!endMsgReceived &&
+           std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - startTime).count() < timeoutSec)
     {
       readCount = dataRead(readBuffer.data(), int(readBuffer.size()));
       // Assert no read errors.
@@ -144,7 +143,7 @@ namespace tes
         break;
       }
 
-      if  (readCount == 0)
+      if (readCount == 0)
       {
         // Nothing read. Wait.
         std::this_thread::yield();
@@ -184,7 +183,8 @@ namespace tes
 
           case MtControl:
           {
-            // Only interested in the CIdEnd message to mark the end of the stream.
+            // Only interested in the CIdEnd message to mark the end of the
+            // stream.
             ControlMessage msg;
             ASSERT_TRUE(msg.read(reader));
 
@@ -231,19 +231,15 @@ namespace tes
     }
   }
 
-
-
   template <class T>
   void validateClient(TcpSocket &socket, const T &referenceShape, const ServerInfoMessage &serverInfo,
                       unsigned timeoutSec = 10)
   {
-    const DataReadFunc socketRead = [&socket] (uint8_t *buffer, int bufferLength)
-    {
+    const DataReadFunc socketRead = [&socket](uint8_t *buffer, int bufferLength) {
       return socket.readAvailable(buffer, bufferLength);
     };
     validateDataRead(socketRead, referenceShape, serverInfo, timeoutSec);
   }
-
 
   template <class T>
   void testShape(const T &shape, ServerInfoMessage *infoOut = nullptr, const char *saveFilePath = nullptr)
@@ -265,7 +261,8 @@ namespace tes
 
     // std::cout << "Start on port " << serverSettings.listenPort << std::endl;
     ASSERT_TRUE(server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous));
-    // std::cout << "Server listening on port " << server->connectionMonitor()->port() << std::endl;;
+    // std::cout << "Server listening on port " <<
+    // server->connectionMonitor()->port() << std::endl;;
 
     // Create client and connect.
     TcpSocket client;
@@ -288,9 +285,9 @@ namespace tes
     EXPECT_GT(server->connectionCount(), 0u);
     EXPECT_TRUE(client.isConnected());
 
-    // Send server messages from another thread. Otherwise large packets may block.
-    std::thread sendThread([server, &shape] ()
-    {
+    // Send server messages from another thread. Otherwise large packets may
+    // block.
+    std::thread sendThread([server, &shape]() {
       server->create(shape);
       server->updateTransfers(0);
       server->updateFrame(0.0f, true);
@@ -316,7 +313,6 @@ namespace tes
     server = nullptr;
   }
 
-
   template <class T>
   void validateFileStream(const char *fileName, const T &referenceShape, const ServerInfoMessage &serverInfo)
   {
@@ -324,9 +320,13 @@ namespace tes
     std::ifstream inFile(fileName, std::ios::binary);
 
     ASSERT_TRUE(inFile.is_open()) << "Failed to read file '" << fileName << "'";
-    const DataReadFunc fileRead = [&inFile] (uint8_t *buffer, int bufferLength)
-    {
+    const DataReadFunc fileRead = [&inFile](uint8_t *buffer, int bufferLength) {
+#if WIN32
+      inFile.read(reinterpret_cast<char *>(buffer), bufferLength);
+      const auto readBytes = inFile.gcount();
+#else  // WIN32
       const auto readBytes = inFile.readsome(reinterpret_cast<char *>(buffer), bufferLength);
+#endif // WIN32
       if (inFile.bad())
       {
         return -1;
@@ -345,8 +345,10 @@ namespace tes
 
   TEST(Shapes, Box)
   {
-    testShape(Box(42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 3, 2), Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f))));
-    testShape(Box(42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 3, 2), Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f))));
+    testShape(Box(42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 3, 2),
+                  Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f))));
+    testShape(Box(42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 3, 2),
+                  Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f))));
   }
 
   TEST(Shapes, Capsule)
@@ -448,7 +450,8 @@ namespace tes
       {
         const float fi = float(i);
         transform = prsTransform(Vector3f(fi * 1.0f, fi - 3.2f, 1.5f * fi),
-                                 Quaternionf().setAxisAngle(Vector3f(fi * 1.0f, fi + 1.0f, fi - 3.0f).normalised(), degToRad((fi + 1.0f) * 6.0f)),
+                                 Quaternionf().setAxisAngle(Vector3f(fi * 1.0f, fi + 1.0f, fi - 3.0f).normalised(),
+                                                            degToRad((fi + 1.0f) * 6.0f)),
                                  Vector3f(0.75f, 0.75f, 0.75f));
         set.setPart(i, meshes[i], transform);
       }
@@ -478,49 +481,44 @@ namespace tes
     // I> Test each constructor.
     // 1. drawType, verts, vcount, vstrideBytes, pos, rot, scale
     testShape(MeshShape(DtPoints, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-              Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-              Vector3f(1.0f, 1.2f, 0.8f)));
+                        Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                        Vector3f(1.0f, 1.2f, 0.8f)));
     // 2. drawType, verts, vcount, vstrideBytes, indices, icount, pos, rot, scale
     testShape(MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-              indices.data(), unsigned(indices.size()),
-              Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-              Vector3f(1.0f, 1.2f, 0.8f)));
+                        indices.data(), unsigned(indices.size()), Vector3f(1.2f, 2.3f, 3.4f),
+                        Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)), Vector3f(1.0f, 1.2f, 0.8f)));
     // 3. drawType, verts, vcount, vstrideBytes, id, pos, rot, scale
-    testShape(MeshShape(DtPoints, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-              42,
-              Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-              Vector3f(1.0f, 1.2f, 0.8f)));
-    // 4. drawType, verts, vcount, vstrideBytes, indices, icount, id, pos, rot, scale
+    testShape(MeshShape(DtPoints, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()), 42,
+                        Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                        Vector3f(1.0f, 1.2f, 0.8f)));
+    // 4. drawType, verts, vcount, vstrideBytes, indices, icount, id, pos, rot,
+    // scale
     testShape(MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-              indices.data(), unsigned(indices.size()),
-              42,
-              Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-              Vector3f(1.0f, 1.2f, 0.8f)));
-    // 5. drawType, verts, vcount, vstrideBytes, indices, icount, id, cat, pos, rot, scale
+                        indices.data(), unsigned(indices.size()), 42, Vector3f(1.2f, 2.3f, 3.4f),
+                        Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)), Vector3f(1.0f, 1.2f, 0.8f)));
+    // 5. drawType, verts, vcount, vstrideBytes, indices, icount, id, cat, pos,
+    // rot, scale
     testShape(MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-              indices.data(), unsigned(indices.size()),
-              42, 1,
-              Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-              Vector3f(1.0f, 1.2f, 0.8f)));
+                        indices.data(), unsigned(indices.size()), 42, 1, Vector3f(1.2f, 2.3f, 3.4f),
+                        Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)), Vector3f(1.0f, 1.2f, 0.8f)));
 
     // II> Test with uniform normal.
-    testShape(MeshShape(DtVoxels, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-              42,
-              Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-              Vector3f(1.0f, 1.2f, 0.8f)).setUniformNormal(Vector3f(0.1f, 0.1f, 0.1f)));
+    testShape(MeshShape(DtVoxels, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()), 42,
+                        Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                        Vector3f(1.0f, 1.2f, 0.8f))
+                .setUniformNormal(Vector3f(0.1f, 0.1f, 0.1f)));
 
     // III> Test will many normals.
     testShape(MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-              indices.data(), unsigned(indices.size()),
-              42, 1,
-              Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-              Vector3f(1.0f, 1.2f, 0.8f)).setNormals(normals.data()->v, sizeof(*normals.data())));
+                        indices.data(), unsigned(indices.size()), 42, 1, Vector3f(1.2f, 2.3f, 3.4f),
+                        Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)), Vector3f(1.0f, 1.2f, 0.8f))
+                .setNormals(normals.data()->v, sizeof(*normals.data())));
 
     // IV> Test with colours.
     testShape(MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-              indices.data(), unsigned(indices.size()),
-              Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-              Vector3f(1.0f, 1.2f, 0.8f)).setColours(colours.data()));
+                        indices.data(), unsigned(indices.size()), Vector3f(1.2f, 2.3f, 3.4f),
+                        Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)), Vector3f(1.0f, 1.2f, 0.8f))
+                .setColours(colours.data()));
   }
 
   TEST(Shapes, Plane)
@@ -544,7 +542,7 @@ namespace tes
 
     // Indexed (sub-sampled) cloud. Just use half the points.
     indices.clear();
-    for (unsigned i = 0; i < unsigned(vertices.size()/2); ++i)
+    for (unsigned i = 0; i < unsigned(vertices.size() / 2); ++i)
     {
       indices.push_back(i);
     }
@@ -577,7 +575,8 @@ namespace tes
     testShape(Text3D("Transient oriented Text3D", Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 2, 3).normalised(), 8));
     testShape(Text3D("Persistent Text3D", 42, Vector3f(1.2f, 2.3f, 3.4f), 23));
     testShape(Text3D("Persistent oriented Text3D", 42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 2, 3).normalised(), 12));
-    testShape(Text3D("Persistent, categorised, oriented Text3D", 42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 2, 3).normalised(), 15));
+    testShape(Text3D("Persistent, categorised, oriented Text3D", 42, 1, Vector3f(1.2f, 2.3f, 3.4f),
+                     Vector3f(1, 2, 3).normalised(), 15));
   }
 
   TEST(Shapes, FileStream)
@@ -588,4 +587,4 @@ namespace tes
     testShape(shape, &serverInfo, fileName);
     validateFileStream(fileName, shape, serverInfo);
   }
-}
+}  // namespace tes
