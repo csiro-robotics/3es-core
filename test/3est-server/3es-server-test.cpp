@@ -451,7 +451,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   {
     Vector3f pos(0.0f);
     const float spacing = 2.0f;
-    pos.x -= spacing * ((shapes.size() - initialShapeCount) / 2u);
+    pos.x -= spacing * float((shapes.size() - initialShapeCount) / 2u);
 
     for (size_t i = initialShapeCount; i < shapes.size(); ++i)
     {
@@ -574,24 +574,25 @@ int main(int argc, char **argvNonConst)
   auto onNewConnection = [&shapes](Server &/*server*/, Connection &connection)
   {
     // Test categories API.
-    TES_CATEGORY(&connection, "3D", Cat3D, CatRoot, true);
-    TES_CATEGORY(&connection, "Text", CatText, CatRoot, true);
-    TES_CATEGORY(&connection, "Primitives", CatSimple3D, Cat3D, true);
-    TES_CATEGORY(&connection, "Mesh Based", CatComplex3D, Cat3D, true);
-    TES_CATEGORY(&connection, "Arrows", CatArrow, CatSimple3D, true);
-    TES_CATEGORY(&connection, "Boxes", CatBox, CatSimple3D, true);
-    TES_CATEGORY(&connection, "Capsules", CatCapsule, CatSimple3D, true);
-    TES_CATEGORY(&connection, "Cylinders", CatCylinder, CatSimple3D, true);
-    TES_CATEGORY(&connection, "Cones", CatCone, CatSimple3D, true);
-    TES_CATEGORY(&connection, "Lines", CatLines, CatComplex3D, true);
-    TES_CATEGORY(&connection, "Meshes", CatMesh, CatComplex3D, true);
-    TES_CATEGORY(&connection, "Planes", CatPlane, CatSimple3D, true);
-    TES_CATEGORY(&connection, "Points", CatPoints, CatComplex3D, true);
-    TES_CATEGORY(&connection, "Spheres", CatSphere, CatSimple3D, true);
-    TES_CATEGORY(&connection, "Stars", CatStar, CatSimple3D, true);
-    TES_CATEGORY(&connection, "Text2D", CatText2D, CatText, true);
-    TES_CATEGORY(&connection, "Text3D", CatText3D, CatText, true);
-    TES_CATEGORY(&connection, "Triangles", CatTriangles, CatComplex3D, true);
+    TES_STMT(Connection *c = &connection); // Avoid compiler warning.
+    TES_CATEGORY(c, "3D", Cat3D, CatRoot, true);
+    TES_CATEGORY(c, "Text", CatText, CatRoot, true);
+    TES_CATEGORY(c, "Primitives", CatSimple3D, Cat3D, true);
+    TES_CATEGORY(c, "Mesh Based", CatComplex3D, Cat3D, true);
+    TES_CATEGORY(c, "Arrows", CatArrow, CatSimple3D, true);
+    TES_CATEGORY(c, "Boxes", CatBox, CatSimple3D, true);
+    TES_CATEGORY(c, "Capsules", CatCapsule, CatSimple3D, true);
+    TES_CATEGORY(c, "Cylinders", CatCylinder, CatSimple3D, true);
+    TES_CATEGORY(c, "Cones", CatCone, CatSimple3D, true);
+    TES_CATEGORY(c, "Lines", CatLines, CatComplex3D, true);
+    TES_CATEGORY(c, "Meshes", CatMesh, CatComplex3D, true);
+    TES_CATEGORY(c, "Planes", CatPlane, CatSimple3D, true);
+    TES_CATEGORY(c, "Points", CatPoints, CatComplex3D, true);
+    TES_CATEGORY(c, "Spheres", CatSphere, CatSimple3D, true);
+    TES_CATEGORY(c, "Stars", CatStar, CatSimple3D, true);
+    TES_CATEGORY(c, "Text2D", CatText2D, CatText, true);
+    TES_CATEGORY(c, "Text3D", CatText3D, CatText, true);
+    TES_CATEGORY(c, "Triangles", CatTriangles, CatComplex3D, true);
     for (Shape *shape : shapes)
     {
       connection.create(*shape);
@@ -619,7 +620,7 @@ int main(int argc, char **argvNonConst)
     auto elapsed = now - lastTime;
 
     lastTime = now;
-    float dt = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count() * 1e-6f;
+    float dt = float(std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()) * 1e-6f;
     time += dt;
 
     for (ShapeMover *mover : movers)

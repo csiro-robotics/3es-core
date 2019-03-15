@@ -98,13 +98,13 @@ MeshShape *createVoxelsMesh(unsigned id)
   Vector3f v;
   for (int z = -8; z < 8; ++z)
   {
-    v.z = z * voxelScale;
+    v.z = float(z) * voxelScale;
     for (int y = -8; y < 8; ++y)
     {
-      v.y = y * voxelScale;
+      v.y = float(y) * voxelScale;
       for (int x = -8; x < 8; ++x)
       {
-        v.x = x * voxelScale;
+        v.x = float(x) * voxelScale;
         vertices.push_back(v);
       }
     }
@@ -141,7 +141,7 @@ MeshSet *createMeshSet(unsigned id, const std::vector<Vector3f> &vertices, const
     SimpleMesh *mesh = new SimpleMesh(id * 100 + i, unsigned(vertices.size()), unsigned(indices.size()));
     mesh->addComponents(SimpleMesh::Normal);
 
-    mesh->setTransform(Matrix4f::translation(Vector3f(i * 2.0f, i * 2.0f, 0)));
+    mesh->setTransform(Matrix4f::translation(Vector3f(float(i) * 2.0f, float(i) * 2.0f, 0)));
 
     mesh->addVertices(vertices.data(), unsigned(vertices.size()));
     mesh->addIndices(indices.data(), unsigned(indices.size()));
@@ -215,7 +215,7 @@ void defineCategory(Server *server, const char *name, uint16_t id, uint16_t pare
 template <class T>
 T *initShape(T *shape)
 {
-  shape->setPosition(Vector3f(1.0f * shape->id(), 0.1f * shape->id(), -0.75f * shape->id()));
+  shape->setPosition(Vector3f(1.0f * float(shape->id()), 0.1f * float(shape->id()), -0.75f * float(shape->id())));
   shape->setColour(Colour::cycle(shape->id()));
   return shape;
 }
@@ -368,7 +368,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
     closeDangling(dangling);
     o << indent2 << "\"vertices\" : [";
     const float *verts = mesh.vertices(stride);
-    stride /= sizeof(*verts);
+    stride /= unsigned(sizeof(*verts));
     for (unsigned v = 0; v < mesh.vertexCount(); ++v, verts += stride)
     {
       if (v > 0)
@@ -426,7 +426,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
     closeDangling(dangling);
     o << indent2 << "\"normals\" : [";
     const float *normals = mesh.normals(stride);
-    stride /= sizeof(*normals);
+    stride /= unsigned(sizeof(*normals));
     for (unsigned n = 0; n < mesh.vertexCount(); ++n, normals += stride)
     {
       if (n > 0)
@@ -444,7 +444,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
     closeDangling(dangling);
     o << indent2 << "\"uvs\" : [";
     const float *uvs = mesh.uvs(stride);
-    stride /= sizeof(*uvs);
+    stride /= unsigned(sizeof(*uvs));
     for (unsigned u = 0; u < mesh.vertexCount(); ++u, uvs += stride)
     {
       if (u > 0)
@@ -462,7 +462,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
     closeDangling(dangling);
     o << indent << "\"colours\" : [";
     const uint32_t *colours = mesh.colours(stride);
-    stride /= sizeof(*colours);
+    stride /= unsigned(sizeof(*colours));
     for (unsigned c = 0; c < mesh.vertexCount(); ++c, colours += stride)
     {
       if (c > 0)

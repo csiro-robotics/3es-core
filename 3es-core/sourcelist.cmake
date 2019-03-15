@@ -26,6 +26,7 @@ list(APPEND PUBLIC_HEADERS
   3esmeshmessages.h
   3esmessages.h
   3esmeta.h
+  3esobjectid.h
   3espacketbuffer.h
   3espacketheader.h
   3espacketreader.h

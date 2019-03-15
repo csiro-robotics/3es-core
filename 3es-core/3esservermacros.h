@@ -4,6 +4,15 @@
 // Copyright (c) Kazys Stepanas 2014
 //
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#ifdef __clang__
+#pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#endif // __clang__
+#pragma GCC diagnostic ignored "-Waddress"
+#pragma GCC diagnostic ignored "-Wnonnull-compare"
+#endif // __GNUC__
+
 #ifdef TES_ENABLE
 
 #include "3es-core.h"
@@ -17,17 +26,9 @@
 #include "3esfeature.h"
 #include "3esmessages.h"
 #include "3esmeshmessages.h"
+#include "3esobjectid.h"
 #include "shapes/3esshapes.h"
 
-
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#ifdef __clang__
-#pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-#endif // __clang__
-#pragma GCC diagnostic ignored "-Waddress"
-#pragma GCC diagnostic ignored "-Wnonnull-compare"
-#endif // __GNUC__
 
 //-----------------------------------------------------------------------------
 // General macros.
@@ -56,6 +57,8 @@
 /// @ingroup tesmacros
 /// A helper macro to convert a pointer, such as @c this, into a 32-bit ID value.
 /// This can be used as a rudimentary object ID assignment system.
+///
+/// Deprecated: use TES_ID()
 /// @param ptr A pointer value.
 #define TES_PTR_ID(ptr) static_cast<uint32_t>(reinterpret_cast<uint64_t>(ptr))
 
@@ -89,6 +92,12 @@
 /// @param a Alpha channel value [0, 255].
 #define TES_COLOUR_A(name, a) tes::Colour(tes::Colour::Colours[tes::Colour::name], a)
 
+/// @ingroup tesmacros
+/// A convenience macro for converting a variety of input data types into an object ID value. The expected usage
+/// is to provide a pointer argument where the ID is captured from the pointer address.
+/// @param _idSource Any integer or pointer value to generate the ID from
+#define TES_ID(_idSource) tes::ObjectID(_idSource)
+
 //-----------------------------------------------------------------------------
 // Server setup macros
 //-----------------------------------------------------------------------------
@@ -117,14 +126,14 @@
 /// A helper macro used to declare a @p Server pointer and compile out when TES is not enabled.
 /// Initialises @p server as a @p Server variable with a null value.
 /// @param server The variable name for the @c Server object.
-#define TES_SERVER_DECL(server) tes::Server *server = nullptr;
+#define TES_SERVER_DECL(server) tes::Server *server = nullptr
 
 /// @ingroup tesmacros
 /// A helper macro used to declare and initialise @p ServerSettings and compile out when TES is
 /// not enabled.
 /// @param settings The variable name for the @p ServerSettings.
 /// @param ... Additional arguments passed to the @p ServerSettings constructor.
-#define TES_SETTINGS(settings, ...) tes::ServerSettings settings = tes::ServerSettings(__VA_ARGS__);
+#define TES_SETTINGS(settings, ...) tes::ServerSettings settings = tes::ServerSettings(__VA_ARGS__)
 /// @ingroup tesmacros
 /// Initialise a default @p ServerInfoMessage and assign the specified @p CoordinateFrame.
 ///
@@ -972,125 +981,132 @@ if (server) \
 
 #else  // !TES_ENABLE
 
-#define TES_STMT(...)
-#define TES_IF(...) if (false)
-#define TES_PTR_ID(...)
-#define TES_RGB(...)
-#define TES_RGBA(...)
-#define TES_COLOUR(...)
-#define TES_COLOUR_I(...)
-#define TES_COLOUR_A(...)
+namespace tes
+{
+  /// Empty function to suppress penantic warnings
+  inline void noopohm() {}
+}
 
-#define TES_CATEGORY(...)
-#define TES_SERVER_DECL(...)
-#define TES_SETTINGS(...)
-#define TES_SERVER_INFO(...)
-#define TES_SERVER_INFO_TIME(...)
-#define TES_SERVER_CREATE(...)
-#define TES_SERVER_START(...)
-#define TES_SERVER_START_WAIT(...)
-#define TES_SET_CONNECTION_CALLBACK(...)
-#define TES_SERVER_UPDATE(...)
-#define TES_SERVER_STOP(...)
-#define TES_LOCAL_FILE_STREAM(...)
-#define TES_ACTIVE(...) false
-#define TES_SET_ACTIVE(...)
+#define TES_STMT(statement) tes::noopohm()
+#define TES_IF(condition) if (false)
+#define TES_PTR_ID(ptr) tes::noopohm()
+#define TES_RGB(r, g, b) tes::noopohm()
+#define TES_RGBA(r, g, b, a) tes::noopohm()
+#define TES_COLOUR(name) tes::noopohm()
+#define TES_COLOUR_I(index) tes::noopohm()
+#define TES_COLOUR_A(name, a) tes::noopohm()
+#define TES_ID(_idSource) tes::noopohm()
 
-#define TES_FEATURE(...) false
-#define TES_FEATURE_FLAG(...) 0
-#define TES_FEATURES(...)
-#define TES_IF_FEATURES(...)
+#define TES_CATEGORY(server, ...) tes::noopohm()
+#define TES_SERVER_DECL(server) tes::noopohm()
+#define TES_SETTINGS(server, ...) tes::noopohm()
+#define TES_SERVER_INFO(server, ...) tes::noopohm()
+#define TES_SERVER_INFO_TIME(server, ...) tes::noopohm()
+#define TES_SERVER_CREATE(server, ...) tes::noopohm()
+#define TES_SERVER_START(server, ...) tes::noopohm()
+#define TES_SERVER_START_WAIT(server, ...) tes::noopohm()
+#define TES_SET_CONNECTION_CALLBACK(...) tes::noopohm()
+#define TES_SERVER_UPDATE(server, ...) tes::noopohm()
+#define TES_SERVER_STOP(server) tes::noopohm()
+#define TES_LOCAL_FILE_STREAM(server, ...) tes::noopohm()
+#define TES_ACTIVE(server) false
+#define TES_SET_ACTIVE(server, ...) tes::noopohm()
 
-#define TES_REFERENCE_RESOURCE(...)
-#define TES_RELEASE_RESOURCE(...)
-#define TES_MESH_PLACEHOLDER(...)
+#define TES_FEATURE(feature) false
+#define TES_FEATURE_FLAG(feature) 0
+#define TES_FEATURES(featureFlags) tes::noopohm()
+#define TES_IF_FEATURES(featureFlags, ...) tes::noopohm()
 
-#define TES_ARROW(...)
-#define TES_ARROW_T(...)
-#define TES_ARROW_W(...)
-#define TES_BOX_AABB(...)
-#define TES_BOX_AABB_T(...)
-#define TES_BOX_AABB_W(...)
-#define TES_BOX(...)
-#define TES_BOX_T(...)
-#define TES_BOX_W(...)
-#define TES_CAPSULE(...)
-#define TES_CAPSULE_T(...)
-#define TES_CAPSULE_W(...)
-#define TES_CONE(...)
-#define TES_CONE_T(...)
-#define TES_CONE_W(...)
-#define TES_CYLINDER(...)
-#define TES_CYLINDER_T(...)
-#define TES_CYLINDER_W(...)
-#define TES_LINES(...)
-#define TES_LINES_E(...)
-#define TES_LINE(...)
-#define TES_MESHSET(...)
-#define TES_PLANE(...)
-#define TES_PLANE_T(...)
-#define TES_PLANE_W(...)
-#define TES_POINTCLOUDSHAPE(...)
-#define TES_POINTS(...)
-#define TES_POINTS_C(...)
-#define TES_POINTS_E(...)
-#define TES_VOXELS(...)
-#define TES_SPHERE(...)
-#define TES_SPHERE_T(...)
-#define TES_SPHERE_W(...)
-#define TES_STAR(...)
-#define TES_STAR_T(...)
-#define TES_STAR_W(...)
-#define TES_TEXT2D_SCREEN(...)
-#define TES_TEXT2D_WORLD(...)
-#define TES_TEXT3D(...)
-#define TES_TEXT3D_FACING(...)
-#define TES_TRIANGLES(...)
-#define TES_TRIANGLES_E(...)
-#define TES_TRIANGLES_N(...)
-#define TES_TRIANGLES_NE(...)
-#define TES_TRIANGLES_W(...)
-#define TES_TRIANGLES_WE(...)
-#define TES_TRIANGLES_T(...)
-#define TES_TRIANGLES_TE(...)
-#define TES_TRIANGLE(...)
-#define TES_TRIANGLE_W(...)
-#define TES_TRIANGLE_I(...)
-#define TES_TRIANGLE_T(...)
-#define TES_TRIANGLE_IT(...)
-#define TES_TRIANGLE_IW(...)
+#define TES_REFERENCE_RESOURCE(server, ...) tes::noopohm()
+#define TES_RELEASE_RESOURCE(server, ...) tes::noopohm()
+#define TES_MESH_PLACEHOLDER(id) tes::noopohm()
 
-#define TES_ARROW_END(...)
-#define TES_BOX_END(...)
-#define TES_CAPSULE_END(...)
-#define TES_CONE_END(...)
-#define TES_CYLINDER_END(...)
-#define TES_LINES_END(...)
-#define TES_MESHSET_END(...)
-#define TES_PLANE_END(...)
-#define TES_POINTCLOUDSHAPE_END(...)
-#define TES_POINTS_END(...)
-#define TES_VOXELS_END(...)
-#define TES_SPHERE_END(...)
-#define TES_STAR_END(...)
-#define TES_TEXT2D_END(...)
-#define TES_TEXT3D_END(...)
-#define TES_TRIANGLES_END(...)
-#define TES_TRIANGLE_END(...)
+#define TES_ARROW(server, ...) tes::noopohm()
+#define TES_ARROW_T(server, ...) tes::noopohm()
+#define TES_ARROW_W(server, ...) tes::noopohm()
+#define TES_BOX_AABB(server, ...) tes::noopohm()
+#define TES_BOX_AABB_T(server, ...) tes::noopohm()
+#define TES_BOX_AABB_W(server, ...) tes::noopohm()
+#define TES_BOX(server, ...) tes::noopohm()
+#define TES_BOX_T(server, ...) tes::noopohm()
+#define TES_BOX_W(server, ...) tes::noopohm()
+#define TES_CAPSULE(server, ...) tes::noopohm()
+#define TES_CAPSULE_T(server, ...) tes::noopohm()
+#define TES_CAPSULE_W(server, ...) tes::noopohm()
+#define TES_CONE(server, ...) tes::noopohm()
+#define TES_CONE_T(server, ...) tes::noopohm()
+#define TES_CONE_W(server, ...) tes::noopohm()
+#define TES_CYLINDER(server, ...) tes::noopohm()
+#define TES_CYLINDER_T(server, ...) tes::noopohm()
+#define TES_CYLINDER_W(server, ...) tes::noopohm()
+#define TES_LINES(server, ...) tes::noopohm()
+#define TES_LINES_E(server, ...) tes::noopohm()
+#define TES_LINE(server, ...) tes::noopohm()
+#define TES_MESHSET(server, ...) tes::noopohm()
+#define TES_PLANE(server, ...) tes::noopohm()
+#define TES_PLANE_T(server, ...) tes::noopohm()
+#define TES_PLANE_W(server, ...) tes::noopohm()
+#define TES_POINTCLOUDSHAPE(server, ...) tes::noopohm()
+#define TES_POINTS(server, ...) tes::noopohm()
+#define TES_POINTS_C(server, ...) tes::noopohm()
+#define TES_POINTS_E(server, ...) tes::noopohm()
+#define TES_VOXELS(server, ...) tes::noopohm()
+#define TES_SPHERE(server, ...) tes::noopohm()
+#define TES_SPHERE_T(server, ...) tes::noopohm()
+#define TES_SPHERE_W(server, ...) tes::noopohm()
+#define TES_STAR(server, ...) tes::noopohm()
+#define TES_STAR_T(server, ...) tes::noopohm()
+#define TES_STAR_W(server, ...) tes::noopohm()
+#define TES_TEXT2D_SCREEN(server, ...) tes::noopohm()
+#define TES_TEXT2D_WORLD(server, ...) tes::noopohm()
+#define TES_TEXT3D(server, ...) tes::noopohm()
+#define TES_TEXT3D_FACING(server, ...) tes::noopohm()
+#define TES_TRIANGLES(server, ...) tes::noopohm()
+#define TES_TRIANGLES_E(server, ...) tes::noopohm()
+#define TES_TRIANGLES_N(server, ...) tes::noopohm()
+#define TES_TRIANGLES_NE(server, ...) tes::noopohm()
+#define TES_TRIANGLES_W(server, ...) tes::noopohm()
+#define TES_TRIANGLES_WE(server, ...) tes::noopohm()
+#define TES_TRIANGLES_T(server, ...) tes::noopohm()
+#define TES_TRIANGLES_TE(server, ...) tes::noopohm()
+#define TES_TRIANGLE(server, ...) tes::noopohm()
+#define TES_TRIANGLE_W(server, ...) tes::noopohm()
+#define TES_TRIANGLE_I(server, ...) tes::noopohm()
+#define TES_TRIANGLE_T(server, ...) tes::noopohm()
+#define TES_TRIANGLE_IT(server, ...) tes::noopohm()
+#define TES_TRIANGLE_IW(server, ...) tes::noopohm()
 
-#define TES_POS_UPDATE(...)
-#define TES_ROT_UPDATE(...)
-#define TES_SCALE_UPDATE(...)
-#define TES_COLOUR_UPDATE(...)
-#define TES_COLOR_UPDATE(...)
-#define TES_POSROT_UPDATE(...)
-#define TES_POSSCALE_UPDATE(...)
-#define TES_ROTSCALE_UPDATE(...)
-#define TES_PRS_UPDATE(...)
-#define TES_PRC_UPDATE(...)
-#define TES_PSC_UPDATE(...)
-#define TES_RSC_UPDATE(...)
-#define TES_PRSC_UPDATE(...)
+#define TES_ARROW_END(server, ...) tes::noopohm()
+#define TES_BOX_END(server, ...) tes::noopohm()
+#define TES_CAPSULE_END(server, ...) tes::noopohm()
+#define TES_CONE_END(server, ...) tes::noopohm()
+#define TES_CYLINDER_END(server, ...) tes::noopohm()
+#define TES_LINES_END(server, ...) tes::noopohm()
+#define TES_MESHSET_END(server, ...) tes::noopohm()
+#define TES_PLANE_END(server, ...) tes::noopohm()
+#define TES_POINTCLOUDSHAPE_END(server, ...) tes::noopohm()
+#define TES_POINTS_END(server, ...) tes::noopohm()
+#define TES_VOXELS_END(server, ...) tes::noopohm()
+#define TES_SPHERE_END(server, ...) tes::noopohm()
+#define TES_STAR_END(server, ...) tes::noopohm()
+#define TES_TEXT2D_END(server, ...) tes::noopohm()
+#define TES_TEXT3D_END(server, ...) tes::noopohm()
+#define TES_TRIANGLES_END(server, ...) tes::noopohm()
+#define TES_TRIANGLE_END(server, ...) tes::noopohm()
+
+#define TES_POS_UPDATE(server, ...) tes::noopohm()
+#define TES_ROT_UPDATE(server, ...) tes::noopohm()
+#define TES_SCALE_UPDATE(server, ...) tes::noopohm()
+#define TES_COLOUR_UPDATE(server, ...) tes::noopohm()
+#define TES_COLOR_UPDATE(server, ...) tes::noopohm()
+#define TES_POSROT_UPDATE(server, ...) tes::noopohm()
+#define TES_POSSCALE_UPDATE(server, ...) tes::noopohm()
+#define TES_ROTSCALE_UPDATE(server, ...) tes::noopohm()
+#define TES_PRS_UPDATE(server, ...) tes::noopohm()
+#define TES_PRC_UPDATE(server, ...) tes::noopohm()
+#define TES_PSC_UPDATE(server, ...) tes::noopohm()
+#define TES_RSC_UPDATE(server, ...) tes::noopohm()
+#define TES_PRSC_UPDATE(server, ...) tes::noopohm()
 
 #endif // TES_ENABLE
 

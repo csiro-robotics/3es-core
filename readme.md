@@ -193,12 +193,12 @@ void initCategories()
   //   - Free
   //   - Occupied
   // - Info
-  TES_CATEGORY(*g_tesServer, "Map", CAT_Map, 0, true);
-  TES_CATEGORY(*g_tesServer, "Populate", CAT_Populate, 0, true);
-  TES_CATEGORY(*g_tesServer, "Rays", CAT_Rays, CAT_Populate, true);
-  TES_CATEGORY(*g_tesServer, "Free", CAT_FreeCells, CAT_Populate, false);
-  TES_CATEGORY(*g_tesServer, "Occupied", CAT_OccupiedCells, CAT_Populate, true);
-  TES_CATEGORY(*g_tesServer, "Info", CAT_Info, 0, true);
+  TES_CATEGORY(g_tesServer, "Map", CAT_Map, 0, true);
+  TES_CATEGORY(g_tesServer, "Populate", CAT_Populate, 0, true);
+  TES_CATEGORY(g_tesServer, "Rays", CAT_Rays, CAT_Populate, true);
+  TES_CATEGORY(g_tesServer, "Free", CAT_FreeCells, CAT_Populate, false);
+  TES_CATEGORY(g_tesServer, "Occupied", CAT_OccupiedCells, CAT_Populate, true);
+  TES_CATEGORY(g_tesServer, "Info", CAT_Info, 0, true);
 }
 
 void animateBox(tes::Server &server)
