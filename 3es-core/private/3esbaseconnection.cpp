@@ -482,7 +482,7 @@ int BaseConnection::writePacket(const uint8_t *buffer, uint16_t byteCount, bool 
 {
   std::unique_lock<Lock> guard(_sendLock);
 
-  if ((SF_Collate & _serverFlags) == 0 && !allowCollation)
+  if ((SF_Collate & _serverFlags) != 0 && !allowCollation)
   {
     flushCollatedPacketUnguarded();
   }
@@ -493,7 +493,7 @@ int BaseConnection::writePacket(const uint8_t *buffer, uint16_t byteCount, bool 
   }
 
   // Add to the collection buffer.
-  if (_collation->collatedBytes() + byteCount >= _collation->maxPacketSize())
+  if (byteCount >= _collation->availableBytes())
   {
     flushCollatedPacketUnguarded();
   }
