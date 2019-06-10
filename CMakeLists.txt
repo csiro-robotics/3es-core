@@ -9,6 +9,8 @@ set(ConfigPackageLocation lib/cmake/3es)
 # C++ standards setup.
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+# Ensure -fPIC is added.
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Add cmake directory to the modules path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
