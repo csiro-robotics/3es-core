@@ -143,6 +143,11 @@ namespace tes
     /// and @c CollatedPacketMessage, but will include the CRC once finalised.
     unsigned collatedBytes() const;
 
+    /// Return the number of bytes available in the collated packet. This considers @c collatedBytes() so far and the
+    /// packet @c Overhead with respect to @c maxPacketSize().
+    /// @return The number of byte which can be written to the packet before it is full.
+    unsigned availableBytes() const;
+
     //-------------------------------------------
     // Connection methods.
     //-------------------------------------------
@@ -256,6 +261,12 @@ namespace tes
   inline unsigned CollatedPacket::collatedBytes() const
   {
     return _cursor;
+  }
+
+  inline unsigned CollatedPacket::availableBytes() const
+  {
+    const unsigned used = collatedBytes() + unsigned(Overhead);
+    return (_maxPacketSize < used) ? _maxPacketSize - used : 0;
   }
 }
 
