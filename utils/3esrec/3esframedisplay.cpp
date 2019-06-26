@@ -57,6 +57,7 @@ void FrameDisplay::run()
     if (lastFrame != frameNumber)
     {
       printf("\r%" PRId64, frameNumber);
+      fflush(stdout);
       lastFrame = frameNumber;
     }
 
