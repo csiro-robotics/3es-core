@@ -18,7 +18,9 @@
 #include <cmath>
 #include <csignal>
 #include <chrono>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <thread>
 #include <vector>
 
@@ -28,6 +30,8 @@ using namespace tes;
 
 namespace
 {
+  using TimingClock = std::chrono::high_resolution_clock;
+
   bool quit = false;
 
   void onSignal(int arg)
@@ -36,6 +40,45 @@ namespace
     {
       quit = true;
     }
+  }
+
+  TimingClock::duration findMinDuration(const TimingClock::duration *durations, unsigned durationCount)
+  {
+    TimingClock::duration minDuration = durations[0];
+    for (unsigned i = 1; i < durationCount; ++i)
+    {
+      if (durations[i] < minDuration)
+      {
+        minDuration = durations[i];
+      }
+    }
+
+    return minDuration;
+  }
+
+  TimingClock::duration findMaxDuration(const TimingClock::duration *durations, unsigned durationCount)
+  {
+    TimingClock::duration maxDuration = durations[0];
+    for (unsigned i = 1; i < durationCount; ++i)
+    {
+      if (durations[i] > maxDuration)
+      {
+        maxDuration = durations[i];
+      }
+    }
+
+    return maxDuration;
+  }
+
+  TimingClock::duration calcAvgDuration(const TimingClock::duration *durations, unsigned durationCount)
+  {
+    TimingClock::duration totalDuration = durations[0];
+    for (unsigned i = 1; i < durationCount; ++i)
+    {
+      totalDuration += durations[i];
+    }
+
+    return totalDuration / durationCount;
   }
 }
 
@@ -58,7 +101,7 @@ void showUsage(int argc, char **argv)
 {
   TES_UNUSED(argc);
   std::cout << "Usage:\n";
-  std::cout << argv[0] << " [options] [shapes]\n";
+  std::cout << argv[0] << " [options]\n";
   std::cout << "\nValid options:\n";
   std::cout << "  help: show this message\n";
   if (tes::checkFeature(tes::TFeatureCompression))
@@ -66,6 +109,48 @@ void showUsage(int argc, char **argv)
     std::cout << "  compress: write collated and compressed packets\n";
   }
   std::cout.flush();
+}
+
+
+template <typename U, typename D>
+inline std::ostream &operator<<(std::ostream &out, const std::chrono::duration<U, D> &duration)
+{
+  const bool negative = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count() < 0;
+  const char *sign = (!negative) ? "" : "-";
+  std::chrono::duration<U, D> abs_duration = (!negative) ? duration : duration * -1;
+  auto s = std::chrono::duration_cast<std::chrono::seconds>(abs_duration).count();
+  auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(abs_duration).count();
+  ms = ms % 1000;
+
+  if (s)
+  {
+    out << sign << s << "." << std::setw(3) << std::setfill('0') << ms << "s";
+  }
+  else
+  {
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>(abs_duration).count();
+    us = us % 1000;
+
+    if (ms)
+    {
+      out << sign << ms << "." << std::setw(3) << std::setfill('0') << us << "ms";
+    }
+    else
+    {
+      auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(abs_duration).count();
+      ns = ns % 1000;
+
+      if (us)
+      {
+        out << sign << us << "." << std::setw(3) << std::setfill('0') << ns << "us";
+      }
+      else
+      {
+        out << sign << ns << "ns";
+      }
+    }
+  }
+  return out;
 }
 
 
@@ -117,24 +202,25 @@ int main(int argc, char **argvNonConst)
   unsigned serverFlags = SF_DefaultNoCompression;
   if (haveOption("compress", argc, argv))
   {
-    serverFlags |= SF_Compress;
+    serverFlags |= SF_Compress | SF_Collate;
   }
 
   Server *server = Server::create(ServerSettings(serverFlags), &info);
 
-  float time = 0;
-  auto lastTime = std::chrono::system_clock::now();
-
   server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous);
+
+  const unsigned durationHistorySize = 100;
+  TimingClock::duration durationWindow[durationHistorySize];
+  unsigned nextDurationIndex = 0;
+
+  for (unsigned i = 0; i < durationHistorySize; ++i)
+  {
+    durationWindow[i] = TimingClock::duration(0);
+  }
 
   while (!quit)
   {
-    auto now = std::chrono::system_clock::now();
-    auto elapsed = now - lastTime;
-
-    lastTime = now;
-    float dt = float(std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()) * 1e-6f;
-    time += dt;
+    const auto sendStart = TimingClock::now();
 
     // Send triangle data in chunks.
     MeshShape shape(DtTriangles, triangles.data()->v, (unsigned)triangles.size(), sizeof(*triangles.data()));  // Transient triangles.
@@ -148,14 +234,22 @@ int main(int argc, char **argvNonConst)
     server->connectionMonitor()->commitConnections();
     server->updateTransfers(0);
 
-    printf("\rFrame %f: %u connection(s)    ", dt, server->connectionCount());
-    fflush(stdout);
+    const auto sendEnd = TimingClock::now();
+    const auto elapsed = sendEnd - sendStart;
 
-    now = std::chrono::system_clock::now();
-    elapsed = now - lastTime;
-    //unsigned elapsedMs = unsigned(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
-    //unsigned sleepTimeMs = (elapsedMs <= targetFrameTimeMs) ? targetFrameTimeMs - elapsedMs : 0u;
-    //std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
+    durationWindow[nextDurationIndex] = elapsed;
+    nextDurationIndex = (nextDurationIndex + 1) % durationHistorySize;
+
+    const auto minDuration = findMinDuration(durationWindow, durationHistorySize);
+    const auto maxDuration = findMaxDuration(durationWindow, durationHistorySize);
+    const auto avgDuration = calcAvgDuration(durationWindow, durationHistorySize);
+
+    std::ostringstream timeStream;
+    timeStream << elapsed << " avg: " << avgDuration << " [" << minDuration << "," << maxDuration << ']';
+
+    printf("\r%u connection(s) %u triangles : %s      ", server->connectionCount(), unsigned(triangles.size()),
+           timeStream.str().c_str());
+    fflush(stdout);
   }
 
   server->updateFrame(0.0f, false);

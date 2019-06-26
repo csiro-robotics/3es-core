@@ -104,7 +104,7 @@ bool TcpSocket::open(const char *host, unsigned short port)
   if (::connect(_detail->socket, (struct sockaddr *)&_detail->address, sizeof(_detail->address)) != 0)
   {
     int err = errno;
-    if (err != ECONNREFUSED)
+    if (err && err != ECONNREFUSED)
     {
       fprintf(stderr, "errno : %d -> %s\n", err, socketErrorString(err));
     }
