@@ -911,7 +911,7 @@ if (server) \
 /// @param pos The new position. A @c V3Arg compatible argument.
 /// @param scale The new object scale. A @c V3Arg compatible argument.
 #define TES_POSSCALE_UPDATE(server, ShapeType, objectID, pos, scale) \
-  if (server) { (server)->update(tes::ShapeType(objectID, 0).setPosition(pos).setScale(scale).setFlags(tes::UFUpdateMode | tes::UFPosition | tes::UFRotation)); }
+  if (server) { (server)->update(tes::ShapeType(objectID, 0).setPosition(pos).setScale(scale).setFlags(tes::UFUpdateMode | tes::UFPosition | tes::UFScale)); }
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating rotation and scale.
