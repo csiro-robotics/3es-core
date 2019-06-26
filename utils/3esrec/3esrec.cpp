@@ -1,9 +1,9 @@
-#include <3es-core/3escollatedpacketdecoder.h>
-#include <3es-core/3esendian.h>
-#include <3es-core/3espacketbuffer.h>
-#include <3es-core/3esmessages.h>
-#include <3es-core/3espacketwriter.h>
-#include <3es-core/3estcpsocket.h>
+#include <3escollatedpacketdecoder.h>
+#include <3esendian.h>
+#include <3espacketbuffer.h>
+#include <3esmessages.h>
+#include <3espacketwriter.h>
+#include <3estcpsocket.h>
 
 #include "3esframedisplay.h"
 
@@ -57,7 +57,7 @@ namespace tes
     // IPEndPoint ServerEndPoint { get; private set; }
     const std::string &outputPrefix() const { return _outputPrefix; }
     static const char *defaultPrefix() { return "tes"; }
-    static int defaultPort() { return 33500; }
+    static uint16_t defaultPort() { return 33500; }
     static const char *defaultIP() { return "127.0.0.1"; }
 
     static const char **defaultArgs() { return s_defaultArgs; }
@@ -97,7 +97,7 @@ namespace tes
     std::string _outputPrefix = "tes";
 
     std::string _serverIp;
-    int _serverPort = 0;
+    uint16_t _serverPort = 0;
 
     bool _quit = false;
     bool _argsOk = true;
@@ -576,7 +576,7 @@ namespace tes
         {
           markerValid = true;
           int i = 1;
-          for (i = 1; markerValid && ioStream.good() && i < sizeof(markerValidation); ++i)
+          for (i = 1; markerValid && ioStream.good() && i < int(sizeof(markerValidation)); ++i)
           {
             ioStream.read(markerBytes + i, 1);
             markerValid = markerValid && markerBytes[i] == markerValidationBytes[i];
@@ -689,7 +689,6 @@ namespace tes
     bool ok = argc > 0;
     std::string ipStr;
     std::string portStr;
-    int port = 0;
 
     _argsOk = false;
     for (int i = 1; i < argc; ++i)
@@ -763,7 +762,7 @@ namespace tes
         ipStr = defaultIP();
       }
 
-      if (!ipStr.empty() && _serverPort >= 0)
+      if (!ipStr.empty() && _serverPort > 0)
       {
         _serverIp = ipStr;
       }
@@ -787,14 +786,14 @@ namespace
 {
   tes::TesRec *g_prog = nullptr;
 
-  void onSignal(int arg)
+  void onSignal(int)
   {
     if (g_prog)
     {
       g_prog->requestQuit();
       g_prog = nullptr;
     }
-  };
+  }
 }
 
 int main(int argc, const char **argv)

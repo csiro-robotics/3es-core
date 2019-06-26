@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <chrono>
+#include <functional>
 
 using namespace tes;
 
