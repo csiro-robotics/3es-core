@@ -43,6 +43,8 @@ if(TES_BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif(TES_BUILD_EXAMPLES)
 
+add_subdirectory(utils)
+
 if(TES_BUILD_TESTS)
   # We can enable testing here and/or in the subdirectory, but doing it here allows us to run CTest from the build root.
   # To run the tests, we execute:
