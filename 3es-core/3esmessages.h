@@ -351,7 +351,7 @@ namespace tes
   {
     uint32_t colour;    ///< Initial object colour.
     float position[3];  ///< Object position.
-    float rotation[4];  ///< Object rotation (quaternion)
+    float rotation[4];  ///< Object rotation (quaternion) xyzw order.
     float scale[3];     ///< Object scale.
 
     /// Set to an identity transform coloured white.

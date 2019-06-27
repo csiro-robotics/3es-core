@@ -117,7 +117,7 @@ namespace tes
     ///
     /// @param packet The packet to send.
     /// @param allowCollation True to allow the message to be collated (and compressed) with other messages.
-    virtual int send(const PacketWriter &packet, bool allowCollation = true) = 0;
+    virtual int send(const PacketWriter &packet, bool allowCollation) = 0;
 
     /// Send a collated packet to all clients.
     ///
