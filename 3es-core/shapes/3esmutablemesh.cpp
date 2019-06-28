@@ -43,12 +43,14 @@ struct MutableMeshImp
   Matrix4f newTransform;
   unsigned newVertexCount = ~0;
   unsigned newIndexCount = ~0;
+  uint32_t tint = 0xffffffffu;
   bool transformDirty = false;
+  bool tintDirty = false;
   /// Is an update required?
   bool dirty = false;
 
   MutableMeshImp(uint32_t id, DrawType drawType, unsigned components)
-    : mesh(id, drawType, components)
+    : mesh(id, 0u, 0u, drawType, components)
   {
   }
 };
@@ -72,7 +74,13 @@ const SimpleMesh &MutableMesh::meshResource() const
 void MutableMesh::setTransform(const Matrix4f &transform)
 {
   _imp->newTransform = transform;
-  _imp->transformDirty = true;
+  _imp->transformDirty = _imp->dirty = true;
+}
+
+void MutableMesh::setTint(uint32_t tint)
+{
+  _imp->tint = tint;
+  _imp->tintDirty = _imp->dirty = true;
 }
 
 void MutableMesh::setVertexCount(const UIntArg &count)
@@ -301,6 +309,8 @@ void MutableMesh::update(Connection *con)
   msg.attributes.scale[1] = scale.y;
   msg.attributes.scale[2] = scale.z;
 
+  msg.attributes.colour = (_imp->tintDirty) ? _imp->tint : _imp->mesh.tint();
+
   packet.reset(tes::MtMesh, tes::MeshRedefineMessage::MessageId);
   msg.write(packet);
 
@@ -323,7 +333,7 @@ void MutableMesh::update(Connection *con)
       cmpmsg.offset = vertexDef.writeIndex;
       cmpmsg.count = 1;
 
-      if (vertexDef.componentFlag | SimpleMesh::Vertex)
+      if (vertexDef.componentFlag & SimpleMesh::Vertex)
       {
         packet.reset(tes::MtMesh, tes::MmtVertex);
         cmpmsg.write(packet);
@@ -335,7 +345,7 @@ void MutableMesh::update(Connection *con)
         con->send(packet);
       }
 
-      if (vertexDef.componentFlag | SimpleMesh::Colour)
+      if (vertexDef.componentFlag & SimpleMesh::Colour)
       {
         packet.reset(tes::MtMesh, tes::MmtVertexColour);
         cmpmsg.write(packet);
@@ -347,7 +357,7 @@ void MutableMesh::update(Connection *con)
         con->send(packet);
       }
 
-      if (vertexDef.componentFlag | SimpleMesh::Normal)
+      if (vertexDef.componentFlag & SimpleMesh::Normal)
       {
         packet.reset(tes::MtMesh, tes::MmtNormal);
         cmpmsg.write(packet);
@@ -359,7 +369,7 @@ void MutableMesh::update(Connection *con)
         con->send(packet);
       }
 
-      if (vertexDef.componentFlag | SimpleMesh::Uv)
+      if (vertexDef.componentFlag & SimpleMesh::Uv)
       {
         packet.reset(tes::MtMesh, tes::MmtUv);
         cmpmsg.write(packet);
@@ -419,26 +429,31 @@ void MutableMesh::migratePending()
     _imp->mesh.setTransform(_imp->newTransform);
   }
 
+  if (_imp->tintDirty)
+  {
+    _imp->mesh.setTint(_imp->tint);
+  }
+
   for (size_t i = 0; i < _imp->vertexChanges.size(); ++i)
   {
     const VertexChange &vertexDef = _imp->vertexChanges[i];
 
-    if (vertexDef.componentFlag | SimpleMesh::Vertex)
+    if (vertexDef.componentFlag & SimpleMesh::Vertex)
     {
       _imp->mesh.setVertex(vertexDef.writeIndex, vertexDef.position);
     }
 
-    if (vertexDef.componentFlag | SimpleMesh::Colour)
+    if (vertexDef.componentFlag & SimpleMesh::Colour)
     {
       _imp->mesh.setColour(vertexDef.writeIndex, vertexDef.colour);
     }
 
-    if (vertexDef.componentFlag | SimpleMesh::Normal)
+    if (vertexDef.componentFlag & SimpleMesh::Normal)
     {
       _imp->mesh.setNormal(vertexDef.writeIndex, vertexDef.normal);
     }
 
-    if (vertexDef.componentFlag | SimpleMesh::Uv)
+    if (vertexDef.componentFlag & SimpleMesh::Uv)
     {
       _imp->mesh.setUv(vertexDef.writeIndex, vertexDef.uv[0], vertexDef.uv[1]);
     }

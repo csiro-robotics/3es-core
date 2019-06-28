@@ -46,7 +46,7 @@ void FrameDisplay::run()
   int64_t lastFrame = 0;
   while (!_quit)
   {
-    int64_t frameNumber = _frameNumber;
+    const int64_t frameNumber = _frameNumber;
 
     if (lastFrame > frameNumber)
     {
@@ -63,4 +63,14 @@ void FrameDisplay::run()
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
+
+  // Display final frame number.
+  const int64_t finalFrame = _frameNumber;
+  if (finalFrame != lastFrame)
+  {
+    // Clear the display line.
+    printf("\r                    ");
+    printf("\r%" PRId64, finalFrame);
+  }
+
 }

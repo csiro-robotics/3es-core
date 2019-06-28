@@ -33,6 +33,8 @@ namespace tes
 
     void setTransform(const Matrix4f &transform);
 
+    void setTint(uint32_t tint);
+
     void setVertexCount(const UIntArg &count);
     void setIndexCount(const UIntArg &count);
 
