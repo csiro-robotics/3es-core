@@ -86,6 +86,12 @@ bool BaseConnection::sendServerInfo(const ServerInfoMessage &info)
 }
 
 
+int BaseConnection::send(const PacketWriter &packet, bool allowCollation)
+{
+  return send(packet.data(), packet.packetSize(), allowCollation);
+}
+
+
 int BaseConnection::send(const CollatedPacket &collated)
 {
   if (!_active)

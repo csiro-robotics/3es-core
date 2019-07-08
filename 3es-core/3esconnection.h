@@ -11,6 +11,7 @@
 
 namespace tes
 {
+  class PacketWriter;
   class Resource;
   class Shape;
   struct ServerInfoMessage;
@@ -107,6 +108,11 @@ namespace tes
 
     /// Send server details to the client.
     virtual bool sendServerInfo(const ServerInfoMessage &info) = 0;
+
+    /// Send data from a @c PacketWriter. PacketWriter::finalise() must have already been called.
+    /// @param packet The packet to send.
+    /// @param allowCollation True to allow the message to be collated (and compressed) with other messages.
+    virtual int send(const PacketWriter &packet, bool allowCollation = true) = 0;
 
     /// Send pre-prepared message data to all connections.
     /// @param data Data buffer to send.

@@ -52,6 +52,7 @@ namespace tes
 
     bool sendServerInfo(const ServerInfoMessage &info) override;
 
+    int send(const PacketWriter &packet, bool allowCollation) override;
     int send(const CollatedPacket &collated);// override;
     int send(const uint8_t *data, int byteCount, bool allowCollation = true) override;
 

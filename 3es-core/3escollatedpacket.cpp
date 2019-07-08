@@ -7,6 +7,7 @@
 #include "3esendian.h"
 #include "3esmaths.h"
 #include "3esmessages.h"
+#include "3espacketwriter.h"
 
 #include "private/3escollatedpacketzip.h"
 
@@ -577,6 +578,12 @@ bool CollatedPacket::sendServerInfo(const ServerInfoMessage &info)
   }
 
   return written != -1;
+}
+
+
+int CollatedPacket::send(const PacketWriter &packet, bool /*allowCollation*/)
+{
+  return send(packet.data(), packet.packetSize(), false);
 }
 
 

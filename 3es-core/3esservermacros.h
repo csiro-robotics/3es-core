@@ -104,7 +104,7 @@
 
 /// @ingroup tesmacros
 /// Exposes details of a category to connected clients.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param _name A null terminated, UTF-8 string name for the category.
 /// @param _categoryId ID of the category being named [0, 65535].
 /// @param _parentId ID of the parent category, to support category trees. Zero for none. [0, 65535]
@@ -158,7 +158,7 @@
 /// @ingroup tesmacros
 /// Initialise @p server to a new @c Server object with the given @c ServerSettings and
 /// @c ServerInfoMessage.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param settings The @c ServerSettings structure to initialise the server with.
 /// @param info The @c ServerInfoMessage structure to initialise the server with.
 #define TES_SERVER_CREATE(server, settings, info) server = tes::Server::create(settings, info);
@@ -167,7 +167,7 @@
 /// Start the given @c Server in the given mode (synchronous or asynchronous).
 ///
 /// After this call, the server can accept connections.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param mode The server mode: @c ConnectionMonitor::Synchronous or @c ConnectionMonitor::Asynchronous.
 #define TES_SERVER_START(server, mode) if (server) { (server)->connectionMonitor()->start(mode); }
 
@@ -183,7 +183,7 @@
 /// a delta time value must be passed (floating point, in seconds). This should be zero when
 /// using TES for algorithm debugging, or a valid time delta in real-time debugging.
 ///
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ... Arguments for @c Server::updateFrame()
 #define TES_SERVER_UPDATE(server, ...) \
   if (server) \
@@ -201,7 +201,7 @@
 /// @ingroup tesmacros
 /// Wait for the server to be ready to accept incoming connections.
 /// This blocks until at least one connection is established up to @p timems milliseconds.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param timems The wait time out to wait for (milliseconds).
 #define TES_SERVER_START_WAIT(server, timems) \
   if ((server) && (server)->connectionMonitor()->waitForConnection(timems) > 0) \
@@ -219,7 +219,7 @@
 /// this call.
 /// Note the @p server argument must be a pointer as it is first checked against null, then
 /// cleared to @c nullptr.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 #define TES_SERVER_STOP(server) \
   if (server) \
   { \
@@ -239,11 +239,11 @@
 
 /// @ingroup tesmacros
 /// Check if @p server is enabled.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 #define TES_ACTIVE(server) ((server) != nullptr && (server)->active())
 /// @ingroup tesmacros
 /// Enable/disable @p server.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param _active @c true to activate, @c false to deactivate.
 #define TES_SET_ACTIVE(server, _active) if (server) { (server)->setActive(_active) }
 
@@ -275,14 +275,16 @@
 //-----------------------------------------------------------------------------
 
 /// @ingroup tesmacros
-/// Adds a reference to the given @c resource. See @c tes::Connection::referenceResource().
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// Adds a reference to the given @c resource. See @c tes::Connection::referenceResource(). Adds the resource to the
+/// server if there is no existing resource.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param resource A pointer to the resource.
 #define TES_REFERENCE_RESOURCE(server, resource) if (server) { (server)->referenceResource(resource); }
 
 /// @ingroup tesmacros
-/// Releases a reference to the given @c resource. See @c tes::Connection::referenceResource().
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// Releases a reference to the given @c resource. See @c tes::Connection::referenceResource(). Destroys the resource
+/// if this is the final reference.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param resource A pointer to the resource.
 #define TES_RELEASE_RESOURCE(server, resource) if (server) { (server)->releaseResource(resource); }
 
@@ -294,19 +296,19 @@
 
 /// @ingroup tesmacros
 /// Solid arrow.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Arrow() constructor.
 #define TES_ARROW(server, colour, ...) if (server) { (server)->create(tes::Arrow(__VA_ARGS__).setColour(colour)); }
 /// @ingroup tesmacros
 /// Transparent arrow.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Arrow() constructor.
 #define TES_ARROW_T(server, colour, ...) if (server) { (server)->create(tes::Arrow(__VA_ARGS__).setColour(colour).setTransparent(true)); }
 /// @ingroup tesmacros
 /// Wireframe arrow.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Arrow() constructor.
 #define TES_ARROW_W(server, colour, ...) if (server) { (server)->create(tes::Arrow(__VA_ARGS__).setColour(colour).setWireframe(true)); }
@@ -339,96 +341,96 @@
 
 /// @ingroup tesmacros
 /// Solid box.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Box() constructor.
 #define TES_BOX(server, colour, ...) if (server) { (server)->create(tes::Box(__VA_ARGS__).setColour(colour)); }
 /// @ingroup tesmacros
 /// Transparent box.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Box() constructor.
 #define TES_BOX_T(server, colour, ...) if (server) { (server)->create(tes::Box(__VA_ARGS__).setColour(colour).setTransparent(true)); }
 /// @ingroup tesmacros
 /// Wireframe box.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Box() constructor.
 #define TES_BOX_W(server, colour, ...) if (server) { (server)->create(tes::Box(__VA_ARGS__).setColour(colour).setWireframe(true)); }
 
 /// @ingroup tesmacros
 /// Solid capsule.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Capsule() constructor.
 #define TES_CAPSULE(server, colour, ...) if (server) { (server)->create(tes::Capsule(__VA_ARGS__).setColour(colour)); }
 /// @ingroup tesmacros
 /// Transparent capsule.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Capsule() constructor.
 #define TES_CAPSULE_T(server, colour, ...) if (server) { (server)->create(tes::Capsule(__VA_ARGS__).setColour(colour).setTransparent(true)); }
 /// @ingroup tesmacros
 /// Wireframe capsule.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Capsule() constructor.
 #define TES_CAPSULE_W(server, colour, ...) if (server) { (server)->create(tes::Capsule(__VA_ARGS__).setColour(colour).setWireframe(true)); }
 
 /// @ingroup tesmacros
 /// Solid cone.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Cone() constructor.
 #define TES_CONE(server, colour, ...) if (server) { (server)->create(tes::Cone(__VA_ARGS__).setColour(colour)); }
 /// @ingroup tesmacros
 /// Transparent cone.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Cone() constructor.
 #define TES_CONE_T(server, colour, ...) if (server) { (server)->create(tes::Cone(__VA_ARGS__).setColour(colour).setTransparent(true)); }
 /// @ingroup tesmacros
 /// Wireframe cone.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Cone() constructor.
 #define TES_CONE_W(server, colour, ...) if (server) { (server)->create(tes::Cone(__VA_ARGS__).setColour(colour).setWireframe(true)); }
 
 /// @ingroup tesmacros
 /// Solid cylinder.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Cylinder() constructor.
 #define TES_CYLINDER(server, colour, ...) if (server) { (server)->create(tes::Cylinder(__VA_ARGS__).setColour(colour)); }
 /// @ingroup tesmacros
 /// Transparent cylinder.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Cylinder() constructor.
 #define TES_CYLINDER_T(server, colour, ...) if (server) { (server)->create(tes::Cylinder(__VA_ARGS__).setColour(colour).setTransparent(true)); }
 /// @ingroup tesmacros
 /// Wireframe cylinder.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Cylinder() constructor.
 #define TES_CYLINDER_W(server, colour, ...) if (server) { (server)->create(tes::Cylinder(__VA_ARGS__).setColour(colour).setWireframe(true)); }
 
 /// @ingroup tesmacros
 /// Render a set of lines.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_LINES(server, colour, ...) if (server) { (server)->create(tes::MeshShape(tes::DtLines, ##__VA_ARGS__).setColour(colour)); }
 
 /// @ingroup tesmacros
 /// Render a set of lines, calling @c MeshShape::expandVertices().
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_LINES_E(server, colour, ...) if (server) { (server)->create(tes::MeshShape(tes::DtLines, ##__VA_ARGS__).expandVertices().setColour(colour)); }
 
 /// @ingroup tesmacros
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param v0 Vertex of the first line end point.
 /// @param v1 Second vertex for the line starting at @p v0.
@@ -443,60 +445,60 @@
 
 /// @ingroup tesmacros
 /// Render a complex mesh.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ... Additional arguments follow, passed to @p MeshSet() constructor.
 #define TES_MESHSET(server, ...) if (server) { (server)->create(tes::MeshSet(__VA_ARGS__)); }
 
 /// @ingroup tesmacros
 /// Solid plane.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Plane() constructor.
 #define TES_PLANE(server, colour, ...) if (server) { (server)->create(tes::Plane(__VA_ARGS__).setColour(colour)); }
 /// @ingroup tesmacros
 /// Transparent plane.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Plane() constructor.
 #define TES_PLANE_T(server, colour, ...) if (server) { (server)->create(tes::Plane(__VA_ARGS__).setColour(colour).setTransparent(true)); }
 /// @ingroup tesmacros
 /// Wireframe plane.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Plane() constructor.
 #define TES_PLANE_W(server, colour, ...) if (server) { (server)->create(tes::Plane(__VA_ARGS__).setColour(colour).setWireframe(true)); }
 
 /// @ingroup tesmacros
 /// Render a point cloud.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p PointCloudShape() constructor.
 #define TES_POINTCLOUDSHAPE(server, colour, ...) if (server) { (server)->create(tes::PointCloudShape(__VA_ARGS__).setColour(colour)); }
 
 /// @ingroup tesmacros
 /// Render a small set of points.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_POINTS(server, colour, ...) if (server) { (server)->create(tes::MeshShape(tes::DtPoints, ##__VA_ARGS__).setColour(colour)); }
 
 /// @ingroup tesmacros
 /// Render a small set of points with per point colours.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colours A @c uint32_t array of colours. The number of elements must match the number of points pass in ...
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_POINTS_C(server, colours, ...) if (server) { (server)->create(tes::MeshShape(tes::DtPoints, ##__VA_ARGS__).setColours(colours)); }
 
 /// @ingroup tesmacros
 /// Render a small set of points, calling @c MeshShape::expandVertices().
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_POINTS_E(server, colour, ...) if (server) { (server)->create(tes::MeshShape(tes::DtPoints, ##__VA_ARGS__).expandVertices().setColour(colour)); }
 
 /// @ingroup tesmacros
 /// Render a set of voxels. Vertices represent voxel centres, normals are extents.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param resolution The length of the voxel edge. Only supports cubic voxels.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor. Vertices and normals required.
@@ -504,72 +506,72 @@
 
 /// @ingroup tesmacros
 /// Solid sphere.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Sphere() constructor.
 #define TES_SPHERE(server, colour, ...) if (server) { (server)->create(tes::Sphere(__VA_ARGS__).setColour(colour)); }
 /// @ingroup tesmacros
 /// Transparent sphere.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Sphere() constructor.
 #define TES_SPHERE_T(server, colour, ...) if (server) { (server)->create(tes::Sphere(__VA_ARGS__).setColour(colour).setTransparent(true)); }
 /// @ingroup tesmacros
 /// Wireframe sphere.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Sphere() constructor.
 #define TES_SPHERE_W(server, colour, ...) if (server) { (server)->create(tes::Sphere(__VA_ARGS__).setColour(colour).setWireframe(true)); }
 
 /// @ingroup tesmacros
 /// Solid star.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Star() constructor.
 #define TES_STAR(server, colour, ...) if (server) { (server)->create(tes::Star(__VA_ARGS__).setColour(colour)); }
 /// @ingroup tesmacros
 /// Transparent star.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Star() constructor.
 #define TES_STAR_T(server, colour, ...) if (server) { (server)->create(tes::Star(__VA_ARGS__).setColour(colour).setTransparent(true)); }
 /// @ingroup tesmacros
 /// Wireframe star.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Star() constructor.
 #define TES_STAR_W(server, colour, ...) if (server) { (server)->create(tes::Star(__VA_ARGS__).setColour(colour).setWireframe(true)); }
 
 /// @ingroup tesmacros
 /// Render 2D text in screen space. Range is from (0, 0) top left to (1, 1) bottom right. Z ignored.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Text2D() constructor.
 #define TES_TEXT2D_SCREEN(server, colour, ...) if (server) { (server)->create(tes::Text2D(__VA_ARGS__).setColour(colour)); }
 /// @ingroup tesmacros
 /// Render 2D text with a 3D world location.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Text2D() constructor.
 #define TES_TEXT2D_WORLD(server, colour, ...) if (server) { (server)->create(tes::Text2D(__VA_ARGS__).setInWorldSpace(true).setColour(colour)); }
 
 /// @ingroup tesmacros
 /// Render 3D text.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Text3D() constructor.
 #define TES_TEXT3D(server, colour, ...) if (server) { (server)->create(tes::Text3D(__VA_ARGS__).setColour(colour)); }
 
 /// @ingroup tesmacros
 /// Render 3D text, always facing the screen.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Text3D() constructor.
 #define TES_TEXT3D_FACING(server, colour, ...) if (server) { (server)->create(tes::Text3D(__VA_ARGS__).setScreenFacing(true).setColour(colour); }
 
 /// @ingroup tesmacros
 /// Triangles shape.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_TRIANGLES(server, colour, ...) \
@@ -577,7 +579,7 @@
 
 /// @ingroup tesmacros
 /// Triangles shape, calling @c MeshShape::expandVertices().
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_TRIANGLES_E(server, colour, ...) \
@@ -585,7 +587,7 @@
 
 /// @ingroup tesmacros
 /// Triangles shape with lighting (_N to calculate normals).
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_TRIANGLES_N(server, colour, ...) \
@@ -593,7 +595,7 @@
 
 /// @ingroup tesmacros
 /// Triangles shape with lighting (_N to calculate normals), calling @c MeshShape::expandVertices().
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_TRIANGLES_NE(server, colour, ...) \
@@ -601,7 +603,7 @@
 
 /// @ingroup tesmacros
 /// Triangles wireframe shape.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_TRIANGLES_W(server, colour, ...) \
@@ -609,7 +611,7 @@
 
 /// @ingroup tesmacros
 /// Triangles wireframe shape, calling @c MeshShape::expandVertices().
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_TRIANGLES_WE(server, colour, ...) \
@@ -617,7 +619,7 @@
 
 /// @ingroup tesmacros
 /// Triangles transparent shape.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_TRIANGLES_T(server, colour, ...) \
@@ -625,7 +627,7 @@
 
 /// @ingroup tesmacros
 /// Triangles transparent shape, calling @c MeshShape::expandVertices()
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_TRIANGLES_TE(server, colour, ...) \
@@ -636,7 +638,7 @@
 ///
 /// Vertices are specified as any type which can be used as a constructor argument to @c Vector3f. Generally
 /// <tt>const float *</tt> is recommended.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param v0 First triangle vertex: castable to a @c Vector3f (such as <tt>const float *</tt>).
 /// @param v1 Second triangle vertex.
@@ -653,7 +655,7 @@
 
 /// @ingroup tesmacros
 /// Single wireframe triangle.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param v0 A triangle vertex.
 /// @param v1 A triangle vertex.
@@ -669,7 +671,7 @@ if (server) \
 }
 /// @ingroup tesmacros
 /// Single transparent triangle.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param v0 A triangle vertex.
 /// @param v1 A triangle vertex.
@@ -690,7 +692,7 @@ if (server) \
 ///
 /// Note: Only the indexed vertices are extracted and serialised.
 ///
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param verts Vertices to index the triangle into. Must be a float array with 3 elements per
 ///   vertex.
@@ -713,7 +715,7 @@ if (server) \
 ///
 /// Note: Only the indexed vertices are extracted and serialised.
 ///
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param verts Vertices to index the triangle into. Must be a float array with 3 elements per
 ///   vertex.
@@ -737,7 +739,7 @@ if (server) \
 ///
 /// Note: Only the indexed vertices are extracted and serialised.
 ///
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param verts Vertices to index the triangle into. Must be a float array with 3 elements per
 ///   vertex.
@@ -757,90 +759,90 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Destroy arrow with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_ARROW_END(server, id) if (server) { (server)->destroy(tes::Arrow(static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy box with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_BOX_END(server, id) if (server) { (server)->destroy(tes::Box(static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy capsule with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_CAPSULE_END(server, id) if (server) { (server)->destroy(tes::Capsule(static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy cone with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_CONE_END(server, id) if (server) { (server)->destroy(tes::Cone(static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy cylinder with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_CYLINDER_END(server, id) if (server) { (server)->destroy(tes::Cylinder(static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy lines with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_LINES_END(server, id) if (server) { (server)->destroy(tes::MeshShape(tes::DtLines, nullptr, 0, 0, static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy mesh with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 /// @param resource The mesh resource associated with the set. Only supports one mesh.
 ///       Must be a pointer type : <tt>tes::MeshResource *</tt>
 #define TES_MESHSET_END(server, id, resource) if (server) { (server)->destroy(tes::MeshSet(static_cast<uint32_t>(resource, id))); }
 /// @ingroup tesmacros
 /// Destroy plane with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_PLANE_END(server, id) if (server) { (server)->destroy(tes::Plane(static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy point cloud with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param cloud The @c MeshResource (e.g., @c PointCloud) containing the point vertex data.
 /// @param id The ID of the shape to destroy.
 #define TES_POINTCLOUDSHAPE_END(server, cloud, id) if (server) { (server)->destroy(tes::PointCloudShape(cloud, static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy point set with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_POINTS_END(server, id) if (server) { (server)->destroy(tes::MeshShape(tes::DtPoints, nullptr, 0, 0, static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy voxel set with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_VOXELS_END(server, id) if (server) { (server)->destroy(tes::MeshShape(tes::DtVoxels, nullptr, 0, 0, static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy sphere with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_SPHERE_END(server, id) if (server) { (server)->destroy(tes::Sphere(static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy star with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_STAR_END(server, id) if (server) { (server)->destroy(tes::Star(static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy 2D text with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_TEXT2D_END(server, id) if (server) { (server)->destroy(tes::Text2D("", static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy 3D text with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_TEXT3D_END(server, id) if (server) { (server)->destroy(tes::Text3D("", static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy triangle or triangles with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_TRIANGLES_END(server, id) if (server) { (server)->destroy(tes::MeshShape(tes::DtTriangles, nullptr, 0, 0, static_cast<uint32_t>(id))); }
 /// @ingroup tesmacros
 /// Destroy arrow with @p id.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_TRIANGLE_END(server, id) if (server) { (server)->destroy(tes::MeshShape(tes::DtTriangles, nullptr, 0, 0, static_cast<uint32_t>(id))); }
 
@@ -850,7 +852,7 @@ if (server) \
 //-----------------------------------------------------------------------------
 /// @ingroup tesmacros
 /// Send a position update message for a shape.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param pos The new position. A @c V3Arg compatible argument.
@@ -859,7 +861,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating object rotation.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param quaternion The updated quaternion rotation. A @c QuaternionArg compatible argument.
@@ -868,7 +870,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating scale.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param scale The new object scale. A @c V3Arg compatible argument.
@@ -877,7 +879,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating colour.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param colour The new object @c Colour.
@@ -886,7 +888,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating colour.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param colour The new object @c Colour.
@@ -895,7 +897,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating position and rotation.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param pos The new position. A @c V3Arg compatible argument.
@@ -905,7 +907,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating position and scale.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param pos The new position. A @c V3Arg compatible argument.
@@ -915,7 +917,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating rotation and scale.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param quaternion The updated quaternion rotation. A @c QuaternionArg compatible argument.
@@ -925,7 +927,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating position, rotation and scale.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param pos The new position. A @c V3Arg compatible argument.
@@ -936,7 +938,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating position, rotation and colour.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param pos The new position. A @c V3Arg compatible argument.
@@ -947,7 +949,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating position, scale and colour.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param pos The new position. A @c V3Arg compatible argument.
@@ -958,7 +960,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating rotation, scale and colour.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param quaternion The updated quaternion rotation. A @c QuaternionArg compatible argument.
@@ -969,7 +971,7 @@ if (server) \
 
 /// @ingroup tesmacros
 /// Send an update message for a shape, updating all transform and colour attributes.
-/// @param server The @c Server or @c Connection object. Must be a dereferenced pointer.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param pos The new position. A @c V3Arg compatible argument.

@@ -213,6 +213,11 @@ namespace tes
     /// @return The number of bytes added, or -1 on failure (as per @c add()).
     bool sendServerInfo(const ServerInfoMessage &info) override;
 
+    /// Add data from @c packet.
+    /// @param packet Data to add. Must be finalised.
+    /// @param allowCollation Ignored.
+    int send(const PacketWriter &packet, bool allowCollation = false) override;
+
     /// Aliased to @p add().
     /// @param buffer The data to add.
     /// @param bufferSize The number of bytes in @p buffer.
