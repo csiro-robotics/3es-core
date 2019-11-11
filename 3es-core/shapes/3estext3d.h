@@ -37,6 +37,10 @@ namespace tes
     /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
     /// @param category The category grouping for the shape used for filtering.
     Text3D(const char *text, uint32_t id, uint16_t category, const V3Arg &pos, const V3Arg &facing, int fontSize = 12);
+    /// Copy constructor
+    Text3D(const Text3D &other);
+    /// Move constructor
+    Text3D(Text3D &&other);
 
     ~Text3D();
 
@@ -59,6 +63,9 @@ namespace tes
     virtual bool writeCreate(PacketWriter &stream) const override;
 
     bool readCreate(PacketReader &stream) override;
+
+    Text3D &operator=(const Text3D &other);
+    Text3D &operator=(Text3D &&other);
 
     Shape *clone() const override;
 

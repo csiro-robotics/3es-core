@@ -5,6 +5,26 @@
 
 using namespace tes;
 
+Text2D::Text2D(const Text2D &other)
+    : Shape(SIdText2D)
+    , _text(nullptr)
+    , _textLength(0)
+{
+  _data = other._data;
+  setText(other.text(), other.textLength());
+}
+
+Text2D::Text2D(Text2D &&other)
+  // TODO: use std::move() with the base constructor.
+  : Shape(SIdText2D)
+  , _text(other._text)
+  , _textLength(other._textLength)
+{
+  _data = other._data;
+  other._text = nullptr;
+  other._textLength = 0;
+}
+
 Text2D::~Text2D()
 {
   delete[] _text;
@@ -59,6 +79,24 @@ bool Text2D::readCreate(PacketReader &stream)
   return ok;
 }
 
+
+Text2D &Text2D::operator=(const Text2D &other)
+{
+  _data = other._data;
+  setText(other.text(), other.textLength());
+  return *this;
+}
+
+
+Text2D &Text2D::operator=(Text2D &&other)
+{
+  _data = other._data;
+  _text = other._text;
+  _textLength = other._textLength;
+  other._text = nullptr;
+  other._textLength = 0;
+  return *this;
+}
 
 Shape *Text2D::clone() const
 {

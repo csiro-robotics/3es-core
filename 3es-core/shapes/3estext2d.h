@@ -29,6 +29,10 @@ namespace tes
     /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
     /// @param category The category grouping for the shape used for filtering.
     Text2D(const char *text, uint32_t id, uint16_t category, const V3Arg &pos = V3Arg(0, 0, 0));
+    /// Copy constructor
+    Text2D(const Text2D &other);
+    /// Move constructor
+    Text2D(Text2D &&other);
 
     ~Text2D();
 
@@ -45,6 +49,9 @@ namespace tes
     bool writeCreate(PacketWriter &stream) const override;
 
     bool readCreate(PacketReader &stream) override;
+
+    Text2D &operator=(const Text2D &other);
+    Text2D &operator=(Text2D &&other);
 
     Shape *clone() const override;
 

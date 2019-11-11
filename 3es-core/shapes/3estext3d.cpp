@@ -7,6 +7,26 @@ using namespace tes;
 
 const Vector3f Text3D::DefaultFacing(0, -1, 0);
 
+Text3D::Text3D(const Text3D &other)
+    : Shape(SIdText3D)
+    , _text(nullptr)
+    , _textLength(0)
+{
+  _data = other._data;
+  setText(other.text(), other.textLength());
+}
+
+Text3D::Text3D(Text3D &&other)
+  // TODO: use std::move() with the base constructor.
+  : Shape(SIdText3D)
+  , _text(other._text)
+  , _textLength(other._textLength)
+{
+  _data = other._data;
+  other._text = nullptr;
+  other._textLength = 0;
+}
+
 Text3D::~Text3D()
 {
   delete[] _text;
@@ -61,6 +81,24 @@ bool Text3D::readCreate(PacketReader &stream)
   return ok;
 }
 
+
+Text3D &Text3D::operator=(const Text3D &other)
+{
+  _data = other._data;
+  setText(other.text(), other.textLength());
+  return *this;
+}
+
+
+Text3D &Text3D::operator=(Text3D &&other)
+{
+  _data = other._data;
+  _text = other._text;
+  _textLength = other._textLength;
+  other._text = nullptr;
+  other._textLength = 0;
+  return *this;
+}
 
 Shape *Text3D::clone() const
 {
