@@ -533,7 +533,7 @@ std::ostream &logShapeExtensions(std::ostream &o, const MeshSet &shape, const st
     }
     o << indent2 << "\"part-" << i << "\" : {\n";
     o << indent3 << "\"transform\" : " << shape.partTransform(i) << ",\n";
-    logMeshResource(o, *shape.partAt(i), indent3) << '\n';
+    logMeshResource(o, *shape.partResource(i), indent3) << '\n';
     o << indent2 << "}";
   }
 

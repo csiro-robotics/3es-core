@@ -372,14 +372,15 @@ namespace tes
     {
       // Remember, the mesh in shape is only a placeholder for the ID. The real mesh is in resources.
       // Validate resources. Fetch the transferred resource and compare against the reference resource.
-      auto resIter = resources.find(shape.partAt(i)->uniqueKey());
+      auto resIter = resources.find(shape.partResource(i)->uniqueKey());
       ASSERT_NE(resIter, resources.end());
-      ASSERT_EQ(resIter->second->typeId(), reference.partAt(i)->typeId());
+      ASSERT_EQ(resIter->second->typeId(), reference.partResource(i)->typeId());
 
       const MeshResource *part = static_cast<const MeshResource *>(resIter->second);
-      const MeshResource *refPart = reference.partAt(i);
+      const MeshResource *refPart = reference.partResource(i);
 
       EXPECT_TRUE(shape.partTransform(i).equals(reference.partTransform(i)));
+      EXPECT_EQ(shape.partColour(i), reference.partColour(i));
       validateMesh(*part, *refPart);
     }
   }

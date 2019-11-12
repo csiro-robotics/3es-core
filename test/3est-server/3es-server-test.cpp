@@ -375,9 +375,12 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("mesh", argc, argv))
   {
-    MeshResource *mesRes = createTestMesh();
-    resources.push_back(mesRes);
-    MeshSet *mesh = new MeshSet(mesRes, nextId++, CatMesh);
+    MeshResource *meshRes = createTestMesh();
+    resources.push_back(meshRes);
+    const unsigned partCount = 2;
+    MeshSet *mesh = new MeshSet(nextId++, CatMesh, partCount);
+    mesh->setPart(0, meshRes, Matrix4f::identity, Colour::Colours[Colour::YellowGreen]);
+    mesh->setPart(1, meshRes, Matrix4f::translation(Vector3f(0, 0, 1.5f)), Colour::Colours[Colour::SkyBlue]);
     shapes.push_back(mesh);
     // if (!noMove)
     // {

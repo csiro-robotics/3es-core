@@ -44,23 +44,29 @@ namespace tes
     /// @param part The mesh data to set at @p index.
     /// @param transform The transform for this part, relative to this shape's transform.
     ///     This transform may not be updated after the shape is sent to a client.
-    void setPart(const UIntArg &index, const MeshResource *part, const Matrix4f &transform);
-    /// Fetch the part at the given @p index.
+    /// @param colour Tint to apply just to this part.
+    void setPart(const UIntArg &index, const MeshResource *part, const Matrix4f &transform,
+                 const Colour &colour = Colour(255, 255, 255));
+    /// Fetch the part resource at the given @p index.
     /// @param index The part index to fetch. Must be in the range <tt>[0, partCount())</tt>.
     /// @return The mesh at the given index.
-    const MeshResource *partAt(const UIntArg &index) const;
+    const MeshResource *partResource(const UIntArg &index) const;
     /// Fetch the transform for the part at the given @p index.
     /// @param index The part transform to fetch. Must be in the range <tt>[0, partCount())</tt>.
     /// @return The transform for the mesh at the given index.
     const Matrix4f &partTransform(const UIntArg &index) const;
+    /// Fetch the colour tint for the part at the given @p index.
+    /// @param index The part transform to fetch. Must be in the range <tt>[0, partCount())</tt>.
+    /// @return The colour tint of mesh at the given index.
+    const Colour &partColour(const UIntArg &index) const;
 
     /// Overridden to include the number of mesh parts, their IDs and transforms.
     bool writeCreate(PacketWriter &stream) const override;
 
     /// Reads the @c CreateMessage and details about the mesh parts.
     ///
-    /// Sucessfully reading the message modifies the data in this shape such
-    /// that the parts (@c partAt()) are only dummy resources
+    /// Successfully reading the message modifies the data in this shape such
+    /// that the parts (@c partResource()) are only dummy resources
     /// (@c MeshPlaceholder). This identifies the resource IDs, but the data
     /// must be resolved separately.
     ///
@@ -82,23 +88,33 @@ namespace tes
   private:
     void cleanupParts();
 
-    const MeshResource **_parts;
-    Matrix4f *_transforms;
+    struct Part
+    {
+      const MeshResource *resource = nullptr;
+      Matrix4f transform = Matrix4f::identity;
+      Colour colour = Colour(255, 255, 255);
+    };
+
+    Part *_parts;
     unsigned _partCount;
-    bool _ownParts;
+    bool _ownPartResources;
   };
 
   inline unsigned MeshSet::partCount() const { return _partCount; }
 
-  inline void MeshSet::setPart(const UIntArg &index, const MeshResource *part, const Matrix4f &transform)
+  inline void MeshSet::setPart(const UIntArg &index, const MeshResource *part, const Matrix4f &transform,
+                               const Colour &colour)
   {
-    _parts[index.i] = part;
-    _transforms[index.i] = transform;
+    _parts[index.i].resource = part;
+    _parts[index.i].transform = transform;
+    _parts[index.i].colour = colour;
   }
 
-  inline const MeshResource *MeshSet::partAt(const UIntArg &index) const { return _parts[index.i]; }
+  inline const MeshResource *MeshSet::partResource(const UIntArg &index) const { return _parts[index.i].resource; }
 
-  inline const Matrix4f &MeshSet::partTransform(const UIntArg &index) const { return _transforms[index.i]; }
+  inline const Matrix4f &MeshSet::partTransform(const UIntArg &index) const { return _parts[index.i].transform; }
+
+  inline const Colour &MeshSet::partColour(const UIntArg &index) const { return _parts[index.i].colour; }
 }
 
 #endif // _3ESMESH_H_

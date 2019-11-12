@@ -13,17 +13,18 @@ using namespace tes;
 
 MeshSet::MeshSet(uint32_t id, uint16_t category, const UIntArg &partCount)
   : Shape(SIdMeshSet, id, category)
-  , _parts(partCount ? new const MeshResource *[partCount.i] : nullptr)
-  , _transforms(partCount ? new Matrix4f[partCount.i] : nullptr)
+  // , _parts(partCount.i ? new Part[partCount.i] : nullptr)
+  , _parts(nullptr)
   , _partCount(partCount)
-  , _ownParts(false)
+  , _ownPartResources(false)
 {
+  _parts = new Part[partCount.i];
   if (partCount)
   {
     memset(_parts, 0, sizeof(*_parts) * partCount.i);
     for (unsigned i = 0; i < partCount; ++i)
     {
-      _transforms[i] = Matrix4f::identity;
+      _parts[i].transform = Matrix4f::identity;
     }
   }
 }
@@ -31,13 +32,11 @@ MeshSet::MeshSet(uint32_t id, uint16_t category, const UIntArg &partCount)
 
 MeshSet::MeshSet(const MeshResource *part, uint32_t id, uint16_t category)
   : Shape(SIdMeshSet, id, category)
-  , _parts(new const MeshResource *[1])
-  , _transforms(new Matrix4f[1])
+  , _parts(new Part[1])
   , _partCount(1)
-  , _ownParts(false)
+  , _ownPartResources(false)
 {
-  _parts[0] = part;
-  _transforms[0] = Matrix4f::identity;
+  _parts[0].resource = part;
 }
 
 
@@ -61,16 +60,15 @@ bool MeshSet::writeCreate(PacketWriter &stream) const
   uint16_t numberOfParts = uint16_t(partCount());
 
   memset(&attr, 0, sizeof(attr));
-  attr.colour = 0xffffffffu;
 
   stream.writeElement(numberOfParts);
 
   for (int i = 0; i < numberOfParts; ++i)
   {
-    const MeshResource *mesh = _parts[i];
-    if (mesh)
+    const Part &part = _parts[i];
+    if (part.resource)
     {
-      partId = mesh->id();
+      partId = part.resource->id();
     }
     else
     {
@@ -78,7 +76,7 @@ bool MeshSet::writeCreate(PacketWriter &stream) const
       partId = 0;
     }
 
-    transformToQuaternionTranslation(_transforms[i], rot, pos, scale);
+    transformToQuaternionTranslation(part.transform, rot, pos, scale);
     attr.position[0] = pos[0];
     attr.position[1] = pos[1];
     attr.position[2] = pos[2];
@@ -89,6 +87,7 @@ bool MeshSet::writeCreate(PacketWriter &stream) const
     attr.scale[0] = scale[0];
     attr.scale[1] = scale[1];
     attr.scale[2] = scale[2];
+    attr.colour = part.colour.c;
 
     stream.writeElement(partId);
     attr.write(stream);
@@ -121,9 +120,8 @@ bool MeshSet::readCreate(PacketReader &stream)
   {
     cleanupParts();
 
-    _parts = new const MeshResource *[numberOfParts];
-    _transforms = new Matrix4f[numberOfParts];
-    _ownParts = true;
+    _parts = new Part[numberOfParts];
+    _ownPartResources = true;
 
     memset(_parts, 0, sizeof(*_parts) * numberOfParts);
 
@@ -132,7 +130,7 @@ bool MeshSet::readCreate(PacketReader &stream)
 
   for (unsigned i = 0; i < _partCount; ++i)
   {
-    transformToQuaternionTranslation(_transforms[i], rot, pos, scale);
+    transformToQuaternionTranslation(_parts[i].transform, rot, pos, scale);
 
     attr.position[0] = pos[0];
     attr.position[1] = pos[1];
@@ -150,9 +148,10 @@ bool MeshSet::readCreate(PacketReader &stream)
 
     if (ok)
     {
-      _transforms[i] = prsTransform(Vector3f(attr.position), Quaternionf(attr.rotation), Vector3f(attr.scale));
+      _parts[i].transform = prsTransform(Vector3f(attr.position), Quaternionf(attr.rotation), Vector3f(attr.scale));
       // We can only reference dummy meshes here.
-      _parts[i] = new MeshPlaceholder(partId);
+      _parts[i].resource = new MeshPlaceholder(partId);
+      _parts[i].colour = Colour(attr.colour);
     }
   }
 
@@ -173,11 +172,12 @@ unsigned MeshSet::enumerateResources(const Resource **resources, unsigned capaci
   }
 
   const unsigned copyCount = std::min(capacity, _partCount - fetchOffset);
-  const MeshResource **src = _parts + fetchOffset;
+  const Part *parts = _parts + fetchOffset;
   const Resource **dst = resources;
   for (unsigned i = 0; i < copyCount; ++i)
   {
-    *dst++ = *src++;
+    *dst++ = parts->resource;
+    ++parts;
   }
   return copyCount;
 }
@@ -197,37 +197,32 @@ void MeshSet::onClone(MeshSet *copy) const
   if (copy->_partCount != _partCount)
   {
     delete [] copy->_parts;
-    delete [] copy->_transforms;
     if (_partCount)
     {
-      copy->_parts = new const MeshResource*[_partCount];
-      copy->_transforms = new Matrix4f[_partCount];
+      copy->_parts = new Part[_partCount];
     }
     else
     {
       copy->_parts = nullptr;
-      copy->_transforms = nullptr;
     }
   }
+  copy->_ownPartResources = false;
   memcpy(copy->_parts, _parts, sizeof(*_parts) * _partCount);
-  memcpy(copy->_transforms, _transforms, sizeof(*_transforms) * _partCount);
 }
 
 
 void MeshSet::cleanupParts()
 {
-  if (_ownParts && _parts)
+  if (_ownPartResources && _parts)
   {
     for (unsigned i = 0; i < _partCount; ++i)
     {
-      delete _parts[i];
+      delete _parts[i].resource;
     }
   }
 
   delete [] _parts;
-  delete [] _transforms;
 
   _parts = nullptr;
-  _transforms = nullptr;
-  _ownParts = false;
+  _ownPartResources = false;
 }
