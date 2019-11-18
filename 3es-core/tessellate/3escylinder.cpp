@@ -17,7 +17,7 @@ namespace
 
     // Build two radial vectors out from the cylinder axis perpendicular to each other (like a cylinder).
     Vector3f radials[2];
-    const float nearAlignedDot = std::cosf(85.0f / 180.0f * float(M_PI));
+    const float nearAlignedDot = std::cos(85.0f / 180.0f * float(M_PI));
     if (axis.dot(Vector3f::axisy) < nearAlignedDot)
     {
       radials[0] = Vector3f::axisy.cross(axis);
@@ -39,8 +39,8 @@ namespace
     ringCentre = axis * 0.5f * height;
     for (unsigned f = 0; f < facets; ++f)
     {
-      const float facetAngle = f * segmentAngle;
-      radial = radius * (std::cosf(facetAngle) * radials[0] + std::sinf(facetAngle) * radials[1]);
+      const float facetAngle = float(f) * segmentAngle;
+      radial = radius * (std::cos(facetAngle) * radials[0] + std::sin(facetAngle) * radials[1]);
       vertex = ringCentre + radial;
       // We add a third and fourth set of vertices for the end caps.
       vertices[f] = vertex;
@@ -65,7 +65,6 @@ namespace
     }
 
     // Triangulate between the end rings.
-    unsigned triangleCount = 0;
     const unsigned topRingStartIndex = 0;
     const unsigned bottomRingStartIndex = facets;
     for (unsigned f = 0; f < facets; ++f)

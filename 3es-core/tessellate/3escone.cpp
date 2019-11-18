@@ -13,13 +13,13 @@ namespace
                 const Vector3f &apex, const Vector3f &axis, float height, float angle, unsigned facets)
   {
     facets = std::max(facets, 3u);
-    const float baseRadius = height * std::atanf(angle);
+    const float baseRadius = height * std::atan(angle);
     float segmentAngle = float(2.0 * M_PI) / float(facets);
 
     // Build two radial vectors out from the cone axis perpendicular to each other (like a cylinder). We'll use these
     // to build the base ring.
     Vector3f radials[2];
-    const float nearAlignedDot = std::cosf(85.0f / 180.0f * float(M_PI));
+    const float nearAlignedDot = std::cos(85.0f / 180.0f * float(M_PI));
     if (axis.dot(Vector3f::axisy) < nearAlignedDot)
     {
       radials[0] = Vector3f::axisy.cross(axis);
@@ -42,8 +42,8 @@ namespace
     ringCentre = apex - axis * height;
     for (unsigned f = 0; f < facets; ++f)
     {
-      const float facetAngle = f * segmentAngle;
-      radial = baseRadius * (std::cosf(facetAngle) * radials[0] + std::sinf(facetAngle) * radials[1]);
+      const float facetAngle = float(f) * segmentAngle;
+      radial = baseRadius * (std::cos(facetAngle) * radials[0] + std::sin(facetAngle) * radials[1]);
       vertex = ringCentre + radial;
       vertices[f] = vertex;
       // And the apex vertex. One for each facet for distinct normals.
@@ -62,7 +62,6 @@ namespace
     }
 
     // Now triangulate between the rings.
-    unsigned triangleCount = 0;
     const unsigned wallRingStartIndex = 0;
     const unsigned apexRingStartIndex = facets;
     for (unsigned f = 0; f < facets; ++f)
