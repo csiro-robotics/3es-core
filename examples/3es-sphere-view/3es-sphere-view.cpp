@@ -18,7 +18,7 @@
 #define TEXT_ID ((uint32_t)1)
 #define SPHERE_ID 2
 
-// Example to view a sphere tessellation. This code duplicates 3esspheretessellator code and adds 3ES commands.
+// Example to view a sphere tessellation. This code duplicates tessellate/3essphere code and adds 3ES commands.
 typedef tes::Vector3f Vector3f;
 
 namespace

@@ -15,11 +15,11 @@
 #include <3estcpsocket.h>
 #include <3esserver.h>
 #include <3esserverutil.h>
-#include <3esspheretessellator.h>
 #include <3estcplistensocket.h>
 #include <shapes/3espointcloud.h>
 #include <shapes/3esshapes.h>
 #include <shapes/3essimplemesh.h>
+#include <tessellate/3essphere.h>
 
 #include <3escollatedpacket.h>
 #include <3escollatedpacketdecoder.h>
