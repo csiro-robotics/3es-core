@@ -3,9 +3,9 @@
 //
 #include "3est-common.h"
 
-#include <3esspheretessellator.h>
 #include <shapes/3esshapes.h>
 #include <shapes/3essimplemesh.h>
+#include <tessellate/3essphere.h>
 
 #include <gtest/gtest.h>
 
@@ -27,7 +27,7 @@ namespace tes
   {
     // Start with a unit sphere so we have normals precalculated.
     // Use a fine subdivision to ensure we need multiple data packets to transfer vertices.
-    sphereSubdivision(vertices, indices, 1.0f, Vector3f::zero, iterations);
+    sphere::solid(vertices, indices, 1.0f, Vector3f::zero, iterations);
 
     // Normals as vertices. Scale and offset.
     if (normals)

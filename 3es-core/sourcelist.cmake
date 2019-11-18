@@ -43,7 +43,6 @@ list(APPEND PUBLIC_HEADERS
   3esserver.h
   3esservermacros.h
   3esserverutil.h
-  3esspheretessellator.h
   3esspinlock.h
   3estcplistensocket.h
   3estcpsocket.h
@@ -81,6 +80,14 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/3estext3d.h
 )
 
+list(APPEND PUBLIC_TESSELLATE_HEADERS
+  tessellate/3esarrow.h
+  tessellate/3esbox.h
+  tessellate/3escone.h
+  tessellate/3escylinder.h
+  tessellate/3essphere.h
+)
+
 
 list(APPEND SOURCES
   3esbounds.cpp
@@ -104,7 +111,6 @@ list(APPEND SOURCES
   3esresource.cpp
   3esresourcepacker.cpp
   3esrotation.cpp
-  3esspheretessellator.cpp
   3esspinlock.cpp
   3estimer.cpp
   3esvector3.cpp
@@ -127,6 +133,12 @@ list(APPEND SOURCES
   shapes/3essimplemesh.cpp
   shapes/3estext2d.cpp
   shapes/3estext3d.cpp
+
+  tessellate/3esarrow.cpp
+  tessellate/3esbox.cpp
+  tessellate/3escone.cpp
+  tessellate/3escylinder.cpp
+  tessellate/3essphere.cpp
 )
 
 list(APPEND PRIVATE_SOURCES
@@ -165,15 +177,6 @@ if(TES_SOCKETS STREQUAL "custom")
     tcp/3estcpbase.cpp
     tcp/3estcplistensocket.cpp
     tcp/3estcpsocket.cpp
-  )
-elseif(TES_SOCKETS STREQUAL "POCO")
-  list(APPEND PRIVATE_HEADERS
-    poco/3estcpdetail.h
-  )
-
-  list(APPEND PRIVATE_SOURCES
-    poco/3estcplistensocket.cpp
-    poco/3estcpsocket.cpp
   )
 elseif(TES_SOCKETS STREQUAL "Qt")
   list(APPEND PRIVATE_HEADERS

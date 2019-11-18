@@ -1,13 +1,14 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esspheretessellator.h"
+#include "3essphere.h"
 
 #include "3esvector3.h"
 
 #include <unordered_map>
 
 using namespace tes;
+using namespace tes::sphere;
 
 namespace
 {
@@ -36,7 +37,8 @@ namespace
 }
 
 
-void tes::sphereInitialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, SphereVertexMap *vertexMap)
+void tes::sphere::initialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+                             SphereVertexMap *vertexMap)
 {
   // We start with two hexagonal rings to approximate the sphere.
   // All subdivision occurs on a unit radius sphere, at the origin. We translate and
@@ -103,7 +105,7 @@ void tes::sphereInitialise(std::vector<Vector3f> &vertices, std::vector<unsigned
 }
 
 
-void tes::subdivideUnitSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, SphereVertexMap &vertexMap)
+void tes::sphere::subdivide(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, SphereVertexMap &vertexMap)
 {
   const unsigned triangleCount = unsigned(indices.size() / 3);
   unsigned triangle[3];
@@ -160,16 +162,31 @@ void tes::subdivideUnitSphere(std::vector<Vector3f> &vertices, std::vector<unsig
 }
 
 
-void tes::sphereSubdivision(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius, const Vector3f &origin, int depth)
+void tes::sphere::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
+                        float radius, const Vector3f &origin, int depth)
+{
+  solid(vertices, indices, radius, origin, depth);
+
+  normals.resize(vertices.size());
+
+  for (size_t i = 0; i < vertices.size(); ++i)
+  {
+    normals[i] = (vertices[i] - origin).normalised();
+  }
+}
+
+
+void tes::sphere::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius,
+                        const Vector3f &origin, int depth)
 {
   SphereVertexMap vertexMap;
-  sphereInitialise(vertices, indices, &vertexMap);
+  initialise(vertices, indices, &vertexMap);
 
   // We also limit the maximum number of iterations.
   for (int i = 0; i < depth; ++i)
   {
     // Subdivide polygons.
-    subdivideUnitSphere(vertices, indices, vertexMap);
+    subdivide(vertices, indices, vertexMap);
   }
 
   // Move and scale the points.

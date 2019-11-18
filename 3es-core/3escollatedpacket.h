@@ -271,7 +271,7 @@ namespace tes
   inline unsigned CollatedPacket::availableBytes() const
   {
     const unsigned used = collatedBytes() + unsigned(Overhead);
-    return (_maxPacketSize < used) ? _maxPacketSize - used : 0;
+    return (_maxPacketSize >= used) ? _maxPacketSize - used : 0;
   }
 }
 

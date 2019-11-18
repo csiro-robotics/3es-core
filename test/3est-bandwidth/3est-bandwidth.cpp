@@ -6,8 +6,8 @@
 #include <3escoordinateframe.h>
 #include <3esfeature.h>
 #include <3esserver.h>
-#include <3esspheretessellator.h>
 #include <shapes/3esshapes.h>
+#include <tessellate/3essphere.h>
 
 #include <3esvector3.h>
 #include <3estimer.h>
@@ -170,14 +170,14 @@ int main(int argc, char **argvNonConst)
   std::vector<Vector3f> vertices;
   std::vector<Vector3f> triangles;
   std::vector<unsigned> indices;
-  tes::SphereVertexMap sphereMap;
+  tes::sphere::SphereVertexMap sphereMap;
 
   std::cout << "Tessellating to at least " << targetPolyCount << " polygons." << std::endl;
 
-  tes::sphereInitialise(vertices, indices, &sphereMap);
+  tes::sphere::initialise(vertices, indices, &sphereMap);
   while (indices.size() / 3 < targetPolyCount)
   {
-    tes::subdivideUnitSphere(vertices, indices, sphereMap);
+    tes::sphere::subdivide(vertices, indices, sphereMap);
   }
 
   std::cout << "Created " << indices.size() / 3 << " triangles." << std::endl;

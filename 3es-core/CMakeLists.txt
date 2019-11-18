@@ -95,7 +95,7 @@ include(sourcelist.cmake)
 # Library setup.
 #-------------------------------------------------------------------------------
 # Define the 3es-core library.
-add_library(3es-core ${PUBLIC_HEADERS} ${PUBLIC_SHAPE_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
+add_library(3es-core ${PUBLIC_HEADERS} ${PUBLIC_SHAPE_HEADERS} ${PUBLIC_TESSELLATE_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
 
 # Disable some warnings.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -230,6 +230,7 @@ endif(BUILD_SHARED_LIBS)
 # Header installation
 install(FILES ${PUBLIC_HEADERS} DESTINATION include/3es-core COMPONENT Devel)
 install(FILES ${PUBLIC_SHAPE_HEADERS} DESTINATION include/3es-core/shapes COMPONENT Devel)
+install(FILES ${PUBLIC_TESSELLATE_HEADERS} DESTINATION include/3es-core/tessellate COMPONENT Devel)
 
 # Setup import scripts.
 include(CMakePackageConfigHelpers)

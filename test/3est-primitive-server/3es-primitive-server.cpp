@@ -13,8 +13,8 @@
 #include <3esfeature.h>
 #include <3esserver.h>
 #include <shapes/3esshapes.h>
-#include <3esspheretessellator.h>
 #include <3esmaths.h>
+#include <tessellate/3essphere.h>
 
 #define TES_ENABLE
 #include <3esservermacros.h>
@@ -732,7 +732,7 @@ int main(int argc, char **argvNonConst)
   std::vector<unsigned> sphereIndices;
 
   // Use a large sphere to ensure we need multiple data packets to transfer the vertices.
-  sphereSubdivision(sphereVerts, sphereIndices, 2.1f, 4);
+  sphere::solid(sphereVerts, sphereIndices, 2.1f, 4);
 
   addShape(createPointsMesh(nextId++, sphereVerts), server, shapes, "-points");
   addShape(createLinesMesh(nextId++, sphereVerts, sphereIndices), server, shapes, "-lines");
