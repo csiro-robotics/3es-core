@@ -108,13 +108,6 @@ void tes::box::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &ind
 }
 
 
-void tes::box::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
-                     const Vector3f &scale)
-{
-  return makeBox(vertices, indices, &normals, scale);
-}
-
-
 void tes::box::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
                      const Vector3f &scale)
 {
