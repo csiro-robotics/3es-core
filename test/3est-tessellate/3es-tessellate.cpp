@@ -117,7 +117,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<co
 
   if (allShapes || haveOption("arrow", argc, argv))
   {
-    tes::arrow::solid(vertices, indices, normals, 16, 0.2f, 0.1f, 0.7f, 1.0f, Vector3f(1, 0, 0));
+    tes::arrow::solid(vertices, indices, normals, 16, 0.2f, 0.1f, 0.7f, 1.0f, Vector3f(1, 0.8f, -0.2f).normalised());
     MeshSet *mesh = createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
     shapes.push_back(mesh);
     resources.push_back(mesh->partResource(0));
