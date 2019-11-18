@@ -439,7 +439,7 @@
   if (server) \
   { \
     const tes::V3Arg _line[2] = { tes::V3Arg(v0), tes::V3Arg(v1) }; \
-    tes::MeshShape shape(tes::DtLines, _line[0].v, 2, sizeof(_line[0]), ##__VA_ARGS__); shape.setColour(colour); \
+    tes::MeshShape shape(tes::DtLines, _line[0].v3.v, 2, sizeof(_line[0]), ##__VA_ARGS__); shape.setColour(colour); \
     (server)->create(shape); \
   }
 
