@@ -476,49 +476,49 @@ namespace tes
 
   inline float Colour::rf() const
   {
-    return getf(0);
+    return getf(R);
   }
 
 
   inline float Colour::gf() const
   {
-    return getf(1);
+    return getf(G);
   }
 
 
   inline float Colour::bf() const
   {
-    return getf(2);
+    return getf(B);
   }
 
 
   inline float Colour::af() const
   {
-    return getf(3);
+    return getf(A);
   }
 
 
   inline void Colour::setRf(float f)
   {
-    setf(f, 0);
+    setf(f, R);
   }
 
 
   inline void Colour::setGf(float f)
   {
-    setf(f, 1);
+    setf(f, G);
   }
 
 
   inline void Colour::setBf(float f)
   {
-    setf(f, 2);
+    setf(f, B);
   }
 
 
   inline void Colour::setAf(float f)
   {
-    setf(f, 3);
+    setf(f, A);
   }
 
 
