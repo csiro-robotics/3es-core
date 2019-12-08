@@ -167,7 +167,7 @@ namespace tes
     switch (pos)
     {
     case Begin:
-      if (offset <= _packet->payloadSize)
+      if (offset <= payloadSize())
       {
         _payloadPosition = uint16_t(offset);
         return true;
@@ -175,7 +175,7 @@ namespace tes
       break;
 
     case Current:
-      if (offset >= 0 && offset + _payloadPosition <= _packet->payloadSize ||
+      if (offset >= 0 && offset + _payloadPosition <= payloadSize() ||
         offset < 0 && _payloadPosition >= -offset)
       {
         _payloadPosition = uint16_t(_payloadPosition + offset);
@@ -184,7 +184,7 @@ namespace tes
       break;
 
     case End:
-      if (offset < _packet->payloadSize)
+      if (offset < payloadSize())
       {
         _payloadPosition = uint16_t(_packet->payloadSize - 1 - offset);
         return true;

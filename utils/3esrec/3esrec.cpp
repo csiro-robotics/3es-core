@@ -6,6 +6,7 @@
 #include <3estcpsocket.h>
 
 #include "3esframedisplay.h"
+#include "3esstreamutil.h"
 
 #include <chrono>
 #include <csignal>
@@ -82,10 +83,6 @@ namespace tes
     std::unique_ptr<std::iostream> createOutputWriter();
 
     std::string generateNewOutputFile();
-
-    void writeRecordingHeader(std::ostream &stream);
-
-    void finaliseOutput(std::iostream &stream, unsigned frameCount);
 
     void parseArgs(int argc, const char **argv);
 
@@ -388,7 +385,7 @@ namespace tes
 
       if (ioStream)
       {
-        finaliseOutput(*ioStream, _totalFrames);
+        streamutil::finaliseStream(*ioStream, _totalFrames);
         ioStream->flush();
         ioStream.reset(nullptr);
       }
@@ -443,7 +440,7 @@ namespace tes
 
     std::unique_ptr<std::fstream> stream(new std::fstream);
 
-    stream->open(filePath.c_str(), std::ios_base::out | std::ios_base::binary);
+    stream->open(filePath.c_str(), std::ios::binary | std::ios::out | std::ios::in | std::ios::trunc);
 
     if (!stream->is_open())
     {
@@ -454,7 +451,7 @@ namespace tes
     // We'll rewind here later and update the frame count.
     // Write to a memory stream to prevent corruption of the file stream when we wrap it
     // in a GZipStream.
-    writeRecordingHeader(*stream);
+    streamutil::initialiseStream(*stream, &_serverInfo);
 
     return std::move(stream);
 
@@ -506,181 +503,6 @@ namespace tes
     }
 
     return std::string();
-  }
-
-
-  void TesRec::writeRecordingHeader(std::ostream &stream)
-  {
-    // First write a server info message to define the coordinate frame and other server details.
-    std::vector<uint8_t> buffer(1024);
-    PacketWriter packet(buffer.data(), uint16_t(buffer.size()), MtServerInfo);
-    _serverInfo.write(packet);
-    packet.finalise();
-
-    stream.write((const char *)buffer.data(), packet.packetSize());
-
-    packet.reset(MtControl, CIdFrameCount);
-
-    ControlMessage frameCountMsg;
-    frameCountMsg.controlFlags = 0;
-    frameCountMsg.value32 = 0;  // Placeholder. Frame count is currently unknown.
-    frameCountMsg.value64 = 0;
-    frameCountMsg.write(packet);
-    packet.finalise();
-    stream.write((const char *)buffer.data(), packet.packetSize());
-  }
-
-
-
-  void TesRec::finaliseOutput(std::iostream &ioStream, unsigned frameCount)
-  {
-    // Rewind the stream to the beginning and find the first RoutingID.ServerInfo message
-    // and RoutingID.Control message with a ControlMessageID.FrameCount ID. These should be
-    // the first and second messages in the stream.
-    // We'll limit searching to the first 5 messages.
-    std::streampos serverInfoMessageStart = -1;
-    std::streampos frameCountMessageStart = -1;
-    ioStream.flush();
-
-    // Record the initial stream position to restore later.
-    std::streampos restorePos = ioStream.tellp();
-
-    // Set the read position to search for the relevant messages.
-    ioStream.seekg(0);
-
-    std::streampos streamPos = 0;
-
-    std::vector<uint8_t> headerBuffer(1024);
-    auto markerValidation = PacketMarker;
-    const char *markerValidationBytes = (const char *)&markerValidation;
-    networkEndianSwap(markerValidation);
-    decltype(PacketMarker) marker = 0;
-    char *markerBytes = (char *)&marker;
-    bool markerValid = false;
-
-    int attemptsRemaining = 5;
-    int byteReadLimit = 0;
-
-    while ((frameCountMessageStart < 0 || serverInfoMessageStart < 0) && attemptsRemaining > 0 && !ioStream.good())
-    {
-      --attemptsRemaining;
-      markerValid = false;
-
-      // Limit the number of bytes we try read in each attempt.
-      byteReadLimit = 1024;
-      while (byteReadLimit > 0)
-      {
-        --byteReadLimit;
-        ioStream.read(markerBytes, 1);
-        if (markerBytes[0] == markerValidationBytes[0])
-        {
-          markerValid = true;
-          int i = 1;
-          for (i = 1; markerValid && ioStream.good() && i < int(sizeof(markerValidation)); ++i)
-          {
-            ioStream.read(markerBytes + i, 1);
-            markerValid = markerValid && markerBytes[i] == markerValidationBytes[i];
-          }
-
-          if (markerValid)
-          {
-            break;
-          }
-          else
-          {
-            // We've failed to fully validate the maker. However, we did read and validate
-            // one byte in the marker, then continued reading until the failure. It's possible
-            // that the last byte read, the failed byte, may be the start of the actual marker.
-            // We check this below, and if so, we rewind the stream one byte in order to
-            // start validation from there on the next iteration. We can ignore the byte if
-            // it is does not match the first validation byte. We are unlikely to ever make this
-            // match though.
-            --i;  // Go back to the last read byte.
-            if (markerBytes[i] == markerValidationBytes[0])
-            {
-              // Potentially the start of a new marker. Rewind the stream to attempt to validate it.
-              ioStream.seekg(-1, std::ios_base::cur);
-            }
-          }
-        }
-      }
-
-      if (markerValid && ioStream.good())
-      {
-        // Potential packet target. Record the stream position at the start of the marker.
-        streamPos = ioStream.tellg() - std::streampos(sizeof(marker));
-        ioStream.seekg(sizeof(marker), std::ios_base::cur);
-
-        // Test the packet.
-        auto bytesRead = ioStream.readsome((char *)headerBuffer.data(), sizeof(PacketHeader));
-        if (bytesRead == sizeof(PacketHeader))
-        {
-          // Resolve the packet size.
-          unsigned packetSize = PacketReader((PacketHeader *)headerBuffer.data()).packetSize();
-
-          // Read additional bytes.
-          if (packetSize > sizeof(PacketHeader))
-          {
-            bytesRead = ioStream.readsome((char *)headerBuffer.data() + sizeof(PacketHeader), packetSize - sizeof(PacketHeader));
-          }
-
-          const PacketReader currentPacket((const PacketHeader *)headerBuffer.data());
-
-          if (currentPacket.routingId() == MtServerInfo)
-          {
-            serverInfoMessageStart = streamPos;
-          }
-          else if (currentPacket.routingId() == MtControl && currentPacket.messageId() == CIdFrameCount)
-          {
-            // It's the frame count control message. Set the offset to the frame count member.
-            frameCountMessageStart = streamPos;
-          }
-          else
-          {
-            // At this point, we've failed to find the right kind of header. We could use the payload size to
-            // skip ahead in the stream which should align exactly to the next message.
-            // Not done for initial testing.
-          }
-        }
-      }
-    }
-
-    if (serverInfoMessageStart >= 0)
-    {
-      // Found the correct location. Seek the stream to here and write a new FrameCount control message.
-      ioStream.seekp(serverInfoMessageStart);
-      PacketWriter packet(headerBuffer.data(), uint16_t(headerBuffer.size()), MtServerInfo);
-
-      _serverInfo.write(packet);
-      packet.finalise();
-      ioStream.write((const char *)headerBuffer.data(), packet.packetSize());
-      ioStream.flush();
-    }
-
-    if (frameCountMessageStart >= 0)
-    {
-      // Found the correct location. Seek the stream to here and write a new FrameCount control message.
-      ioStream.seekp(frameCountMessageStart);
-
-      PacketWriter packet(headerBuffer.data(), uint16_t(headerBuffer.size()), MtControl, CIdFrameCount);
-      ControlMessage frameCountMsg;
-
-      frameCountMsg.controlFlags = 0;
-      frameCountMsg.value32 = frameCount;
-      frameCountMsg.value64 = 0;
-
-      frameCountMsg.write(packet);
-      packet.finalise();
-      ioStream.write((const char *)headerBuffer.data(), packet.packetSize());
-      ioStream.flush();
-    }
-
-    if (restorePos > 0)
-    {
-      ioStream.seekp(restorePos);
-      ioStream.seekg(restorePos);
-      ioStream.flush();
-    }
   }
 
 

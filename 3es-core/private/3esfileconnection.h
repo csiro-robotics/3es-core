@@ -32,13 +32,18 @@ namespace tes
     uint16_t port() const override;
     bool isConnected() const override;
 
+    bool sendServerInfo(const ServerInfoMessage &info) override;
+
+    int updateFrame(float dt, bool flush = true) override;
+
   protected:
     int writeBytes(const uint8_t *data, int byteCount) override;
 
   private:
     mutable Lock _fileLock; ///< Lock for @c _outFile() operations
-    std::ofstream _outFile;
+    std::fstream _outFile;
     std::string _filename;
+    unsigned _frameCount = 0;
   };
 }
 
