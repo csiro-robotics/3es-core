@@ -8,16 +8,16 @@
 
 namespace tes
 {
-  void debugBreak()
-  {
-    DebugBreak();
-  }
-
-
-  void assertionFailure(const char *msg)
-  {
-    OutputDebugStringA(msg);
-    OutputDebugStringA("\n");
-    DebugBreak();
-  }
+void debugBreak()
+{
+  DebugBreak();
 }
+
+
+void assertionFailure(const char *msg)
+{
+  OutputDebugStringA(msg);
+  OutputDebugStringA("\n");
+  DebugBreak();
+}
+}  // namespace tes

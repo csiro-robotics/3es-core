@@ -13,37 +13,37 @@ using namespace tes;
 
 namespace
 {
-  int packetMarkerPosition(const uint8_t *bytes, size_t byteCount)
+int packetMarkerPosition(const uint8_t *bytes, size_t byteCount)
+{
+  uint32_t packetMarker = networkEndianSwapValue(tes::PacketMarker);
+  const uint8_t *markerBytes = (const uint8_t *)&packetMarker;
+  for (size_t i = 0; i < byteCount; i += 4)
   {
-    uint32_t packetMarker = networkEndianSwapValue(tes::PacketMarker);
-    const uint8_t *markerBytes = (const uint8_t *)&packetMarker;
-    for (size_t i = 0; i < byteCount; i += 4)
+    if (bytes[i] == *markerBytes)
     {
-      if (bytes[i] == *markerBytes)
+      // First marker byte found. Check for the rest.
+      bool found = true;
+      for (unsigned j = 1; j < sizeof(packetMarker); ++j)
       {
-        // First marker byte found. Check for the rest.
-        bool found = true;
-        for (unsigned j = 1; j < sizeof(packetMarker); ++j)
-        {
-          found = found && bytes[i + j] == markerBytes[j];
-        }
+        found = found && bytes[i + j] == markerBytes[j];
+      }
 
-        if (found)
-        {
-          return int(i);
-        }
+      if (found)
+      {
+        return int(i);
       }
     }
-
-    return -1;
   }
+
+  return -1;
 }
+}  // namespace
 
 PacketBuffer::PacketBuffer()
-: _packetBuffer(nullptr)
-, _byteCount(0u)
-, _bufferSize(2048)
-, _markerFound(false)
+  : _packetBuffer(nullptr)
+  , _byteCount(0u)
+  , _bufferSize(2048)
+  , _markerFound(false)
 {
   _packetBuffer = new uint8_t[_bufferSize];
 }
@@ -83,7 +83,7 @@ PacketHeader *PacketBuffer::extractPacket()
   {
     // Remember, the CRC appears after the packet payload. We have to include
     // that in our mem copy.
-    PacketHeader *pending = reinterpret_cast<PacketHeader*>(_packetBuffer);
+    PacketHeader *pending = reinterpret_cast<PacketHeader *>(_packetBuffer);
     PacketReader reader(pending);
     if (sizeof(PacketHeader) + reader.payloadSize() + sizeof(PacketReader::CrcType) <= _byteCount)
     {
@@ -135,7 +135,7 @@ void PacketBuffer::appendData(const uint8_t *bytes, size_t byteCount)
     size_t growBy = std::max<size_t>(1024u, byteCount);
     uint8_t *newBuffer = new uint8_t[_bufferSize + growBy];
     memcpy(newBuffer, _packetBuffer, _byteCount);
-    delete [] _packetBuffer;
+    delete[] _packetBuffer;
     _packetBuffer = newBuffer;
     _bufferSize += growBy;
   }

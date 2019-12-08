@@ -10,8 +10,8 @@
 #pragma warning(disable : 4996)
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
-#endif // !_CRT_SECURE_NO_WARNINGS
-#endif // _MSC_VER
+#endif  // !_CRT_SECURE_NO_WARNINGS
+#endif  // _MSC_VER
 
 typedef std::chrono::high_resolution_clock Clock;
 using namespace tes;
@@ -21,20 +21,11 @@ struct TimerData
   Clock::time_point startTime;
   Clock::time_point endTime;
 
-  inline void init()
-  {
-    startTime = endTime = Clock::now();
-  }
+  inline void init() { startTime = endTime = Clock::now(); }
 
-  inline void start()
-  {
-    startTime = Clock::now();
-  }
+  inline void start() { startTime = Clock::now(); }
 
-  inline void mark()
-  {
-    endTime = Clock::now();
-  }
+  inline void mark() { endTime = Clock::now(); }
 
   inline double elapsedS() const
   {
@@ -64,38 +55,38 @@ struct TimerData
 
 namespace
 {
-  TimerData* getTimerData(char* data)
-  {
-    TimerData* td = reinterpret_cast<TimerData*>(data);
-    return td;
-  }
-
-  const TimerData* getTimerData(const char* data)
-  {
-    const TimerData* td = reinterpret_cast<const TimerData*>(data);
-    return td;
-  }
+TimerData *getTimerData(char *data)
+{
+  TimerData *td = reinterpret_cast<TimerData *>(data);
+  return td;
 }
+
+const TimerData *getTimerData(const char *data)
+{
+  const TimerData *td = reinterpret_cast<const TimerData *>(data);
+  return td;
+}
+}  // namespace
 
 
 Timer::Timer()
 {
   static_assert(sizeof(TimerData) <= sizeof(data), "Timer data is not large enough.");
-  TimerData* td = getTimerData(data);
+  TimerData *td = getTimerData(data);
   td->init();
 }
 
 
 void Timer::start()
 {
-  TimerData* td = getTimerData(data);
+  TimerData *td = getTimerData(data);
   td->start();
 }
 
 
 long long Timer::restart()
 {
-  TimerData* td = getTimerData(data);
+  TimerData *td = getTimerData(data);
   td->mark();
   long long elapsedMs = td->elapsedMS();
   td->start();
@@ -105,14 +96,14 @@ long long Timer::restart()
 
 void Timer::mark()
 {
-  TimerData* td = getTimerData(data);
+  TimerData *td = getTimerData(data);
   td->mark();
 }
 
 
 bool Timer::hasElapsedMs(long long milliseconds)
 {
-  TimerData* td = getTimerData(data);
+  TimerData *td = getTimerData(data);
   td->mark();
   return td->elapsedMS() >= milliseconds;
 }
@@ -120,7 +111,7 @@ bool Timer::hasElapsedMs(long long milliseconds)
 
 long long Timer::elapsedNowMS()
 {
-  TimerData* td = getTimerData(data);
+  TimerData *td = getTimerData(data);
   td->mark();
   return td->elapsedMS();
 }
@@ -128,13 +119,13 @@ long long Timer::elapsedNowMS()
 
 long long Timer::elapsedNowUS()
 {
-  TimerData* td = getTimerData(data);
+  TimerData *td = getTimerData(data);
   td->mark();
   return td->elapsedUS();
 }
 
 
-void Timer::elapsed(unsigned int& seconds, unsigned int& milliseconds, unsigned int& microseconds) const
+void Timer::elapsed(unsigned int &seconds, unsigned int &milliseconds, unsigned int &microseconds) const
 {
   split(elapsedUS(), seconds, milliseconds, microseconds);
 }
@@ -142,7 +133,7 @@ void Timer::elapsed(unsigned int& seconds, unsigned int& milliseconds, unsigned 
 
 void Timer::elapsed(Timing &timing) const
 {
-  const TimerData* td = getTimerData(data);
+  const TimerData *td = getTimerData(data);
   long long timeNs = td->elapsedNS();
   split(timeNs, timing);
 }
@@ -150,7 +141,7 @@ void Timer::elapsed(Timing &timing) const
 
 void Timer::elapsedNow(Timing &timing)
 {
-  TimerData* td = getTimerData(data);
+  TimerData *td = getTimerData(data);
   td->mark();
   long long timeNs = td->elapsedNS();
   split(timeNs, timing);
@@ -168,7 +159,7 @@ void Timer::split(long long timeNs, Timing &timing)
 }
 
 
-void Timer::split(long long us, unsigned int& seconds, unsigned int& milliseconds, unsigned int& microseconds)
+void Timer::split(long long us, unsigned int &seconds, unsigned int &milliseconds, unsigned int &microseconds)
 {
   long long ms = us / 1000ll;
   seconds = (unsigned int)(ms / 1000ll);
@@ -179,43 +170,42 @@ void Timer::split(long long us, unsigned int& seconds, unsigned int& millisecond
 
 double Timer::elapsedS() const
 {
-  const TimerData* td = getTimerData(data);
+  const TimerData *td = getTimerData(data);
   return td->elapsedS();
 }
 
 
 long long Timer::elapsedMS() const
 {
-  const TimerData* td = getTimerData(data);
+  const TimerData *td = getTimerData(data);
   return td->elapsedMS();
 }
 
 
 long long Timer::elapsedUS() const
 {
-  const TimerData* td = getTimerData(data);
+  const TimerData *td = getTimerData(data);
   return td->elapsedUS();
 }
 
 
 namespace
 {
-  bool addTimeStringUnit(std::stringstream& str, unsigned int& seconds,
-                         const unsigned int secondsInUnit, const char* unitName,
-                         bool havePreviousUnit)
+bool addTimeStringUnit(std::stringstream &str, unsigned int &seconds, const unsigned int secondsInUnit,
+                       const char *unitName, bool havePreviousUnit)
+{
+  if (seconds >= secondsInUnit)
   {
-    if (seconds >= secondsInUnit)
-    {
-      unsigned int units = seconds / secondsInUnit;
-      if (havePreviousUnit)
-        str << ' ';
-      str << units << " " << unitName << ((units > 1) ? "s" : "");
-      seconds = seconds % secondsInUnit;
-      return true;
-    }
-    return false;
+    unsigned int units = seconds / secondsInUnit;
+    if (havePreviousUnit)
+      str << ' ';
+    str << units << " " << unitName << ((units > 1) ? "s" : "");
+    seconds = seconds % secondsInUnit;
+    return true;
   }
+  return false;
 }
+}  // namespace
 
 
 char *tes::timeValueString(char *buffer, size_t bufferLen, Timer &t)
@@ -226,7 +216,7 @@ char *tes::timeValueString(char *buffer, size_t bufferLen, Timer &t)
 }
 
 
-std::string tes::timeValueString(Timer& t)
+std::string tes::timeValueString(Timer &t)
 {
   unsigned int s, ms, us;
   t.elapsed(s, ms, us);
@@ -240,7 +230,7 @@ char *tes::timeValueString(char *buffer, size_t bufferLen, unsigned int s, unsig
   {
     std::string str = tes::timeValueString(s, ms, us);
     strncpy(buffer, str.c_str(), bufferLen);
-    buffer[bufferLen-1] = '\0';
+    buffer[bufferLen - 1] = '\0';
   }
   return buffer;
 }
@@ -251,8 +241,8 @@ std::string tes::timeValueString(unsigned int s, unsigned int ms, unsigned int u
   std::stringstream str;
 
   const unsigned int secondsInMinute = 60u;
-  const unsigned int secondsInHour = secondsInMinute*60u;
-  const unsigned int secondsInDay = secondsInHour*24u;
+  const unsigned int secondsInHour = secondsInMinute * 60u;
+  const unsigned int secondsInDay = secondsInHour * 24u;
 
   bool haveLargeUnits = false;
   haveLargeUnits = addTimeStringUnit(str, s, secondsInDay, "day", haveLargeUnits) || haveLargeUnits;
@@ -263,13 +253,13 @@ std::string tes::timeValueString(unsigned int s, unsigned int ms, unsigned int u
   {
     if (haveLargeUnits)
       str << ", ";
-    str << (double(s) + ms/1000.0) << "s";
+    str << (double(s) + ms / 1000.0) << "s";
   }
   else if (ms)
   {
     if (haveLargeUnits)
       str << ", ";
-    str << (double(ms) + us/1000.0) << "ms";
+    str << (double(ms) + us / 1000.0) << "ms";
   }
   else if (!haveLargeUnits || us)
   {
@@ -288,7 +278,7 @@ const char *tes::timeValueString(char *buffer, size_t bufferLen, double seconds)
   {
     std::string str = tes::timeValueString(seconds);
     strncpy(buffer, str.c_str(), bufferLen);
-    buffer[bufferLen-1] = '\0';
+    buffer[bufferLen - 1] = '\0';
   }
   return buffer;
 }
@@ -314,7 +304,7 @@ const char *tes::timeValueString(char *buffer, size_t bufferLen, long double sec
   {
     std::string str = tes::timeValueString(seconds);
     strncpy(buffer, str.c_str(), bufferLen);
-    buffer[bufferLen-1] = '\0';
+    buffer[bufferLen - 1] = '\0';
   }
   return buffer;
 }

@@ -3,9 +3,9 @@
 //
 #include "3estcpserver.h"
 
+#include "3espacketwriter.h"
 #include "3estcpconnection.h"
 #include "3estcpconnectionmonitor.h"
-#include "3espacketwriter.h"
 
 #include <algorithm>
 #include <mutex>
@@ -19,9 +19,9 @@ Server *Server::create(const ServerSettings &settings, const ServerInfoMessage *
 
 
 TcpServer::TcpServer(const ServerSettings &settings, const ServerInfoMessage *serverInfo)
-: _monitor(nullptr)
-, _settings(settings)
-, _active(true)
+  : _monitor(nullptr)
+  , _settings(settings)
+  , _active(true)
 {
   _monitor = new TcpConnectionMonitor(*this);
 
@@ -376,7 +376,8 @@ const Connection *TcpServer::connection(unsigned index) const
 }
 
 
-void TcpServer::updateConnections(const std::vector<BaseConnection *> &connections, const std::function<void(Server &, Connection &)> &callback)
+void TcpServer::updateConnections(const std::vector<BaseConnection *> &connections,
+                                  const std::function<void(Server &, Connection &)> &callback)
 {
   if (!_active)
   {
@@ -409,8 +410,7 @@ void TcpServer::updateConnections(const std::vector<BaseConnection *> &connectio
   }
 
   _connections.clear();
-  std::for_each(connections.begin(), connections.end(),
-                [this] (BaseConnection *con){ _connections.push_back(con);});
+  std::for_each(connections.begin(), connections.end(), [this](BaseConnection *con) { _connections.push_back(con); });
 
   // Send server info to new connections.
   for (BaseConnection *con : newConnections)

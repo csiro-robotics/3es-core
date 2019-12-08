@@ -12,12 +12,12 @@
 // C4267: conversion from size_t to unsigned int
 // 4244: conversion from double to float
 #pragma warning(disable : 4244 4267)
-#endif // _MSC_VER
+#endif  // _MSC_VER
 #include <octomap/octomap.h>
 
 #ifdef TES_ENABLE
 #include <shapes/3esmeshresource.h>
-#endif // TES_ENABLE
+#endif  // TES_ENABLE
 
 typedef std::unordered_map<octomap::OcTreeKey, uint32_t, octomap::OcTreeKey::KeyHash> KeyToIndexMap;
 typedef std::unordered_set<octomap::OcTreeKey, octomap::OcTreeKey::KeyHash> UnorderedKeySet;
@@ -58,7 +58,8 @@ public:
   /// @param occupiedChange Keys of voxels which have become occupied from free or uncertain since the last update.
   /// @param newlyFree Keys of voxels which have become free from occupied since the last update.
   /// @param touchedOccupied Keys of voxels which have changed occupied probability.
-  void update(const UnorderedKeySet &newlyOccupied, const UnorderedKeySet &newlyFree, const UnorderedKeySet &touchedOccupied);
+  void update(const UnorderedKeySet &newlyOccupied, const UnorderedKeySet &newlyFree,
+              const UnorderedKeySet &touchedOccupied);
 
 private:
   typedef uint32_t IndexType;
@@ -69,4 +70,4 @@ private:
   OccupancyMeshDetail *_detail;
 };
 
-#endif // TES_ENABLE
+#endif  // TES_ENABLE

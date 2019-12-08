@@ -196,7 +196,7 @@ void MeshSet::onClone(MeshSet *copy) const
   Shape::onClone(copy);
   if (copy->_partCount != _partCount)
   {
-    delete [] copy->_parts;
+    delete[] copy->_parts;
     if (_partCount)
     {
       copy->_parts = new Part[_partCount];
@@ -221,7 +221,7 @@ void MeshSet::cleanupParts()
     }
   }
 
-  delete [] _parts;
+  delete[] _parts;
 
   _parts = nullptr;
   _ownPartResources = false;

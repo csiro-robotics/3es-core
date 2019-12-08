@@ -6,9 +6,8 @@
 using namespace tes;
 
 MeshPlaceholder::MeshPlaceholder(uint32_t id)
-  : _id (id)
-{
-}
+  : _id(id)
+{}
 
 
 void MeshPlaceholder::setId(uint32_t newId)

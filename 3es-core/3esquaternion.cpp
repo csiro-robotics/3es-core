@@ -5,6 +5,6 @@
 
 namespace tes
 {
-  template class Quaternion<float>;
-  template class Quaternion<double>;
-}
+template class Quaternion<float>;
+template class Quaternion<double>;
+}  // namespace tes

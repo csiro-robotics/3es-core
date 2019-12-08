@@ -8,15 +8,15 @@
 
 namespace tes
 {
-  void debugBreak()
-  {
-    std::raise(SIGINT);
-  }
-
-
-  void assertionFailure(const char *msg)
-  {
-    fprintf(stderr, "%s\n", msg);
-    std::raise(SIGINT);
-  }
+void debugBreak()
+{
+  std::raise(SIGINT);
 }
+
+
+void assertionFailure(const char *msg)
+{
+  fprintf(stderr, "%s\n", msg);
+  std::raise(SIGINT);
+}
+}  // namespace tes

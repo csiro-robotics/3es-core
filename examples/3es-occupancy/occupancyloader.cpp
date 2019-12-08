@@ -6,13 +6,13 @@
 #ifdef _MSC_VER
 // std::equal with parameters that may be unsafe warning under Visual Studio.
 #pragma warning(disable : 4996)
-#endif // _MSC_VER
+#endif  // _MSC_VER
 
-#include <string>
 #include <fstream>
+#include <string>
 
-#include <liblas/liblas.hpp>
 #include <liblas/factory.hpp>
+#include <liblas/liblas.hpp>
 #include <liblas/reader.hpp>
 
 struct TrajectoryPoint
@@ -51,34 +51,34 @@ struct OccupancyLoaderDetail
 
 namespace
 {
-  std::string getFileExtension(const std::string &file)
+std::string getFileExtension(const std::string &file)
+{
+  size_t lastDot = file.find_last_of(".");
+  if (lastDot != std::string::npos)
   {
-    size_t lastDot = file.find_last_of(".");
-    if (lastDot != std::string::npos)
-    {
-      return file.substr(lastDot + 1);
-    }
-
-    return "";
+    return file.substr(lastDot + 1);
   }
 
-  bool openLasFile(std::ifstream &in, const std::string &fileName)
-  {
-    const std::string ext = getFileExtension(fileName);
-    if (ext.compare("laz") == 0 || ext.compare("las") == 0)
-    {
-      return liblas::Open(in, fileName);
-    }
-
-    // Extension omitted.
-    // Try for a LAZ file (compressed), then a LAS file.
-    if (liblas::Open(in, fileName + ".laz"))
-    {
-      return true;
-    }
-    return liblas::Open(in, fileName + ".las");
-  }
+  return "";
 }
+
+bool openLasFile(std::ifstream &in, const std::string &fileName)
+{
+  const std::string ext = getFileExtension(fileName);
+  if (ext.compare("laz") == 0 || ext.compare("las") == 0)
+  {
+    return liblas::Open(in, fileName);
+  }
+
+  // Extension omitted.
+  // Try for a LAZ file (compressed), then a LAS file.
+  if (liblas::Open(in, fileName + ".laz"))
+  {
+    return true;
+  }
+  return liblas::Open(in, fileName + ".las");
+}
+}  // namespace
 
 OccupancyLoader::OccupancyLoader()
   : _imp(new OccupancyLoaderDetail)
@@ -193,12 +193,13 @@ bool OccupancyLoader::sampleTrajectory(tes::Vector3f &position, double timestamp
       _imp->trajectoryBuffer[1].position = tes::Vector3d(p.GetX(), p.GetY(), p.GetZ());
     }
 
-    if (_imp->trajectoryBuffer[0].timestamp <= timestamp &&
-        timestamp <= _imp->trajectoryBuffer[1].timestamp &&
+    if (_imp->trajectoryBuffer[0].timestamp <= timestamp && timestamp <= _imp->trajectoryBuffer[1].timestamp &&
         _imp->trajectoryBuffer[0].timestamp != _imp->trajectoryBuffer[1].timestamp)
     {
-      float lerp = float((timestamp - _imp->trajectoryBuffer[0].timestamp) / (_imp->trajectoryBuffer[1].timestamp - _imp->trajectoryBuffer[0].timestamp));
-      position = _imp->trajectoryBuffer[0].position + lerp * (_imp->trajectoryBuffer[1].position - _imp->trajectoryBuffer[0].position);
+      float lerp = float((timestamp - _imp->trajectoryBuffer[0].timestamp) /
+                         (_imp->trajectoryBuffer[1].timestamp - _imp->trajectoryBuffer[0].timestamp));
+      position = _imp->trajectoryBuffer[0].position +
+                 lerp * (_imp->trajectoryBuffer[1].position - _imp->trajectoryBuffer[0].position);
       return true;
     }
   }

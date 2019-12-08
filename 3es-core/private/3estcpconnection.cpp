@@ -7,11 +7,10 @@
 
 using namespace tes;
 
-TcpConnection::TcpConnection(TcpSocket *clientSocket, const ServerSettings &settings)//unsigned flags, uint16_t bufferSize)
-: BaseConnection(settings)
-, _client(clientSocket)
-{
-}
+TcpConnection::TcpConnection(TcpSocket *clientSocket, const ServerSettings &settings)
+  : BaseConnection(settings)
+  , _client(clientSocket)
+{}
 
 
 TcpConnection::~TcpConnection()

@@ -12,10 +12,10 @@
 #define TES_ENABLE
 #include <3esservermacros.h>
 
-#include <3esvector3.h>
 #include <3estimer.h>
-#include <shapes/3essimplemesh.h>
+#include <3esvector3.h>
 #include <shapes/3esmeshshape.h>
+#include <shapes/3essimplemesh.h>
 
 #include <tessellate/3esarrow.h>
 #include <tessellate/3esbox.h>
@@ -23,9 +23,9 @@
 #include <tessellate/3escylinder.h>
 #include <tessellate/3essphere.h>
 
+#include <chrono>
 #include <cmath>
 #include <csignal>
-#include <chrono>
 #include <functional>
 #include <iostream>
 #include <thread>
@@ -35,16 +35,16 @@ using namespace tes;
 
 namespace
 {
-  bool quit = false;
+bool quit = false;
 
-  void onSignal(int arg)
+void onSignal(int arg)
+{
+  if (arg == SIGINT || arg == SIGTERM)
   {
-    if (arg == SIGINT || arg == SIGTERM)
-    {
-      quit = true;
-    }
+    quit = true;
   }
 }
+}  // namespace
 
 bool haveOption(const char *opt, int argc, const char **argv)
 {
@@ -60,7 +60,8 @@ bool haveOption(const char *opt, int argc, const char **argv)
 }
 
 
-void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<const Resource *> &resources, int argc, const char **argv)
+void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<const Resource *> &resources, int argc,
+                const char **argv)
 {
   TES_UNUSED(resources);
   if (!haveOption("noaxes", argc, argv))
@@ -86,7 +87,7 @@ void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<cons
 
 
 MeshSet *createMeshShape(unsigned shapeId, unsigned meshId, const std::vector<Vector3f> &vertices,
-                       const std::vector<unsigned> &indices, const std::vector<Vector3f> *normals)
+                         const std::vector<unsigned> &indices, const std::vector<Vector3f> *normals)
 {
   unsigned components = SimpleMesh::Vertex | SimpleMesh::Index;
   if (normals)
@@ -106,7 +107,8 @@ MeshSet *createMeshShape(unsigned shapeId, unsigned meshId, const std::vector<Ve
 }
 
 
-void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<const Resource *> &resources, int argc, const char **argv)
+void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<const Resource *> &resources, int argc,
+                  const char **argv)
 {
   bool allShapes = haveOption("all", argc, argv) || argc == 1;
   size_t initialShapeCount = shapes.size();
@@ -249,8 +251,7 @@ int main(int argc, char **argvNonConst)
   const unsigned targetFrameTimeMs = 1000 / 30;
   float time = 0;
   auto lastTime = std::chrono::system_clock::now();
-  auto onNewConnection = [&shapes](Server &/*server*/, Connection &connection)
-  {
+  auto onNewConnection = [&shapes](Server & /*server*/, Connection &connection) {
     for (Shape *shape : shapes)
     {
       connection.create(*shape);

@@ -15,69 +15,68 @@ using namespace tes;
 
 namespace
 {
-  // Helper for automating data sending.
-  struct DataPhase
+// Helper for automating data sending.
+struct DataPhase
+{
+  // The SendDataType.
+  uint16_t type;
+  // Number of things to send. May be zero.
+  unsigned itemCount;
+  // Data pointer. May be null with zero itemCount.
+  const uint8_t *dataSrc;
+  // Byte stride between elements.
+  size_t dataStrideBytes;
+  // Base data item size, requiring endian swap.
+  // See tupleSize.
+  size_t dataSizeByte;
+  // Number of data items in each stride. tupleSize * dataSizeBytes must be <= dataStrideBytes.
+  //
+  // Usage by example.
+  // For a Vector3 data type of 3 packed floats:
+  // - tupleSize = 3
+  // - dataSizeBytes = sizeof(float)
+  // - dataStrideBytes = tupleSize * dataSizeBytes = 12
+  //
+  // For a Vector3 data type aligned to 16 bytes (3 floats):
+  // - tupleSize = 3
+  // - dataSizeBytes = sizeof(float)
+  // - dataStrideBytes = 16
+  unsigned tupleSize;
+};
+
+
+unsigned readElements(PacketReader &stream, unsigned offset, unsigned itemCount, uint8_t *dstPtr,
+                      size_t elementSizeBytes, unsigned elementCount, unsigned tupleSize = 1)
+{
+  if (offset > elementCount)
   {
-    // The SendDataType.
-    uint16_t type;
-    // Number of things to send. May be zero.
-    unsigned itemCount;
-    // Data pointer. May be null with zero itemCount.
-    const uint8_t *dataSrc;
-    // Byte stride between elements.
-    size_t dataStrideBytes;
-    // Base data item size, requiring endian swap.
-    // See tupleSize.
-    size_t dataSizeByte;
-    // Number of data items in each stride. tupleSize * dataSizeBytes must be <= dataStrideBytes.
-    //
-    // Usage by example.
-    // For a Vector3 data type of 3 packed floats:
-    // - tupleSize = 3
-    // - dataSizeBytes = sizeof(float)
-    // - dataStrideBytes = tupleSize * dataSizeBytes = 12
-    //
-    // For a Vector3 data type aligned to 16 bytes (3 floats):
-    // - tupleSize = 3
-    // - dataSizeBytes = sizeof(float)
-    // - dataStrideBytes = 16
-    unsigned tupleSize;
-  };
-
-
-  unsigned readElements(PacketReader &stream, unsigned offset, unsigned itemCount,
-                        uint8_t *dstPtr, size_t elementSizeBytes, unsigned elementCount,
-                        unsigned tupleSize = 1)
-  {
-    if (offset > elementCount)
-    {
-      return ~0u;
-    }
-
-    if (itemCount == 0)
-    {
-      return offset + itemCount;
-    }
-
-    if (offset + itemCount > elementCount)
-    {
-      itemCount = elementCount - itemCount;
-    }
-
-    offset *= tupleSize;
-    itemCount *= tupleSize;
-
-    uint8_t *dst = const_cast<uint8_t *>(dstPtr);
-    dst += offset * elementSizeBytes;
-    size_t readCount = stream.readArray(dst, elementSizeBytes, itemCount);
-    if (readCount != itemCount)
-    {
-      return ~0u;
-    }
-
-    return unsigned((readCount + offset) / tupleSize);
+    return ~0u;
   }
+
+  if (itemCount == 0)
+  {
+    return offset + itemCount;
+  }
+
+  if (offset + itemCount > elementCount)
+  {
+    itemCount = elementCount - itemCount;
+  }
+
+  offset *= tupleSize;
+  itemCount *= tupleSize;
+
+  uint8_t *dst = const_cast<uint8_t *>(dstPtr);
+  dst += offset * elementSizeBytes;
+  size_t readCount = stream.readArray(dst, elementSizeBytes, itemCount);
+  if (readCount != itemCount)
+  {
+    return ~0u;
+  }
+
+  return unsigned((readCount + offset) / tupleSize);
 }
+}  // namespace
 
 MeshShape::~MeshShape()
 {
@@ -350,11 +349,12 @@ int MeshShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
 
   // Order to send data in and information required to automate sending.
   const uint16_t normalsSendType = (_normalsCount == 1) ? SDT_UniformNormal : SDT_Normals;
-  const DataPhase phases[] =
-  {
-    { normalsSendType, _normalsCount, (const uint8_t *)_normals, _normalsStride * sizeof(*_normals), sizeof(*_normals), 3 },
+  const DataPhase phases[] = {
+    { normalsSendType, _normalsCount, (const uint8_t *)_normals, _normalsStride * sizeof(*_normals), sizeof(*_normals),
+      3 },
     { SDT_Colours, (_colours) ? _vertexCount : 0, (const uint8_t *)_colours, sizeof(*_colours), sizeof(*_colours), 1 },
-    { SDT_Vertices, _vertexCount, (const uint8_t *)_vertices, _vertexStride * sizeof(*_vertices), sizeof(*_vertices), 3 },
+    { SDT_Vertices, _vertexCount, (const uint8_t *)_vertices, _vertexStride * sizeof(*_vertices), sizeof(*_vertices),
+      3 },
     { SDT_Indices, _indexCount, (const uint8_t *)_indices, sizeof(*_indices), sizeof(*_indices), 1 }
   };
 
@@ -373,7 +373,8 @@ int MeshShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
   {
     const DataPhase &phase = phases[phaseIndex];
     // Send part of current phase.
-    const unsigned maxItemCout = MeshResource::estimateTransferCount(phase.dataSizeByte * phase.tupleSize, 0, sizeof(DataMessage) + localByteOverhead);
+    const unsigned maxItemCout = MeshResource::estimateTransferCount(phase.dataSizeByte * phase.tupleSize, 0,
+                                                                     sizeof(DataMessage) + localByteOverhead);
     offset = progressMarker - previousPhaseOffset;
     itemCount = uint32_t(std::min<uint32_t>(phase.itemCount - offset, maxItemCout));
 

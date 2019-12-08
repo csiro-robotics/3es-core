@@ -19,7 +19,7 @@ struct VertexChange
   union
   {
     float position[3];
-    float  normal[3];
+    float normal[3];
     float uv[2];
     uint32_t colour;
   };
@@ -51,15 +51,13 @@ struct MutableMeshImp
 
   MutableMeshImp(uint32_t id, DrawType drawType, unsigned components)
     : mesh(id, 0u, 0u, drawType, components)
-  {
-  }
+  {}
 };
-} // namespace tes
+}  // namespace tes
 
 MutableMesh::MutableMesh(uint32_t id, DrawType drawType, unsigned components)
-    : _imp(new MutableMeshImp(id, drawType, components))
-{
-}
+  : _imp(new MutableMeshImp(id, drawType, components))
+{}
 
 MutableMesh::~MutableMesh()
 {
@@ -85,7 +83,6 @@ void MutableMesh::setTint(uint32_t tint)
 
 void MutableMesh::setVertexCount(const UIntArg &count)
 {
-
   _imp->newVertexCount = count;
   _imp->dirty = true;
 }
@@ -408,7 +405,7 @@ void MutableMesh::update(Connection *con)
   // Finalise the modifications.
   finalmsg.meshId = _imp->mesh.id();
   // Rely on EDL shader.
-  finalmsg.flags = 0; // tes::MbfCalculateNormals;
+  finalmsg.flags = 0;  // tes::MbfCalculateNormals;
   packet.reset(tes::MtMesh, finalmsg.MessageId);
   finalmsg.write(packet);
   packet.finalise();

@@ -92,9 +92,11 @@ template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Matrix3<REAL> &m)
 {
   char endOfRow = (tes::getMatMode(o) == tes::MM_Inline) ? ',' : '\n';
-  o << "[ " << m.rc[0][0] << ',' << m.rc[0][1] << ',' << m.rc[0][2] << endOfRow
-            << m.rc[1][0] << ',' << m.rc[1][1] << ',' << m.rc[1][2] << endOfRow
-            << m.rc[2][0] << ',' << m.rc[2][1] << ',' << m.rc[2][2] << " ]";
+  o << "[ "                                                              //
+    << m.rc[0][0] << ',' << m.rc[0][1] << ',' << m.rc[0][2] << endOfRow  //
+    << m.rc[1][0] << ',' << m.rc[1][1] << ',' << m.rc[1][2] << endOfRow  //
+    << m.rc[2][0] << ',' << m.rc[2][1] << ',' << m.rc[2][2]              //
+    << " ]";
   return o;
 }
 
@@ -110,10 +112,12 @@ template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Matrix4<REAL> &m)
 {
   char endOfRow = (tes::getMatMode(o) == tes::MM_Inline) ? ',' : '\n';
-  o << "[ " << m.rc[0][0] << ',' << m.rc[0][1] << ',' << m.rc[0][2] << ',' << m.rc[0][3] << endOfRow
-            << m.rc[1][0] << ',' << m.rc[1][1] << ',' << m.rc[1][2] << ',' << m.rc[1][3] << endOfRow
-            << m.rc[2][0] << ',' << m.rc[2][1] << ',' << m.rc[2][2] << ',' << m.rc[2][3] << endOfRow
-            << m.rc[3][0] << ',' << m.rc[3][1] << ',' << m.rc[3][2] << ',' << m.rc[3][3] << " ]";
+  o << "[ "                                                                                   //
+    << m.rc[0][0] << ',' << m.rc[0][1] << ',' << m.rc[0][2] << ',' << m.rc[0][3] << endOfRow  //
+    << m.rc[1][0] << ',' << m.rc[1][1] << ',' << m.rc[1][2] << ',' << m.rc[1][3] << endOfRow  //
+    << m.rc[2][0] << ',' << m.rc[2][1] << ',' << m.rc[2][2] << ',' << m.rc[2][3] << endOfRow  //
+    << m.rc[3][0] << ',' << m.rc[3][1] << ',' << m.rc[3][2] << ',' << m.rc[3][3]              //
+    << " ]";
   return o;
 }
 
@@ -128,4 +132,4 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Colour &c)
   return o;
 }
 
-#endif // _3ESMATHSSTREAM_H_
+#endif  // _3ESMATHSSTREAM_H_

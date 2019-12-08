@@ -8,37 +8,37 @@
 
 #include "3es-core.h"
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 // IO stream manipulators supporting maths type streaming.
 
 namespace tes
 {
-  /// @ingroup tesiostream
-  /// Accepted values for @c ::matmode.
-  enum MatMode
-  {
-    /// Display all matrix elements inline.
-    MM_Inline,
-    /// Insert newlines after every row.
-    MM_Block
-  };
+/// @ingroup tesiostream
+/// Accepted values for @c ::matmode.
+enum MatMode
+{
+  /// Display all matrix elements inline.
+  MM_Inline,
+  /// Insert newlines after every row.
+  MM_Block
+};
 
-  /// @ingroup tesiostream
-  /// Display mode W component in @c Vector4 and @c Quaternion types.
-  enum WMode
-  {
-    /// W is displayed last to match memory layout (default).
-    WM_Last,
-    /// W component is displayed first.
-    WM_First
-  };
+/// @ingroup tesiostream
+/// Display mode W component in @c Vector4 and @c Quaternion types.
+enum WMode
+{
+  /// W is displayed last to match memory layout (default).
+  WM_Last,
+  /// W component is displayed first.
+  WM_First
+};
 
-  int _3es_coreAPI getMatMode(std::ostream &o);
-  int _3es_coreAPI getQuatWMode(std::ostream &o);
-  int _3es_coreAPI getV4WMode(std::ostream &o);
-}
+int _3es_coreAPI getMatMode(std::ostream &o);
+int _3es_coreAPI getQuatWMode(std::ostream &o);
+int _3es_coreAPI getV4WMode(std::ostream &o);
+}  // namespace tes
 
 /// @ingroup tesiostream
 /// Set the @c tes::MatMode for a stream affecting @c tes::Matrix3 and @c tes::Matrix4 output.
@@ -59,4 +59,4 @@ std::ostream _3es_coreAPI &v4wmode(std::ostream &o, int mode);
 /// @return @c o
 std::ostream _3es_coreAPI &quatwmode(std::ostream &o, int mode);
 
-#endif // _3ESMATHSMANIP_H_
+#endif  // _3ESMATHSMANIP_H_

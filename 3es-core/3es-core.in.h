@@ -13,7 +13,7 @@
 #define _3es_extern extern
 #else  // TES_STATIC
 #define _3es_extern
-#endif // TES_STATIC
+#endif  // TES_STATIC
 
 // Version setup.
 #define TES_VERSION_MAJOR @TES_VERSION_MAJOR@
@@ -24,26 +24,26 @@
 // Force MSVC to define useful things like M_PI.
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
-#endif // _USE_MATH_DEFINES
+#endif  // _USE_MATH_DEFINES
 
 // For MSVC to skip defining min/max as macros.
 #ifndef NOMINMAX
 #define NOMINMAX
-#endif // NOMINMAX
+#endif  // NOMINMAX
 #ifndef NOMINMAX
 #define NOMINMAX
-#endif // NOMINMAX
+#endif  // NOMINMAX
 
 #ifdef _MSC_VER
 // Avoid dubious security warnings for plenty of legitimate code
-# ifndef _SCL_SECURE_NO_WARNINGS
-#   define _SCL_SECURE_NO_WARNINGS
-# endif // _SCL_SECURE_NO_WARNINGS
-# ifndef _CRT_SECURE_NO_WARNINGS
-#   define _CRT_SECURE_NO_WARNINGS
-# endif // _CRT_SECURE_NO_WARNINGS
+#ifndef _SCL_SECURE_NO_WARNINGS
+#define _SCL_SECURE_NO_WARNINGS
+#endif  // _SCL_SECURE_NO_WARNINGS
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif  // _CRT_SECURE_NO_WARNINGS
 //#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
-#endif // _MSC_VER
+#endif  // _MSC_VER
 
 // Include standard headers to ensure we effect the configuration above.
 #include <cmath>
@@ -62,7 +62,7 @@
 
 #if defined(NDEBUG) && defined(TES_ASSERT_ENABLE_RELEASE) || !defined(NDEBUG) && defined(TES_ASSERT_ENABLE_DEBUG)
 #define TES_ASSERT_ENABLE 1
-#endif // defined(NDEBUG) && defined(TES_ASSERT_ENABLE_RELEASE) || !defined(NDEBUG) && defined(TES_ASSERT_ENABLE_DEBUG)
+#endif  // defined(NDEBUG) && defined(TES_ASSERT_ENABLE_RELEASE) || !defined(NDEBUG) && defined(TES_ASSERT_ENABLE_DEBUG)
 
 // Define the word size (in bits)s
 #cmakedefine TES_32
@@ -79,6 +79,6 @@
 #endif
 #else  // TES_64
 #define TES_ZU "%u"
-#endif // TES_64
+#endif  // TES_64
 
-#endif // _3ES_CORE_H_
+#endif  // _3ES_CORE_H_

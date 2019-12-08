@@ -16,57 +16,56 @@ using namespace tes;
 
 namespace tes
 {
-  struct PointCloudImp
+struct PointCloudImp
+{
+  SpinLock lock;
+  Vector3f *vertices;
+  Vector3f *normals;
+  Colour *colours;
+  unsigned vertexCount;
+  unsigned capacity;
+  uint32_t id;
+  unsigned references;
+
+  inline PointCloudImp(uint32_t id)
+    : vertices(nullptr)
+    , normals(nullptr)
+    , colours(nullptr)
+    , vertexCount(0)
+    , capacity(0)
+    , id(id)
+    , references(1)
+  {}
+
+
+  inline ~PointCloudImp()
   {
-    SpinLock lock;
-    Vector3f *vertices;
-    Vector3f *normals;
-    Colour *colours;
-    unsigned vertexCount;
-    unsigned capacity;
-    uint32_t id;
-    unsigned references;
-
-    inline PointCloudImp(uint32_t id)
-      : vertices(nullptr)
-      , normals(nullptr)
-      , colours(nullptr)
-      , vertexCount(0)
-      , capacity(0)
-      , id(id)
-      , references(1)
-    {
-    }
+    delete[] vertices;
+    delete[] normals;
+    delete[] colours;
+  }
 
 
-    inline ~PointCloudImp()
-    {
-      delete [] vertices;
-      delete [] normals;
-      delete [] colours;
-    }
+  inline PointCloudImp *clone() const
+  {
+    PointCloudImp *copy = new PointCloudImp(this->id);
+    copy->vertexCount = copy->capacity = vertexCount;
+    copy->id = id;
 
+    copy->vertices = (vertices && vertexCount) ? new Vector3f[vertexCount] : nullptr;
+    memcpy(copy->vertices, vertices, sizeof(*vertices) * vertexCount);
 
-    inline PointCloudImp *clone() const
-    {
-      PointCloudImp *copy = new PointCloudImp(this->id);
-      copy->vertexCount = copy->capacity = vertexCount;
-      copy->id = id;
+    copy->normals = (normals && vertexCount) ? new Vector3f[vertexCount] : nullptr;
+    memcpy(copy->normals, normals, sizeof(*normals) * vertexCount);
 
-      copy->vertices = (vertices && vertexCount) ? new Vector3f[vertexCount] : nullptr;
-      memcpy(copy->vertices, vertices, sizeof(*vertices) * vertexCount);
+    copy->colours = (colours && vertexCount) ? new Colour[vertexCount] : nullptr;
+    memcpy(copy->colours, colours, sizeof(*colours) * vertexCount);
 
-      copy->normals = (normals && vertexCount) ? new Vector3f[vertexCount] : nullptr;
-      memcpy(copy->normals, normals, sizeof(*normals) * vertexCount);
-
-      copy->colours = (colours && vertexCount) ? new Colour[vertexCount] : nullptr;
-      memcpy(copy->colours, colours, sizeof(*colours) * vertexCount);
-
-      copy->references = 1;
-      return copy;
-    }
-  };
-}
+    copy->references = 1;
+    return copy;
+  }
+};
+}  // namespace tes
 
 PointCloud::PointCloud(const PointCloud &other)
   : _imp(other._imp)
@@ -78,8 +77,7 @@ PointCloud::PointCloud(const PointCloud &other)
 
 PointCloud::PointCloud(uint32_t id)
   : _imp(new PointCloudImp(id))
-{
-}
+{}
 
 
 PointCloud::~PointCloud()
@@ -361,7 +359,8 @@ void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const V
 }
 
 
-void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals, const Colour *colours, const UIntArg &count)
+void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals, const Colour *colours,
+                           const UIntArg &count)
 {
   if (index >= _imp->vertexCount)
   {
@@ -400,9 +399,9 @@ void PointCloud::setCapacity(unsigned size)
   {
     if (!size)
     {
-      delete [] _imp->vertices;
-      delete [] _imp->normals;
-      delete [] _imp->colours;
+      delete[] _imp->vertices;
+      delete[] _imp->normals;
+      delete[] _imp->colours;
       _imp->vertices = _imp->normals = nullptr;
       _imp->colours = nullptr;
       _imp->capacity = 0;
@@ -425,9 +424,9 @@ void PointCloud::setCapacity(unsigned size)
         memcpy(colours, _imp->colours, sizeof(*colours) * vertexCount);
       }
 
-      delete [] _imp->vertices;
-      delete [] _imp->normals;
-      delete [] _imp->colours;
+      delete[] _imp->vertices;
+      delete[] _imp->normals;
+      delete[] _imp->colours;
     }
 
     _imp->vertices = points;
@@ -466,11 +465,10 @@ bool PointCloud::processCreate(const MeshCreateMessage &msg)
   delete _imp->colours;
   _imp->capacity = msg.vertexCount;
   _imp->vertices = new Vector3f[msg.vertexCount];
-  _imp->normals = nullptr; // Pending.
-  _imp->colours = nullptr; // Pending
+  _imp->normals = nullptr;  // Pending.
+  _imp->colours = nullptr;  // Pending
 
-  Matrix4f transform = prsTransform(Vector3f(msg.attributes.position),
-                                    Quaternionf(msg.attributes.rotation),
+  Matrix4f transform = prsTransform(Vector3f(msg.attributes.position), Quaternionf(msg.attributes.rotation),
                                     Vector3f(msg.attributes.scale));
 
   // Does not accept a transform.

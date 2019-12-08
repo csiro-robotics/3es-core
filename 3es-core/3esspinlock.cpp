@@ -10,21 +10,19 @@ using namespace tes;
 
 namespace tes
 {
-  struct SpinLockImp
-  {
-    std::atomic_bool lock;
+struct SpinLockImp
+{
+  std::atomic_bool lock;
 
-    inline SpinLockImp()
-      : lock(false)
-    {
-    }
-  };
-}
+  inline SpinLockImp()
+    : lock(false)
+  {}
+};
+}  // namespace tes
 
 SpinLock::SpinLock()
   : _imp(new SpinLockImp)
-{
-}
+{}
 
 
 SpinLock::~SpinLock()

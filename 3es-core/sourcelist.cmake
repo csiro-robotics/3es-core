@@ -150,7 +150,6 @@ list(APPEND PRIVATE_SOURCES
   private/3escollatedpacketzip.h
   private/3esfileconnection.cpp
   private/3esfileconnection.h
-  private/3esitemtransfer.h
   private/3estcpconnection.cpp
   private/3estcpconnection.h
   private/3estcpconnectionmonitor.cpp

@@ -9,15 +9,15 @@
 #include <shapes/3esshapes.h>
 #include <tessellate/3essphere.h>
 
-#include <3esvector3.h>
 #include <3estimer.h>
-#include <shapes/3essimplemesh.h>
+#include <3esvector3.h>
 #include <shapes/3espointcloud.h>
+#include <shapes/3essimplemesh.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <csignal>
-#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -30,57 +30,57 @@ using namespace tes;
 
 namespace
 {
-  using TimingClock = std::chrono::high_resolution_clock;
+using TimingClock = std::chrono::high_resolution_clock;
 
-  bool quit = false;
+bool quit = false;
 
-  void onSignal(int arg)
+void onSignal(int arg)
+{
+  if (arg == SIGINT || arg == SIGTERM)
   {
-    if (arg == SIGINT || arg == SIGTERM)
-    {
-      quit = true;
-    }
-  }
-
-  TimingClock::duration findMinDuration(const TimingClock::duration *durations, unsigned durationCount)
-  {
-    TimingClock::duration minDuration = durations[0];
-    for (unsigned i = 1; i < durationCount; ++i)
-    {
-      if (durations[i] < minDuration)
-      {
-        minDuration = durations[i];
-      }
-    }
-
-    return minDuration;
-  }
-
-  TimingClock::duration findMaxDuration(const TimingClock::duration *durations, unsigned durationCount)
-  {
-    TimingClock::duration maxDuration = durations[0];
-    for (unsigned i = 1; i < durationCount; ++i)
-    {
-      if (durations[i] > maxDuration)
-      {
-        maxDuration = durations[i];
-      }
-    }
-
-    return maxDuration;
-  }
-
-  TimingClock::duration calcAvgDuration(const TimingClock::duration *durations, unsigned durationCount)
-  {
-    TimingClock::duration totalDuration = durations[0];
-    for (unsigned i = 1; i < durationCount; ++i)
-    {
-      totalDuration += durations[i];
-    }
-
-    return totalDuration / durationCount;
+    quit = true;
   }
 }
+
+TimingClock::duration findMinDuration(const TimingClock::duration *durations, unsigned durationCount)
+{
+  TimingClock::duration minDuration = durations[0];
+  for (unsigned i = 1; i < durationCount; ++i)
+  {
+    if (durations[i] < minDuration)
+    {
+      minDuration = durations[i];
+    }
+  }
+
+  return minDuration;
+}
+
+TimingClock::duration findMaxDuration(const TimingClock::duration *durations, unsigned durationCount)
+{
+  TimingClock::duration maxDuration = durations[0];
+  for (unsigned i = 1; i < durationCount; ++i)
+  {
+    if (durations[i] > maxDuration)
+    {
+      maxDuration = durations[i];
+    }
+  }
+
+  return maxDuration;
+}
+
+TimingClock::duration calcAvgDuration(const TimingClock::duration *durations, unsigned durationCount)
+{
+  TimingClock::duration totalDuration = durations[0];
+  for (unsigned i = 1; i < durationCount; ++i)
+  {
+    totalDuration += durations[i];
+  }
+
+  return totalDuration / durationCount;
+}
+}  // namespace
 
 
 bool haveOption(const char *opt, int argc, const char **argv)
@@ -223,7 +223,8 @@ int main(int argc, char **argvNonConst)
     const auto sendStart = TimingClock::now();
 
     // Send triangle data in chunks.
-    MeshShape shape(DtTriangles, triangles.data()->v, (unsigned)triangles.size(), sizeof(*triangles.data()));  // Transient triangles.
+    MeshShape shape(DtTriangles, triangles.data()->v, (unsigned)triangles.size(),
+                    sizeof(*triangles.data()));  // Transient triangles.
     server->create(shape);
 
     server->updateFrame(0.0f);

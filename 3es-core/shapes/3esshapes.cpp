@@ -8,6 +8,6 @@ using namespace tes;
 namespace
 {
 #ifdef _MSC_VER
-  int preventCompilerWarning = 0;
-#endif // _MSC_VER
-}
+int preventCompilerWarning = 0;
+#endif  // _MSC_VER
+}  // namespace

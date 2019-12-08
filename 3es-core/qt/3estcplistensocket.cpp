@@ -15,8 +15,7 @@ using namespace tes;
 
 TcpListenSocket::TcpListenSocket()
   : _detail(new TcpListenSocketDetail)
-{
-}
+{}
 
 
 TcpListenSocket::~TcpListenSocket()
@@ -26,10 +25,8 @@ TcpListenSocket::~TcpListenSocket()
 }
 
 
-
 uint16_t TcpListenSocket::port() const
 {
-
   return _detail->listenSocket.serverPort();
 }
 
@@ -52,7 +49,6 @@ void TcpListenSocket::close()
     _detail->listenSocket.close();
   }
 }
-
 
 
 bool TcpListenSocket::isListening() const

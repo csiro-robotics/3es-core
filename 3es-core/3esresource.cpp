@@ -6,6 +6,4 @@
 using namespace tes;
 
 
-Resource::~Resource()
-{
-}
+Resource::~Resource() = default;

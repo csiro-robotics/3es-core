@@ -93,237 +93,252 @@
 
 namespace tes
 {
-  /// @ingroup meshmsg
-  /// The set of valid flags used in finalise messages.
-  enum MeshBuildFlags
+/// @ingroup meshmsg
+/// The set of valid flags used in finalise messages.
+enum MeshBuildFlags
+{
+  /// Calculate normals. Overwrites normals if present.
+  MbfCalculateNormals = (1 << 0)
+};
+
+/// @ingroup meshmsg
+/// Defines the messageIDs for mesh message routing.
+enum MeshMessageType
+{
+  MmtInvalid,
+  MmtDestroy,
+  MmtCreate,
+  /// Add vertices
+  MmtVertex,
+  /// Add indices
+  MmtIndex,
+  /// Add vertex colours.
+  MmtVertexColour,
+  /// Add normals
+  MmtNormal,
+  /// Add UV coordinates.
+  MmtUv,
+  /// Define the material for this mesh.
+  /// Extension. NYI.
+  MmtSetMaterial,
+  /// Redefine the core aspects of the mesh. This invalidates the mesh
+  /// requiring re-finalisation, but allows the creation parameters to
+  /// be redefined. Component messages (vertex, index, colour, etc) can
+  /// also be changed after this message, but before a second @c MmtFinalise.
+  MmtRedefine,
+  /// Finalise and build the mesh
+  MmtFinalise
+};
+
+/// @ingroup meshmsg
+/// Defines the primitives for a mesh.
+enum DrawType
+{
+  DtPoints,
+  DtLines,
+  DtTriangles,
+  /// Geometry shader based voxels. Vertices define the voxel centres, the normals define half extents.
+  DtVoxels,
+  // DtQuads,
+  // DtLineLoop,
+};
+
+/// @ingroup meshmsg
+/// MeshResource creation message.
+struct MeshCreateMessage
+{
+  /// ID for this message.
+  enum
   {
-    /// Calculate normals. Overwrites normals if present.
-    MbfCalculateNormals = (1<<0)
+    MessageId = MmtCreate
   };
 
-  /// @ingroup meshmsg
-  /// Defines the messageIDs for mesh message routing.
-  enum MeshMessageType
+  uint32_t meshId;              ///< Mesh resource ID.
+  uint32_t vertexCount;         ///< Total count.
+  uint32_t indexCount;          ///< Total index count.
+  uint8_t drawType;             ///< Topology: see @c DrawType.
+  ObjectAttributes attributes;  ///< Core attributes.
+
+  /// Read this message from @p reader.
+  /// @param reader The data source.
+  /// @return True on success.
+  inline bool read(PacketReader &reader)
   {
-    MmtInvalid,
-    MmtDestroy,
-    MmtCreate,
-    /// Add vertices
-    MmtVertex,
-    /// Add indices
-    MmtIndex,
-    /// Add vertex colours.
-    MmtVertexColour,
-    /// Add normals
-    MmtNormal,
-    /// Add UV coordinates.
-    MmtUv,
-    /// Define the material for this mesh.
-    /// Extension. NYI.
-    MmtSetMaterial,
-    /// Redefine the core aspects of the mesh. This invalidates the mesh
-    /// requiring re-finalisation, but allows the creation parameters to
-    /// be redefined. Component messages (vertex, index, colour, etc) can
-    /// also be changed after this message, but before a second @c MmtFinalise.
-    MmtRedefine,
-    /// Finalise and build the mesh
-    MmtFinalise
+    bool ok = true;
+    ok = reader.readElement(meshId) == sizeof(meshId) && ok;
+    ok = reader.readElement(vertexCount) == sizeof(vertexCount) && ok;
+    ok = reader.readElement(indexCount) == sizeof(indexCount) && ok;
+    ok = reader.readElement(drawType) == sizeof(drawType) && ok;
+    ok = attributes.read(reader) && ok;
+    return ok;
+  }
+
+  /// Write this message to @p writer.
+  /// @param writer The target buffer.
+  /// @return True on success.
+  inline bool write(PacketWriter &writer) const
+  {
+    bool ok = true;
+    ok = writer.writeElement(meshId) == sizeof(meshId) && ok;
+    ok = writer.writeElement(vertexCount) == sizeof(vertexCount) && ok;
+    ok = writer.writeElement(indexCount) == sizeof(indexCount) && ok;
+    ok = writer.writeElement(drawType) == sizeof(drawType) && ok;
+    ok = attributes.write(writer) && ok;
+    return ok;
+  }
+};
+
+/// @ingroup meshmsg
+/// MeshResource redefinition message.
+struct MeshRedefineMessage : MeshCreateMessage
+{
+  /// ID for this message.
+  enum
+  {
+    MessageId = MmtRedefine
+  };
+};
+
+/// @ingroup meshmsg
+/// MeshResource destruction message.
+struct MeshDestroyMessage
+{
+  /// ID for this message.
+  enum
+  {
+    MessageId = MmtDestroy
   };
 
-  /// @ingroup meshmsg
-  /// Defines the primitives for a mesh.
-  enum DrawType
+  uint32_t meshId;
+
+  /// Read this message from @p reader.
+  /// @param reader The data source.
+  /// @return True on success.
+  inline bool read(PacketReader &reader)
   {
-    DtPoints,
-    DtLines,
-    DtTriangles,
-    /// Geometry shader based voxels. Vertices define the voxel centres, the normals define half extents.
-    DtVoxels,
-    //DtQuads,
-    //DtLineLoop,
+    bool ok = true;
+    ok = reader.readElement(meshId) == sizeof(meshId);
+    return ok;
+  }
+
+  /// Write this message to @p writer.
+  /// @param writer The target buffer.
+  /// @return True on success.
+  inline bool write(PacketWriter &writer) const
+  {
+    bool ok = true;
+    ok = writer.writeElement(meshId) == sizeof(meshId);
+    return ok;
+  }
+};
+
+/// @ingroup meshmsg
+/// Message structure for adding vertices, colours, indices, or UVs.
+struct MeshComponentMessage
+{
+  uint32_t meshId;
+  uint32_t offset;
+  uint32_t reserved;
+  uint16_t count;
+
+  /// Read this message from @p reader.
+  /// @param reader The data source.
+  /// @return True on success.
+  inline bool read(PacketReader &reader)
+  {
+    bool ok = true;
+    ok = reader.readElement(meshId) == sizeof(meshId) && ok;
+    ok = reader.readElement(offset) == sizeof(offset) && ok;
+    ok = reader.readElement(reserved) == sizeof(reserved) && ok;
+    ok = reader.readElement(count) == sizeof(count) && ok;
+    return ok;
+  }
+
+  /// Write this message to @p writer.
+  /// @param writer The target buffer.
+  /// @return True on success.
+  inline bool write(PacketWriter &writer) const
+  {
+    bool ok = true;
+    ok = writer.writeElement(meshId) == sizeof(meshId) && ok;
+    ok = writer.writeElement(offset) == sizeof(offset) && ok;
+    ok = writer.writeElement(reserved) == sizeof(reserved) && ok;
+    ok = writer.writeElement(count) == sizeof(count) && ok;
+    return ok;
+  }
+};
+
+/// @ingroup meshmsg
+/// Not ready for use.
+struct Material
+{
+  /// ID for this message.
+  enum
+  {
+    MessageId = MmtSetMaterial
   };
 
-  /// @ingroup meshmsg
-  /// MeshResource creation message.
-  struct MeshCreateMessage
+  uint32_t meshId;
+  uint32_t materialId;
+
+  /// Read this message from @p reader.
+  /// @param reader The data source.
+  /// @return True on success.
+  inline bool read(PacketReader &reader)
   {
-    /// ID for this message.
-    enum { MessageId = MmtCreate };
+    bool ok = true;
+    ok = reader.readElement(meshId) == sizeof(meshId) && ok;
+    ok = reader.readElement(materialId) == sizeof(materialId) && ok;
+    return ok;
+  }
 
-    uint32_t meshId;      ///< Mesh resource ID.
-    uint32_t vertexCount; ///< Total count.
-    uint32_t indexCount;  ///< Total index count.
-    uint8_t drawType;     ///< Topology: see @c DrawType.
-    ObjectAttributes attributes;  ///< Core attributes.
+  /// Write this message to @p writer.
+  /// @param writer The target buffer.
+  /// @return True on success.
+  inline bool write(PacketWriter &writer) const
+  {
+    bool ok = true;
+    ok = writer.writeElement(meshId) == sizeof(meshId) && ok;
+    ok = writer.writeElement(materialId) == sizeof(materialId) && ok;
+    return ok;
+  }
+};
 
-    /// Read this message from @p reader.
-    /// @param reader The data source.
-    /// @return True on success.
-    inline bool read(PacketReader &reader)
-    {
-      bool ok = true;
-      ok = reader.readElement(meshId) == sizeof(meshId) && ok;
-      ok = reader.readElement(vertexCount) == sizeof(vertexCount) && ok;
-      ok = reader.readElement(indexCount) == sizeof(indexCount) && ok;
-      ok = reader.readElement(drawType) == sizeof(drawType) && ok;
-      ok = attributes.read(reader) && ok;
-      return ok;
-    }
-
-    /// Write this message to @p writer.
-    /// @param writer The target buffer.
-    /// @return True on success.
-    inline bool write(PacketWriter &writer) const
-    {
-      bool ok = true;
-      ok = writer.writeElement(meshId) == sizeof(meshId) && ok;
-      ok = writer.writeElement(vertexCount) == sizeof(vertexCount) && ok;
-      ok = writer.writeElement(indexCount) == sizeof(indexCount) && ok;
-      ok = writer.writeElement(drawType) == sizeof(drawType) && ok;
-      ok = attributes.write(writer) && ok;
-      return ok;
-    }
+/// @ingroup meshmsg
+/// Message to finalise a mesh, ready for use.
+struct MeshFinaliseMessage
+{
+  /// ID for this message.
+  enum
+  {
+    MessageId = MmtFinalise
   };
 
-  /// @ingroup meshmsg
-  /// MeshResource redefinition message.
-  struct MeshRedefineMessage : MeshCreateMessage
+  uint32_t meshId;
+  uint32_t flags;  ///< @c MeshBuildFlags
+
+  /// Read this message from @p reader.
+  /// @param reader The data source.
+  /// @return True on success.
+  inline bool read(PacketReader &reader)
   {
-    /// ID for this message.
-    enum { MessageId = MmtRedefine };
-  };
+    bool ok = true;
+    ok = reader.readElement(meshId) == sizeof(meshId) && ok;
+    ok = reader.readElement(flags) == sizeof(flags) && ok;
+    return ok;
+  }
 
-  /// @ingroup meshmsg
-  /// MeshResource destruction message.
-  struct MeshDestroyMessage
+  /// Write this message to @p writer.
+  /// @param writer The target buffer.
+  /// @return True on success.
+  inline bool write(PacketWriter &writer) const
   {
-    /// ID for this message.
-    enum { MessageId = MmtDestroy };
+    bool ok = true;
+    ok = writer.writeElement(meshId) == sizeof(meshId) && ok;
+    ok = writer.writeElement(flags) == sizeof(flags) && ok;
+    return ok;
+  }
+};
+}  // namespace tes
 
-    uint32_t meshId;
-
-    /// Read this message from @p reader.
-    /// @param reader The data source.
-    /// @return True on success.
-    inline bool read(PacketReader &reader)
-    {
-      bool ok = true;
-      ok = reader.readElement(meshId) == sizeof(meshId);
-      return ok;
-    }
-
-    /// Write this message to @p writer.
-    /// @param writer The target buffer.
-    /// @return True on success.
-    inline bool write(PacketWriter &writer) const
-    {
-      bool ok = true;
-      ok = writer.writeElement(meshId) == sizeof(meshId);
-      return ok;
-    }
-  };
-
-  /// @ingroup meshmsg
-  /// Message structure for adding vertices, colours, indices, or UVs.
-  struct MeshComponentMessage
-  {
-    uint32_t meshId;
-    uint32_t offset;
-    uint32_t reserved;
-    uint16_t count;
-
-    /// Read this message from @p reader.
-    /// @param reader The data source.
-    /// @return True on success.
-    inline bool read(PacketReader &reader)
-    {
-      bool ok = true;
-      ok = reader.readElement(meshId) == sizeof(meshId) && ok;
-      ok = reader.readElement(offset) == sizeof(offset) && ok;
-      ok = reader.readElement(reserved) == sizeof(reserved) && ok;
-      ok = reader.readElement(count) == sizeof(count) && ok;
-      return ok;
-    }
-
-    /// Write this message to @p writer.
-    /// @param writer The target buffer.
-    /// @return True on success.
-    inline bool write(PacketWriter &writer) const
-    {
-      bool ok = true;
-      ok = writer.writeElement(meshId) == sizeof(meshId) && ok;
-      ok = writer.writeElement(offset) == sizeof(offset) && ok;
-      ok = writer.writeElement(reserved) == sizeof(reserved) && ok;
-      ok = writer.writeElement(count) == sizeof(count) && ok;
-      return ok;
-    }
-  };
-
-  /// @ingroup meshmsg
-  /// Not ready for use.
-  struct Material
-  {
-    /// ID for this message.
-    enum { MessageId = MmtSetMaterial };
-
-    uint32_t meshId;
-    uint32_t materialId;
-
-    /// Read this message from @p reader.
-    /// @param reader The data source.
-    /// @return True on success.
-    inline bool read(PacketReader &reader)
-    {
-      bool ok = true;
-      ok = reader.readElement(meshId) == sizeof(meshId) && ok;
-      ok = reader.readElement(materialId) == sizeof(materialId) && ok;
-      return ok;
-    }
-
-    /// Write this message to @p writer.
-    /// @param writer The target buffer.
-    /// @return True on success.
-    inline bool write(PacketWriter &writer) const
-    {
-      bool ok = true;
-      ok = writer.writeElement(meshId) == sizeof(meshId) && ok;
-      ok = writer.writeElement(materialId) == sizeof(materialId) && ok;
-      return ok;
-    }
-  };
-
-  /// @ingroup meshmsg
-  /// Message to finalise a mesh, ready for use.
-  struct MeshFinaliseMessage
-  {
-    /// ID for this message.
-    enum { MessageId = MmtFinalise };
-
-    uint32_t meshId;
-    uint32_t flags; ///< @c MeshBuildFlags
-
-    /// Read this message from @p reader.
-    /// @param reader The data source.
-    /// @return True on success.
-    inline bool read(PacketReader &reader)
-    {
-      bool ok = true;
-      ok = reader.readElement(meshId) == sizeof(meshId) && ok;
-      ok = reader.readElement(flags) == sizeof(flags) && ok;
-      return ok;
-    }
-
-    /// Write this message to @p writer.
-    /// @param writer The target buffer.
-    /// @return True on success.
-    inline bool write(PacketWriter &writer) const
-    {
-      bool ok = true;
-      ok = writer.writeElement(meshId) == sizeof(meshId) && ok;
-      ok = writer.writeElement(flags) == sizeof(flags) && ok;
-      return ok;
-    }
-  };
-}
-
-#endif // _3ESMESHHANDLERMESSAGES_H_
+#endif  // _3ESMESHHANDLERMESSAGES_H_

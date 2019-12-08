@@ -12,28 +12,25 @@
 
 namespace tes
 {
-  struct TcpSocketDetail
-  {
-    QTcpSocket *socket;
-    int readTimeout;
-    int writeTimeout;
+struct TcpSocketDetail
+{
+  QTcpSocket *socket;
+  int readTimeout;
+  int writeTimeout;
 
-    inline TcpSocketDetail()
-      : socket(nullptr)
-      , readTimeout(~0u)
-      , writeTimeout(~0u)
-   {}
+  inline TcpSocketDetail()
+    : socket(nullptr)
+    , readTimeout(~0u)
+    , writeTimeout(~0u)
+  {}
 
-    inline ~TcpSocketDetail()
-    {
-      delete socket;
-    }
-  };
+  inline ~TcpSocketDetail() { delete socket; }
+};
 
-  struct TcpListenSocketDetail
-  {
-    QTcpServer listenSocket;
-  };
-}
+struct TcpListenSocketDetail
+{
+  QTcpServer listenSocket;
+};
+}  // namespace tes
 
-#endif // _3ESTCPDETAIL_H_
+#endif  // _3ESTCPDETAIL_H_

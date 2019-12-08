@@ -5,10 +5,13 @@
 
 #define TES_ENABLE
 #ifdef TES_ENABLE
-namespace tes { class Server; }
+namespace tes
+{
+class Server;
+}
 extern tes::Server *g_tesServer;
-#endif // TES_ENABLE
+#endif  // TES_ENABLE
 
 #include "debugids.h"
 
-#endif // _3ES_OCCUPANCY_H_
+#endif  // _3ES_OCCUPANCY_H_

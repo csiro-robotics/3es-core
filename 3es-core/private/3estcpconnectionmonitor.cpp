@@ -25,8 +25,7 @@ TcpConnectionMonitor::TcpConnectionMonitor(TcpServer &server)
   , _running(false)
   , _quitFlag(false)
   , _thread(nullptr)
-{
-}
+{}
 
 
 TcpConnectionMonitor::~TcpConnectionMonitor()
@@ -98,7 +97,7 @@ bool TcpConnectionMonitor::start(Mode mode)
 
   case Asynchronous:
   {
-    delete _thread; // Pointer may linger after quit.
+    delete _thread;  // Pointer may linger after quit.
     _thread = new std::thread(std::bind(&TcpConnectionMonitor::monitorThread, this));
     // Wait for the thread to start. We look for _running or an _errorCode.
     auto waitStart = std::chrono::steady_clock::now();
@@ -106,7 +105,9 @@ bool TcpConnectionMonitor::start(Mode mode)
     while (!_running && !_errorCode && elapsedMs <= _server.settings().asyncTimeoutMs)
     {
       std::this_thread::yield();
-      elapsedMs = (unsigned)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - waitStart).count();
+      elapsedMs =
+        (unsigned)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - waitStart)
+          .count();
     }
 
     // Running will be true if the thread started ok.
@@ -189,7 +190,8 @@ int TcpConnectionMonitor::waitForConnection(unsigned timeoutMs)
   // Wait for start.
   if (mode() == tes::ConnectionMonitor::Asynchronous)
   {
-    while (!isRunning() && mode() != tes::ConnectionMonitor::None);
+    while (!isRunning() && mode() != tes::ConnectionMonitor::None)
+      ;
   }
 
   // Update connections if required.
@@ -206,7 +208,9 @@ int TcpConnectionMonitor::waitForConnection(unsigned timeoutMs)
     {
       std::this_thread::yield();
     }
-    timedout = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count() >= timeoutMs;
+    timedout =
+      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count() >=
+      timeoutMs;
     lock.lock();
     connectionCount = int(_connections.size());
     lock.unlock();
@@ -253,9 +257,9 @@ void TcpConnectionMonitor::monitorConnections()
       // On OSX, set send buffer size. Not sure automatic sizing is working.
       // Remove this code if it is.
       newSocket->setSendBufferSize(0xffff);
-#endif // __apple__
+#endif  // __apple__
 
-      TcpConnection* newConnection = new TcpConnection(newSocket, _server.settings());
+      TcpConnection *newConnection = new TcpConnection(newSocket, _server.settings());
       // Lock for new connection.
       lock.lock();
       _connections.push_back(newConnection);
@@ -280,7 +284,7 @@ Connection *TcpConnectionMonitor::openFileStream(const char *filePath)
 }
 
 
-void TcpConnectionMonitor::setConnectionCallback(void(*callback)(Server &, Connection &, void *), void *user)
+void TcpConnectionMonitor::setConnectionCallback(void (*callback)(Server &, Connection &, void *), void *user)
 {
   _onNewConnection = std::bind(callback, std::placeholders::_1, std::placeholders::_2, user);
 }

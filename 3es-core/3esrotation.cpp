@@ -1,9 +1,9 @@
-// 
+//
 // author: Kazys Stepanas
-// 
-#include "3esrotation.h" 
+//
+#include "3esrotation.h"
 
 namespace tes
 {
-  int suppressMsvcLinkWarning = 1;
+int suppressMsvcLinkWarning = 1;
 }

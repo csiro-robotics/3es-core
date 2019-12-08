@@ -8,13 +8,13 @@
 #include "3estcpdetail.h"
 
 #include <cerrno>
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 #include <thread>
 
 #ifdef WIN32
 #include <Ws2tcpip.h>
-#endif // WIN32
+#endif  // WIN32
 
 using namespace tes;
 
@@ -22,57 +22,55 @@ const unsigned TcpSocket::IndefiniteTimeout = ~unsigned(0u);
 
 namespace
 {
-  const char *socketErrorString(int err)
+const char *socketErrorString(int err)
+{
+  switch (err)
   {
-    switch (err)
-    {
-//    case EAGAIN:
-//      return "again";
-    case EWOULDBLOCK:
-      return "would block";
-    case EBADF:
-      return "bad socket";
-    case ECONNRESET:
-      return "connection reset";
-    case EINTR:
-      return "interrupt";
-    case EINVAL:
-      return "no out of bound data";
-    case ENOTCONN:
-      return "not connected";
-    case ENOTSOCK:
-      return "invalid socket descriptor";
-    case EOPNOTSUPP:
-      return "not supported";
-    case ETIMEDOUT:
-      return "timed out";
-    case EIO:
-      return "io error";
-    case ENOBUFS:
-      return "insufficient resources";
-    case ENOMEM:
-      return "out of memory";
-    case ECONNREFUSED:
-      return "connection refused";
-    default:
-      break;
-    }
-
-    return "unknown";
+    //    case EAGAIN:
+    //      return "again";
+  case EWOULDBLOCK:
+    return "would block";
+  case EBADF:
+    return "bad socket";
+  case ECONNRESET:
+    return "connection reset";
+  case EINTR:
+    return "interrupt";
+  case EINVAL:
+    return "no out of bound data";
+  case ENOTCONN:
+    return "not connected";
+  case ENOTSOCK:
+    return "invalid socket descriptor";
+  case EOPNOTSUPP:
+    return "not supported";
+  case ETIMEDOUT:
+    return "timed out";
+  case EIO:
+    return "io error";
+  case ENOBUFS:
+    return "insufficient resources";
+  case ENOMEM:
+    return "out of memory";
+  case ECONNREFUSED:
+    return "connection refused";
+  default:
+    break;
   }
+
+  return "unknown";
 }
+}  // namespace
 
 
 TcpSocket::TcpSocket()
   : _detail(new TcpSocketDetail)
-{
-}
+{}
 
 
 TcpSocket::TcpSocket(TcpSocketDetail *detail)
   : _detail(detail)
-{
-}
+{}
 
 
 TcpSocket::~TcpSocket()
@@ -121,7 +119,7 @@ bool TcpSocket::open(const char *host, unsigned short port)
   // Set non blocking.
   u_long iMode = 1;
   ::ioctlsocket(_detail->socket, FIONBIO, &iMode);
-#endif // WIN32
+#endif  // WIN32
 
   return true;
 }
@@ -247,7 +245,7 @@ int TcpSocket::read(char *buffer, int bufferLength) const
   }
 
   return bytesRead;
-#else  // #
+#else   // #
   if (_detail->socket == -1)
   {
     return -1;
@@ -264,7 +262,7 @@ int TcpSocket::read(char *buffer, int bufferLength) const
     return 0;
   }
   return read;
-#endif // #
+#endif  // #
 }
 
 
@@ -275,11 +273,11 @@ int TcpSocket::readAvailable(char *buffer, int bufferLength) const
     return -1;
   }
 
-//  tcpbase::disableBlocking(_detail->socket);
+  //  tcpbase::disableBlocking(_detail->socket);
   int flags = 0;
 #ifndef WIN32
   flags |= MSG_DONTWAIT;
-#endif // WIN32
+#endif  // WIN32
   int read = int(::recv(_detail->socket, buffer, unsigned(bufferLength), flags));
   if (read == -1)
   {
@@ -307,7 +305,7 @@ int TcpSocket::write(const char *buffer, int bufferLength) const
     int flags = 0;
 #ifdef __linux__
     flags = MSG_NOSIGNAL;
-#endif // __linux__
+#endif  // __linux__
     int sent;
     bool retry = true;
 
@@ -318,9 +316,9 @@ int TcpSocket::write(const char *buffer, int bufferLength) const
       sent = int(::send(_detail->socket, (char *)buffer + bytesSent, unsigned(bufferLength - bytesSent), flags));
 #ifdef WIN32
       if (sent < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
-#else  // WIN32
+#else   // WIN32
       if (sent < 0 && errno == EWOULDBLOCK)
-#endif // WIN32
+#endif  // WIN32
       {
         // Send buffer full. Wait and retry.
         std::this_thread::yield();

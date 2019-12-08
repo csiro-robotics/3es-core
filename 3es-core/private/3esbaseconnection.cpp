@@ -20,16 +20,16 @@ using namespace tes;
 
 namespace
 {
-  const float kSecondsToMicroseconds = 1e6;
+const float kSecondsToMicroseconds = 1e6;
 }
 
 BaseConnection::BaseConnection(const ServerSettings &settings)
-: _packet(nullptr)
-, _currentResource(new ResourcePacker)
-, _secondsToTimeUnit(0)
-, _serverFlags(settings.flags)
-, _collation(new CollatedPacket((settings.flags & SF_Compress) != 0))
-, _active(true)
+  : _packet(nullptr)
+  , _currentResource(new ResourcePacker)
+  , _secondsToTimeUnit(0)
+  , _serverFlags(settings.flags)
+  , _collation(new CollatedPacket((settings.flags & SF_Compress) != 0))
+  , _active(true)
 {
   _packetBuffer.resize(settings.clientBufferSize);
   _packet = new PacketWriter(_packetBuffer.data(), (uint16_t)_packetBuffer.size());
@@ -174,7 +174,7 @@ int BaseConnection::create(const Shape &shape)
     return 0;
   }
 
-  //std::lock_guard<Lock> guard(_lock);
+  // std::lock_guard<Lock> guard(_lock);
   std::lock_guard<Lock> guard(_packetLock);
   if (shape.writeCreate(*_packet))
   {
@@ -370,7 +370,7 @@ int BaseConnection::updateFrame(float dt, bool flush)
     return 0;
   }
 
-  //std::lock_guard<Lock> guard(_lock);
+  // std::lock_guard<Lock> guard(_lock);
   int wrote = -1;
   ControlMessage msg;
   msg.controlFlags = !flush * CFFramePersist;

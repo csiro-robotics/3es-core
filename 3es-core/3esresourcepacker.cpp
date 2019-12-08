@@ -13,10 +13,7 @@
 using namespace tes;
 
 ResourcePacker::ResourcePacker()
-  : _resource(nullptr)
-  , _progress(new TransferProgress)
-  , _lastCompletedId(0)
-  , _started(false)
+  : _progress(new TransferProgress)
 {
   _progress->reset();
 }
@@ -25,7 +22,6 @@ ResourcePacker::ResourcePacker()
 ResourcePacker::~ResourcePacker()
 {
   cancel();
-  delete _progress;
 }
 
 
@@ -75,5 +71,3 @@ bool ResourcePacker::nextPacket(PacketWriter &packet, unsigned byteLimit)
 
   return true;
 }
-
-

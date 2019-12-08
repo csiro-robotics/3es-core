@@ -10,30 +10,35 @@
 
 namespace tes
 {
-  class TcpSocket;
+class TcpSocket;
 
-  class TcpConnection : public BaseConnection
-  {
-  public:
-    /// Create a new connection using the given @p clientSocket.
-    /// @param clientSocket The socket to communicate on.
-    /// @param settings Various server settings to initialise with.
-    TcpConnection(TcpSocket *clientSocket, const ServerSettings &settings);
-    ~TcpConnection();
+/// A TCP based implementation of a 3es @c Connection. Each @c TcpConnection represents a remote client connection.
+///
+/// These connections are created by the @c TcpServer.
+class TcpConnection : public BaseConnection
+{
+public:
+  /// Create a new connection using the given @p clientSocket.
+  /// @param clientSocket The socket to communicate on.
+  /// @param settings Various server settings to initialise with.
+  TcpConnection(TcpSocket *clientSocket, const ServerSettings &settings);
 
-    /// Close the socket connection.
-    void close() override;
+  /// Destructor.s
+  ~TcpConnection();
 
-    const char *address() const override;
-    uint16_t port() const override;
-    bool isConnected() const override;
+  /// Close the socket connection.
+  void close() override;
 
-  protected:
-    int writeBytes(const uint8_t *data, int byteCount) override;
+  const char *address() const override;
+  uint16_t port() const override;
+  bool isConnected() const override;
 
-  private:
-    TcpSocket *_client;
-  };
-}
+protected:
+  int writeBytes(const uint8_t *data, int byteCount) override;
 
-#endif // _3ESTCPCONNECTION_H_
+private:
+  TcpSocket *_client;
+};
+}  // namespace tes
+
+#endif  // _3ESTCPCONNECTION_H_

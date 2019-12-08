@@ -14,72 +14,71 @@ using namespace tes;
 
 namespace
 {
-  template <typename T, int ELEMCOUNT = 1>
-  unsigned writeComponent(PacketWriter &packet, uint32_t meshId,
-                          uint32_t offset, unsigned byteLimit,
-                          const uint8_t *dataSource, unsigned dataStride,
-                          uint32_t componentCount)
+template <typename T, int ELEMCOUNT = 1>
+unsigned writeComponent(PacketWriter &packet, uint32_t meshId, uint32_t offset, unsigned byteLimit,
+                        const uint8_t *dataSource, unsigned dataStride, uint32_t componentCount)
+{
+  MeshComponentMessage msg;
+  const unsigned elementSize = sizeof(T) * ELEMCOUNT;
+  unsigned effectiveByteLimit;
+  if (packet.bytesRemaining() >= (sizeof(msg) + sizeof(PacketWriter::CrcType)))
   {
-    MeshComponentMessage msg;
-    const unsigned elementSize = sizeof(T) * ELEMCOUNT;
-    unsigned effectiveByteLimit;
-    if (packet.bytesRemaining() >= (sizeof(msg) + sizeof(PacketWriter::CrcType)))
-    {
-      effectiveByteLimit = packet.bytesRemaining() - unsigned(sizeof(msg) + sizeof(PacketWriter::CrcType));
-    }
-    else
-    {
-      effectiveByteLimit = 0;
-    }
-    // Truncate to 16-bits and allow for a fair amount of overhead.
-    // FIXME: Without the additional overhead I was getting missing messages at the client with
-    // no obvious error path.
-    byteLimit = std::min(byteLimit, 0xff00u);
-    effectiveByteLimit = byteLimit ? std::min(effectiveByteLimit, byteLimit) : effectiveByteLimit;
-    uint16_t transferCount = MeshResource::estimateTransferCount(elementSize, effectiveByteLimit, int(sizeof(MeshComponentMessage)));
-    if (transferCount > componentCount - offset)
-    {
-      transferCount = uint16_t(componentCount - offset);
-    }
-
-    msg.meshId = meshId;
-    msg.offset = offset;
-    msg.reserved = 0;
-    msg.count = transferCount;
-
-    unsigned written = msg.write(packet);
-    // Jump to offset.
-    dataSource += dataStride * offset;
-    for (unsigned i = 0; i < transferCount; ++i)
-    {
-      const T *element = reinterpret_cast<const T *>(dataSource);
-      written = unsigned(packet.writeArray(element, ELEMCOUNT));
-      if (written !=  ELEMCOUNT)
-      {
-        return i;
-      }
-      dataSource += dataStride;
-    }
-
-    return transferCount;
+    effectiveByteLimit = packet.bytesRemaining() - unsigned(sizeof(msg) + sizeof(PacketWriter::CrcType));
+  }
+  else
+  {
+    effectiveByteLimit = 0;
+  }
+  // Truncate to 16-bits and allow for a fair amount of overhead.
+  // FIXME: Without the additional overhead I was getting missing messages at the client with
+  // no obvious error path.
+  byteLimit = std::min(byteLimit, 0xff00u);
+  effectiveByteLimit = byteLimit ? std::min(effectiveByteLimit, byteLimit) : effectiveByteLimit;
+  uint16_t transferCount =
+    MeshResource::estimateTransferCount(elementSize, effectiveByteLimit, int(sizeof(MeshComponentMessage)));
+  if (transferCount > componentCount - offset)
+  {
+    transferCount = uint16_t(componentCount - offset);
   }
 
+  msg.meshId = meshId;
+  msg.offset = offset;
+  msg.reserved = 0;
+  msg.count = transferCount;
 
- template <typename T, int ELEMSTRIDE = 1>
- bool readComponent(PacketReader &packet, MeshComponentMessage &msg, std::vector<T> &elements)
+  unsigned written = msg.write(packet);
+  // Jump to offset.
+  dataSource += dataStride * offset;
+  for (unsigned i = 0; i < transferCount; ++i)
   {
-    if (!msg.read(packet))
+    const T *element = reinterpret_cast<const T *>(dataSource);
+    written = unsigned(packet.writeArray(element, ELEMCOUNT));
+    if (written != ELEMCOUNT)
     {
-      return false;
+      return i;
     }
-
-    bool ok = true;
-    elements.resize(msg.count * ELEMSTRIDE);
-    ok = ok && packet.readArray(elements.data(), msg.count * ELEMSTRIDE) == msg.count * ELEMSTRIDE;
-
-    return ok;
+    dataSource += dataStride;
   }
+
+  return transferCount;
 }
+
+
+template <typename T, int ELEMSTRIDE = 1>
+bool readComponent(PacketReader &packet, MeshComponentMessage &msg, std::vector<T> &elements)
+{
+  if (!msg.read(packet))
+  {
+    return false;
+  }
+
+  bool ok = true;
+  elements.resize(msg.count * ELEMSTRIDE);
+  ok = ok && packet.readArray(elements.data(), msg.count * ELEMSTRIDE) == msg.count * ELEMSTRIDE;
+
+  return ok;
+}
+}  // namespace
 
 
 uint16_t MeshResource::estimateTransferCount(size_t elementSize, unsigned byteLimit, unsigned overhead)
@@ -150,7 +149,7 @@ int MeshResource::destroy(PacketWriter &packet) const
 
 int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferProgress &progress) const
 {
-  //packet.reset(typeId(), 0);
+  // packet.reset(typeId(), 0);
   if (progress.phase == 0)
   {
     // Initialise phase.
@@ -168,9 +167,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     dataSource = reinterpret_cast<const uint8_t *>(vertices(dataStride));
     targetCount = vertexCount();
     packet.reset(typeId(), MmtVertex);
-    writeCount = writeComponent<float, 3>(packet, id(),
-                                          (uint32_t)progress.progress, byteLimit,
-                                          dataSource, dataStride,
+    writeCount = writeComponent<float, 3>(packet, id(), (uint32_t)progress.progress, byteLimit, dataSource, dataStride,
                                           targetCount);
     break;
 
@@ -178,9 +175,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     dataSource = reinterpret_cast<const uint8_t *>(colours(dataStride));
     targetCount = vertexCount();
     packet.reset(typeId(), MmtVertexColour);
-    writeCount = writeComponent<uint32_t>(packet, id(),
-                                          (uint32_t)progress.progress, byteLimit,
-                                          dataSource, dataStride,
+    writeCount = writeComponent<uint32_t>(packet, id(), (uint32_t)progress.progress, byteLimit, dataSource, dataStride,
                                           targetCount);
     break;
 
@@ -196,10 +191,8 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     }
     targetCount = indexCount();
     packet.reset(typeId(), MmtIndex);
-    writeCount = writeIndices(packet, id(), (uint32_t)progress.progress,
-                              byteLimit,
-                              dataSource, dataStride, width,
-                              targetCount);
+    writeCount =
+      writeIndices(packet, id(), (uint32_t)progress.progress, byteLimit, dataSource, dataStride, width, targetCount);
     break;
   }
 
@@ -207,9 +200,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     dataSource = reinterpret_cast<const uint8_t *>(normals(dataStride));
     targetCount = vertexCount();
     packet.reset(typeId(), MmtNormal);
-    writeCount = writeComponent<float, 3>(packet, id(),
-                                          (uint32_t)progress.progress, byteLimit,
-                                          dataSource, dataStride,
+    writeCount = writeComponent<float, 3>(packet, id(), (uint32_t)progress.progress, byteLimit, dataSource, dataStride,
                                           targetCount);
     break;
 
@@ -217,24 +208,22 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     dataSource = reinterpret_cast<const uint8_t *>(uvs(dataStride));
     targetCount = vertexCount();
     packet.reset(typeId(), MmtUv);
-    writeCount = writeComponent<float, 3>(packet, id(),
-                                          (uint32_t)progress.progress, byteLimit,
-                                          dataSource, dataStride,
+    writeCount = writeComponent<float, 3>(packet, id(), (uint32_t)progress.progress, byteLimit, dataSource, dataStride,
                                           targetCount);
     break;
 
   case MmtFinalise:
-    {
-      MeshFinaliseMessage msg;
-      unsigned stride = 0;
-      packet.reset(typeId(), MeshFinaliseMessage::MessageId);
-      msg.meshId = id();
-      msg.flags = (normals(stride) == nullptr) ? MbfCalculateNormals : 0;
-      msg.write(packet);
-      // Mark complete.
-      progress.complete = true;
-    }
-    break;
+  {
+    MeshFinaliseMessage msg;
+    unsigned stride = 0;
+    packet.reset(typeId(), MeshFinaliseMessage::MessageId);
+    msg.meshId = id();
+    msg.flags = (normals(stride) == nullptr) ? MbfCalculateNormals : 0;
+    msg.write(packet);
+    // Mark complete.
+    progress.complete = true;
+  }
+  break;
 
   default:
     // Unknown state really.
@@ -253,10 +242,9 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
 }
 
 
-unsigned MeshResource::writeIndices(PacketWriter &packet, uint32_t meshId,
-                                    uint32_t offset, unsigned byteLimit,
-                                    const uint8_t *dataSource, unsigned dataStride,
-                                    unsigned indexByteWidth, uint32_t componentCount)
+unsigned MeshResource::writeIndices(PacketWriter &packet, uint32_t meshId, uint32_t offset, unsigned byteLimit,
+                                    const uint8_t *dataSource, unsigned dataStride, unsigned indexByteWidth,
+                                    uint32_t componentCount)
 {
   uint32_t index;
   MeshComponentMessage msg;
@@ -286,13 +274,13 @@ unsigned MeshResource::writeIndices(PacketWriter &packet, uint32_t meshId,
   msg.reserved = 0;
   msg.count = transferCount;
 
-  //printf("MeshResource indices: %d : %d\n", msg.messageId, componentCount);
+  // printf("MeshResource indices: %d : %d\n", msg.messageId, componentCount);
   unsigned write;
   write = msg.write(packet);
 
   // FIXME: should write the index width.
   // Jump to offset.
-  dataSource += dataStride *offset;
+  dataSource += dataStride * offset;
   if (indexByteWidth == 1)
   {
     for (unsigned i = 0; i < transferCount; ++i)
@@ -321,28 +309,22 @@ unsigned MeshResource::writeIndices(PacketWriter &packet, uint32_t meshId,
 }
 
 
-unsigned MeshResource::writeVectors3(PacketWriter &packet, uint32_t meshId,
-                                     uint32_t offset, unsigned byteLimit,
-                                     const uint8_t *dataSource, unsigned dataStride,
-                                     uint32_t componentCount)
+unsigned MeshResource::writeVectors3(PacketWriter &packet, uint32_t meshId, uint32_t offset, unsigned byteLimit,
+                                     const uint8_t *dataSource, unsigned dataStride, uint32_t componentCount)
 {
   return writeComponent<float, 3>(packet, meshId, offset, byteLimit, dataSource, dataStride, componentCount);
 }
 
 
-unsigned MeshResource::writeVectors2(PacketWriter &packet, uint32_t meshId,
-                                     uint32_t offset, unsigned byteLimit,
-                                     const uint8_t *dataSource, unsigned dataStride,
-                                     uint32_t componentCount)
+unsigned MeshResource::writeVectors2(PacketWriter &packet, uint32_t meshId, uint32_t offset, unsigned byteLimit,
+                                     const uint8_t *dataSource, unsigned dataStride, uint32_t componentCount)
 {
   return writeComponent<float, 2>(packet, meshId, offset, byteLimit, dataSource, dataStride, componentCount);
 }
 
 
-unsigned MeshResource::writeColours(PacketWriter &packet, uint32_t meshId,
-                                    uint32_t offset, unsigned byteLimit,
-                                    const uint8_t *dataSource, unsigned dataStride,
-                                    uint32_t componentCount)
+unsigned MeshResource::writeColours(PacketWriter &packet, uint32_t meshId, uint32_t offset, unsigned byteLimit,
+                                    const uint8_t *dataSource, unsigned dataStride, uint32_t componentCount)
 {
   return writeComponent<uint32_t>(packet, meshId, offset, byteLimit, dataSource, dataStride, componentCount);
 }
@@ -380,27 +362,27 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
     {
       switch (indexWidth)
       {
-        case 1:
-        {
-          std::vector<uint8_t> indices;
-          ok = readComponent<uint8_t>(packet, msg, indices);
-          ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
-          break;
-        }
-        case 2:
-        {
-          std::vector<uint16_t> indices;
-          ok = readComponent<uint16_t>(packet, msg, indices);
-          ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
-          break;
-        }
-        case 4:
-        {
-          std::vector<uint32_t> indices;
-          ok = readComponent<uint32_t>(packet, msg, indices);
-          ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
-          break;
-        }
+      case 1:
+      {
+        std::vector<uint8_t> indices;
+        ok = readComponent<uint8_t>(packet, msg, indices);
+        ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
+        break;
+      }
+      case 2:
+      {
+        std::vector<uint16_t> indices;
+        ok = readComponent<uint16_t>(packet, msg, indices);
+        ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
+        break;
+      }
+      case 4:
+      {
+        std::vector<uint32_t> indices;
+        ok = readComponent<uint32_t>(packet, msg, indices);
+        ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
+        break;
+      }
       }
     }
     else

@@ -12,29 +12,29 @@ using namespace tes::sphere;
 
 namespace
 {
-  /// Add a vertex to @p points, reusing an existing vertex is a matching one is found.
-  ///
-  /// This first searches for a matching vertex in @p point and returns its index if found.
-  /// Otherwise a new vertex is added.
-  ///
-  /// @param vertex The vertex to add.
-  /// @param vertices The vertex data to add to.
-  /// @return The index which can be used to refer to the target vertex.
-  unsigned insertVertex(const Vector3f &vertex, std::vector<Vector3f> &vertices, SphereVertexMap &vertexMap)
+/// Add a vertex to @p points, reusing an existing vertex is a matching one is found.
+///
+/// This first searches for a matching vertex in @p point and returns its index if found.
+/// Otherwise a new vertex is added.
+///
+/// @param vertex The vertex to add.
+/// @param vertices The vertex data to add to.
+/// @return The index which can be used to refer to the target vertex.
+unsigned insertVertex(const Vector3f &vertex, std::vector<Vector3f> &vertices, SphereVertexMap &vertexMap)
+{
+  auto findResult = vertexMap.find(vertex);
+  if (findResult == vertexMap.end())
   {
-    auto findResult = vertexMap.find(vertex);
-    if (findResult == vertexMap.end())
-    {
-      // Add new vertex.
-      unsigned idx = unsigned(vertices.size());
-      vertices.push_back(vertex);
-      vertexMap.insert(std::make_pair(vertex, idx));
-      return idx;
-    }
-
-    return findResult->second;
+    // Add new vertex.
+    unsigned idx = unsigned(vertices.size());
+    vertices.push_back(vertex);
+    vertexMap.insert(std::make_pair(vertex, idx));
+    return idx;
   }
+
+  return findResult->second;
 }
+}  // namespace
 
 
 void tes::sphere::initialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
@@ -51,8 +51,7 @@ void tes::sphere::initialise(std::vector<Vector3f> &vertices, std::vector<unsign
   static const float ringRadius = std::cos(ringControlAngle);
   static const float hexAngle = 2.0f * float(M_PI) / 6.0f;
   static const float ring2OffsetAngle = 0.5f * hexAngle;
-  static const Vector3f initialVertices[] =
-  {
+  static const Vector3f initialVertices[] = {
     Vector3f(0, 0, 1),
 
     // Upper hexagon.
@@ -65,26 +64,28 @@ void tes::sphere::initialise(std::vector<Vector3f> &vertices, std::vector<unsign
 
     // Lower hexagon.
     Vector3f(ringRadius * std::cos(ring2OffsetAngle), ringRadius * std::sin(ring2OffsetAngle), -ringHeight),
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle + hexAngle), ringRadius * std::sin(ring2OffsetAngle + hexAngle), -ringHeight),
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 2 * hexAngle), ringRadius * std::sin(ring2OffsetAngle + 2 * hexAngle), -ringHeight),
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 3 * hexAngle), ringRadius * std::sin(ring2OffsetAngle + 3 * hexAngle), -ringHeight),
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 4 * hexAngle), ringRadius * std::sin(ring2OffsetAngle + 4 * hexAngle), -ringHeight),
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 5 * hexAngle), ringRadius * std::sin(ring2OffsetAngle + 5 * hexAngle), -ringHeight),
+    Vector3f(ringRadius * std::cos(ring2OffsetAngle + hexAngle), ringRadius * std::sin(ring2OffsetAngle + hexAngle),
+             -ringHeight),
+    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 2 * hexAngle),
+             ringRadius * std::sin(ring2OffsetAngle + 2 * hexAngle), -ringHeight),
+    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 3 * hexAngle),
+             ringRadius * std::sin(ring2OffsetAngle + 3 * hexAngle), -ringHeight),
+    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 4 * hexAngle),
+             ringRadius * std::sin(ring2OffsetAngle + 4 * hexAngle), -ringHeight),
+    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 5 * hexAngle),
+             ringRadius * std::sin(ring2OffsetAngle + 5 * hexAngle), -ringHeight),
 
     Vector3f(0, 0, -1),
   };
   const unsigned initialVertexCount = sizeof(initialVertices) / sizeof(initialVertices[0]);
 
-  const unsigned initialIndices[] =
-  {
-    0, 1, 2,    0, 2, 3,    0, 3, 4,    0, 4, 5,    0, 5, 6,    0, 6, 1,
+  const unsigned initialIndices[] = { 0, 1,  2, 0, 2,  3, 0, 3,  4,  0,  4,  5,  0,  5,  6,  0,  6,  1,
 
-    1, 7, 2,    2, 8, 3,    3, 9, 4,    4, 10, 5,   5, 11, 6,   6, 12, 1,
+                                      1, 7,  2, 2, 8,  3, 3, 9,  4,  4,  10, 5,  5,  11, 6,  6,  12, 1,
 
-    7, 8, 2,    8, 9, 3,    9, 10, 4,   10, 11, 5,  11, 12, 6,  12, 7, 1,
+                                      7, 8,  2, 8, 9,  3, 9, 10, 4,  10, 11, 5,  11, 12, 6,  12, 7,  1,
 
-    7, 13, 8,   8, 13, 9,   9, 13, 10,  10, 13, 11, 11, 13, 12, 12, 13, 7
-  };
+                                      7, 13, 8, 8, 13, 9, 9, 13, 10, 10, 13, 11, 11, 13, 12, 12, 13, 7 };
   const unsigned initialIndexCount = sizeof(initialIndices) / sizeof(initialIndices[0]);
 
   for (unsigned i = 0; i < initialVertexCount; ++i)

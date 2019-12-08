@@ -13,7 +13,6 @@
 using namespace tes;
 
 
-
 PointCloudShape::~PointCloudShape()
 {
   freeIndices(_indices);

@@ -13,13 +13,13 @@
 
 #ifdef __GNUC__
 #define TES_FALLTHROUGH [[clang::fallthrough]]
-#endif // __GNUC__
+#endif  // __GNUC__
 
 
 // Fall back definitions.
 #ifndef TES_FALLTHROUGH
 /// Use this macro at the end of a switch statement case which is to fall through without a break.
 #define TES_FALLTHROUGH
-#endif // TES_FALLTHROUGH
+#endif  // TES_FALLTHROUGH
 
-#endif // _3ESMETA_H_
+#endif  // _3ESMETA_H_

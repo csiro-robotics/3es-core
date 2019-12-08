@@ -1,7 +1,7 @@
 #include "3esframedisplay.h"
 
-#include <cstdio>
 #include <chrono>
+#include <cstdio>
 #include <functional>
 
 using namespace tes;
@@ -9,8 +9,7 @@ using namespace tes;
 FrameDisplay::FrameDisplay()
   : _frameNumber(0)
   , _quit(false)
-{
-}
+{}
 
 
 FrameDisplay::~FrameDisplay()
@@ -72,5 +71,4 @@ void FrameDisplay::run()
     printf("\r                    ");
     printf("\r%" PRId64, finalFrame);
   }
-
 }

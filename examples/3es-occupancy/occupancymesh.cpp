@@ -17,7 +17,7 @@ struct OccupancyMeshDetail
   // Define the render extents for the voxels.
   std::vector<tes::Vector3f> normals;
   std::vector<uint32_t> colours;
-  //std::vector<uint32_t> indices;
+  // std::vector<uint32_t> indices;
   /// Tracks indices of unused vertices in the vertex array.
   std::vector<uint32_t> unusedVertexList;
   /// Maps voxel keys to their vertex indices.
@@ -26,27 +26,27 @@ struct OccupancyMeshDetail
 
 namespace
 {
-  // bool validateVertex(const Vector3f &v)
-  // {
-  //   for (int i = 0; i < 3; ++i)
-  //   {
-  //     if (std::abs(v[i]) > 1e6f)
-  //     {
-  //       return false;
-  //     }
-  //   }
-  //   return true;
-  // }
+// bool validateVertex(const Vector3f &v)
+// {
+//   for (int i = 0; i < 3; ++i)
+//   {
+//     if (std::abs(v[i]) > 1e6f)
+//     {
+//       return false;
+//     }
+//   }
+//   return true;
+// }
 
 
-  uint32_t nodeColour(const octomap::OcTree::NodeType *node, const octomap::OcTree &map)
-  {
-    const float intensity = float((node->getOccupancy() - map.getOccupancyThres()) / (1.0 - map.getOccupancyThres()));
-    //const float intensity = (node) ? float(node->getOccupancy()) : 0;
-    const int c = int(255 * intensity);
-    return tes::Colour(c, c, c).c;
-  }
+uint32_t nodeColour(const octomap::OcTree::NodeType *node, const octomap::OcTree &map)
+{
+  const float intensity = float((node->getOccupancy() - map.getOccupancyThres()) / (1.0 - map.getOccupancyThres()));
+  // const float intensity = (node) ? float(node->getOccupancy()) : 0;
+  const int c = int(255 * intensity);
+  return tes::Colour(c, c, c).c;
 }
+}  // namespace
 
 OccupancyMesh::OccupancyMesh(unsigned meshId, octomap::OcTree &map)
   : _map(map)
@@ -99,12 +99,12 @@ unsigned OccupancyMesh::vertexCount(int stream) const
 unsigned OccupancyMesh::indexCount(int stream) const
 {
   TES_UNUSED(stream);
-  //return (unsigned)_detail->indices.size();
+  // return (unsigned)_detail->indices.size();
   return 0;
 }
 
 
-const float * OccupancyMesh::vertices(unsigned & stride, int stream) const
+const float *OccupancyMesh::vertices(unsigned &stride, int stream) const
 {
   TES_UNUSED(stream);
   stride = sizeof(Vector3f);
@@ -112,17 +112,17 @@ const float * OccupancyMesh::vertices(unsigned & stride, int stream) const
 }
 
 
-const uint8_t * OccupancyMesh::indices(unsigned & stride, unsigned & width, int stream) const
+const uint8_t *OccupancyMesh::indices(unsigned &stride, unsigned &width, int stream) const
 {
   TES_UNUSED(stride);
   TES_UNUSED(width);
   TES_UNUSED(stream);
-  //width = stride = sizeof(IndexType);
-  //return (!_detail->indices.empty()) ? reinterpret_cast<const uint8_t *>(_detail->indices.data()) : nullptr;
+  // width = stride = sizeof(IndexType);
+  // return (!_detail->indices.empty()) ? reinterpret_cast<const uint8_t *>(_detail->indices.data()) : nullptr;
   return nullptr;
 }
 
-const float * OccupancyMesh::normals(unsigned &stride, int stream) const
+const float *OccupancyMesh::normals(unsigned &stride, int stream) const
 {
   TES_UNUSED(stream);
   stride = sizeof(Vector3f);
@@ -130,7 +130,7 @@ const float * OccupancyMesh::normals(unsigned &stride, int stream) const
 }
 
 
-const float * OccupancyMesh::uvs(unsigned &stride, int stream) const
+const float *OccupancyMesh::uvs(unsigned &stride, int stream) const
 {
   TES_UNUSED(stream);
   TES_UNUSED(stride);
@@ -138,7 +138,7 @@ const float * OccupancyMesh::uvs(unsigned &stride, int stream) const
 }
 
 
-const uint32_t * OccupancyMesh::colours(unsigned &stride, int stream) const
+const uint32_t *OccupancyMesh::colours(unsigned &stride, int stream) const
 {
   TES_UNUSED(stream);
   stride = sizeof(uint32_t);
@@ -153,7 +153,7 @@ tes::Resource *OccupancyMesh::clone() const
 }
 
 
-int OccupancyMesh::transfer(tes::PacketWriter & packet, unsigned byteLimit, tes::TransferProgress & progress) const
+int OccupancyMesh::transfer(tes::PacketWriter &packet, unsigned byteLimit, tes::TransferProgress &progress) const
 {
   // Build the voxel set if required.
   if (_detail->voxelIndexMap.empty())
@@ -178,8 +178,8 @@ int OccupancyMesh::transfer(tes::PacketWriter & packet, unsigned byteLimit, tes:
 }
 
 
-
-void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const UnorderedKeySet &newlyFree, const UnorderedKeySet &touchedOccupied)
+void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const UnorderedKeySet &newlyFree,
+                           const UnorderedKeySet &touchedOccupied)
 {
   if (newlyOccupied.empty() && newlyFree.empty() && touchedOccupied.empty())
   {
@@ -229,7 +229,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
     ++occupiedIter;
     ++processedOccupiedCount;
     _detail->vertices[vertexIndex] = p2p(_map.keyToCoord(key));
-    //validateVertex(_detail->vertices[vertexIndex]);
+    // validateVertex(_detail->vertices[vertexIndex]);
     _detail->colours[vertexIndex] = nodeColour(node, _map);
     _detail->voxelIndexMap.insert(std::make_pair(key, vertexIndex));
     // Only mark as modified if this vertex wasn't just invalidate by removal.
@@ -303,7 +303,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
     _detail->voxelIndexMap.insert(std::make_pair(key, vertexIndex));
     //_detail->indices.push_back(uint32_t(_detail->vertices.size()));
     _detail->vertices.push_back(p2p(_map.keyToCoord(key)));
-    //validateVertex(_detail->vertices.back());
+    // validateVertex(_detail->vertices.back());
     // Normals represent voxel half extents.
     _detail->normals.push_back(Vector3f(float(0.5f * _map.getResolution())));
     _detail->colours.push_back(0xffffffffu);
@@ -369,11 +369,11 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
   // Finalise the modifications.
   finalmsg.meshId = _id;
   // Rely on EDL shader.
-  finalmsg.flags = 0;// tes::MbfCalculateNormals;
+  finalmsg.flags = 0;  // tes::MbfCalculateNormals;
   packet.reset(tes::MtMesh, finalmsg.MessageId);
   finalmsg.write(packet);
   packet.finalise();
   g_tesServer->send(packet);
 }
 
-#endif // TES_ENABLE
+#endif  // TES_ENABLE

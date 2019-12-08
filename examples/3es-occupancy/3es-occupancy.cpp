@@ -28,130 +28,129 @@ TES_SERVER_DECL(g_tesServer);
 
 namespace
 {
-  bool quit = false;
+bool quit = false;
 
-  void onSignal(int arg)
+void onSignal(int arg)
+{
+  if (arg == SIGINT || arg == SIGTERM)
   {
-    if (arg == SIGINT || arg == SIGTERM)
-    {
-      quit = true;
-    }
+    quit = true;
+  }
+}
+
+
+enum RayLevel
+{
+  Rays_Off,
+  Rays_Lines = (1 << 0),
+  Rays_Voxels = (1 << 1),
+  Rays_All = Rays_Lines | Rays_Voxels
+};
+
+
+enum SampleLevel
+{
+  Samples_Off,
+  Samples_Voxels = (1 << 0),
+  Samples_Points = (1 << 1),
+  Samples_All = Samples_Voxels | Samples_Points
+};
+
+
+struct Options
+{
+  std::string cloudFile;
+  std::string trajectoryFile;
+  uint64_t pointLimit;
+  double startTime;
+  double endTime;
+  float resolution;
+  float probHit;
+  float probMiss;
+  unsigned batchSize;
+  int rays;
+  int samples;
+  bool quiet;
+
+  inline Options()
+    : pointLimit(0)
+    , startTime(0)
+    , endTime(0)
+    , resolution(0.1f)
+    , probHit(0.7f)
+    , probMiss(0.49f)
+    , batchSize(1000)
+    , rays(Rays_Lines)
+    , samples(Samples_Voxels)
+    , quiet(false)
+  {}
+};
+
+typedef std::unordered_set<octomap::OcTreeKey, octomap::OcTreeKey::KeyHash> KeySet;
+
+
+bool matchArg(const char *arg, const char *expect)
+{
+  return strncmp(arg, expect, strlen(expect)) == 0;
+}
+
+bool optionValue(const char *arg, int argc, char *argv[], std::string &value)
+{
+  TES_UNUSED(argc);
+  TES_UNUSED(argv);
+  if (*arg == '=')
+  {
+    ++arg;
+  }
+  value = arg;
+  return true;
+}
+
+template <typename NUMERIC>
+bool optionValue(const char *arg, int argc, char *argv[], NUMERIC &value)
+{
+  std::string strValue;
+  if (optionValue(arg, argc, argv, strValue))
+  {
+    std::istringstream instr(strValue);
+    instr >> value;
+    return !instr.fail();
   }
 
+  return false;
+}
 
-  enum RayLevel
+
+void shiftToSet(UnorderedKeySet &dst, UnorderedKeySet &src, const octomap::OcTreeKey &key)
+{
+  auto iter = src.find(key);
+  if (iter != src.end())
   {
-    Rays_Off,
-    Rays_Lines = (1 << 0),
-    Rays_Voxels = (1 << 1),
-    Rays_All = Rays_Lines | Rays_Voxels
-  };
-
-
-  enum SampleLevel
-  {
-    Samples_Off,
-    Samples_Voxels = (1 << 0),
-    Samples_Points = (1 << 1),
-    Samples_All = Samples_Voxels | Samples_Points
-  };
-
-
-  struct Options
-  {
-    std::string cloudFile;
-    std::string trajectoryFile;
-    uint64_t pointLimit;
-    double startTime;
-    double endTime;
-    float resolution;
-    float probHit;
-    float probMiss;
-    unsigned batchSize;
-    int rays;
-    int samples;
-    bool quiet;
-
-    inline Options()
-      : pointLimit(0)
-      , startTime(0)
-      , endTime(0)
-      , resolution(0.1f)
-      , probHit(0.7f)
-      , probMiss(0.49f)
-      , batchSize(1000)
-      , rays(Rays_Lines)
-      , samples(Samples_Voxels)
-      , quiet(false)
-    {}
-  };
-
-  typedef std::unordered_set<octomap::OcTreeKey, octomap::OcTreeKey::KeyHash> KeySet;
-
-
-  bool matchArg(const char *arg, const char *expect)
-  {
-    return strncmp(arg, expect, strlen(expect)) == 0;
+    src.erase(iter);
   }
-
-  bool optionValue(const char *arg, int argc, char *argv[], std::string &value)
-  {
-    TES_UNUSED(argc);
-    TES_UNUSED(argv);
-    if (*arg == '=')
-    {
-      ++arg;
-    }
-    value = arg;
-    return true;
-  }
-
-  template <typename NUMERIC>
-  bool optionValue(const char *arg, int argc, char *argv[], NUMERIC &value)
-  {
-    std::string strValue;
-    if (optionValue(arg, argc, argv, strValue))
-    {
-      std::istringstream instr(strValue);
-      instr >> value;
-      return !instr.fail();
-    }
-
-    return false;
-  }
-
-
-  void shiftToSet(UnorderedKeySet &dst, UnorderedKeySet &src, const octomap::OcTreeKey &key)
-  {
-    auto iter = src.find(key);
-    if (iter != src.end())
-    {
-      src.erase(iter);
-    }
-    dst.insert(key);
-  }
+  dst.insert(key);
+}
 
 #ifdef TES_ENABLE
-  void renderVoxels(const UnorderedKeySet &keys, const octomap::OcTree &map, const tes::Colour &colour, uint16_t category)
+void renderVoxels(const UnorderedKeySet &keys, const octomap::OcTree &map, const tes::Colour &colour, uint16_t category)
+{
+  // Convert to voxel centres.
+  if (!keys.empty())
   {
-    // Convert to voxel centres.
-    if (!keys.empty())
+    std::vector<Vector3f> centres(keys.size());
+    size_t index = 0;
+    for (auto key : keys)
     {
-      std::vector<Vector3f> centres(keys.size());
-      size_t index = 0;
-      for (auto key : keys)
-      {
-        centres[index++] = p2p(map.keyToCoord(key));
-      }
-
-      // Render slightly smaller than the actual voxel size.
-      TES_VOXELS(g_tesServer, colour, 0.95f * float(map.getResolution()),
-                 centres.data()->v, unsigned(centres.size()), sizeof(*centres.data()),
-                 0u, category);
+      centres[index++] = p2p(map.keyToCoord(key));
     }
+
+    // Render slightly smaller than the actual voxel size.
+    TES_VOXELS(g_tesServer, colour, 0.95f * float(map.getResolution()), centres.data()->v, unsigned(centres.size()),
+               sizeof(*centres.data()), 0u, category);
   }
-#endif // TES_ENABLE
 }
+#endif  // TES_ENABLE
+}  // namespace
 
 
 int populateMap(const Options &opt)
@@ -188,14 +187,14 @@ int populateMap(const Options &opt)
   std::vector<Vector3f> rays;
   std::vector<Vector3f> samples;
   OccupancyMesh mapMesh(RES_MapMesh, map);
-#endif // TES_ENABLE
+#endif  // TES_ENABLE
 
   map.setProbHit(opt.probHit);
   map.setProbMiss(opt.probMiss);
 
   // Prevent ready saturation to free.
   map.setClampingThresMin(0.01);
-  //printf("min: %g\n", map.getClampingThresMinLog());
+  // printf("min: %g\n", map.getClampingThresMinLog());
 
   TES_POINTCLOUDSHAPE(g_tesServer, TES_COLOUR(SteelBlue), &mapMesh, RES_Map, CAT_Map);
   // Ensure mesh is created for later update.
@@ -233,10 +232,7 @@ int populateMap(const Options &opt)
       TES_STMT(rays.push_back(origin));
       TES_STMT(rays.push_back(sample));
     }
-    TES_IF(opt.samples & Samples_Points)
-    {
-      TES_STMT(samples.push_back(sample));
-    }
+    TES_IF(opt.samples & Samples_Points) { TES_STMT(samples.push_back(sample)); }
 
     if (firstBatchTimestamp < 0)
     {
@@ -258,7 +254,7 @@ int populateMap(const Options &opt)
           // Node became free.
 #ifdef TES_ENABLE
           shiftToSet(becomeFree, becomeOccupied, key);
-#endif // TES_ENABLE
+#endif  // TES_ENABLE
         }
       }
       else
@@ -297,7 +293,7 @@ int populateMap(const Options &opt)
     if (pointCount % rayBatchSize == 0 || quit)
     {
       //// Collapse the map.
-      //map.isNodeCollapsible()
+      // map.isNodeCollapsible()
 #ifdef TES_ENABLE
       double elapsedTime = (lastTimestamp >= 0) ? timestamp - lastTimestamp : timestamp - firstBatchTimestamp;
       // Handle time jumps back.
@@ -308,16 +304,15 @@ int populateMap(const Options &opt)
 
 #ifdef _MSC_VER
       sprintf_s(timeStrBuffer, "%g", timestamp - timebase);
-#else  // _MSC_VER
+#else   // _MSC_VER
       sprintf(timeStrBuffer, "%g", timestamp - timebase);
-#endif // _MSC_VER
+#endif  // _MSC_VER
       TES_TEXT2D_SCREEN(g_tesServer, TES_COLOUR(White), timeStrBuffer, 0u, CAT_Info, Vector3f(0.05f, 0.1f, 0.0f));
       // Draw sample lines.
       if (opt.rays & Rays_Lines)
       {
-        TES_LINES(g_tesServer, TES_COLOUR(DarkOrange),
-                  rays.data()->v, unsigned(rays.size()), sizeof(*rays.data()),
-                  0u, CAT_Rays);
+        TES_LINES(g_tesServer, TES_COLOUR(DarkOrange), rays.data()->v, unsigned(rays.size()), sizeof(*rays.data()), 0u,
+                  CAT_Rays);
       }
       rays.clear();
       // Render touched voxels in bulk.
@@ -331,12 +326,11 @@ int populateMap(const Options &opt)
       }
       if (opt.samples)
       {
-        TES_POINTS(g_tesServer, TES_COLOUR(Orange),
-                  samples.data()->v, unsigned(samples.size()), sizeof(*samples.data()),
-                  0u, CAT_OccupiedCells);
+        TES_POINTS(g_tesServer, TES_COLOUR(Orange), samples.data()->v, unsigned(samples.size()),
+                   sizeof(*samples.data()), 0u, CAT_OccupiedCells);
       }
       samples.clear();
-      //TES_SERVER_UPDATE(g_tesServer, 0.0f);
+      // TES_SERVER_UPDATE(g_tesServer, 0.0f);
 
       // Ensure touchedOccupied does not contain newly occupied nodes for mesh update.
       for (auto key : becomeOccupied)
@@ -357,18 +351,17 @@ int populateMap(const Options &opt)
       becomeFree.clear();
       TES_SERVER_UPDATE(g_tesServer, float(elapsedTime));
       if (opt.pointLimit && pointCount >= opt.pointLimit ||
-          opt.endTime > 0 && lastTimestamp - timebase >= opt.endTime ||
-          quit)
+          opt.endTime > 0 && lastTimestamp - timebase >= opt.endTime || quit)
       {
         break;
       }
-#endif // TES_ENABLE
+#endif  // TES_ENABLE
 
       lastTimestamp = timestamp;
       if (!opt.quiet)
       {
         printf("\r%g        ", lastTimestamp - timebase);
-        //fflush(stdout);
+        // fflush(stdout);
       }
     }
 
@@ -397,9 +390,11 @@ void usage(const Options &opt)
   printf("Usage:\n");
   printf("3es-occupancy [options] <cloud.las> <trajectory.las>\n");
   printf("\nGenerates an Octomap occupancy map from a LAS/LAZ based point cloud and accompanying trajectory file.\n\n");
-  printf("The trajectory marks the scanner trajectory with timestamps loosely corresponding to cloud point timestamps. ");
+  printf(
+    "The trajectory marks the scanner trajectory with timestamps loosely corresponding to cloud point timestamps. ");
   printf("Trajectory points are interpolated for each cloud point based on corresponding times in the trajectory.\n\n");
-  printf("Third Eye Scene render commands are interspersed throughout the code to visualise the generation process\n\n");
+  printf(
+    "Third Eye Scene render commands are interspersed throughout the code to visualise the generation process\n\n");
   printf("Options:\n");
   printf("-b=<batch-size> (%u)\n", opt.batchSize);
   printf("  The number of points to process in each batch. Controls debug display.\n");
@@ -414,7 +409,8 @@ void usage(const Options &opt)
   printf("-r=<resolution> (%g)\n", opt.resolution);
   printf("  The voxel resolution of the generated map.\n");
   printf("-s=<time> (%g)\n", opt.startTime);
-  printf("  Specifies a time offset for the start time. Ignore points until the time offset from the first point exceeds this value.\n");
+  printf("  Specifies a time offset for the start time. Ignore points until the time offset from the first point "
+         "exceeds this value.\n");
   printf("-e=<time> (%g)\n", opt.endTime);
   printf("  Specifies an end time relative to the first point. Stop after processing time interval of points.\n");
   printf("--rays=[off,lines,voxels,all] (lines)\n");
@@ -443,10 +439,7 @@ void initialiseDebugCategories(const Options &opt)
   {
     TES_CATEGORY(g_tesServer, "Free", CAT_FreeCells, CAT_Populate, (opt.rays & Rays_Lines) == 0);
   }
-  TES_IF(opt.samples)
-  {
-    TES_CATEGORY(g_tesServer, "Occupied", CAT_OccupiedCells, CAT_Populate, true);
-  }
+  TES_IF(opt.samples) { TES_CATEGORY(g_tesServer, "Occupied", CAT_OccupiedCells, CAT_Populate, true); }
   TES_CATEGORY(g_tesServer, "Info", CAT_Info, 0, true);
 }
 
@@ -470,10 +463,10 @@ int main(int argc, char *argv[])
       bool ok = true;
       switch (argv[i][1])
       {
-      case 'b': // batch size
+      case 'b':  // batch size
         ok = optionValue(argv[i] + 2, argc, argv, opt.batchSize);
         break;
-      case 'e': // start time
+      case 'e':  // start time
         ok = optionValue(argv[i] + 2, argc, argv, opt.endTime);
         break;
       case 'h':
@@ -482,16 +475,16 @@ int main(int argc, char *argv[])
       case 'm':
         ok = optionValue(argv[i] + 2, argc, argv, opt.probMiss);
         break;
-      case 'p': // point limit
+      case 'p':  // point limit
         ok = optionValue(argv[i] + 2, argc, argv, opt.pointLimit);
         break;
-      case 'q': // quiet
+      case 'q':  // quiet
         opt.quiet = true;
         break;
-      case 'r': // resolution
+      case 'r':  // resolution
         ok = optionValue(argv[i] + 2, argc, argv, opt.resolution);
         break;
-      case 's': // start time
+      case 's':  // start time
         ok = optionValue(argv[i] + 2, argc, argv, opt.startTime);
         break;
       case '-':  // Long option name.
@@ -593,7 +586,7 @@ int main(int argc, char *argv[])
 
 #ifdef TES_ENABLE
   std::cout << "Starting with " << g_tesServer->connectionCount() << " connection(s)." << std::endl;
-#endif // TES_ENABLE
+#endif  // TES_ENABLE
 
   initialiseDebugCategories(opt);
 

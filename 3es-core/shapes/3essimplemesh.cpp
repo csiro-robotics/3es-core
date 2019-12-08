@@ -3,87 +3,88 @@
 //
 #include "3essimplemesh.h"
 
-#include "3esspinlock.h"
 #include "3esrotation.h"
+#include "3esspinlock.h"
 
-#include <vector>
 #include <mutex>
+#include <vector>
 
 using namespace tes;
 
 namespace tes
 {
-  struct UV
+struct UV
+{
+  float u, v;
+};
+
+struct SimpleMeshImp
+{
+  SpinLock lock;
+  std::vector<Vector3f> vertices;
+  std::vector<uint32_t> indices;
+  std::vector<uint32_t> colours;
+  std::vector<Vector3f> normals;
+  std::vector<UV> uvs;
+  Matrix4f transform;
+  uint32_t id;
+  uint32_t tint;
+  unsigned components;
+  unsigned references;
+  DrawType drawType;
+
+  inline SimpleMeshImp(unsigned components)
+    : id(0)
+    , tint(0xffffffffu)
+    , components(components)
+    , references(1)
+    , drawType(DtTriangles)
   {
-    float u, v;
-  };
+    transform = Matrix4f::identity;
+  }
 
-  struct SimpleMeshImp
+
+  inline SimpleMeshImp *clone() const
   {
-    SpinLock lock;
-    std::vector<Vector3f> vertices;
-    std::vector<uint32_t> indices;
-    std::vector<uint32_t> colours;
-    std::vector<Vector3f> normals;
-    std::vector<UV> uvs;
-    Matrix4f transform;
-    uint32_t id;
-    uint32_t tint;
-    unsigned components;
-    unsigned references;
-    DrawType drawType;
+    SimpleMeshImp *copy = new SimpleMeshImp(this->components);
+    copy->vertices = vertices;
+    copy->indices = indices;
+    copy->colours = colours;
+    copy->normals = normals;
+    copy->uvs = uvs;
+    copy->transform = transform;
+    copy->tint = tint;
+    copy->components = components;
+    copy->drawType = drawType;
+    copy->references = 1;
+    return copy;
+  }
 
-    inline SimpleMeshImp(unsigned components)
-      : id(0)
-      , tint(0xffffffffu)
-      , components(components)
-      , references(1)
-      , drawType(DtTriangles)
-    {
-      transform = Matrix4f::identity;
-    }
+  inline void clear(unsigned componentFlags)
+  {
+    clearArrays();
+    transform = Matrix4f::identity;
+    id = 0;
+    tint = 0xffffffffu;
+    components = componentFlags;
+    drawType = DtTriangles;
+  }
 
-
-    inline SimpleMeshImp *clone() const
-    {
-      SimpleMeshImp *copy = new SimpleMeshImp(this->components);
-      copy->vertices = vertices;
-      copy->indices = indices;
-      copy->colours = colours;
-      copy->normals = normals;
-      copy->uvs = uvs;
-      copy->transform = transform;
-      copy->tint = tint;
-      copy->components = components;
-      copy->drawType = drawType;
-      copy->references = 1;
-      return copy;
-    }
-
-    inline void clear(unsigned componentFlags)
-    {
-      clearArrays();
-      transform = Matrix4f::identity;
-      id = 0;
-      tint = 0xffffffffu;
-      components = componentFlags;
-      drawType = DtTriangles;
-    }
-
-    inline void clearArrays()
-    {
-      // Should only be called if the reference count is 1.
-      vertices.clear();
-      indices.clear();
-      colours.clear();
-      normals.clear();
-      uvs.clear();
-    }
-  };
-}
+  inline void clearArrays()
+  {
+    // Should only be called if the reference count is 1.
+    vertices.clear();
+    indices.clear();
+    colours.clear();
+    normals.clear();
+    uvs.clear();
+  }
+};
+}  // namespace tes
 
 
-SimpleMesh::SimpleMesh(uint32_t id, const UIntArg &vertexCount, const UIntArg &indexCount, DrawType drawType, unsigned components)
+SimpleMesh::SimpleMesh(uint32_t id, const UIntArg &vertexCount, const UIntArg &indexCount, DrawType drawType,
+                       unsigned components)
   : _imp(new SimpleMeshImp(components))
 {
   _imp->id = id;
@@ -197,10 +198,10 @@ void SimpleMesh::setTint(uint32_t tint)
 }
 
 
- SimpleMesh *SimpleMesh::clone() const
- {
-   return new SimpleMesh(*this);
- }
+SimpleMesh *SimpleMesh::clone() const
+{
+  return new SimpleMesh(*this);
+}
 
 
 uint8_t SimpleMesh::drawType(int /*stream*/) const
@@ -557,8 +558,7 @@ bool SimpleMesh::processCreate(const MeshCreateMessage &msg)
   setIndexCount(msg.indexCount);
   setDrawType((DrawType)msg.drawType);
 
-  Matrix4f transform = prsTransform(Vector3f(msg.attributes.position),
-                                    Quaternionf(msg.attributes.rotation),
+  Matrix4f transform = prsTransform(Vector3f(msg.attributes.position), Quaternionf(msg.attributes.rotation),
                                     Vector3f(msg.attributes.scale));
 
   setTransform(transform);
@@ -618,5 +618,3 @@ bool SimpleMesh::processUVs(const MeshComponentMessage &msg, const float *uvs, u
 {
   return setUvs(msg.offset, uvs, uvCount) == uvCount;
 }
-
-

@@ -10,11 +10,10 @@
 using namespace tes;
 
 FileConnection::FileConnection(const char *filename, const ServerSettings &settings)
-: BaseConnection(settings)
-, _outFile(filename, std::ios::binary | std::ios::out | std::ios::in | std::ios::trunc)
-, _filename(filename)
-{
-}
+  : BaseConnection(settings)
+  , _outFile(filename, std::ios::binary | std::ios::out | std::ios::in | std::ios::trunc)
+  , _filename(filename)
+{}
 
 
 FileConnection::~FileConnection()

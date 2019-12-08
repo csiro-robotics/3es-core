@@ -20,34 +20,35 @@ using namespace tes;
 
 namespace
 {
-  void writeMessageHeader(uint8_t *buffer, unsigned uncompressedSize, unsigned payloadSize, bool compressed)
-  {
-    PacketHeader *header = reinterpret_cast<PacketHeader *>(buffer);
-    memset(header, 0, sizeof(PacketHeader));
-    CollatedPacketMessage *message = reinterpret_cast<CollatedPacketMessage *>(buffer + sizeof(PacketHeader));
-    memset(message, 0, sizeof(CollatedPacketMessage));
+void writeMessageHeader(uint8_t *buffer, unsigned uncompressedSize, unsigned payloadSize, bool compressed)
+{
+  PacketHeader *header = reinterpret_cast<PacketHeader *>(buffer);
+  memset(header, 0, sizeof(PacketHeader));
+  CollatedPacketMessage *message = reinterpret_cast<CollatedPacketMessage *>(buffer + sizeof(PacketHeader));
+  memset(message, 0, sizeof(CollatedPacketMessage));
 
-    // Keep header in network byte order.
-    header->marker = networkEndianSwapValue(PacketMarker);
-    header->versionMajor = networkEndianSwapValue(PacketVersionMajor);
-    header->versionMinor = networkEndianSwapValue(PacketVersionMinor);
-    header->routingId = MtCollatedPacket;
-    networkEndianSwap(header->routingId);
-    header->messageId = 0;
-    header->payloadSize = (uint16_t)(payloadSize + sizeof(CollatedPacketMessage));
-    networkEndianSwap(header->payloadSize);
-    header->payloadOffset = 0;
-    header->flags = 0;
+  // Keep header in network byte order.
+  header->marker = networkEndianSwapValue(PacketMarker);
+  header->versionMajor = networkEndianSwapValue(PacketVersionMajor);
+  header->versionMinor = networkEndianSwapValue(PacketVersionMinor);
+  header->routingId = MtCollatedPacket;
+  networkEndianSwap(header->routingId);
+  header->messageId = 0;
+  header->payloadSize = (uint16_t)(payloadSize + sizeof(CollatedPacketMessage));
+  networkEndianSwap(header->payloadSize);
+  header->payloadOffset = 0;
+  header->flags = 0;
 
-    message->flags = (compressed) ? CPFCompress : 0;
-    networkEndianSwap(message->flags);
-    message->reserved = 0;
-    message->uncompressedBytes = uncompressedSize;
-    networkEndianSwap(message->uncompressedBytes);
-  }
+  message->flags = (compressed) ? CPFCompress : 0;
+  networkEndianSwap(message->flags);
+  message->reserved = 0;
+  message->uncompressedBytes = uncompressedSize;
+  networkEndianSwap(message->uncompressedBytes);
 }
+}  // namespace
 
-const size_t CollatedPacket::Overhead = sizeof(PacketHeader) + sizeof(CollatedPacketMessage) + sizeof(PacketWriter::CrcType);
+const size_t CollatedPacket::Overhead =
+  sizeof(PacketHeader) + sizeof(CollatedPacketMessage) + sizeof(PacketWriter::CrcType);
 const unsigned CollatedPacket::InitialCursorOffset = sizeof(PacketHeader) + sizeof(CollatedPacketMessage);
 const uint16_t CollatedPacket::MaxPacketSize = (uint16_t)~0u;
 
@@ -105,7 +106,7 @@ void CollatedPacket::reset()
 }
 
 
-int CollatedPacket::add(const PacketWriter & packet)
+int CollatedPacket::add(const PacketWriter &packet)
 {
   if (!_active)
   {
@@ -187,7 +188,7 @@ bool CollatedPacket::finalise()
   {
     unsigned compressedBytes = 0;
 
-    //Z_BEST_COMPRESSION
+    // Z_BEST_COMPRESSION
     // params: stream,level, method, window bits, memLevel, strategy
     const int gzipCompressionLevel = tes::TesToGZipCompressionLevel[_compressionLevel];
     deflateInit2(&_zip->stream, gzipCompressionLevel, Z_DEFLATED,
@@ -216,13 +217,14 @@ bool CollatedPacket::finalise()
         writeMessageHeader(_finalBuffer, collatedBytes(), compressedBytes, true);
         _finalPacketCursor = InitialCursorOffset + compressedBytes;
       }
-      //else
+      // else
       //{
-      //  std::cerr << "Compression failure. Collated " << collatedBytes() << " compressed to " << compressedBytes << std::endl;
+      //  std::cerr << "Compression failure. Collated " << collatedBytes() << " compressed to " << compressedBytes <<
+      //  std::endl;
       //}
     }
   }
-#endif // TES_ZLIB
+#endif  // TES_ZLIB
 
   if (!compressedData)
   {
@@ -245,7 +247,8 @@ bool CollatedPacket::finalise()
 const uint8_t *CollatedPacket::buffer(unsigned &byteCount) const
 {
   byteCount = _finalPacketCursor;
-  return _finalBuffer;;
+  return _finalBuffer;
+  ;
 }
 
 
@@ -297,11 +300,12 @@ int CollatedPacket::create(const Shape &shape)
 
   // Start by trying to write directly into the packet.
   int written = 0;
-  bool wroteMessage = false; // Create message written?
+  bool wroteMessage = false;  // Create message written?
   bool expanded = false;
   unsigned initialCursor = _cursor;
 
-  PacketWriter writer(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
+  PacketWriter writer(_buffer + _cursor,
+                      (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
   // Keep trying to write the packet while we don't have a fatal error.
   // Supports resizing the buffer.
   while (!wroteMessage && written != -1)
@@ -324,7 +328,8 @@ int CollatedPacket::create(const Shape &shape)
       // Try resize.
       expand(1024u, _buffer, _bufferSize, _cursor, _maxPacketSize);
       expanded = true;
-      writer = PacketWriter(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
+      writer = PacketWriter(_buffer + _cursor,
+                            (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
     }
     else
     {
@@ -341,7 +346,8 @@ int CollatedPacket::create(const Shape &shape)
 
     while (!complete && written != -1)
     {
-      writer = PacketWriter(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
+      writer = PacketWriter(_buffer + _cursor,
+                            (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
       res = shape.writeData(writer, progress);
 
       if (res >= 0)
@@ -352,7 +358,8 @@ int CollatedPacket::create(const Shape &shape)
           // Good finalise.
           _cursor += writer.packetSize();
           written += writer.packetSize();
-          writer = PacketWriter(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
+          writer = PacketWriter(_buffer + _cursor, (uint16_t)std::min<size_t>(
+                                                     _bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
         }
         else
         {
@@ -368,7 +375,8 @@ int CollatedPacket::create(const Shape &shape)
         if (_bufferSize < maxPacketSize())
         {
           expand(1024u, _buffer, _bufferSize, _cursor, _maxPacketSize);
-          writer = PacketWriter(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
+          writer = PacketWriter(_buffer + _cursor, (uint16_t)std::min<size_t>(
+                                                     _bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
         }
         else
         {
@@ -398,11 +406,12 @@ int CollatedPacket::destroy(const Shape &shape)
 
   // Start by trying to write directly into the packet.
   int written = 0;
-  bool wroteMessage = false; // Create message written?
+  bool wroteMessage = false;  // Create message written?
   bool expanded = false;
   unsigned initialCursor = _cursor;
 
-  PacketWriter writer(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
+  PacketWriter writer(_buffer + _cursor,
+                      (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
   // Keep trying to write the packet while we don't have a fatal error.
   // Supports resizing the buffer.
   while (wroteMessage && written != -1)
@@ -425,7 +434,8 @@ int CollatedPacket::destroy(const Shape &shape)
       // Try resize.
       expand(1024u, _buffer, _bufferSize, _cursor, _maxPacketSize);
       expanded = true;
-      writer = PacketWriter(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
+      writer = PacketWriter(_buffer + _cursor,
+                            (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
     }
     else
     {
@@ -452,11 +462,12 @@ int CollatedPacket::update(const Shape &shape)
 
   // Start by trying to write directly into the packet.
   int written = 0;
-  bool wroteMessage = false; // Create message written?
+  bool wroteMessage = false;  // Create message written?
   bool expanded = false;
   unsigned initialCursor = _cursor;
 
-  PacketWriter writer(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
+  PacketWriter writer(_buffer + _cursor,
+                      (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
   // Keep trying to write the packet while we don't have a fatal error.
   // Supports resizing the buffer.
   while (wroteMessage && written != -1)
@@ -479,7 +490,8 @@ int CollatedPacket::update(const Shape &shape)
       // Try resize.
       expand(1024u, _buffer, _bufferSize, _cursor, _maxPacketSize);
       expanded = true;
-      writer = PacketWriter(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
+      writer = PacketWriter(_buffer + _cursor,
+                            (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
     }
     else
     {
@@ -535,11 +547,12 @@ bool CollatedPacket::sendServerInfo(const ServerInfoMessage &info)
 
   // Start by trying to write directly into the packet.
   int written = 0;
-  bool wroteMessage = false; // Create message written?
+  bool wroteMessage = false;  // Create message written?
   bool expanded = false;
   unsigned initialCursor = _cursor;
 
-  PacketWriter writer(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
+  PacketWriter writer(_buffer + _cursor,
+                      (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
   writer.reset(MtServerInfo, 0);
   // Keep trying to write the packet while we don't have a fatal error.
   // Supports resizing the buffer.
@@ -563,7 +576,8 @@ bool CollatedPacket::sendServerInfo(const ServerInfoMessage &info)
       // Try resize.
       expand(1024u, _buffer, _bufferSize, _cursor, _maxPacketSize);
       expanded = true;
-      writer = PacketWriter(_buffer + _cursor, (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
+      writer = PacketWriter(_buffer + _cursor,
+                            (uint16_t)std::min<size_t>(_bufferSize - _cursor - sizeof(PacketWriter::CrcType), 0xffffu));
     }
     else
     {
@@ -628,11 +642,12 @@ void CollatedPacket::init(bool compress, unsigned bufferSize, unsigned maxPacket
   {
     delete _zip;
   }
-#endif // TES_ZLIB
+#endif  // TES_ZLIB
 }
 
 
-void CollatedPacket::expand(unsigned expandBy, uint8_t *&buffer, unsigned &bufferSize, unsigned currentDataCount, unsigned maxPacketSize)
+void CollatedPacket::expand(unsigned expandBy, uint8_t *&buffer, unsigned &bufferSize, unsigned currentDataCount,
+                            unsigned maxPacketSize)
 {
   // Buffer too small.
   unsigned newBufferSize = std::min(nextLog2(unsigned(bufferSize + expandBy + Overhead)), maxPacketSize);

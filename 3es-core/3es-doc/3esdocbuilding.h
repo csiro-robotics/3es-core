@@ -22,20 +22,26 @@ zlib (highly recommened)                    | C++ core
 doxygen                                     | Documentation
 graphviz                                    | Documentation
 
-All of these components should be installed before building. On Windows CMake may not automatically locate zlib and using "cmake-gui" is recommended to help locate zlib for CMake before building.
+All of these components should be installed before building. On Windows CMake may not automatically locate zlib and
+using "cmake-gui" is recommended to help locate zlib for CMake before building.
 
 
 @section docbuildcsharp Building C# 3es Core
-Before building the 3esCore project, note that the 3esRuntime library depends on the UnityEngine libraries. The project file is set up to attempt to automatically locate UnityEngine.dll as follows:
+Before building the 3esCore project, note that the 3esRuntime library depends on the UnityEngine libraries. The project
+file is set up to attempt to automatically locate UnityEngine.dll as follows:
 -# Using /Applications/Unity/Unity.app/Contents/Managed/UnityEngine.dll if it exists (default MacOS install location).
 -# Using "C:\Program Files\Unity\Editor\Data\Managed\UnityEngine.dll" if it exists (default Windows install location).
 -# Using the environment variable UNITY_DLL_PATH.
 
-This will only work automatically when Unity is installed to the default location on either MacOS or Windows. Otherwise, UNITY_DLL_PATH must be set to the correct location first.
+This will only work automatically when Unity is installed to the default location on either MacOS or Windows. Otherwise,
+UNITY_DLL_PATH must be set to the correct location first.
 
 Simply open up 3esCore.sln and build. Note that the default build configuration is for "Any CPU" to support 64-bit code.
 
-<b>Important:</b> The 3esCore and 3esRuntime projects are configured to automatically output into the 3rdEyeScene Unity project Assets folder using a relative path. Specifically "../3rdEyeScene/Assets/plugins". This directly supports the 3<sup>rd</sup> Eye Scene viewer application. Both Debug and Release builds target this folder and will overwrite one another. Thus whatever was build last is used by Unity.
+<b>Important:</b> The 3esCore and 3esRuntime projects are configured to automatically output into the 3rdEyeScene Unity
+project Assets folder using a relative path. Specifically "../3rdEyeScene/Assets/plugins". This directly supports the
+3<sup>rd</sup> Eye Scene viewer application. Both Debug and Release builds target this folder and will overwrite one
+another. Thus whatever was build last is used by Unity.
 
 
 @section docbuildunity Building Unity Viewer Client
@@ -52,7 +58,8 @@ To build the viewer application:
 You may now run the viewer application.
 
 @subsection docbuildunitysupport Supported Platforms
-Unity has very good cross platform support. However, the viewer application has only been tested on the following platforms. Other platforms may not work at all and may certainly have UI issues.
+Unity has very good cross platform support. However, the viewer application has only been tested on the following
+platforms. Other platforms may not work at all and may certainly have UI issues.
 
 Supported platforms:
 - Windows
@@ -60,7 +67,9 @@ Supported platforms:
 
 
 @section docbuildcpp Building C++ Core
-This section details how to build the C++ core library to include in your code. There is also an option of including the 3es code into your own build tree. The 3es core library acts as the server to the Unity visualisation client viewer or the C# recording client.
+This section details how to build the C++ core library to include in your code. There is also an option of including the
+3es code into your own build tree. The 3es core library acts as the server to the Unity visualisation client viewer or
+the C# recording client.
 
 -# Install the prerequisites listed above.
 -# Open a command prompt or terminal window.
@@ -71,7 +80,8 @@ This section details how to build the C++ core library to include in your code. 
 -# Build your library against the generated files
 -# Use 3es-
 
-CMake supports many platforms and may need to be run differently in various build environments. The recommended ones are detailed below.
+CMake supports many platforms and may need to be run differently in various build environments. The recommended ones are
+detailed below.
 
 @subsection docbuildcppwindows Windows CMake
 Under Windows, the recommended CMake command is:
@@ -79,9 +89,11 @@ Under Windows, the recommended CMake command is:
   cmake -G "Visual Studio 15 2017 Win64" ..
 @endverbatim
 
-Note that the generator may be changed to a different version of Visual Studio (below VS12 is definitely not supported), but appending "Win64" is recommended to generate 64-bit code. Omit "Win64" if 32-bit code is required.
+Note that the generator may be changed to a different version of Visual Studio (below VS12 is definitely not supported),
+but appending "Win64" is recommended to generate 64-bit code. Omit "Win64" if 32-bit code is required.
 
-At this point, it is likely that zlib has not been located. To address this, run "cmake-gui .." and set the following variables (advanced mode may be required):
+At this point, it is likely that zlib has not been located. To address this, run "cmake-gui .." and set the following
+variables (advanced mode may be required):
 - ZLIB_INCLUDE_DIR: set to the directory containing "zlib.h"
 - ZLIB_LIBRARY_DEBUG: set to point to the debug version of the zlib library: "zlibd.lib" (optional)
 - ZLIB_LIBRARY_RELEASE: set to point to the release version of the zlib library: "zlib.lib"
@@ -89,9 +101,14 @@ These steps can be omitted if compression is not required.
 
 After running CMake, open 3rd-eye-scene.sln (in the build directory) and build.
 
-This generates a the core 3es C++ static libraries. These do nothing on their own and need to be incorporated into another application. To use them in your application, first build the "INSTALL" project in 3rd-eye-scene.sln. By default, this installs to C:\\Program Files\\3rd-eye-scene, which may not be desirable and requires elevated privileges to success (requires administrator mode). This can be changed using cmake-gui, setting the CMAKE_INSTALL_PREFIX to the desired installation location (recommended).
+This generates a the core 3es C++ static libraries. These do nothing on their own and need to be incorporated into
+another application. To use them in your application, first build the "INSTALL" project in 3rd-eye-scene.sln. By
+default, this installs to C:\\Program Files\\3rd-eye-scene, which may not be desirable and requires elevated privileges
+to success (requires administrator mode). This can be changed using cmake-gui, setting the CMAKE_INSTALL_PREFIX to the
+desired installation location (recommended).
 
-Next, ensure your library includes the installed header files and links against the installed static libraries. Finally, use the TES_ macros to execute 3es commands.
+Next, ensure your library includes the installed header files and links against the installed static libraries. Finally,
+use the TES_ macros to execute 3es commands.
 
 @subsection docbuildcppnix Linux and MacOS CMake
 Under Linux and MacOS, the recommended CMake and build commands are:
@@ -101,14 +118,17 @@ Under Linux and MacOS, the recommended CMake and build commands are:
   make install
 @endverbatim
 
-Next ensure your application includes and links the installed header and library files, then use TES_ macros to manage the 3es server.
+Next ensure your application includes and links the installed header and library files, then use TES_ macros to manage
+the 3es server.
 
 
 
 @section docbuildintegratecpp Integrating C++ Server Code Into Your Build Tree
-An alternative way of using the C++ code is to put the 3es-core code into your own build tree. There are several ways to do this, but the following section describes how to do so assuming you are also using CMake for your own build tree.
+An alternative way of using the C++ code is to put the 3es-core code into your own build tree. There are several ways to
+do this, but the following section describes how to do so assuming you are also using CMake for your own build tree.
 -# Copy the 3es-core code directories into your build tree (optionally in a sub-directory).
--# Copy the cmake directory (or just cmake/3es.cmake) into into the same directory. You should have three new directores all in the same parent directory: 3es-core and cmake.
+-# Copy the cmake directory (or just cmake/3es.cmake) into into the same directory. You should have three new directores
+all in the same parent directory: 3es-core and cmake.
 -# Edit your project's CMakeLists.txt file to add <tt>add_subdirectory(3es-core)</tt>.
 -# Include 3es server into your own executable or library using the CMake commands listed below.
 
@@ -118,11 +138,14 @@ An alternative way of using the C++ code is to put the 3es-core code into your o
   target_link_libraries(mylibrary 3es-core)
 @endcode
 
-Note: replace "mylibrary" with the name of your executable or library as passed to @c add_library() or @c add_executable().
+Note: replace "mylibrary" with the name of your executable or library as passed to @c add_library() or @c
+add_executable().
 
 
 
 @section docbuildintegratecshard Integrating C# Server Code
-To use the C# server library simply build the C# code, then add a reference to the C# 3esServer.dll in your project. Consul the Visual Studio or Xamarin Studio documentation for adding library references to C# projects for more information.
+To use the C# server library simply build the C# code, then add a reference to the C# 3esServer.dll in your project.
+Consul the Visual Studio or Xamarin Studio documentation for adding library references to C# projects for more
+information.
 
 */

@@ -11,7 +11,7 @@
 using namespace tes;
 
 PacketReader::PacketReader(const PacketHeader *packet)
-: PacketStream<const PacketHeader>(packet)
+  : PacketStream<const PacketHeader>(packet)
 {
   seek(0, Begin);
 }
@@ -43,7 +43,7 @@ bool PacketReader::checkCrc()
 
 PacketReader::CrcType PacketReader::calculateCrc() const
 {
-  const CrcType crcVal = crc16(reinterpret_cast<const uint8_t *>(_packet), sizeof(PacketHeader)+payloadSize());
+  const CrcType crcVal = crc16(reinterpret_cast<const uint8_t *>(_packet), sizeof(PacketHeader) + payloadSize());
   return crcVal;
 }
 
@@ -75,7 +75,7 @@ size_t PacketReader::readArray(uint8_t *bytes, size_t elementSize, size_t elemen
     {
       networkEndianSwap(fixBytes, elementSize);
     }
-#endif // !TES_IS_NETWORK_ENDIAN
+#endif  // !TES_IS_NETWORK_ENDIAN
     _payloadPosition = uint16_t(_payloadPosition + elementSize * copyCount);
     return copyCount;
   }

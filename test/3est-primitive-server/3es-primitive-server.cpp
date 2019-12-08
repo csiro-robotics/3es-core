@@ -11,22 +11,22 @@
 #include <3esconnectionmonitor.h>
 #include <3escoordinateframe.h>
 #include <3esfeature.h>
+#include <3esmaths.h>
 #include <3esserver.h>
 #include <shapes/3esshapes.h>
-#include <3esmaths.h>
 #include <tessellate/3essphere.h>
 
 #define TES_ENABLE
 #include <3esservermacros.h>
 
-#include <3esvector3.h>
 #include <3estimer.h>
-#include <shapes/3essimplemesh.h>
+#include <3esvector3.h>
 #include <shapes/3espointcloud.h>
+#include <shapes/3essimplemesh.h>
 
+#include <chrono>
 #include <cmath>
 #include <csignal>
-#include <chrono>
 #include <functional>
 #include <iostream>
 #include <thread>
@@ -36,23 +36,21 @@ using namespace tes;
 
 namespace
 {
-  bool quit = false;
+bool quit = false;
 
-  void onSignal(int arg)
+void onSignal(int arg)
+{
+  if (arg == SIGINT || arg == SIGTERM)
   {
-    if (arg == SIGINT || arg == SIGTERM)
-    {
-      quit = true;
-    }
+    quit = true;
   }
 }
-
+}  // namespace
 
 
 MeshShape *createPointsMesh(unsigned id, const std::vector<Vector3f> &vertices)
 {
-  MeshShape *shape = new MeshShape(DtPoints, vertices.data()->v, unsigned(vertices.size()),
-                                   sizeof(Vector3f), id);
+  MeshShape *shape = new MeshShape(DtPoints, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f), id);
   return shape;
 }
 
@@ -72,20 +70,16 @@ MeshShape *createLinesMesh(unsigned id, const std::vector<Vector3f> &vertices, c
     lineIndices.push_back(indices[i + 0]);
   }
 
-  MeshShape *shape = new MeshShape(DtLines, vertices.data()->v, unsigned(vertices.size()),
-                                   sizeof(Vector3f),
-                                   lineIndices.data(), unsigned(lineIndices.size()),
-                                   id);
+  MeshShape *shape = new MeshShape(DtLines, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f),
+                                   lineIndices.data(), unsigned(lineIndices.size()), id);
   return shape;
 }
 
 
 MeshShape *createTrianglesMesh(unsigned id, const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices)
 {
-  MeshShape *shape = new MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()),
-                                   sizeof(Vector3f),
-                                   indices.data(), unsigned(indices.size()),
-                                   id);
+  MeshShape *shape = new MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f),
+                                   indices.data(), unsigned(indices.size()), id);
   return shape;
 }
 
@@ -110,8 +104,7 @@ MeshShape *createVoxelsMesh(unsigned id)
     }
   }
 
-  MeshShape *shape = new MeshShape(DtVoxels, vertices.data()->v, unsigned(vertices.size()),
-                                   sizeof(Vector3f), id);
+  MeshShape *shape = new MeshShape(DtVoxels, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f), id);
 
   shape->setUniformNormal(Vector3f(voxelScale));
   return shape;
@@ -130,7 +123,8 @@ PointCloudShape *createCloud(unsigned id, const std::vector<Vector3f> &vertices,
 }
 
 
-MeshSet *createMeshSet(unsigned id, const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices, std::vector<MeshResource *> &resources)
+MeshSet *createMeshSet(unsigned id, const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices,
+                       std::vector<MeshResource *> &resources)
 {
   const unsigned partCount = 5;
 
@@ -164,11 +158,16 @@ const char *drawTypeString(DrawType type)
 {
   switch (type)
   {
-    case DtPoints: return "points";
-    case DtLines: return "lines";
-    case DtTriangles: return "triangles";
-    case DtVoxels: return "voxels";
-    default: break;
+  case DtPoints:
+    return "points";
+  case DtLines:
+    return "lines";
+  case DtTriangles:
+    return "triangles";
+  case DtVoxels:
+    return "voxels";
+  default:
+    break;
   }
 
   return "unknown";
@@ -256,8 +255,7 @@ std::ostream &logShapeExtensions(std::ostream &o, const MeshShape &shape, const 
   o << indent << "\"drawType\" : \"" << drawTypeString(shape.drawType()) << "\",\n";
 
   bool dangling = false;
-  auto closeDangling = [&o] (bool &dangling)
-  {
+  auto closeDangling = [&o](bool &dangling) {
     if (dangling)
     {
       o << ",\n";
@@ -323,7 +321,7 @@ std::ostream &logShapeExtensions(std::ostream &o, const MeshShape &shape, const 
 }
 
 
-std::ostream &operator << (std::ostream &o, const Matrix4f &transform)
+std::ostream &operator<<(std::ostream &o, const Matrix4f &transform)
 {
   o << "[\n";
 
@@ -341,7 +339,8 @@ std::ostream &operator << (std::ostream &o, const Matrix4f &transform)
 }
 
 
-std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const std::string &indent, bool vertexOnly = false)
+std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const std::string &indent,
+                              bool vertexOnly = false)
 {
   std::string indent2 = indent + "  ";
   o << indent << "\"mesh\" : {\n"
@@ -353,8 +352,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
     << indent2 << "\"transform\" : " << mesh.transform() << ",\n";
 
   bool dangling = false;
-  auto closeDangling = [&o] (bool &dangling)
-  {
+  auto closeDangling = [&o](bool &dangling) {
     if (dangling)
     {
       dangling = false;
@@ -557,22 +555,25 @@ std::ostream &logShape(std::ostream &o, const T &shape, const char *suffix)
     << "    \"attributes\" : {\n"
     << "      \"colour\" : " << shape.data().attributes.colour << ",\n"
     << "      \"position\" : [\n"
-    << "        " << shape.data().attributes.position[0] << ", " << shape.data().attributes.position[1] << ", " << shape.data().attributes.position[2] << "\n"
+    << "        " << shape.data().attributes.position[0] << ", " << shape.data().attributes.position[1] << ", "
+    << shape.data().attributes.position[2] << "\n"
     << "      ],\n"
     << "      \"rotation\" : [\n"
-    << "        " << shape.data().attributes.rotation[0] << ", " << shape.data().attributes.rotation[1] << ", " << shape.data().attributes.rotation[2] << ", " << shape.data().attributes.rotation[3] << "\n"
+    << "        " << shape.data().attributes.rotation[0] << ", " << shape.data().attributes.rotation[1] << ", "
+    << shape.data().attributes.rotation[2] << ", " << shape.data().attributes.rotation[3] << "\n"
     << "      ],\n"
     << "      \"scale\" : [\n"
-    << "        " << shape.data().attributes.scale[0] << ", " << shape.data().attributes.scale[1] << ", " << shape.data().attributes.scale[2] << "\n"
+    << "        " << shape.data().attributes.scale[0] << ", " << shape.data().attributes.scale[1] << ", "
+    << shape.data().attributes.scale[2] << "\n"
     << "      ]\n"
     << "    }";
 
-    std::string indent = "    ";
-    logShapeExtensions(o, shape, indent) << ",\n";
+  std::string indent = "    ";
+  logShapeExtensions(o, shape, indent) << ",\n";
 
-    o << "    \"isComplex\" : " << (shape.isComplex() ? "true" : "false") << "\n";
+  o << "    \"isComplex\" : " << (shape.isComplex() ? "true" : "false") << "\n";
 
-    o << "  }";
+  o << "  }";
 
   o.precision(precision);
 
@@ -582,21 +583,7 @@ std::ostream &logShape(std::ostream &o, const T &shape, const char *suffix)
 
 const char *coordinateFrameString(uint8_t frame)
 {
-  const char *frames[] =
-  {
-    "xyz",
-    "xz-y",
-    "yx-z",
-    "yzx",
-    "zxy",
-    "zy-x",
-    "xy-z",
-    "xzy",
-    "yxz",
-    "yz-x",
-    "zx-y",
-    "zyx"
-  };
+  const char *frames[] = { "xyz", "xz-y", "yx-z", "yzx", "zxy", "zy-x", "xy-z", "xzy", "yxz", "yz-x", "zx-y", "zyx" };
 
   if (frame < sizeof(frames) / sizeof(frames[0]))
   {
@@ -607,7 +594,7 @@ const char *coordinateFrameString(uint8_t frame)
 }
 
 
-std::ostream &operator << (std::ostream &o, const ServerInfoMessage &info)
+std::ostream &operator<<(std::ostream &o, const ServerInfoMessage &info)
 {
   o << "  \"server\" : {\n"
     << "    \"timeUnit\" : " << info.timeUnit << ",\n"
@@ -697,36 +684,22 @@ int main(int argc, char **argvNonConst)
   std::vector<Shape *> shapes;
   std::vector<MeshResource *> resources;
 
+  addShape(initShape(new Arrow(nextId++, Vector3f(0.0f), Vector3f(1, 0, 0), 1.0f, 0.25f)), server, shapes);
   addShape(
-    initShape(new Arrow(nextId++, Vector3f(0.0f), Vector3f(1, 0, 0), 1.0f, 0.25f)),
+    initShape(new Box(nextId++, Vector3f(0.0f), Vector3f(0.1f, 0.2f, 0.23f),
+                      rotationToQuaternion(Matrix3f::rotation(degToRad(15.0f), degToRad(25.0f), degToRad(-9.0f))))),
     server, shapes);
-  addShape(
-    initShape(new Box(nextId++, Vector3f(0.0f), Vector3f(0.1f, 0.2f, 0.23f), rotationToQuaternion(Matrix3f::rotation(degToRad(15.0f), degToRad(25.0f), degToRad(-9.0f))))),
-    server, shapes);
-  addShape(
-    initShape(new Capsule(nextId++, Vector3f(0.0f), Vector3f(1, 2, 0).normalised(), 0.3f, 2.0f)),
-    server, shapes);
-  addShape(
-    initShape(new Cone(nextId++, Vector3f(0.0f), Vector3f(0, 2, 1).normalised(), degToRad(35.0f), 2.25f)),
-    server, shapes);
-  addShape(
-    initShape(new Cylinder(nextId++, Vector3f(0.0f), Vector3f(2, -1.4f, 1).normalised(), 0.15f, 1.2f)),
-    server, shapes);
-  addShape(
-    initShape(new Plane(nextId++, Vector3f(0.0f), Vector3f(-1, -1, 1).normalised())),
-    server, shapes);
-  addShape(
-    initShape(new Sphere(nextId++, Vector3f(0.0f), 1.15f)),
-    server, shapes);
-  addShape(
-    initShape(new Star(nextId++, Vector3f(0.0f), 0.15f)),
-    server, shapes);
-  addShape(
-    initShape(new Text2D("Hello Text2D", nextId++)),
-    server, shapes);
-  addShape(
-    initShape(new Text3D("Hello Text3D", nextId++)),
-    server, shapes);
+  addShape(initShape(new Capsule(nextId++, Vector3f(0.0f), Vector3f(1, 2, 0).normalised(), 0.3f, 2.0f)), server,
+           shapes);
+  addShape(initShape(new Cone(nextId++, Vector3f(0.0f), Vector3f(0, 2, 1).normalised(), degToRad(35.0f), 2.25f)),
+           server, shapes);
+  addShape(initShape(new Cylinder(nextId++, Vector3f(0.0f), Vector3f(2, -1.4f, 1).normalised(), 0.15f, 1.2f)), server,
+           shapes);
+  addShape(initShape(new Plane(nextId++, Vector3f(0.0f), Vector3f(-1, -1, 1).normalised())), server, shapes);
+  addShape(initShape(new Sphere(nextId++, Vector3f(0.0f), 1.15f)), server, shapes);
+  addShape(initShape(new Star(nextId++, Vector3f(0.0f), 0.15f)), server, shapes);
+  addShape(initShape(new Text2D("Hello Text2D", nextId++)), server, shapes);
+  addShape(initShape(new Text3D("Hello Text3D", nextId++)), server, shapes);
 
   std::vector<Vector3f> sphereVerts;
   std::vector<unsigned> sphereIndices;

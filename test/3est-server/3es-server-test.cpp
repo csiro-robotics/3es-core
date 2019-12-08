@@ -12,14 +12,14 @@
 #define TES_ENABLE
 #include <3esservermacros.h>
 
-#include <3esvector3.h>
 #include <3estimer.h>
-#include <shapes/3essimplemesh.h>
+#include <3esvector3.h>
 #include <shapes/3espointcloud.h>
+#include <shapes/3essimplemesh.h>
 
+#include <chrono>
 #include <cmath>
 #include <csignal>
-#include <chrono>
 #include <functional>
 #include <iostream>
 #include <thread>
@@ -29,16 +29,16 @@ using namespace tes;
 
 namespace
 {
-  bool quit = false;
+bool quit = false;
 
-  void onSignal(int arg)
+void onSignal(int arg)
+{
+  if (arg == SIGINT || arg == SIGTERM)
   {
-    if (arg == SIGINT || arg == SIGTERM)
-    {
-      quit = true;
-    }
+    quit = true;
   }
 }
+}  // namespace
 
 
 enum Categories
@@ -70,18 +70,25 @@ class ShapeMover
 public:
   ShapeMover(Shape *shape)
     : _shape(shape)
-  {
-  }
+  {}
 
   virtual inline ~ShapeMover() {}
 
   inline Shape *shape() { return _shape; }
   inline const Shape *shape() const { return _shape; }
-  inline void setShape(Shape *shape) { _shape = shape; onShapeChange(); }
+  inline void setShape(Shape *shape)
+  {
+    _shape = shape;
+    onShapeChange();
+  }
 
   virtual void reset() {}
 
-  virtual void update(float time, float dt) { TES_UNUSED(time); TES_UNUSED(dt); }
+  virtual void update(float time, float dt)
+  {
+    TES_UNUSED(time);
+    TES_UNUSED(dt);
+  }
 
 protected:
   virtual void onShapeChange() {}
@@ -109,10 +116,7 @@ public:
   inline float amplitude() const { return _amplitude; }
   inline float period() const { return _period; }
 
-  void reset() override
-  {
-    _referencePos = shape() ? shape()->position() : _referencePos;
-  }
+  void reset() override { _referencePos = shape() ? shape()->position() : _referencePos; }
 
   void update(float time, float dt) override
   {
@@ -122,10 +126,7 @@ public:
   }
 
 protected:
-  void onShapeChange() override
-  {
-    _referencePos = (shape()) ? shape()->position() : _referencePos;
-  }
+  void onShapeChange() override { _referencePos = (shape()) ? shape()->position() : _referencePos; }
 
 private:
   Vector3f _referencePos;
@@ -140,8 +141,8 @@ MeshResource *createTestMesh()
   SimpleMesh *mesh = new SimpleMesh(1, 4, 6, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Colour);
   mesh->setVertex(0, Vector3f(-0.5f, 0, -0.5f));
   mesh->setVertex(1, Vector3f(0.5f, 0, -0.5f));
-  mesh->setVertex(2, Vector3f(0.5f, 0,  0.5f));
-  mesh->setVertex(3, Vector3f(-0.5f, 0,  0.5f));
+  mesh->setVertex(2, Vector3f(0.5f, 0, 0.5f));
+  mesh->setVertex(3, Vector3f(-0.5f, 0, 0.5f));
 
   mesh->setIndex(0, 0);
   mesh->setIndex(1, 1);
@@ -155,10 +156,10 @@ MeshResource *createTestMesh()
   mesh->setColour(2, 0xff00ffff);
   mesh->setColour(3, 0xffffffff);
 
-  //mesh->setNormal(0, Vector3f(0, 1, 0));
-  //mesh->setNormal(1, Vector3f(0, 1, 0));
-  //mesh->setNormal(2, Vector3f(0, 1, 0));
-  //mesh->setNormal(3, Vector3f(0, 1, 0));
+  // mesh->setNormal(0, Vector3f(0, 1, 0));
+  // mesh->setNormal(1, Vector3f(0, 1, 0));
+  // mesh->setNormal(2, Vector3f(0, 1, 0));
+  // mesh->setNormal(3, Vector3f(0, 1, 0));
 
   return mesh;
 }
@@ -196,7 +197,8 @@ bool haveOption(const char *opt, int argc, const char **argv)
 }
 
 
-void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<ShapeMover *> &movers, std::vector<Resource *> &resources, int argc, const char **argv)
+void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<ShapeMover *> &movers,
+                std::vector<Resource *> &resources, int argc, const char **argv)
 {
   TES_UNUSED(movers);
   TES_UNUSED(resources);
@@ -222,7 +224,8 @@ void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Shap
 }
 
 
-void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<ShapeMover *> &movers, std::vector<Resource *> &resources, int argc, const char **argv)
+void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<ShapeMover *> &movers,
+                  std::vector<Resource *> &resources, int argc, const char **argv)
 {
   bool allShapes = haveOption("all", argc, argv);
   bool noMove = haveOption("nomove", argc, argv);
@@ -331,12 +334,8 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("lines", argc, argv))
   {
-    static const Vector3f lineSet[] =
-    {
-      Vector3f(0, 0, 0), Vector3f(0, 0, 1),
-      Vector3f(0, 0, 1), Vector3f(0.25f, 0, 0.8f),
-      Vector3f(0, 0, 1), Vector3f(-0.25f, 0, 0.8f)
-    };
+    static const Vector3f lineSet[] = { Vector3f(0, 0, 0),        Vector3f(0, 0, 1), Vector3f(0, 0, 1),
+                                        Vector3f(0.25f, 0, 0.8f), Vector3f(0, 0, 1), Vector3f(-0.25f, 0, 0.8f) };
     const unsigned lineVertexCount = sizeof(lineSet) / sizeof(lineSet[0]);
     MeshShape *lines = new MeshShape(DtLines, lineSet[0].v, lineVertexCount, sizeof(lineSet[0]), nextId++, CatLines);
     shapes.push_back(lines);
@@ -348,22 +347,19 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("triangles", argc, argv))
   {
-    static const Vector3f triangleSet[] =
-    {
-      Vector3f(0, 0, 0), Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1),
-      Vector3f(0, 0, 0), Vector3f(-0.25f, 0, 1), Vector3f(0, 0.25f, 1),
-      Vector3f(0, 0, 0), Vector3f(0, -0.25f, 1), Vector3f(-0.25f, 0, 1),
-      Vector3f(0, 0, 0), Vector3f(0.25f, 0, 1), Vector3f(0, -0.25f, 1)
-    };
+    static const Vector3f triangleSet[] = { Vector3f(0, 0, 0), Vector3f(0, 0.25f, 1),  Vector3f(0.25f, 0, 1),
+                                            Vector3f(0, 0, 0), Vector3f(-0.25f, 0, 1), Vector3f(0, 0.25f, 1),
+                                            Vector3f(0, 0, 0), Vector3f(0, -0.25f, 1), Vector3f(-0.25f, 0, 1),
+                                            Vector3f(0, 0, 0), Vector3f(0.25f, 0, 1),  Vector3f(0, -0.25f, 1) };
     const unsigned triVertexCount = sizeof(triangleSet) / sizeof(triangleSet[0]);
-    static const uint32_t colours[] =
-    {
-      Colour::Colours[Colour::Red].c, Colour::Colours[Colour::Red].c, Colour::Colours[Colour::Red].c,
-      Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Green].c,
-      Colour::Colours[Colour::Blue].c, Colour::Colours[Colour::Blue].c, Colour::Colours[Colour::Blue].c,
-      Colour::Colours[Colour::White].c, Colour::Colours[Colour::White].c, Colour::Colours[Colour::White].c
-    };
-    MeshShape *triangles = new MeshShape(DtTriangles, triangleSet[0].v, triVertexCount, sizeof(triangleSet[0]), nextId++, CatTriangles);
+    static const uint32_t colours[] = { Colour::Colours[Colour::Red].c,   Colour::Colours[Colour::Red].c,
+                                        Colour::Colours[Colour::Red].c,   Colour::Colours[Colour::Green].c,
+                                        Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Green].c,
+                                        Colour::Colours[Colour::Blue].c,  Colour::Colours[Colour::Blue].c,
+                                        Colour::Colours[Colour::Blue].c,  Colour::Colours[Colour::White].c,
+                                        Colour::Colours[Colour::White].c, Colour::Colours[Colour::White].c };
+    MeshShape *triangles =
+      new MeshShape(DtTriangles, triangleSet[0].v, triVertexCount, sizeof(triangleSet[0]), nextId++, CatTriangles);
     triangles->setColours(colours);
     triangles->duplicateArrays();
     shapes.push_back(triangles);
@@ -390,23 +386,12 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("points", argc, argv))
   {
-    static const Vector3f pts[] =
-    {
-      Vector3f(0, 0.25f, 1),
-      Vector3f(0.25f, 0, 1),
-      Vector3f(-0.25f, 0, 1),
-      Vector3f(0, -0.25f, 1),
-      Vector3f(0, -0.25f, 1)
-    };
+    static const Vector3f pts[] = { Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1), Vector3f(-0.25f, 0, 1),
+                                    Vector3f(0, -0.25f, 1), Vector3f(0, -0.25f, 1) };
     const unsigned pointsCount = sizeof(pts) / sizeof(pts[0]);
-    static const uint32_t colours[] =
-    {
-      Colour::Colours[Colour::Black].c,
-      Colour::Colours[Colour::Red].c,
-      Colour::Colours[Colour::Green].c,
-      Colour::Colours[Colour::Blue].c,
-      Colour::Colours[Colour::White].c
-    };
+    static const uint32_t colours[] = { Colour::Colours[Colour::Black].c, Colour::Colours[Colour::Red].c,
+                                        Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Blue].c,
+                                        Colour::Colours[Colour::White].c };
     MeshShape *points = new MeshShape(DtPoints, pts[0].v, pointsCount, sizeof(pts[0]), nextId++, CatPoints);
     points->setColours(colours);
     shapes.push_back(points);
@@ -494,11 +479,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   if (initialShapeCount == shapes.size())
   {
     // Nothing created. Create the default shape by providing some fake arguments.
-    const char *defaultArgv[] =
-    {
-      "this arg is not read",
-      "sphere"
-    };
+    const char *defaultArgv[] = { "this arg is not read", "sphere" };
 
     createShapes(nextId, shapes, movers, resources, sizeof(defaultArgv) / sizeof(defaultArgv[0]), defaultArgv);
   }
@@ -575,10 +556,9 @@ int main(int argc, char **argvNonConst)
   const unsigned targetFrameTimeMs = 1000 / 30;
   float time = 0;
   auto lastTime = std::chrono::system_clock::now();
-  auto onNewConnection = [&shapes](Server &/*server*/, Connection &connection)
-  {
+  auto onNewConnection = [&shapes](Server & /*server*/, Connection &connection) {
     // Test categories API.
-    TES_STMT(Connection *c = &connection); // Avoid compiler warning.
+    TES_STMT(Connection *c = &connection);  // Avoid compiler warning.
     TES_CATEGORY(c, "3D", Cat3D, CatRoot, true);
     TES_CATEGORY(c, "Text", CatText, CatRoot, true);
     TES_CATEGORY(c, "Primitives", CatSimple3D, Cat3D, true);

@@ -16,46 +16,45 @@ using namespace tes;
 
 namespace
 {
-  bool acceptConnection(TcpListenSocketDetail &server, TcpSocketDetail &client)
+bool acceptConnection(TcpListenSocketDetail &server, TcpSocketDetail &client)
+{
+  socklen_t addressLen = sizeof(client.address);
+
+  client.socket = (int)::accept(server.listenSocket, (sockaddr *)&client.address, (socklen_t *)&addressLen);
+
+  if (client.socket <= 0)
   {
-    socklen_t addressLen = sizeof(client.address);
+    return false;
+  }
 
-    client.socket = (int)::accept(server.listenSocket, (sockaddr *)&client.address, (socklen_t *)&addressLen);
-
-    if (client.socket <= 0)
-    {
-      return false;
-    }
-
-    //printf("remote connection on port %d (%d) created from port %d (%d)\n",
-    //       tcpbase::getSocketPort(client.socket), client.socket,
-    //       tcpbase::getSocketPort(server.listenSocket), server.listenSocket);
+  // printf("remote connection on port %d (%d) created from port %d (%d)\n",
+  //       tcpbase::getSocketPort(client.socket), client.socket,
+  //       tcpbase::getSocketPort(server.listenSocket), server.listenSocket);
 
 #ifdef __APPLE__
   // Don't throw a SIGPIPE signal
-    int noSignal = 1;
-    if (::setsockopt(client.socket, SOL_SOCKET, SO_NOSIGPIPE, &noSignal, sizeof(noSignal)) < 0)
-    {
-      tcpbase::close(client.socket);
-      return false;
-    }
-#endif // __APPLE__
+  int noSignal = 1;
+  if (::setsockopt(client.socket, SOL_SOCKET, SO_NOSIGPIPE, &noSignal, sizeof(noSignal)) < 0)
+  {
+    tcpbase::close(client.socket);
+    return false;
+  }
+#endif  // __APPLE__
 
 #ifdef WIN32
-    // Set non blocking.
-    u_long iMode = 1;
-    ::ioctlsocket(client.socket, FIONBIO, &iMode);
-#endif // WIN32
+  // Set non blocking.
+  u_long iMode = 1;
+  ::ioctlsocket(client.socket, FIONBIO, &iMode);
+#endif  // WIN32
 
-    //tcpbase::dumpSocketOptions(client.socket);
-    return true;
-  }
+  // tcpbase::dumpSocketOptions(client.socket);
+  return true;
 }
+}  // namespace
 
 TcpListenSocket::TcpListenSocket()
   : _detail(new TcpListenSocketDetail)
-{
-}
+{}
 
 
 TcpListenSocket::~TcpListenSocket()
@@ -85,7 +84,7 @@ bool TcpListenSocket::listen(unsigned short port)
   }
 
   _detail->address.sin_family = AF_INET;
-  _detail->address.sin_addr.s_addr = htonl( INADDR_ANY );
+  _detail->address.sin_addr.s_addr = htonl(INADDR_ANY);
   _detail->address.sin_port = htons(port);
 
   //  Give the socket a local address as the TCP server
@@ -101,7 +100,7 @@ bool TcpListenSocket::listen(unsigned short port)
     return false;
   }
 
-  //printf("Listening on port %d\n", tcpbase::getSocketPort(_detail->listenSocket));
+  // printf("Listening on port %d\n", tcpbase::getSocketPort(_detail->listenSocket));
 
   return true;
 }
@@ -116,7 +115,6 @@ void TcpListenSocket::close()
     memset(&_detail->address, 0, sizeof(_detail->address));
   }
 }
-
 
 
 bool TcpListenSocket::isListening() const
@@ -137,8 +135,8 @@ TcpSocket *TcpListenSocket::accept(unsigned timeoutMs)
 
   // use select() to avoid blocking on accept()
 
-  FD_ZERO(&fdRead);          // Clear the set of selected objects
-  FD_SET(_detail->listenSocket, &fdRead);    // Add socket to read set
+  FD_ZERO(&fdRead);                        // Clear the set of selected objects
+  FD_SET(_detail->listenSocket, &fdRead);  // Add socket to read set
 
   tcpbase::timevalFromMs(timeout, timeoutMs);
 

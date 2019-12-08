@@ -11,14 +11,12 @@ const unsigned TcpSocket::IndefiniteTimeout = ~unsigned(0u);
 
 TcpSocket::TcpSocket()
   : _detail(new TcpSocketDetail)
-{
-}
+{}
 
 
 TcpSocket::TcpSocket(TcpSocketDetail *detail)
   : _detail(detail)
-{
-}
+{}
 
 
 TcpSocket::~TcpSocket()

@@ -11,8 +11,8 @@
 using namespace tes;
 
 PacketWriter::PacketWriter(PacketHeader *packet, uint16_t maxPayloadSize, uint16_t routingId, uint16_t messageId)
-: PacketStream<PacketHeader>(packet)
-, _bufferSize(uint16_t(maxPayloadSize + sizeof(PacketHeader)))
+  : PacketStream<PacketHeader>(packet)
+  , _bufferSize(uint16_t(maxPayloadSize + sizeof(PacketHeader)))
 {
   _packet->marker = PacketMarker;
   _packet->versionMajor = PacketVersionMajor;
@@ -26,8 +26,8 @@ PacketWriter::PacketWriter(PacketHeader *packet, uint16_t maxPayloadSize, uint16
 
 
 PacketWriter::PacketWriter(uint8_t *buffer, uint16_t bufferSize, uint16_t routingId, uint16_t messageId)
-: PacketStream<PacketHeader>(reinterpret_cast<PacketHeader*>(buffer))
-, _bufferSize(0)
+  : PacketStream<PacketHeader>(reinterpret_cast<PacketHeader *>(buffer))
+  , _bufferSize(0)
 {
   _bufferSize = bufferSize;
   if (bufferSize >= sizeof(PacketHeader) + sizeof(CrcType))
@@ -36,7 +36,8 @@ PacketWriter::PacketWriter(uint8_t *buffer, uint16_t bufferSize, uint16_t routin
     _packet->versionMajor = networkEndianSwapValue(PacketVersionMajor);
     _packet->versionMinor = networkEndianSwapValue(PacketVersionMinor);
     _packet->routingId = networkEndianSwapValue(routingId);
-    _packet->messageId = networkEndianSwapValue(messageId);;
+    _packet->messageId = networkEndianSwapValue(messageId);
+    ;
     _packet->payloadSize = 0u;
     _packet->payloadOffset = 0u;
     _packet->flags = 0u;
@@ -49,8 +50,8 @@ PacketWriter::PacketWriter(uint8_t *buffer, uint16_t bufferSize, uint16_t routin
 
 
 PacketWriter::PacketWriter(const PacketWriter &other)
-: PacketStream<PacketHeader>(reinterpret_cast<PacketHeader*>(other._packet))
-, _bufferSize(other._bufferSize)
+  : PacketStream<PacketHeader>(reinterpret_cast<PacketHeader *>(other._packet))
+  , _bufferSize(other._bufferSize)
 {
   _status = other._status;
   _payloadPosition = other._payloadPosition;
@@ -63,9 +64,9 @@ PacketWriter::~PacketWriter()
 }
 
 
-PacketWriter &PacketWriter::operator = (const PacketWriter &other)
+PacketWriter &PacketWriter::operator=(const PacketWriter &other)
 {
-  _packet = reinterpret_cast<PacketHeader*>(other._packet);
+  _packet = reinterpret_cast<PacketHeader *>(other._packet);
   _bufferSize = other._bufferSize;
   _status = other._status;
   _payloadPosition = other._payloadPosition;
@@ -135,7 +136,7 @@ PacketWriter::CrcType PacketWriter::calculateCrc()
 
   CrcType *crcPos = crcPtr();
   // Validate the CRC position for buffer overflow.
-  const unsigned crcOffset = unsigned(reinterpret_cast<uint8_t*>(crcPos) - reinterpret_cast<uint8_t*>(_packet));
+  const unsigned crcOffset = unsigned(reinterpret_cast<uint8_t *>(crcPos) - reinterpret_cast<uint8_t *>(_packet));
   if (crcOffset > _bufferSize - sizeof(CrcType))
   {
     // CRC overruns the buffer. Cannot calculate.
@@ -143,7 +144,7 @@ PacketWriter::CrcType PacketWriter::calculateCrc()
     return 0;
   }
 
-  CrcType crcVal = crc16(reinterpret_cast<const uint8_t *>(_packet), sizeof(PacketHeader)+payloadSize());
+  CrcType crcVal = crc16(reinterpret_cast<const uint8_t *>(_packet), sizeof(PacketHeader) + payloadSize());
   *crcPos = networkEndianSwapValue(crcVal);
   _status |= CrcValid;
   return *crcPos;
@@ -178,7 +179,7 @@ size_t PacketWriter::writeArray(const uint8_t *bytes, size_t elementSize, size_t
     {
       networkEndianSwap(fixBytes, elementSize);
     }
-#endif // !TES_IS_NETWORK_ENDIAN
+#endif  // !TES_IS_NETWORK_ENDIAN
     incrementPayloadSize(elementSize * copyCount);
     _payloadPosition = uint16_t(_payloadPosition + elementSize * copyCount);
     return copyCount;

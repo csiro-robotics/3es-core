@@ -22,4 +22,4 @@ enum Resource
   RES_MapMesh = 1,  // OK to be the same as RES_Map. One is object, the other is resource.
 };
 
-#endif // DEBUG_IDS_H_
+#endif  // DEBUG_IDS_H_
