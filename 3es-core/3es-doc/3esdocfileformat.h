@@ -10,7 +10,8 @@ However, a well formed 3es file should follow the guidelines described below and
 A well formed 3es file is always begins with a @ref secserverinfomsg "server info" message. This identifies the server
 characteristics and coordinate frame for correct playback. This message is immediately followed by a @em frame @em count
 @ref seccontrolmsg "control message". This identifies the total number of recorded frames in the file. Both these
-messages must always appear in the file uncompressed.
+messages must always appear in the file uncompressed. The remained of the stream may uncompressed, fully compressessed
+with GZip compression or compressed in a series of @c CollatedPacket sections.
 
 Item                      | Description
 ------------------------- | ---------------------------------------------------
