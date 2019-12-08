@@ -10,7 +10,7 @@
 
 namespace tes
 {
-struct ServerInfoMessage;
+  struct ServerInfoMessage;
 
   namespace streamutil
   {
@@ -24,14 +24,20 @@ struct ServerInfoMessage;
     /// @param stream The file stream to initialise. Must support writing.
     /// @param serverInfo Optional server info to write. When null it is assumed that this has already been written.
     /// @return True on success, false due to any failure.
-    bool _3es_coreAPI initialiseStream(std::ostream &stream, const ServerInfoMessage *serverInfo);
+    bool _3es_coreAPI initialiseStream(std::ostream &stream, const ServerInfoMessage *serverInfo = nullptr);
 
     /// Finalise a data stream previously initialised with @c initialiseStream(). The @p stream must be seekable for
     /// read/write so that the initial @c CIdFrameCount @c ControlMessage can be found and fixed.
     ///
     /// @param stream The file stream to initialise. Must support reading and writing.
+    /// @param frameCount The final frame count which has been written to the data stream. This value will be written
+    /// to the @c CIdFrameCount @c ControlMessage which appears near the start of the stream.
+    /// @param serverInfo Optional server info structure to rewrite to the stream. When given, this structure is written
+    /// over the existing @c ServerInfoMessage near the start of the stream. This handles cases where the info may not
+    /// be known at the start.
     /// @return True on success, false due to any failure.
-    bool _3es_coreAPI finaliseStream(std::iostream &stream, unsigned frameCount);
+    bool _3es_coreAPI finaliseStream(std::iostream &stream, unsigned frameCount,
+                                     const ServerInfoMessage *serverInfo = nullptr);
   } // namespace streamutil
 } // namespace tes
 

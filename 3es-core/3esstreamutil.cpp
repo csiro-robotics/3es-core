@@ -66,7 +66,7 @@ namespace tes
     }
 
 
-    bool finaliseStream(std::iostream &stream, unsigned frameCount)
+    bool finaliseStream(std::iostream &stream, unsigned frameCount, const ServerInfoMessage *serverInfo)
     {
       // Rewind the stream to the beginning and find the first RoutingID.ServerInfo message
       // and RoutingID.Control message with a ControlMessageID.FrameCount ID. These should be
@@ -185,17 +185,18 @@ namespace tes
         }
       }
 
-      // if (serverInfoMessageStart >= 0)
-      // {
-      //   // Found the correct location. Seek the stream to here and write a new FrameCount control message.
-      //   stream.seekp(serverInfoMessageStart);
-      //   PacketWriter packet(headerBuffer.data(), uint16_t(headerBuffer.size()), MtServerInfo);
+      // Rewrite server info in case it was just a place holder which was written before.
+      if (serverInfo && serverInfoMessageStart >= 0)
+      {
+        // Found the correct location. Seek the stream to here and write a new FrameCount control message.
+        stream.seekp(serverInfoMessageStart);
+        PacketWriter packet(headerBuffer.data(), uint16_t(headerBuffer.size()), MtServerInfo);
 
-      //   _serverInfo.write(packet);
-      //   packet.finalise();
-      //   stream.write((const char *)headerBuffer.data(), packet.packetSize());
-      //   stream.flush();
-      // }
+        serverInfo->write(packet);
+        packet.finalise();
+        stream.write((const char *)headerBuffer.data(), packet.packetSize());
+        stream.flush();
+      }
 
       if (frameCountMessageStart >= 0)
       {
