@@ -7,7 +7,7 @@ include(3es-core/cmake/3es-version.cmake)
 set(ConfigPackageLocation lib/cmake/3es)
 
 # C++ standards setup.
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 # Ensure -fPIC is added.
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

@@ -44,6 +44,7 @@ list(APPEND PUBLIC_HEADERS
   3esservermacros.h
   3esserverutil.h
   3esspinlock.h
+  3esstreamutil.h
   3estcplistensocket.h
   3estcpsocket.h
   3estimer.h
@@ -112,6 +113,7 @@ list(APPEND SOURCES
   3esresourcepacker.cpp
   3esrotation.cpp
   3esspinlock.cpp
+  3esstreamutil.cpp
   3estimer.cpp
   3esvector3.cpp
   3esvector4.cpp

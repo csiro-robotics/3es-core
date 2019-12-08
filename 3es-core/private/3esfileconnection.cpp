@@ -3,13 +3,15 @@
 //
 #include "3esfileconnection.h"
 
+#include "3esstreamutil.h"
+
 #include <mutex>
 
 using namespace tes;
 
 FileConnection::FileConnection(const char *filename, const ServerSettings &settings)
 : BaseConnection(settings)
-, _outFile(filename, std::ios::binary | std::ios::out)
+, _outFile(filename, std::ios::binary | std::ios::out | std::ios::in | std::ios::trunc)
 , _filename(filename)
 {
 }
@@ -24,8 +26,12 @@ FileConnection::~FileConnection()
 void FileConnection::close()
 {
   std::lock_guard<Lock> guard(_fileLock);
-  _outFile.flush();
-  _outFile.close();
+  if (_outFile.is_open())
+  {
+    _outFile.flush();
+    streamutil::finaliseStream(_outFile, _frameCount);
+    _outFile.close();
+  }
 }
 
 
@@ -51,6 +57,25 @@ bool FileConnection::isConnected() const
 {
   std::lock_guard<Lock> guard(_fileLock);
   return _outFile.is_open();
+}
+
+
+bool FileConnection::sendServerInfo(const ServerInfoMessage &info)
+{
+  if (!BaseConnection::sendServerInfo(info))
+  {
+    return false;
+  }
+
+  // Server info already written. No need to write it again.
+  return streamutil::initialiseStream(_outFile, nullptr);
+}
+
+
+int FileConnection::updateFrame(float dt, bool flush)
+{
+  ++_frameCount;
+  return BaseConnection::updateFrame(dt, flush);
 }
 
 

@@ -516,6 +516,7 @@ void showUsage(int argc, char **argv)
   {
     std::cout << "  compress: write collated and compressed packets\n";
   }
+  std::cout << "  file: Save a file stream to 'server-test.3es'\n";
   std::cout << "  noaxes: Don't create axis arrow objects\n";
   std::cout << "  nomove: don't move objects (keep stationary)\n";
   std::cout << "  wire: Show wireframe shapes, not slide for relevant objects\n";
@@ -610,6 +611,12 @@ int main(int argc, char **argvNonConst)
     return 1;
   }
   std::cout << "Listening on port " << server->connectionMonitor()->port() << std::endl;
+
+  if (haveOption("file", argc, argv))
+  {
+    // Record to file stream.
+    server->connectionMonitor()->openFileStream("server-test.3es");
+  }
 
   // Register shapes with server.
   for (Shape *shape : shapes)

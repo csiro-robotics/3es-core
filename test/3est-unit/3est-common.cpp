@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <functional>
 
 namespace tes
