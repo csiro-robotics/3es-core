@@ -11,13 +11,6 @@ if(NOT DEFINED OCTOMAP_INCLUDE_DIRS)
   return()
 endif(NOT DEFINED OCTOMAP_INCLUDE_DIRS)
 
-find_package(LIBLAS)
-find_package(LASZIP)
-
-if(NOT LIBLAS_FOUND)
-  message(STATUS "LIBLAS not found. Skipping 3es-occupancy example.")
-endif(NOT LIBLAS_FOUND)
-
 # Need to add boost link directories because of LIBLAS.
 find_package(Boost COMPONENTS "thread")
 link_directories("${Boost_LIBRARY_DIRS}")
@@ -31,16 +24,13 @@ list(APPEND SOURCES
   occupancymesh.cpp
   occupancymesh.h
   p2p.h
+  3rd-party/tinyply.h
 )
 
 add_executable(3es-occupancy ${SOURCES})
 set_target_properties(3es-occupancy PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
-target_link_libraries(3es-occupancy
-  3es-core
-  ${LIBLAS_LIBRARIES}
-  ${LASZIP_LIBRARIES}
-)
+target_link_libraries(3es-occupancy 3es-core)
 
 # Octomap is not well set up for MSVC builds. Static and shared libraries, for example, build to the same .lib file.
 # Debug libraries aren't correctly defined or distinguished by default.
@@ -54,7 +44,5 @@ target_include_directories(3es-occupancy
   PRIVATE
     $<TARGET_PROPERTY:3es-core,INCLUDE_DIRECTORIES>
     "${OCTOMAP_INCLUDE_DIRS}"
-    "${LIBLAS_INCLUDE_DIR}"
-    "${LASZIP_INCLUDE_DIR}"
 )
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" PREFIX source FILES ${SOURCES})

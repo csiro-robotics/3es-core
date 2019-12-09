@@ -38,14 +38,22 @@ THE SOFTWARE OR MATERIAL DISTRIBUTED WITH IT.  CSIRO MAY ENFORCE ANY RIGHTS ON B
 Party Components The following third party components are distributed with the Software.  You agree to comply with the
 license terms for these components as part of accessing the Software.  Other third party software may also be identified
 in separate files distributed with the Software.
+
 ___________________________________________________________________
-Unity 3D https://unity3d.com/
-ZLib http://www.zlib.net/
-Microsoft .Net System.IO.Compress ported by Hitcents (http://www.hitcents.com/) from .Net open source:
-UCLA Game Lab wireframe shaders http://games.ucla.edu/
-CMake project configuration http://www.cmake.org/
-Doxygen documentation http://www.stack.nl/~dimitri/doxygen/
+ZLib https://www.zlib.net/
+This software is licensed under ZLib license https://www.zlib.net/zlib_license.html
 ___________________________________________________________________
+
+___________________________________________________________________
+CMake https://cmake.org/
+This software is licensed under the BSD 3-Clause license.
+___________________________________________________________________
+
+___________________________________________________________________
+tinyply https://github.com/ddiakopoulos/tinyply
+This software is public domain
+___________________________________________________________________
+
 @endcode
 
 */

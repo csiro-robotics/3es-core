@@ -61,6 +61,7 @@ struct Options
 {
   std::string cloudFile;
   std::string trajectoryFile;
+  std::string outStream;
   uint64_t pointLimit;
   double startTime;
   double endTime;
@@ -388,8 +389,8 @@ int populateMap(const Options &opt)
 void usage(const Options &opt)
 {
   printf("Usage:\n");
-  printf("3es-occupancy [options] <cloud.las> <trajectory.las>\n");
-  printf("\nGenerates an Octomap occupancy map from a LAS/LAZ based point cloud and accompanying trajectory file.\n\n");
+  printf("3es-occupancy [options] <cloud.ply> <trajectory.ply>\n");
+  printf("\nGenerates an Octomap occupancy map from a PLY based point cloud and accompanying trajectory file.\n\n");
   printf(
     "The trajectory marks the scanner trajectory with timestamps loosely corresponding to cloud point timestamps. ");
   printf("Trajectory points are interpolated for each cloud point based on corresponding times in the trajectory.\n\n");
@@ -402,6 +403,8 @@ void usage(const Options &opt)
   printf("  The occupancy probability due to a hit. Must be >= 0.5.\n");
   printf("-m=<miss-probability> (%g)\n", opt.probMiss);
   printf("  The occupancy probability due to a miss. Must be < 0.5.\n");
+  printf("-o=<stream-file>\n");
+  printf("  Specifies a file to write a 3es stream to directly without the need for an external client.\n");
   printf("-p=<point-limit> (0)\n");
   printf("  The voxel resolution of the generated map.\n");
   printf("-q\n");
@@ -474,6 +477,9 @@ int main(int argc, char *argv[])
         break;
       case 'm':
         ok = optionValue(argv[i] + 2, argc, argv, opt.probMiss);
+        break;
+      case 'o':
+        ok = optionValue(argv[i] + 2, argc, argv, opt.outStream);
         break;
       case 'p':  // point limit
         ok = optionValue(argv[i] + 2, argc, argv, opt.pointLimit);
@@ -585,6 +591,12 @@ int main(int argc, char *argv[])
   TES_SERVER_START_WAIT(g_tesServer, 1000);
 
 #ifdef TES_ENABLE
+  if (!opt.outStream.empty())
+  {
+    g_tesServer->connectionMonitor()->openFileStream(opt.outStream.c_str());
+    g_tesServer->connectionMonitor()->commitConnections();
+  }
+
   std::cout << "Starting with " << g_tesServer->connectionCount() << " connection(s)." << std::endl;
 #endif  // TES_ENABLE
 
