@@ -164,8 +164,8 @@ bool OccupancyLoader::open(const char *sampleFilePath, const char *trajectoryFil
   _imp->sampleFilePath = sampleFilePath;
   _imp->trajectoryFilePath = trajectoryFilePath;
 
-  _imp->sampleFile.open(_imp->sampleFilePath);
-  _imp->trajectoryFile.open(_imp->trajectoryFilePath);
+  _imp->sampleFile.open(_imp->sampleFilePath, std::ios::binary | std::ios::in);
+  _imp->trajectoryFile.open(_imp->trajectoryFilePath, std::ios::binary | std::ios::in);
 
   if (!sampleFileIsOpen() || !trajectoryFileIsOpen())
   {
