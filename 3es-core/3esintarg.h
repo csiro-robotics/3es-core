@@ -125,8 +125,10 @@ TES_INTARG_OPERATORS(int, tes::IntArg);
 TES_INTARG_OPERATORS_SELF(tes::IntArg);
 TES_INTARG_OPERATORS(unsigned, tes::UIntArg);
 TES_INTARG_OPERATORS_SELF(tes::UIntArg);
+#ifdef TES_64
 TES_INTARG_OPERATORS(size_t, tes::SizeTArg);
 TES_INTARG_OPERATORS_SELF(tes::SizeTArg);
+#endif // TES_64
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif  // __GNUC__

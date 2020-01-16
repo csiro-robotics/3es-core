@@ -3,6 +3,7 @@ set(SOURCES
   3est-collate.cpp
   3est-common.cpp
   3est-common.h
+  3est-core.cpp
   3est-shapes.cpp
 )
 
