@@ -123,6 +123,14 @@ public:
   /// @return True if two sided flag is set.
   bool isTwoSided() const;
 
+  /// Configures the shape to replace any previous shape with the same ID on creation.
+  /// Only valid on creation.
+  /// @return @c *this.
+  Shape &setReplace(bool replace);
+  /// Returns true set to replace pre-existing shape with the same ID.
+  /// @return True if the replace flag is set.
+  bool isReplace() const;
+
   /// Set the full set of @c ObjectFlag values.
   /// This affects attributes such as @c isTwoSided() and @c isWireframe().
   /// @param flags New flag values to write.
@@ -382,6 +390,20 @@ inline Shape &Shape::setTwoSided(bool twoSided)
 inline bool Shape::isTwoSided() const
 {
   return (_data.flags & OFTwoSided) != 0;
+}
+
+
+inline Shape &Shape::setReplace(bool replace)
+{
+  _data.flags = uint16_t(_data.flags & ~OFReplace);
+  _data.flags |= uint16_t(_data.flags | (OFReplace * !!replace));
+  return *this;
+}
+
+
+inline bool Shape::isReplace() const
+{
+  return (_data.flags & OFReplace) != 0;
 }
 
 

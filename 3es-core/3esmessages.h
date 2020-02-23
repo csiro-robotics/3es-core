@@ -96,8 +96,14 @@ enum ObjectFlag
   OFWire = (1 << 0),         ///< Show the object as a wireframe mesh.
   OFTransparent = (1 << 1),  ///< The object supports transparency. Use the colour alpha channel.
   OFTwoSided = (1 << 2),     ///< Use a two sided shader.
+  /// Shape creation should replace any pre-exiting shape with the same object ID.
+  /// Normally duplicate shape creation messages are not allowed. This flag allows a duplicate shape ID
+  /// (non-transient) by replacing the previous shape.
+  OFReplace = (1 << 3),
+  /// Creating multiple shapes in one message.
+  OFMultiShape = (1 << 4),
 
-  OFUser = (1 << 8)  ///< Use flags start here.
+  OFUser = (1 << 8)  ///< User flags start here.
 };
 
 /// Additional attributes for point data sources.
@@ -408,7 +414,7 @@ struct _3es_coreAPI CreateMessage
 
   uint32_t id;                  ///< Id of the object to create. Zero for transient objects.
   uint16_t category;            ///< Object categorisation. Used to control visibility.
-  uint16_t flags;               ///< Flags controlling the appearance and creation of the object.
+  uint16_t flags;               ///< Flags controlling the appearance and creation of the object (@c ObjectFlag).
   uint16_t reserved;            ///< Reserved for future use.
   ObjectAttributes attributes;  ///< Initial transformation and colour.
 
