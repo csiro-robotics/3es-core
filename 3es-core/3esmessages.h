@@ -102,6 +102,8 @@ enum ObjectFlag
   OFReplace = (1 << 3),
   /// Creating multiple shapes in one message.
   OFMultiShape = (1 << 4),
+  /// Do not display this shape. This is intended for use only by the viewer application; e.g. for multi shape roots.
+  OFHidden = (1 << 5),
 
   OFUser = (1 << 8)  ///< User flags start here.
 };
