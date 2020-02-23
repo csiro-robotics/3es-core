@@ -448,15 +448,27 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
           pos.z = blockOffset + float(z) * separation;
 
           Capsule *capsule = new Capsule(id, CatCapsule, Vector3f(0, 0, 0));
-          capsule->setLength(0.3f);
+          capsule->setLength(0.4f);
           capsule->setRadius(0.15f);
           capsule->setColour(Colour::cycle(i));
+          capsule->setPosition(pos);
           manyShapes[i++] = capsule;
         }
       }
     }
 
     MultiShape *shape = new MultiShape(manyShapes.data(), manyShapes.size(), Vector3f(0, 10.0f, 0));
+    shape->takeOwnership();
+    shapes.emplace_back(shape);
+
+    // Clone the array for a second set and change the ID.
+    id = nextId++;
+    for (size_t i = 0; i < manyShapes.size(); ++i)
+    {
+      manyShapes[i] = manyShapes[i]->clone();
+      manyShapes[i]->setId(id);
+    }
+    shape = new MultiShape(manyShapes.data(), manyShapes.size(), Vector3f(-10.0f, 5.0f, 0));
     shape->takeOwnership();
     shapes.emplace_back(shape);
   }
@@ -478,8 +490,12 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
     for (size_t i = initialShapeCount; i < shapes.size(); ++i)
     {
-      shapes[i]->setPosition(pos);
-      pos.x += spacing;
+      // Set position if not already set.
+      if (shapes[i]->position().isEqual(Vector3f::zero))
+      {
+        shapes[i]->setPosition(pos);
+        pos.x += spacing;
+      }
     }
 
     for (ShapeMover *mover : movers)
@@ -547,6 +563,7 @@ void showUsage(int argc, char **argv)
   std::cout << "\tcylinder\n";
   std::cout << "\tlines\n";
   std::cout << "\tmesh\n";
+  std::cout << "\tmulti (2000 capsules)\n";
   std::cout << "\tplane\n";
   std::cout << "\tpoints\n";
   std::cout << "\tsphere\n";
