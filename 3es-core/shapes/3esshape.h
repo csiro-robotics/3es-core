@@ -76,12 +76,17 @@ class Resource;
 class _3es_coreAPI Shape
 {
 public:
+  /// Create a new shape with the given @c routingId and instance @c id .
+  /// @param routingId Identifies the shape type.
+  /// @param id The shape instance id. A zero id is transient, ~0u is reserved, all other ids must be unique.
   Shape(uint16_t routingId, uint32_t id = 0);
   /// Construct a box object.
   /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
   /// @param category The category grouping for the shape used for filtering.
   Shape(uint16_t routingId, uint32_t id, uint16_t category);
-  virtual inline ~Shape() {}
+
+  /// Virtual destructor.
+  virtual inline ~Shape() = default;
 
   /// Return a reference name for the shape type; e.g., "box". Essentially the class name.
   ///
@@ -90,13 +95,38 @@ public:
   /// @return The shape type name.
   virtual inline const char *type() const { return "unknown"; }
 
+  /// Identifies the shape routing id. This is used to route to the correct message handler in the viewer application
+  /// and essentially uniquely identifies the shape type.
+  /// @return The shape routing id. See @c ShapeHandlerIDs .
   uint16_t routingId() const;
 
+  /// Direct access to the internal data.
+  /// @return The @c CreateMessage used to represent this shape.
   inline const CreateMessage &data() const { return _data; }
 
+  /// Access the instance id of this shape.
+  ///
+  /// Shapes must have either a zero id or a unique id. A zero id represents a transient shape which does not need to
+  /// be explicitly deleted, while any non-zero id must be unique.
+  ///
+  /// Note the id value @c ~0u is reserved.
+  /// @return The shape instance id.
   uint32_t id() const;
+
+  /// Set the instance id.
+  /// @param id The new shape id.
   Shape &setId(uint32_t id);
+
+  /// Access the shape category.
+  ///
+  /// Categories can be used by the viewer to perform collective operations on shapes, such as disable rendering for
+  /// particular categories. The category structure is hierarchical, but user defined.
+  ///
+  /// @return The shape's category.
   uint16_t category() const;
+
+  /// Set the shape's category.
+  /// @return category The new category value.
   Shape &setCategory(uint16_t category);
 
   /// Sets the wireframe flag value for this shape. Only before sending create.
