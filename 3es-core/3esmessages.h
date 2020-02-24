@@ -102,8 +102,17 @@ enum ObjectFlag
   OFReplace = (1 << 3),
   /// Creating multiple shapes in one message.
   OFMultiShape = (1 << 4),
-  /// Do not display this shape. This is intended for use only by the viewer application; e.g. for multi shape roots.
-  OFHidden = (1 << 5),
+  /// Do not reference count resources or queue resources for sending.
+  ///
+  /// By default each connection reference counts and queues resources for each shape, sending them from
+  /// @c Connection::updateTransfers() . This flag prevents resources from being sent automatically for a shape.
+  /// References are then dereferenced (potentially destroyed) when destroying a resource using shape. This flag
+  /// prevents this reference counting for a shape, essentially assuming the client has the resources via explicit
+  /// references using @c Connection::referenceResource() .
+  ///
+  /// This should always be used when using the @c OFReplace flag as reference counting can only be maintained with
+  /// proper create/destroy command pairs.
+  OFSkipResources = (1 << 5),
 
   OFUser = (1 << 8)  ///< User flags start here.
 };

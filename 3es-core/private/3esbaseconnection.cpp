@@ -218,7 +218,7 @@ int BaseConnection::create(const Shape &shape)
 
     // Collate and queue resources for persistent objects. Transient not allowed because
     // destroy won't be called and references won't be released.
-    if (shape.id() != 0)
+    if (shape.id() != 0 && !shape.skipResources())
     {
       const unsigned resCapacity = 8;
       const Resource *resources[resCapacity];
@@ -257,7 +257,7 @@ int BaseConnection::destroy(const Shape &shape)
 
   // Remove resources for persistent objects. Transient won't have destroy called and
   // won't correctly release the resources. Check the ID because I'm paranoid.
-  if (shape.id())
+  if (shape.id() && !shape.skipResources())
   {
     const unsigned resCapacity = 8;
     const Resource *resources[resCapacity];
