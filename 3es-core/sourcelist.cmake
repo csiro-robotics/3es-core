@@ -68,6 +68,7 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/3esmeshresource.h
   shapes/3esmeshset.h
   shapes/3esmeshshape.h
+  shapes/3esmultishape.h
   shapes/3esmutablemesh.h
   shapes/3esplane.h
   shapes/3espointcloud.h
@@ -126,6 +127,7 @@ list(APPEND SOURCES
   shapes/3esmeshresource.cpp
   shapes/3esmeshset.cpp
   shapes/3esmeshshape.cpp
+  shapes/3esmultishape.cpp
   shapes/3esmutablemesh.cpp
   shapes/3esplane.cpp
   shapes/3espointcloud.cpp

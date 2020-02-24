@@ -218,7 +218,7 @@ int BaseConnection::create(const Shape &shape)
 
     // Collate and queue resources for persistent objects. Transient not allowed because
     // destroy won't be called and references won't be released.
-    if (shape.id() != 0)
+    if (shape.id() != 0 && !shape.skipResources())
     {
       const unsigned resCapacity = 8;
       const Resource *resources[resCapacity];
@@ -257,7 +257,7 @@ int BaseConnection::destroy(const Shape &shape)
 
   // Remove resources for persistent objects. Transient won't have destroy called and
   // won't correctly release the resources. Check the ID because I'm paranoid.
-  if (shape.id())
+  if (shape.id() && !shape.skipResources())
   {
     const unsigned resCapacity = 8;
     const Resource *resources[resCapacity];
@@ -311,6 +311,7 @@ int BaseConnection::updateTransfers(unsigned byteLimit)
   }
 
   std::lock_guard<Lock> guard(_packetLock);
+  std::lock_guard<Lock> resource_guard(_resourceLock);
   unsigned transferred = 0;
 
   while ((!byteLimit || transferred < byteLimit) && (!_currentResource->isNull() || !_resourceQueue.empty()))
@@ -399,6 +400,7 @@ unsigned BaseConnection::referenceResource(const Resource *resource)
 
   unsigned refCount = 0;
   uint64_t resId = resource->uniqueKey();
+  std::lock_guard<Lock> resource_guard(_resourceLock);
   auto existing = _resources.find(resId);
   if (existing != _resources.end())
   {
@@ -423,6 +425,7 @@ unsigned BaseConnection::releaseResource(const Resource *resource)
     return 0;
   }
 
+  std::lock_guard<Lock> packet_guard(_packetLock);
   return releaseResource(resource->uniqueKey());
 }
 
@@ -430,6 +433,7 @@ unsigned BaseConnection::releaseResource(const Resource *resource)
 unsigned BaseConnection::releaseResource(uint64_t resourceId)
 {
   unsigned refCount = 0;
+  std::lock_guard<Lock> resource_guard(_resourceLock);
   auto existing = _resources.find(resourceId);
   if (existing != _resources.end())
   {

@@ -91,6 +91,8 @@ protected:
   };
 
   /// Decrement references count to the indicated @c resourceId, removing if necessary.
+  ///
+  /// @note The @c _packetLock must be locked before calling this function.
   unsigned releaseResource(uint64_t resourceId);
 
   /// Send pending collated/compressed data.
@@ -111,8 +113,9 @@ protected:
 
   void ensurePacketBufferCapacity(size_t size);
 
-  Lock _packetLock;  ///< Lock for using @c _packet
-  Lock _sendLock;    ///< Lock for @c writePacket() and @c flushCollatedPacket()
+  Lock _packetLock;   ///< Lock for using @c _packet
+  Lock _sendLock;     ///< Lock for @c writePacket() and @c flushCollatedPacket()
+  Lock _resourceLock; ///< Lock for @c _resources
   PacketWriter *_packet;
   std::vector<uint8_t> _packetBuffer;
   ResourcePacker *_currentResource;  ///< Current resource being transmitted.

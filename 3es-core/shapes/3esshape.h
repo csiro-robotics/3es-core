@@ -76,12 +76,17 @@ class Resource;
 class _3es_coreAPI Shape
 {
 public:
+  /// Create a new shape with the given @c routingId and instance @c id .
+  /// @param routingId Identifies the shape type.
+  /// @param id The shape instance id. A zero id is transient, ~0u is reserved, all other ids must be unique.
   Shape(uint16_t routingId, uint32_t id = 0);
   /// Construct a box object.
   /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
   /// @param category The category grouping for the shape used for filtering.
   Shape(uint16_t routingId, uint32_t id, uint16_t category);
-  virtual inline ~Shape() {}
+
+  /// Virtual destructor.
+  virtual inline ~Shape() = default;
 
   /// Return a reference name for the shape type; e.g., "box". Essentially the class name.
   ///
@@ -90,13 +95,38 @@ public:
   /// @return The shape type name.
   virtual inline const char *type() const { return "unknown"; }
 
+  /// Identifies the shape routing id. This is used to route to the correct message handler in the viewer application
+  /// and essentially uniquely identifies the shape type.
+  /// @return The shape routing id. See @c ShapeHandlerIDs .
   uint16_t routingId() const;
 
+  /// Direct access to the internal data.
+  /// @return The @c CreateMessage used to represent this shape.
   inline const CreateMessage &data() const { return _data; }
 
+  /// Access the instance id of this shape.
+  ///
+  /// Shapes must have either a zero id or a unique id. A zero id represents a transient shape which does not need to
+  /// be explicitly deleted, while any non-zero id must be unique.
+  ///
+  /// Note the id value @c ~0u is reserved.
+  /// @return The shape instance id.
   uint32_t id() const;
+
+  /// Set the instance id.
+  /// @param id The new shape id.
   Shape &setId(uint32_t id);
+
+  /// Access the shape category.
+  ///
+  /// Categories can be used by the viewer to perform collective operations on shapes, such as disable rendering for
+  /// particular categories. The category structure is hierarchical, but user defined.
+  ///
+  /// @return The shape's category.
   uint16_t category() const;
+
+  /// Set the shape's category.
+  /// @return category The new category value.
   Shape &setCategory(uint16_t category);
 
   /// Sets the wireframe flag value for this shape. Only before sending create.
@@ -105,7 +135,7 @@ public:
   Shape &setWireframe(bool wire);
   /// Returns true if the wireframe flag is set.
   /// @return True if wireframe flag is set.
-  bool isWireframe() const;
+  bool wireframe() const;
 
   /// Sets the transparent flag value for this shape. Only before sending create.
   /// Not all shapes will respect the flag.
@@ -113,7 +143,7 @@ public:
   Shape &setTransparent(bool transparent);
   /// Returns true if the transparent flag is set.
   /// @return True if transparent flag is set.
-  bool isTransparent() const;
+  bool transparent() const;
 
   /// Sets the two sided shader flag value for this shape. Only before sending create.
   /// Not all shapes will respect the flag.
@@ -121,7 +151,23 @@ public:
   Shape &setTwoSided(bool twoSided);
   /// Returns true if the two sided shader flag is set.
   /// @return True if two sided flag is set.
-  bool isTwoSided() const;
+  bool twoSided() const;
+
+  /// Configures the shape to replace any previous shape with the same ID on creation.
+  /// Only valid on creation.
+  /// @return @c *this.
+  Shape &setReplace(bool replace);
+  /// Returns true set to replace pre-existing shape with the same ID.
+  /// @return True if the replace flag is set.
+  bool replace() const;
+
+  /// Configures the shape to skip referencing resources for this instance. See @c ObjectFlag::OFSkipResources .
+  /// Must be set on both creation and destruction.
+  /// @return @c *this.
+  Shape &setSkipResources(bool skip);
+  /// Returns true set to skip resource referencing for this shape instance.
+  /// @return True if the skip resources flag is set.
+  bool skipResources() const;
 
   /// Set the full set of @c ObjectFlag values.
   /// This affects attributes such as @c isTwoSided() and @c isWireframe().
@@ -346,12 +392,12 @@ inline Shape &Shape::setCategory(uint16_t category)
 inline Shape &Shape::setWireframe(bool wire)
 {
   _data.flags = uint16_t(_data.flags & ~OFWire);
-  _data.flags |= uint16_t(_data.flags | (OFWire * !!wire));
+  _data.flags |= uint16_t(OFWire * !!wire);
   return *this;
 }
 
 
-inline bool Shape::isWireframe() const
+inline bool Shape::wireframe() const
 {
   return (_data.flags & OFWire) != 0;
 }
@@ -360,12 +406,12 @@ inline bool Shape::isWireframe() const
 inline Shape &Shape::setTransparent(bool transparent)
 {
   _data.flags = uint16_t(_data.flags & ~OFTransparent);
-  _data.flags |= uint16_t(_data.flags | (OFTransparent * !!transparent));
+  _data.flags |= uint16_t(OFTransparent * !!transparent);
   return *this;
 }
 
 
-inline bool Shape::isTransparent() const
+inline bool Shape::transparent() const
 {
   return (_data.flags & OFTransparent) != 0;
 }
@@ -374,14 +420,42 @@ inline bool Shape::isTransparent() const
 inline Shape &Shape::setTwoSided(bool twoSided)
 {
   _data.flags = uint16_t(_data.flags & ~OFTwoSided);
-  _data.flags |= uint16_t(_data.flags | (OFTwoSided * !!twoSided));
+  _data.flags |= uint16_t(OFTwoSided * !!twoSided);
   return *this;
 }
 
 
-inline bool Shape::isTwoSided() const
+inline bool Shape::twoSided() const
 {
   return (_data.flags & OFTwoSided) != 0;
+}
+
+
+inline Shape &Shape::setReplace(bool replace)
+{
+  _data.flags = uint16_t(_data.flags & ~OFReplace);
+  _data.flags |= uint16_t(OFReplace * !!replace);
+  return *this;
+}
+
+
+inline bool Shape::replace() const
+{
+  return (_data.flags & OFReplace) != 0;
+}
+
+
+inline Shape &Shape::setSkipResources(bool skip)
+{
+  _data.flags = uint16_t(_data.flags & ~OFSkipResources);
+  _data.flags |= uint16_t(OFSkipResources * !!skip);
+  return *this;
+}
+
+
+inline bool Shape::skipResources() const
+{
+  return (_data.flags & OFSkipResources) != 0;
 }
 
 
