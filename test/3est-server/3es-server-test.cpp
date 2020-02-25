@@ -57,6 +57,7 @@ enum Categories
   CatMesh,
   CatPlane,
   CatPoints,
+  CatPose,
   CatSphere,
   CatStar,
   CatText2D,
@@ -305,6 +306,17 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     if (!noMove)
     {
       movers.emplace_back(new Oscilator(plane, 2.0f, 2.5f));
+    }
+  }
+
+  if (allShapes || haveOption("pose", argc, argv))
+  {
+    Pose *pose = new Pose(nextId++, CatPose);
+    pose->setRotation(Quaternionf().setAxisAngle(Vector3f::axisz, float(0.25 * M_PI)));
+    shapes.emplace_back(pose);
+    if (!noMove)
+    {
+      movers.emplace_back(new Oscilator(pose, 2.0f, 2.5f));
     }
   }
 
@@ -624,6 +636,7 @@ int main(int argc, char **argvNonConst)
     TES_CATEGORY(c, "Meshes", CatMesh, CatComplex3D, true);
     TES_CATEGORY(c, "Planes", CatPlane, CatSimple3D, true);
     TES_CATEGORY(c, "Points", CatPoints, CatComplex3D, true);
+    TES_CATEGORY(c, "Pose", CatPose, CatSimple3D, true);
     TES_CATEGORY(c, "Spheres", CatSphere, CatSimple3D, true);
     TES_CATEGORY(c, "Stars", CatStar, CatSimple3D, true);
     TES_CATEGORY(c, "Text2D", CatText2D, CatText, true);

@@ -15,6 +15,7 @@
 #include "3esmultishape.h"
 #include "3esplane.h"
 #include "3espointcloudshape.h"
+#include "3espose.h"
 #include "3essphere.h"
 #include "3esstar.h"
 #include "3estext2d.h"

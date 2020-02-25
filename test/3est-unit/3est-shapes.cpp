@@ -549,6 +549,12 @@ TEST(Shapes, PointCloud)
   testShape(PointCloudShape(&cloud, 42, 0, 8).setIndices(indices.data(), unsigned(indices.size())));
 }
 
+TEST(Shapes, Pose)
+{
+  testShape(Pose(42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(0.25f, 0.5f, 1.5f), Quaternionf().setAxisAngle(Vector3f::axisz, float(0.25 * M_PI))));
+  testShape(Pose(42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(0.25f, 0.5f, 1.5f), Quaternionf().setAxisAngle(Vector3f::axisz, float(0.25 * M_PI))));
+}
+
 TEST(Shapes, Sphere)
 {
   testShape(Sphere(42, Vector3f(1.2f, 2.3f, 3.4f), 1.26f));

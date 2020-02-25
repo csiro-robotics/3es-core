@@ -56,6 +56,7 @@ enum ShapeHandlerIDs
   SIdPointCloud,
   SIdText3D,
   SIdText2D,
+  SIdPose,  ///< A set of axes representing a pose. Coloured XYZ => RGB.
 
   SIdBuiltInLast = SIdText2D
 };

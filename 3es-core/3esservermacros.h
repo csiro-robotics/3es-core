@@ -617,17 +617,34 @@
   }
 
 /// @ingroup tesmacros
-/// Render a set of voxels. Vertices represent voxel centres, normals are extents.
+/// Solid pose.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
-/// @param resolution The length of the voxel edge. Only supports cubic voxels.
-/// @param ... Additional arguments follow, passed to @p MeshShape() constructor. Vertices and normals required.
-#define TES_VOXELS(server, colour, resolution, ...)                        \
-  if (server)                                                              \
-  {                                                                        \
-    (server)->create(tes::MeshShape(tes::DtVoxels, ##__VA_ARGS__)          \
-                       .setUniformNormal(tes::Vector3f(0.5f * resolution)) \
-                       .setColour(colour));                                \
+/// @param ... Additional arguments follow, passed to @p Pose() constructor.
+#define TES_POSE(server, colour, ...)                           \
+  if (server)                                                  \
+  {                                                            \
+    (server)->create(tes::Pose(__VA_ARGS__).setColour(colour)); \
+  }
+/// @ingroup tesmacros
+/// Transparent pose.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
+/// @param colour The colour to apply to the shape.
+/// @param ... Additional arguments follow, passed to @p Pose() constructor.
+#define TES_POSE_T(server, colour, ...)                                              \
+  if (server)                                                                       \
+  {                                                                                 \
+    (server)->create(tes::Pose(__VA_ARGS__).setColour(colour).setTransparent(true)); \
+  }
+/// @ingroup tesmacros
+/// Wireframe pose.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
+/// @param colour The colour to apply to the shape.
+/// @param ... Additional arguments follow, passed to @p Pose() constructor.
+#define TES_POSE_W(server, colour, ...)                                            \
+  if (server)                                                                     \
+  {                                                                               \
+    (server)->create(tes::Pose(__VA_ARGS__).setColour(colour).setWireframe(true)); \
   }
 
 /// @ingroup tesmacros
@@ -971,6 +988,20 @@
   }
 
 /// @ingroup tesmacros
+/// Render a set of voxels. Vertices represent voxel centres, normals are extents.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
+/// @param colour The colour to apply to the shape.
+/// @param resolution The length of the voxel edge. Only supports cubic voxels.
+/// @param ... Additional arguments follow, passed to @p MeshShape() constructor. Vertices and normals required.
+#define TES_VOXELS(server, colour, resolution, ...)                        \
+  if (server)                                                              \
+  {                                                                        \
+    (server)->create(tes::MeshShape(tes::DtVoxels, ##__VA_ARGS__)          \
+                       .setUniformNormal(tes::Vector3f(0.5f * resolution)) \
+                       .setColour(colour));                                \
+  }
+
+/// @ingroup tesmacros
 /// Destroy arrow with @p id.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
@@ -987,6 +1018,15 @@
   if (server)                                               \
   {                                                         \
     (server)->destroy(tes::Box(static_cast<uint32_t>(id))); \
+  }
+/// @ingroup tesmacros
+/// Destroy pose with @p id.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
+/// @param id The ID of the shape to destroy.
+#define TES_POSE_END(server, id)                             \
+  if (server)                                               \
+  {                                                         \
+    (server)->destroy(tes::Pose(static_cast<uint32_t>(id))); \
   }
 /// @ingroup tesmacros
 /// Destroy capsule with @p id.
@@ -1064,15 +1104,6 @@
     (server)->destroy(tes::MeshShape(tes::DtPoints, nullptr, 0, 0, static_cast<uint32_t>(id))); \
   }
 /// @ingroup tesmacros
-/// Destroy voxel set with @p id.
-/// @param server The @c Server or @c Connection object. Must be a pointer type.
-/// @param id The ID of the shape to destroy.
-#define TES_VOXELS_END(server, id)                                                              \
-  if (server)                                                                                   \
-  {                                                                                             \
-    (server)->destroy(tes::MeshShape(tes::DtVoxels, nullptr, 0, 0, static_cast<uint32_t>(id))); \
-  }
-/// @ingroup tesmacros
 /// Destroy sphere with @p id.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
@@ -1125,6 +1156,15 @@
   if (server)                                                                                      \
   {                                                                                                \
     (server)->destroy(tes::MeshShape(tes::DtTriangles, nullptr, 0, 0, static_cast<uint32_t>(id))); \
+  }
+/// @ingroup tesmacros
+/// Destroy voxel set with @p id.
+/// @param server The @c Server or @c Connection object. Must be a pointer type.
+/// @param id The ID of the shape to destroy.
+#define TES_VOXELS_END(server, id)                                                              \
+  if (server)                                                                                   \
+  {                                                                                             \
+    (server)->destroy(tes::MeshShape(tes::DtVoxels, nullptr, 0, 0, static_cast<uint32_t>(id))); \
   }
 
 
@@ -1389,7 +1429,13 @@ constexpr inline void noop()
 #define TES_CYLINDER_W(server, ...) tes::noop()
 #define TES_LINES(server, ...) tes::noop()
 #define TES_LINES_E(server, ...) tes::noop()
-#define TES_LINE(server, ...) tes::noop()(
+#define TES_LINE(server, ...) tes::noop()
+#define TES_POINTS(server, ...) tes::noop()
+#define TES_POINTS_C(server, ...) tes::noop()
+#define TES_POINTS_E(server, ...) tes::noop()
+#define TES_POSE(server, ...) tes::noop()
+#define TES_POSE_T(server, ...) tes::noop()
+#define TES_POSE_W(server, ...) tes::noop()
 #define TES_SPHERE(server, ...) tes::noop()
 #define TES_SPHERE_T(server, ...) tes::noop()
 #define TES_SPHERE_W(server, ...) tes::noop()
@@ -1414,6 +1460,7 @@ constexpr inline void noop()
 #define TES_TRIANGLE_T(server, ...) tes::noop()
 #define TES_TRIANGLE_IT(server, ...) tes::noop()
 #define TES_TRIANGLE_IW(server, ...) tes::noop()
+#define TES_VOXELS(server, ...) tes::noop()
 
 #define TES_ARROW_END(server, ...) tes::noop()
 #define TES_BOX_END(server, ...) tes::noop()
@@ -1425,6 +1472,7 @@ constexpr inline void noop()
 #define TES_PLANE_END(server, ...) tes::noop()
 #define TES_POINTCLOUDSHAPE_END(server, ...) tes::noop()
 #define TES_POINTS_END(server, ...) tes::noop()
+#define TES_POSE_END(server, ...) tes::noop()
 #define TES_VOXELS_END(server, ...) tes::noop()
 #define TES_SPHERE_END(server, ...) tes::noop()
 #define TES_STAR_END(server, ...) tes::noop()
@@ -1432,6 +1480,7 @@ constexpr inline void noop()
 #define TES_TEXT3D_END(server, ...) tes::noop()
 #define TES_TRIANGLES_END(server, ...) tes::noop()
 #define TES_TRIANGLE_END(server, ...) tes::noop()
+#define TES_VOXELS_END(server, ...) tes::noop()
 
 #define TES_POS_UPDATE(server, ...) tes::noop()
 #define TES_ROT_UPDATE(server, ...) tes::noop()

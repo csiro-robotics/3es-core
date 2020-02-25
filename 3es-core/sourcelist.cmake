@@ -73,6 +73,7 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/3esplane.h
   shapes/3espointcloud.h
   shapes/3espointcloudshape.h
+  shapes/3espose.h
   shapes/3esshape.h
   shapes/3esshapes.h
   shapes/3essimplemesh.h
