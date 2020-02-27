@@ -147,6 +147,8 @@ MeshShape &MeshShape::setUniformNormal(const Vector3f &normal)
 
 MeshShape &MeshShape::setColours(const uint32_t *colours)
 {
+  setColourByHeight(false);
+
   if (_ownPointers)
   {
     if (colours)
@@ -323,6 +325,7 @@ bool MeshShape::writeCreate(PacketWriter &stream) const
   ok = stream.writeElement(count) == sizeof(count) && ok;
   uint8_t drawType = _drawType;
   ok = stream.writeElement(drawType) == sizeof(drawType) && ok;
+  ok = stream.writeElement(_drawScale) == sizeof(_drawScale) && ok;
   return ok;
 }
 
@@ -477,6 +480,16 @@ bool MeshShape::readCreate(PacketReader &stream)
 
   ok = ok && stream.readElement(drawType) == sizeof(drawType);
   _drawType = (DrawType)drawType;
+
+  // Legacy support.
+  if (stream.versionMajor() > 0 || stream.versionMajor() == 0 && stream.versionMinor() >= 2)
+  {
+    ok = ok && stream.readElement(_drawScale) == sizeof(_drawScale);
+  }
+  else
+  {
+    _drawScale = 0.0f;
+  }
 
   return ok;
 }

@@ -33,7 +33,7 @@ bool PointCloudShape::writeCreate(PacketWriter &stream) const
   valueU32 = _indexCount;
   ok = stream.writeElement(valueU32) == sizeof(valueU32) && ok;
   // Write point size.
-  ok = stream.writeElement(_pointSize) == sizeof(_pointSize) && ok;
+  ok = stream.writeElement(_pointScale) == sizeof(_pointScale) && ok;
   return ok;
 }
 
@@ -105,7 +105,18 @@ bool PointCloudShape::readCreate(PacketReader &stream)
   _indexCount = valueU32;
 
   // Point size.
-  ok = ok && stream.readElement(_pointSize) == sizeof(_pointSize);
+  if (stream.versionMajor() > 0 || stream.versionMajor() == 0 && stream.versionMinor() >= 2)
+  {
+    ok = ok && stream.readElement(_pointScale) == sizeof(_pointScale);
+  }
+  else
+  {
+    // Legacy support.
+    uint8_t pointSize = 0;
+    ok = ok && stream.readElement(pointSize) == sizeof(pointSize);
+    _pointScale = float(pointSize);
+  }
+
   return ok;
 }
 
@@ -178,7 +189,7 @@ void PointCloudShape::onClone(PointCloudShape *copy) const
     copy->_indexCount = _indexCount;
   }
   copy->_mesh = _mesh;
-  copy->_pointSize = _pointSize;
+  copy->_pointScale = _pointScale;
 }
 
 

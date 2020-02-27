@@ -487,7 +487,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
 std::ostream &logShapeExtensions(std::ostream &o, const PointCloudShape &shape, const std::string &indent)
 {
   o << ",\n";
-  o << indent << "\"pointSize\" : " << int(shape.pointSize()) << ",\n";
+  o << indent << "\"pointScale\" : " << int(shape.pointScale()) << ",\n";
 
   logMeshResource(o, *shape.mesh(), indent, true);
 

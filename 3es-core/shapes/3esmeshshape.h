@@ -27,6 +27,9 @@ public:
   /// and indices have been read. Other data such as normals may be written before vertices
   /// and indices, but this is an optional send implementation.
   ///
+  /// For @c DtPoints , the points are coloured by type when the colour value is zero (black, with zero alpha).
+  /// This is the default colour for @c DtPoints.
+  ///
   /// Note: normals must be sent before completing vertices and indices. Best done first.
   enum SendDataType
   {
@@ -132,6 +135,32 @@ public:
   /// @param calculate True to calculate vertex normals in the viewer.
   MeshShape &setCalculateNormals(bool calculate);
 
+  /// Colour @c DtPoints by height. Requires @c drawType() @c DtPoints .
+  ///
+  /// This sets the shape colour to zero (black, with zero alpha).
+  ///
+  /// Ignored for non point types.
+  /// @param colourByHeight True to colour by height.
+  /// @return @c *this
+  MeshShape &setColourByHeight(bool colourByHeight);
+
+  /// Check if colouring points by height. Requires @c drawType() @c DtPoints .
+  /// @return True if the @c drawType() is @c DtPoints and set to colour by height.
+  bool colourByHeight() const;
+
+  /// Set the draw scale used to (de)emphasise the rendering.
+  ///
+  /// This equates to point size for @c DtPoints or line width for @c DtLines.
+  /// A zero value indicates use of the viewer default drawing scale.
+  ///
+  /// The viewer is free to ignore this value.
+  ///
+  /// @param scale The new draw value. Zero or one for default.
+  void setDrawScale(float scale);
+  /// Get the draw scale.
+  /// @return The draw scale.
+  float drawScale() const;
+
   /// Set (optional) mesh normals. The number of normal elements in @p normals
   /// must match the @p vertexCount.
   ///
@@ -153,6 +182,9 @@ public:
 
   /// Set the colours array, one per vertex (@c vertexCount()). The array pointer is borrowed if this shape doesn't
   /// own its own pointers, otherwise it is copied. Should be called before calling @c expandVertices().
+  ///
+  /// For @c DtPoints , this also clears @c setColourByHeight().
+  ///
   /// @param colours The colours array.
   MeshShape &setColours(const uint32_t *colours);
 
@@ -218,6 +250,7 @@ protected:
   const uint32_t *_colours;  ///< Per vertex colours. Null for none.
   const unsigned *_indices;  ///< Optional triangle indices.
   unsigned _indexCount;      ///< Number of @c indices. Divide by 3 for the triangle count.
+  float _drawScale = 0.0f;   ///< Draw scale: point scaling, line width, etc.
   DrawType _drawType;        ///< The primitive to render.
   bool _ownPointers;         ///< Does this instance own its vertices and indices?
   bool _ownNormals;          ///< Does this instance own its normals? Always true if @p _ownPointers is true.
@@ -260,6 +293,10 @@ inline MeshShape::MeshShape(DrawType drawType, const float *vertices, const UInt
   setPosition(position);
   setRotation(rotation);
   setScale(scale);
+  if (drawType == DtPoints)
+  {
+    setColourByHeight(true);
+  }
 }
 
 
@@ -283,6 +320,10 @@ inline MeshShape::MeshShape(DrawType drawType, const float *vertices, const UInt
   setPosition(position);
   setRotation(rotation);
   setScale(scale);
+  if (drawType == DtPoints)
+  {
+    setColourByHeight(true);
+  }
 }
 
 
@@ -305,6 +346,10 @@ inline MeshShape::MeshShape(DrawType drawType, const float *vertices, const UInt
   setPosition(position);
   setRotation(rotation);
   setScale(scale);
+  if (drawType == DtPoints)
+  {
+    setColourByHeight(true);
+  }
 }
 
 
@@ -328,6 +373,10 @@ inline MeshShape::MeshShape(DrawType drawType, const float *vertices, const UInt
   setPosition(position);
   setRotation(rotation);
   setScale(scale);
+  if (drawType == DtPoints)
+  {
+    setColourByHeight(true);
+  }
 }
 
 
@@ -351,6 +400,10 @@ inline MeshShape::MeshShape(DrawType drawType, const float *vertices, const UInt
   setPosition(position);
   setRotation(rotation);
   setScale(scale);
+  if (drawType == DtPoints)
+  {
+    setColourByHeight(true);
+  }
 }
 
 
@@ -374,6 +427,10 @@ inline MeshShape::MeshShape(DrawType drawType, const float *vertices, const UInt
   setPosition(position);
   setRotation(rotation);
   setScale(scale);
+  if (drawType == DtPoints)
+  {
+    setColourByHeight(true);
+  }
 }
 
 
@@ -388,6 +445,41 @@ inline MeshShape &MeshShape::setCalculateNormals(bool calculate)
   _data.flags = uint16_t(_data.flags & ~MeshShapeCalculateNormals);
   _data.flags = uint16_t(_data.flags | MeshShapeCalculateNormals * !!calculate);
   return *this;
+}
+
+
+inline MeshShape &MeshShape::setColourByHeight(bool colourByHeight)
+{
+  if (drawType() == DtPoints)
+  {
+    if (colourByHeight)
+    {
+      _data.attributes.colour = 0;
+    }
+    else if (_data.attributes.colour == 0)
+    {
+      _data.attributes.colour = 0xFFFFFFFFu;
+    }
+  }
+
+  return *this;
+}
+
+inline bool MeshShape::colourByHeight() const
+{
+  return drawType() == DtPoints && _data.attributes.colour == 0;
+}
+
+
+inline void MeshShape::setDrawScale(float scale)
+{
+  _drawScale = scale;
+}
+
+
+inline float MeshShape::drawScale() const
+{
+  return _drawScale;
 }
 }  // namespace tes
 

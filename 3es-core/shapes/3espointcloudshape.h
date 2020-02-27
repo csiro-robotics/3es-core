@@ -28,25 +28,35 @@ public:
   /// mesh The mesh resource to render point data from. See class comments.
   /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
   /// @param category The category grouping for the shape used for filtering.
-  /// @param pointSize Desired point render size (pixels).
-  PointCloudShape(const MeshResource *mesh = nullptr, uint32_t id = 0, uint16_t category = 0, uint8_t pointSize = 1);
+  /// @param pointScale Desired point render scale. Use zero or one for the default scale.
+  PointCloudShape(const MeshResource *mesh = nullptr, uint32_t id = 0, uint16_t category = 0, float pointScale = 0.0f);
 
   /// Destructor.
   ~PointCloudShape();
 
   inline const char *type() const override { return "pointCloudShape"; }
 
-  /// Set the desired point render size (pixels).
-  /// @param size The desired render size (pixels).
+  /// Colour points by height.
+  ///
+  /// This sets the shape colour to zero (black, with zero alpha).
+  /// @param colourByHeight True to colour by height.
+  PointCloudShape &setColourByHeight(bool colourByHeight);
+
+  /// Check if colouring points by height.
+  /// @return True if set to colour by height.
+  bool colourByHeight() const;
+
+  /// Set the desired point render scale. Zero or one for default.
+  /// @param size The desired point scale for
   /// @return @c *this
-  inline PointCloudShape &setPointSize(uint8_t size)
+  inline PointCloudShape &setPointScale(float scale)
   {
-    _pointSize = size;
+    _pointScale = scale;
     return *this;
   }
-  /// Get the desired point render size (pixels).
-  /// @return The desired point render size.
-  inline uint8_t pointSize() const { return _pointSize; }
+  /// Get the point render scale.
+  /// @return The current point render scale.
+  inline float pointScale() const { return _pointScale; }
 
   /// Return the number of @c indices().
   ///
@@ -127,19 +137,41 @@ private:
   const MeshResource *_mesh;
   uint32_t *_indices;
   uint32_t _indexCount;
-  uint8_t _pointSize;
+  float _pointScale;
   bool _ownMesh;
 };
 
 
-inline PointCloudShape::PointCloudShape(const MeshResource *mesh, uint32_t id, uint16_t category, uint8_t pointSize)
+inline PointCloudShape::PointCloudShape(const MeshResource *mesh, uint32_t id, uint16_t category, float pointScale)
   : Shape(SIdPointCloud, id, category)
   , _mesh(mesh)
   , _indices(nullptr)
   , _indexCount(0)
-  , _pointSize(pointSize)
+  , _pointScale(pointScale)
   , _ownMesh(false)
-{}
+{
+  setColourByHeight(true);
+}
+
+
+inline PointCloudShape &PointCloudShape::setColourByHeight(bool colourByHeight)
+{
+  if (colourByHeight)
+  {
+    _data.attributes.colour = 0;
+  }
+  else if (_data.attributes.colour == 0)
+  {
+    _data.attributes.colour = 0xFFFFFFFFu;
+  }
+  return *this;
+}
+
+
+inline bool PointCloudShape::colourByHeight() const
+{
+  return _data.attributes.colour == 0;
+}
 
 
 template <typename I>

@@ -347,7 +347,7 @@ void validateShape(const PointCloudShape &shape, const PointCloudShape &referenc
 {
   validateShape(static_cast<const Shape>(shape), static_cast<const Shape>(reference), resources);
 
-  EXPECT_EQ(shape.pointSize(), reference.pointSize());
+  EXPECT_EQ(shape.pointScale(), reference.pointScale());
   EXPECT_EQ(shape.indexCount(), reference.indexCount());
 
   // Note: We can't compare the contents of shape.mesh() as it is a placeholder reference.

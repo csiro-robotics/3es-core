@@ -74,7 +74,8 @@ NamespaceIndentation: None
 # PenaltyReturnTypeOnItsOwnLine: <int>
 PointerAlignment: Right
 ReflowComments: true
-SortIncludes: true
+# Disable sort includes - later versions do no respect line breaks to signify sorting groups.
+SortIncludes: false
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: true

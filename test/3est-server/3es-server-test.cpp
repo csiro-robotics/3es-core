@@ -406,6 +406,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
                                         Colour::Colours[Colour::White].c };
     MeshShape *points = new MeshShape(DtPoints, pts[0].v, pointsCount, sizeof(pts[0]), nextId++, CatPoints);
     points->setColours(colours);
+    points->setDrawScale(3.0f);
     shapes.emplace_back(points);
     // if (!noMove)
     // {
@@ -416,7 +417,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   if (allShapes || haveOption("cloud", argc, argv) || haveOption("cloudpart", argc, argv))
   {
     MeshResource *cloud = createTestCloud();
-    PointCloudShape *points = new PointCloudShape(cloud, nextId++, CatPoints, 16u);
+    PointCloudShape *points = new PointCloudShape(cloud, nextId++, CatPoints, 1.25f);
     if (haveOption("cloudpart", argc, argv))
     {
       // Partial indexing.
