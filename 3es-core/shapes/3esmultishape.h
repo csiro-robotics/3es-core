@@ -28,8 +28,10 @@ namespace tes
 class _3es_coreAPI MultiShape : public Shape
 {
 public:
-  /// Maximum number of shapes in a multi shape. Packet is too large otherwise.
-  const uint16_t ShapeCountLimit = 1024u;
+  /// Maximum number of shapes in a multi shape packet. Packet is too large otherwise.
+  const uint16_t BlockCountLimit = 1024u;
+  /// Maximum number of shapes in a multi shape.
+  const uint32_t ShapeCountLimit = 0xffffu;
 
   /// Create a new multi-shape with the given set of @p shapes. The @c routingId(), @c id() and @c category() for the
   /// shape set is taken from the first item in the array.
@@ -39,15 +41,21 @@ public:
   /// @param position A translation to apply to all shapes in the collection.
   /// @param rotation A rotation transformation to apply to all shapes in the collection.
   /// @param scale Scaling to apply to all shapes in the collection.
-  MultiShape(Shape **shapes, const IntArgT<uint16_t> &shapeCount, const V3Arg &position = Vector3f::zero,
+  MultiShape(Shape **shapes, const UIntArg &shapeCount, const V3Arg &position = Vector3f::zero,
              const QuaternionArg &rotation = Quaternionf::identity, const V3Arg &scale = Vector3f::one);
 
   /// Destructor.
   ~MultiShape();
 
+  /// Complex to support large shape counts.
+  /// @return @c true
+  bool isComplex() const override;
+
   /// Override to effect the multi-shape creation.
   /// @param stream Packet stream.
   bool writeCreate(PacketWriter &stream) const override;
+
+  int writeData(PacketWriter &stream, unsigned &progressMarker) const override;
 
   /// Take ownership of the shape array.
   ///
@@ -58,15 +66,15 @@ public:
 
 private:
   Shape **_shapes = nullptr;  ///< The shape array. Pointer ownership is defined by @c _ownShapes .
-  uint16_t _itemCount = 0;    ///< Number of items in @c _shapes.
+  uint32_t _itemCount = 0;    ///< Number of items in @c _shapes.
   bool _ownShapes = false;    ///< True if _shapes is internally allocated and elements are to be deleted.
 };
 
-inline MultiShape::MultiShape(Shape **shapes, const IntArgT<uint16_t> &shapeCount, const V3Arg &position,
+inline MultiShape::MultiShape(Shape **shapes, const UIntArg &shapeCount, const V3Arg &position,
                               const QuaternionArg &rotation, const V3Arg &scale)
   : Shape(shapes[0]->routingId(), shapes[0]->id(), shapes[0]->category())
   , _shapes(shapes)
-  , _itemCount(std::min(static_cast<uint16_t>(shapeCount), ShapeCountLimit))
+  , _itemCount(std::min(static_cast<uint32_t>(shapeCount), ShapeCountLimit))
 {
   setPosition(position);
   setRotation(rotation);

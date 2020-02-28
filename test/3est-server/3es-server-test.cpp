@@ -441,7 +441,8 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (haveOption("multi", argc, argv))
   {
-    const int blockSize = 10;
+    // Set the block size to ensure we are larger than the multi-shape packet size.
+    const int blockSize = 15;
     const int manyCount = blockSize * blockSize * blockSize;
     const float separation = 0.3f;
     const float blockOffset = -0.5f * blockSize * separation;
