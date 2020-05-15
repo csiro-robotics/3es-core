@@ -28,9 +28,21 @@ public:
   /// @param radius The sphere radius.
   Sphere(uint32_t id, uint16_t category, const V3Arg &centre = V3Arg(0, 0, 0), float radius = 1.0f);
 
+  /// @overload
+  Sphere(uint32_t id, const V3Arg &centre, const V3Arg &scale, const QuaternionArg &rot = QuaternionArg(0, 0, 0, 1));
+
+  /// Create an ellipsoid. This constructor allows for scaling and rotating the sphere in order to create an ellipsoid.
+  /// @param id The shape ID, unique among @c Sphere objects, or zero for a transient shape.
+  /// @param category The category grouping for the shape used for filtering.
+  /// @param centre Defines the sphere centre coordinate.
+  /// @param scale Scaling values for the ellispoid along each axis.
+  /// @param rot Orientation of the scale ellipsoid.
+  Sphere(uint32_t id, uint16_t category, const V3Arg &centre, const V3Arg &scale,
+         const QuaternionArg &rot = QuaternionArg(0, 0, 0, 1));
+
   inline const char *type() const override { return "sphere"; }
 
-  /// Set the sphere radius.
+  /// Set the sphere radius. This sets the same scale for all dimensions.
   /// @param radius The sphere radius.
   /// @return @c *this
   Sphere &setRadius(float radius);
@@ -61,6 +73,24 @@ inline Sphere::Sphere(uint32_t id, uint16_t category, const V3Arg &centre, float
 {
   setPosition(centre);
   setScale(Vector3f(radius));
+}
+
+
+inline Sphere::Sphere(uint32_t id, const V3Arg &centre, const V3Arg &scale, const QuaternionArg &rot)
+  : Shape(SIdSphere, id)
+{
+  setPosition(centre);
+  setScale(scale);
+  setRotation(rot);
+}
+
+
+inline Sphere::Sphere(uint32_t id, uint16_t category, const V3Arg &centre, const V3Arg &scale, const QuaternionArg &rot)
+  : Shape(SIdSphere, id, category)
+{
+  setPosition(centre);
+  setScale(scale);
+  setRotation(rot);
 }
 
 
