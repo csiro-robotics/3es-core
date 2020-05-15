@@ -2,6 +2,9 @@
 
 using namespace tes;
 
+const uint16_t MultiShape::BlockCountLimit = 1024u;
+const uint32_t MultiShape::ShapeCountLimit = 0xffffu;
+
 MultiShape::~MultiShape()
 {
   if (_ownShapes)
