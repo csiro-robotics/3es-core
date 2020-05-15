@@ -26,11 +26,8 @@ public:
   /// The @c rotation() value is relative to this vector.
   ///
   /// The default is <tt>(0, 0, 1)</tt>
-  static const Vector3f DefaultAxis;
+  static const Vector3d DefaultAxis;
 
-  /// @overload
-  Cylinder(uint32_t id = 0u, const V3Arg &centre = V3Arg(0, 0, 0), const V3Arg &axis = DefaultAxis, float radius = 1.0f,
-           float length = 1.0f);
   /// Construct a cylinder object.
   /// @param id The shape ID, unique among @c Capsule objects, or zero for a transient shape.
   /// @param category The category grouping for the shape used for filtering.
@@ -38,7 +35,7 @@ public:
   /// @param axis Defines the cylinder's primary axis.
   /// @param radius Radius of the cylinder walls.
   /// @param length Length of the cylinder body.
-  Cylinder(uint32_t id, uint16_t category, const V3Arg &centre = V3Arg(0, 0, 0), const V3Arg &axis = DefaultAxis,
+  Cylinder(const Id &id = Id(), const Vector3d &centre = Vector3d(0, 0, 0), const Vector3d &axis = DefaultAxis,
            float radius = 1.0f, float length = 1.0f);
 
   inline const char *type() const override { return "cylinder"; }
@@ -62,45 +59,34 @@ public:
   /// Set the position fo the cylinder centre.
   /// @param centre The centre coordinate.
   /// @return @c *this
-  Cylinder &setCentre(const V3Arg &centre);
+  Cylinder &setCentre(const Vector3d &centre);
   /// Get the cylinder centre position.
   /// @return The centre coordinate.
-  Vector3f centre() const;
+  Vector3d centre() const;
 
   /// Set the cylinder primary axis. Affects @p rotation().
   /// @param axis The new axis to set.
   /// @return @c *this
-  Cylinder &setAxis(const V3Arg &axis);
+  Cylinder &setAxis(const Vector3d &axis);
   /// Get the cylinder primary axis.
   ///
   /// May not exactly match the axis given via @p setAxis() as the axis is defined by the quaternion @c rotation().
   /// @return The primary axis.
-  Vector3f axis() const;
+  Vector3d axis() const;
 };
 
 
-inline Cylinder::Cylinder(uint32_t id, const V3Arg &centre, const V3Arg &axis, float radius, float length)
-  : Shape(SIdCylinder, id)
+inline Cylinder::Cylinder(const Id &id, const Vector3d &centre, const Vector3d &axis,
+          float radius, float length)
+  : Shape(SIdCylinder, id, Transform(centre, Vector3d(radius, radius, length)))
 {
-  setPosition(centre);
   setAxis(axis);
-  setScale(Vector3f(radius, radius, length));
-}
-
-
-inline Cylinder::Cylinder(uint32_t id, uint16_t category, const V3Arg &centre, const V3Arg &axis, float radius,
-                          float length)
-  : Shape(SIdCylinder, id, category)
-{
-  setPosition(centre);
-  setAxis(axis);
-  setScale(Vector3f(radius, radius, length));
 }
 
 
 inline Cylinder &Cylinder::setRadius(float radius)
 {
-  Vector3f s = Shape::scale();
+  Vector3d s = Shape::scale();
   s.x = s.y = radius;
   setScale(s);
   return *this;
@@ -115,7 +101,7 @@ inline float Cylinder::radius() const
 
 inline Cylinder &Cylinder::setLength(float length)
 {
-  Vector3f s = Shape::scale();
+  Vector3d s = Shape::scale();
   s.z = length;
   setScale(s);
   return *this;
@@ -128,38 +114,38 @@ inline float Cylinder::length() const
 }
 
 
-inline Cylinder &Cylinder::setCentre(const V3Arg &centre)
+inline Cylinder &Cylinder::setCentre(const Vector3d &centre)
 {
   setPosition(centre);
   return *this;
 }
 
 
-inline Vector3f Cylinder::centre() const
+inline Vector3d Cylinder::centre() const
 {
   return position();
 }
 
 
-inline Cylinder &Cylinder::setAxis(const V3Arg &axis)
+inline Cylinder &Cylinder::setAxis(const Vector3d &axis)
 {
-  Quaternionf rot;
-  if (axis.v3.dot(DefaultAxis) > -0.9998f)
+  Quaterniond rot;
+  if (axis.dot(DefaultAxis) > -0.9998f)
   {
-    rot = Quaternionf(DefaultAxis, axis);
+    rot = Quaterniond(DefaultAxis, axis);
   }
   else
   {
-    rot.setAxisAngle(Vector3f::axisx, float(M_PI));
+    rot.setAxisAngle(Vector3d::axisx, M_PI);
   }
   setRotation(rot);
   return *this;
 }
 
 
-inline Vector3f Cylinder::axis() const
+inline Vector3d Cylinder::axis() const
 {
-  Quaternionf rot = rotation();
+  Quaterniond rot = rotation();
   return rot * DefaultAxis;
 }
 }  // namespace tes

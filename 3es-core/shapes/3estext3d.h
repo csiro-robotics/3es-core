@@ -242,7 +242,7 @@ inline Text3D &Text3D::setFacing(const V3Arg &toCamera)
   }
   else
   {
-    rot.setAxisAngle(Vector3f::axisx, float(M_PI));
+    rot.setAxisAngle(Vector3f::axisx, M_PI);
   }
   setRotation(rot);
   return *this;

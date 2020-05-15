@@ -26,10 +26,8 @@ public:
   /// The @c rotation() value is relative to this vector.
   ///
   /// The default is <tt>(0, 0, 1)</tt>
-  static const Vector3f DefaultDir;
+  static const Vector3d DefaultDir;
 
-  Cone(uint32_t id = 0u, const V3Arg &point = V3Arg(0, 0, 0), const V3Arg &dir = DefaultDir,
-       float angle = 45.0f / 180.0f * float(M_PI), float length = 1.0f);
   /// Construct a cone object.
   /// @param id The shape ID, unique among @c Cone objects, or zero for a transient shape.
   /// @param category The category grouping for the shape used for filtering.
@@ -37,7 +35,7 @@ public:
   /// @param dir Cone direction.
   /// @param angle Angle from cone axis to walls at the apex (radians).
   /// @param length Length of the cone from apex to base.
-  Cone(uint32_t id, uint16_t category, const V3Arg &point = V3Arg(0, 0, 0), const V3Arg &dir = DefaultDir,
+  Cone(const Id &id = Id(), const Vector3d &point = Vector3d(0, 0, 0), const Vector3d &dir = DefaultDir,
        float angle = 45.0f / 180.0f * float(M_PI), float length = 1.0f);
 
   inline const char *type() const override { return "cone"; }
@@ -61,47 +59,34 @@ public:
   /// Set the position of the cone apex.
   /// @param point The apex coordinate.
   /// @return @c *this
-  Cone &setPoint(const V3Arg &point);
+  Cone &setPoint(const Vector3d &point);
   /// Get the position of the cone apex.
   /// @return point The apex coordinate.
-  Vector3f point() const;
+  Vector3d point() const;
 
   /// Set the cone direction vector.
   /// @param direction The direction vector to set. Must be unit length.
   /// @return @c *this
-  Cone &setDirection(const V3Arg &dir);
+  Cone &setDirection(const Vector3d &dir);
   /// Get the cone direction vector.
   ///
   /// May not exactly match the axis given via @p setDirection() as the direction is defined by the quaternion
   /// @c rotation().
   /// @return The arrow direction vector.
-  Vector3f direction() const;
+  Vector3d direction() const;
 };
 
 
-inline Cone::Cone(uint32_t id, const V3Arg &point, const V3Arg &dir, float angle, float length)
-  : Shape(SIdCone, id)
+inline Cone::Cone(const Id &id, const Vector3d &point, const Vector3d &dir, float angle, float length)
+  : Shape(SIdCone, id, Transform(point, Vector3d(angle, angle, length)))
 {
-  setPosition(point);
   setDirection(dir);
-  setScale(Vector3f(angle, angle, length));
-}
-
-
-inline Cone::Cone(uint32_t id, uint16_t category, const V3Arg &point, const V3Arg &dir, float angle, float length)
-  : Shape(SIdCone, id, category)
-{
-  setPosition(point);
-  setDirection(dir);
-  setLength(length);
-  setAngle(angle);
-  // setScale(Vector3f(angle, angle, length));
 }
 
 
 inline Cone &Cone::setAngle(float angle)
 {
-  Vector3f s = scale();
+  Vector3d s = scale();
   s.x = s.y = s.z * std::tan(angle);
   setScale(s);
   return *this;
@@ -115,7 +100,7 @@ inline float Cone::angle() const
   // Convert to angle angle as:
   //   tan(theta) = radius / length
   //   theta = atan(radius / length)
-  const Vector3f s = scale();
+  const Vector3d s = scale();
   const float length = s.z;
   const float radius = s.x;
   return (length != 0.0f) ? std::atan(radius / length) : 0.0f;
@@ -138,38 +123,38 @@ inline float Cone::length() const
 }
 
 
-inline Cone &Cone::setPoint(const V3Arg &point)
+inline Cone &Cone::setPoint(const Vector3d &point)
 {
   setPosition(point);
   return *this;
 }
 
 
-inline Vector3f Cone::point() const
+inline Vector3d Cone::point() const
 {
   return position();
 }
 
 
-inline Cone &Cone::setDirection(const V3Arg &dir)
+inline Cone &Cone::setDirection(const Vector3d &dir)
 {
-  Quaternionf rot;
-  if (dir.v3.dot(DefaultDir) > -0.9998f)
+  Quaterniond rot;
+  if (dir.dot(DefaultDir) > -0.9998)
   {
-    rot = Quaternionf(DefaultDir, dir);
+    rot = Quaterniond(DefaultDir, dir);
   }
   else
   {
-    rot.setAxisAngle(Vector3f::axisx, float(M_PI));
+    rot.setAxisAngle(Vector3d::axisx, M_PI);
   }
   setRotation(rot);
   return *this;
 }
 
 
-inline Vector3f Cone::direction() const
+inline Vector3d Cone::direction() const
 {
-  Quaternionf rot = rotation();
+  Quaterniond rot = rotation();
   return rot * DefaultDir;
 }
 }  // namespace tes

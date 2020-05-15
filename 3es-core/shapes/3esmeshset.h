@@ -24,12 +24,12 @@ public:
   /// @param partCount The number of parts to the mesh.
   /// @param id The unique mesh shape ID, zero for transient (not recommended for mesh shapes).
   /// @param category The mesh shape category.
-  MeshSet(uint32_t id = 0u, uint16_t category = 0u, const UIntArg &partCount = 0);
+  MeshSet(const Id &id = 0u, const UIntArg &partCount = 0);
   /// Create a shape with a single @p part with transform matching the shape transform.
   /// @param part The mesh part.
   /// @param id The unique mesh shape ID, zero for transient (not recommended for mesh shapes).
   /// @param category The mesh shape category.
-  MeshSet(const MeshResource *part, uint32_t id = 0u, uint16_t category = 0u);
+  MeshSet(const MeshResource *part, const Id &id = Id());
 
   /// Destructor.
   ~MeshSet();
@@ -45,7 +45,7 @@ public:
   /// @param transform The transform for this part, relative to this shape's transform.
   ///     This transform may not be updated after the shape is sent to a client.
   /// @param colour Tint to apply just to this part.
-  void setPart(const UIntArg &index, const MeshResource *part, const Matrix4f &transform,
+  void setPart(const UIntArg &index, const MeshResource *part, const Transform &transform,
                const Colour &colour = Colour(255, 255, 255));
   /// Fetch the part resource at the given @p index.
   /// @param index The part index to fetch. Must be in the range <tt>[0, partCount())</tt>.
@@ -54,7 +54,7 @@ public:
   /// Fetch the transform for the part at the given @p index.
   /// @param index The part transform to fetch. Must be in the range <tt>[0, partCount())</tt>.
   /// @return The transform for the mesh at the given index.
-  const Matrix4f &partTransform(const UIntArg &index) const;
+  const Transform &partTransform(const UIntArg &index) const;
   /// Fetch the colour tint for the part at the given @p index.
   /// @param index The part transform to fetch. Must be in the range <tt>[0, partCount())</tt>.
   /// @return The colour tint of mesh at the given index.
@@ -91,7 +91,7 @@ private:
   struct Part
   {
     const MeshResource *resource = nullptr;
-    Matrix4f transform = Matrix4f::identity;
+    Transform transform = Transform::identity();
     Colour colour = Colour(255, 255, 255);
   };
 
@@ -105,7 +105,7 @@ inline unsigned MeshSet::partCount() const
   return _partCount;
 }
 
-inline void MeshSet::setPart(const UIntArg &index, const MeshResource *part, const Matrix4f &transform,
+inline void MeshSet::setPart(const UIntArg &index, const MeshResource *part, const Transform &transform,
                              const Colour &colour)
 {
   _parts[index.i].resource = part;
@@ -118,7 +118,7 @@ inline const MeshResource *MeshSet::partResource(const UIntArg &index) const
   return _parts[index.i].resource;
 }
 
-inline const Matrix4f &MeshSet::partTransform(const UIntArg &index) const
+inline const Transform &MeshSet::partTransform(const UIntArg &index) const
 {
   return _parts[index.i].transform;
 }

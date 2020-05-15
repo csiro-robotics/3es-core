@@ -5,4 +5,4 @@
 
 using namespace tes;
 
-const Vector3f Cylinder::DefaultAxis = Vector3f(0, 0, 1);
+const Vector3d Cylinder::DefaultAxis = Vector3d(0, 0, 1);

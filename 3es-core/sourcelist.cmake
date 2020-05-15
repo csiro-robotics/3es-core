@@ -81,6 +81,7 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/3esstar.h
   shapes/3estext2d.h
   shapes/3estext3d.h
+  shapes/3estransform.h
 )
 
 list(APPEND PUBLIC_TESSELLATE_HEADERS

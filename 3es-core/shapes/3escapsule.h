@@ -26,11 +26,8 @@ public:
   /// The @c rotation() value is relative to this vector.
   ///
   /// The default is <tt>(0, 0, 1)</tt>
-  static const Vector3f DefaultAxis;
+  static const Vector3d DefaultAxis;
 
-  /// @overload
-  Capsule(uint32_t id = 0, const V3Arg &centre = V3Arg(0, 0, 0), const V3Arg &axis = DefaultAxis, float radius = 1.0f,
-          float length = 1.0f);
   /// Construct a capsule object.
   /// @param id The shape ID, unique among @c Capsule objects, or zero for a transient shape.
   /// @param category The category grouping for the shape used for filtering.
@@ -38,7 +35,7 @@ public:
   /// @param axis Defines the capsule's primary axis.
   /// @param radius Radius of the capsule cylinder and end caps.
   /// @param length Length of the capsule cylinder body.
-  Capsule(uint32_t id, uint16_t category, const V3Arg &centre = V3Arg(0, 0, 0), const V3Arg &axis = DefaultAxis,
+  Capsule(const Id &id = Id(), const Vector3d &centre = Vector3d(0, 0, 0), const Vector3d &axis = DefaultAxis,
           float radius = 1.0f, float length = 1.0f);
 
   inline const char *type() const override { return "capsule"; }
@@ -65,7 +62,7 @@ public:
   Capsule &setCentre(const V3Arg &centre);
   /// Get the capsule centre position.
   /// @return The centre coordinate.
-  Vector3f centre() const;
+  Vector3d centre() const;
 
   /// Set the capsule primary axis. Affects @p rotation().
   /// @param axis The new axis to set.
@@ -75,32 +72,20 @@ public:
   ///
   /// May not exactly match the axis given via @p setAxis() as the axis is defined by the quaternion @c rotation().
   /// @return The primary axis.
-  Vector3f axis() const;
+  Vector3d axis() const;
 };
 
 
-inline Capsule::Capsule(uint32_t id, const V3Arg &centre, const V3Arg &axis, float radius, float length)
-  : Shape(SIdCapsule, id)
+inline Capsule::Capsule(const Id &id, const Vector3d &centre, const Vector3d &axis, float radius, float length)
+  : Shape(SIdCapsule, id, Transform(centre, Vector3d(radius, radius, length)))
 {
-  setPosition(centre);
   setAxis(axis);
-  setScale(Vector3f(radius, radius, length));
-}
-
-
-inline Capsule::Capsule(uint32_t id, uint16_t category, const V3Arg &centre, const V3Arg &axis, float radius,
-                        float length)
-  : Shape(SIdCapsule, id, category)
-{
-  setPosition(centre);
-  setAxis(axis);
-  setScale(Vector3f(radius, length, 1));
 }
 
 
 inline Capsule &Capsule::setRadius(float radius)
 {
-  Vector3f s = Shape::scale();
+  Vector3d s = Shape::scale();
   s.x = s.y = radius;
   setScale(s);
   return *this;
@@ -115,7 +100,7 @@ inline float Capsule::radius() const
 
 inline Capsule &Capsule::setLength(float length)
 {
-  Vector3f s = Shape::scale();
+  Vector3d s = Shape::scale();
   s.z = length;
   setScale(s);
   return *this;
@@ -135,7 +120,7 @@ inline Capsule &Capsule::setCentre(const V3Arg &centre)
 }
 
 
-inline Vector3f Capsule::centre() const
+inline Vector3d Capsule::centre() const
 {
   return position();
 }
@@ -150,14 +135,14 @@ inline Capsule &Capsule::setAxis(const V3Arg &axis)
   }
   else
   {
-    rot.setAxisAngle(Vector3f::axisx, float(M_PI));
+    rot.setAxisAngle(Vector3d::axisx, M_PI);
   }
   setRotation(rot);
   return *this;
 }
 
 
-inline Vector3f Capsule::axis() const
+inline Vector3d Capsule::axis() const
 {
   Quaternionf rot = rotation();
   return rot * DefaultAxis;

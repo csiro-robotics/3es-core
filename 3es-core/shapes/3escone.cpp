@@ -5,4 +5,4 @@
 
 using namespace tes;
 
-const Vector3f tes::Cone::DefaultDir = Vector3f(0, 0, 1);
+const Vector3d tes::Cone::DefaultDir = Vector3d(0, 0, 1);

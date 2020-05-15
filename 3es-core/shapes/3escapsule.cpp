@@ -5,4 +5,4 @@
 
 using namespace tes;
 
-const Vector3f Capsule::DefaultAxis = Vector3f(0, 0, 1);
+const Vector3d Capsule::DefaultAxis = Vector3d(0, 0, 1);

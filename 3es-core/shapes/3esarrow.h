@@ -26,11 +26,8 @@ public:
   /// The @c rotation() value is relative to this vector.
   ///
   /// The default is <tt>(0, 0, 1)</tt>
-  static const Vector3f DefaultDirection;
+  static const Vector3d DefaultDirection;
 
-  /// @overload
-  Arrow(uint32_t id = 0u, const V3Arg &origin = V3Arg(0, 0, 0), const V3Arg &dir = DefaultDirection,
-        float length = 1.0f, float radius = 0.025f);
   /// Construct an arrow object.
   /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
   /// @param category The category grouping for the shape used for filtering.
@@ -38,7 +35,7 @@ public:
   /// @param dir The direction vector of the arrow.
   /// @param length The arrow length.
   /// @param radius Radius of the arrow body.
-  Arrow(uint32_t id, uint16_t category, const V3Arg &origin = V3Arg(0, 0, 0), const V3Arg &dir = V3Arg(0, 0, 1),
+  Arrow(const Id &id, const Vector3d &origin = Vector3d(0, 0, 0), const Vector3d &dir = DefaultDirection,
         float length = 1.0f, float radius = 0.025f);
 
   inline const char *type() const override { return "arrow"; }
@@ -65,48 +62,37 @@ public:
   ///
   /// @param origin The arrow base position.
   /// @return @c *this
-  Arrow &setOrigin(const V3Arg &origin);
+  Arrow &setOrigin(const Vector3d &origin);
 
   /// Get the arrow base position.
   ///
   /// Note: this aliases @c position().
   /// @return The arrow base position.
-  Vector3f origin() const;
+  Vector3d origin() const;
 
   /// Set the arrow direction vector.
   /// @param direction The direction vector to set. Must be unit length.
   /// @return @c *this
-  Arrow &setDirection(const V3Arg &direction);
+  Arrow &setDirection(const Vector3d &direction);
   /// Get the arrow direction vector.
   ///
   /// May not exactly match the axis given via @p setDirection() as the direction is defined by the quaternion
   /// @c rotation().
   /// @return The arrow direction vector.
-  Vector3f direction() const;
+  Vector3d direction() const;
 };
 
 
-inline Arrow::Arrow(uint32_t id, const V3Arg &origin, const V3Arg &dir, float length, float radius)
-  : Shape(SIdArrow, id)
+inline Arrow::Arrow(const Id &id, const Vector3d &origin, const Vector3d &dir, float length, float radius)
+  : Shape(SIdArrow, id, Transform(origin, Vector3d(radius, radius, length)))
 {
-  setPosition(origin);
   setDirection(dir);
-  setScale(Vector3f(radius, radius, length));
-}
-
-
-inline Arrow::Arrow(uint32_t id, uint16_t category, const V3Arg &origin, const V3Arg &dir, float length, float radius)
-  : Shape(SIdArrow, id, category)
-{
-  setPosition(origin);
-  setDirection(dir);
-  setScale(Vector3f(radius, radius, length));
 }
 
 
 inline Arrow &Arrow::setRadius(float radius)
 {
-  Vector3f s = Shape::scale();
+  Vector3d s = Shape::scale();
   s.x = s.y = radius;
   setScale(s);
   return *this;
@@ -121,7 +107,7 @@ inline float Arrow::radius() const
 
 inline Arrow &Arrow::setLength(float length)
 {
-  Vector3f s = Shape::scale();
+  Vector3d s = Shape::scale();
   s.z = length;
   setScale(s);
   return *this;
@@ -134,38 +120,38 @@ inline float Arrow::length() const
 }
 
 
-inline Arrow &Arrow::setOrigin(const V3Arg &origin)
+inline Arrow &Arrow::setOrigin(const Vector3d &origin)
 {
   setPosition(origin);
   return *this;
 }
 
 
-inline Vector3f Arrow::origin() const
+inline Vector3d Arrow::origin() const
 {
   return position();
 }
 
 
-inline Arrow &Arrow::setDirection(const V3Arg &direction)
+inline Arrow &Arrow::setDirection(const Vector3d &direction)
 {
-  Quaternionf rot;
-  if (direction.v3.dot(DefaultDirection) > -0.9998f)
+  Quaterniond rot;
+  if (direction.dot(DefaultDirection) > -0.9998)
   {
-    rot = Quaternionf(DefaultDirection, direction);
+    rot = Quaterniond(DefaultDirection, direction);
   }
   else
   {
-    rot.setAxisAngle(Vector3f::axisx, float(M_PI));
+    rot.setAxisAngle(Vector3d::axisx, M_PI);
   }
   setRotation(rot);
   return *this;
 }
 
 
-inline Vector3f Arrow::direction() const
+inline Vector3d Arrow::direction() const
 {
-  Quaternionf rot = rotation();
+  Quaterniond rot = rotation();
   return rot * DefaultDirection;
 }
 }  // namespace tes

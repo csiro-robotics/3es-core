@@ -7,9 +7,9 @@
 #include "3es-core.h"
 
 #include "3escolour.h"
+#include "3esid.h"
 #include "3esmessages.h"
-#include "3esquaternionarg.h"
-#include "3esv3arg.h"
+#include "3estransform.h"
 
 #include <cstdint>
 
@@ -78,12 +78,8 @@ class _3es_coreAPI Shape
 public:
   /// Create a new shape with the given @c routingId and instance @c id .
   /// @param routingId Identifies the shape type.
-  /// @param id The shape instance id. A zero id is transient, ~0u is reserved, all other ids must be unique.
-  Shape(uint16_t routingId, uint32_t id = 0);
-  /// Construct a box object.
-  /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  Shape(uint16_t routingId, uint32_t id, uint16_t category);
+  /// @param id The shape instance id.
+  Shape(uint16_t routingId, const Id &id = Id(), const Transform &transform = Transform());
 
   /// Virtual destructor.
   virtual inline ~Shape() = default;
@@ -109,7 +105,6 @@ public:
   /// Shapes must have either a zero id or a unique id. A zero id represents a transient shape which does not need to
   /// be explicitly deleted, while any non-zero id must be unique.
   ///
-  /// Note the id value @c ~0u is reserved.
   /// @return The shape instance id.
   uint32_t id() const;
 
@@ -178,18 +173,18 @@ public:
   /// @return Active flag set.
   uint16_t flags() const;
 
-  Shape &setPosition(const V3Arg &pos);
-  Vector3f position() const;
+  Shape &setPosition(const Vector3d &pos);
+  Vector3d position() const;
 
-  Shape &setPosX(float p);
-  Shape &setPosY(float p);
-  Shape &setPosZ(float p);
+  Shape &setPosX(double p);
+  Shape &setPosY(double p);
+  Shape &setPosZ(double p);
 
-  Shape &setRotation(const QuaternionArg &rot);
-  Quaternionf rotation() const;
+  Shape &setRotation(const Quaterniond &rot);
+  Quaterniond rotation() const;
 
-  Shape &setScale(const V3Arg &scale);
-  Vector3f scale() const;
+  Shape &setScale(const Vector3d &scale);
+  Vector3d scale() const;
 
   Shape &setColour(const Colour &colour);
   Colour colour() const;
@@ -323,37 +318,37 @@ protected:
   /// @param copy The newly cloned object to copy data to. Must not be null.
   void onClone(Shape *copy) const;
 
-  void init(uint32_t id, uint16_t cat = 0, uint16_t flags = 0);
+  void init(const Id &id, const Transform &transform, uint16_t flags = 0);
 
   uint16_t _routingId;
   CreateMessage _data;
 };
 
 
-inline Shape::Shape(uint16_t routingId, uint32_t id)
+inline Shape::Shape(uint16_t routingId, const Id &id, const Transform &transform)
   : _routingId(routingId)
 {
-  init(id);
+  init(id, transform);
 }
 
 
-inline Shape::Shape(uint16_t routingId, uint32_t id, uint16_t category)
-  : _routingId(routingId)
+inline void Shape::init(const Id &id, const Transform &transform, uint16_t flags)
 {
-  init(id, category);
-}
-
-
-inline void Shape::init(uint32_t id, uint16_t cat, uint16_t flags)
-{
-  _data.id = id;
-  _data.category = cat;
+  _data.id = id.id();
+  _data.category = id.category();
   _data.flags = flags;
   _data.reserved = 0u;
   _data.attributes.colour = 0xffffffffu;
-  _data.attributes.position[0] = _data.attributes.position[1] = _data.attributes.position[2] = 0;
-  _data.attributes.rotation[0] = _data.attributes.rotation[1] = _data.attributes.rotation[2] = 0;
-  _data.attributes.rotation[3] = _data.attributes.scale[0] = _data.attributes.scale[1] = _data.attributes.scale[2] = 1;
+  _data.attributes.position[0] = static_cast<decltype(_data.attributes.position[0])>(transform.position()[0]);
+  _data.attributes.position[1] = static_cast<decltype(_data.attributes.position[1])>(transform.position()[1]);
+  _data.attributes.position[2] = static_cast<decltype(_data.attributes.position[2])>(transform.position()[2]);
+  _data.attributes.rotation[0] = static_cast<decltype(_data.attributes.rotation[0])>(transform.rotation()[0]);
+  _data.attributes.rotation[1] = static_cast<decltype(_data.attributes.rotation[1])>(transform.rotation()[1]);
+  _data.attributes.rotation[2] = static_cast<decltype(_data.attributes.rotation[2])>(transform.rotation()[2]);
+  _data.attributes.rotation[3] = static_cast<decltype(_data.attributes.rotation[3])>(transform.rotation()[3]);
+  _data.attributes.scale[0] = static_cast<decltype(_data.attributes.scale[0])>(transform.scale()[0]);
+  _data.attributes.scale[1] = static_cast<decltype(_data.attributes.scale[1])>(transform.scale()[1]);
+  _data.attributes.scale[2] = static_cast<decltype(_data.attributes.scale[2])>(transform.scale()[2]);
 }
 
 
@@ -472,71 +467,71 @@ inline uint16_t Shape::flags() const
 }
 
 
-inline Shape &Shape::setPosition(const V3Arg &pos)
+inline Shape &Shape::setPosition(const Vector3d &pos)
 {
-  _data.attributes.position[0] = pos[0];
-  _data.attributes.position[1] = pos[1];
-  _data.attributes.position[2] = pos[2];
+  _data.attributes.position[0] = static_cast<decltype(_data.attributes.position[0])>(position[0]);
+  _data.attributes.position[1] = static_cast<decltype(_data.attributes.position[1])>(position[1]);
+  _data.attributes.position[2] = static_cast<decltype(_data.attributes.position[2])>(position[2]);
   return *this;
 }
 
 
-inline Vector3f Shape::position() const
+inline Vector3d Shape::position() const
 {
-  return Vector3f(_data.attributes.position[0], _data.attributes.position[1], _data.attributes.position[2]);
+  return Vector3d(_data.attributes.position[0], _data.attributes.position[1], _data.attributes.position[2]);
 }
 
 
-inline Shape &Shape::setPosX(float p)
+inline Shape &Shape::setPosX(double p)
 {
   _data.attributes.position[0] = p;
   return *this;
 }
 
 
-inline Shape &Shape::setPosY(float p)
+inline Shape &Shape::setPosY(double p)
 {
   _data.attributes.position[1] = p;
   return *this;
 }
 
 
-inline Shape &Shape::setPosZ(float p)
+inline Shape &Shape::setPosZ(double p)
 {
   _data.attributes.position[2] = p;
   return *this;
 }
 
 
-inline Shape &Shape::setRotation(const QuaternionArg &rot)
+inline Shape &Shape::setRotation(const Quaterniond &rot)
 {
-  _data.attributes.rotation[0] = rot[0];
-  _data.attributes.rotation[1] = rot[1];
-  _data.attributes.rotation[2] = rot[2];
-  _data.attributes.rotation[3] = rot[3];
+  _data.attributes.rotation[0] = static_cast<decltype(_data.attributes.rotation[0])>(rot[0]);
+  _data.attributes.rotation[1] = static_cast<decltype(_data.attributes.rotation[1])>(rot[1]);
+  _data.attributes.rotation[2] = static_cast<decltype(_data.attributes.rotation[2])>(rot[2]);
+  _data.attributes.rotation[3] = static_cast<decltype(_data.attributes.rotation[3])>(rot[3]);
   return *this;
 }
 
 
-inline Quaternionf Shape::rotation() const
+inline Quaterniond Shape::rotation() const
 {
-  return Quaternionf(_data.attributes.rotation[0], _data.attributes.rotation[1], _data.attributes.rotation[2],
+  return Quaterniond(_data.attributes.rotation[0], _data.attributes.rotation[1], _data.attributes.rotation[2],
                      _data.attributes.rotation[3]);
 }
 
 
-inline Shape &Shape::setScale(const V3Arg &scale)
+inline Shape &Shape::setScale(const Vector3d &scale)
 {
-  _data.attributes.scale[0] = scale[0];
-  _data.attributes.scale[1] = scale[1];
-  _data.attributes.scale[2] = scale[2];
+  _data.attributes.scale[0] = static_cast<decltype(_data.attributes.scale[0])>(scale[0]);
+  _data.attributes.scale[1] = static_cast<decltype(_data.attributes.scale[1])>(scale[1]);
+  _data.attributes.scale[2] = static_cast<decltype(_data.attributes.scale[2])>(scale[2]);
   return *this;
 }
 
 
-inline Vector3f Shape::scale() const
+inline Vector3d Shape::scale() const
 {
-  return Vector3f(_data.attributes.scale[0], _data.attributes.scale[1], _data.attributes.scale[2]);
+  return Vector3d(_data.attributes.scale[0], _data.attributes.scale[1], _data.attributes.scale[2]);
 }
 
 

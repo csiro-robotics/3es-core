@@ -1,72 +1,74 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESV3ARG_H_
-#define _3ESV3ARG_H_
+#ifndef _3ESQUATARG_H
+#define _3ESQUATARG_H
 
 #include "3es-core.h"
 
-#include "3esvector3.h"
+#include "3esquaternion.h"
+#include "3esv3arg.h"
 
 namespace tes
 {
-/// A helper structure used to convert from float or double pointers to @c Vector3d arguments.
-struct V3Arg
+/// A helper structure used to convert from float or double pointers to @c Quaterniond arguments.
+struct QuatArg
 {
   /// Single precision pointer constructor.
   /// @param v Vector 3 array.
-  inline V3Arg(const float v[3])
-    : v3(Vector3f(v))
+  inline QuatArg(const float q[4])
+    : q(Quaternionf(v))
   {}
   /// Double precision pointer constructor.
   /// @param v Vector 3  array.
-  inline V3Arg(const double v[3])
-    : v3(v)
+  inline QuatArg(const double q[4])
+    : q(v)
   {}
   /// Single precision vector constructor.
   /// @param v Vector 3 value.
-  inline V3Arg(const Vector3f &v)
-    : v3(v)
+  inline QuatArg(const Quaternionf &v)
+    : q(v)
   {}
   /// Double precision vector constructor.
   /// @param v Vector 3 value.
-  inline V3Arg(const Vector3d &v)
-    : v3(v)
+  inline QuatArg(const Quaterniond &v)
+    : q(v)
   {}
 
   /// Component wise constructor.
   /// @param x X value.
   /// @param y Y value.
   /// @param z Z value.
-  inline V3Arg(float x, float y, float z)
-    : v3(Vector3f(x, y, z))
+  inline QuatArg(float x, float y, float z, float w)
+    : q(Quaternionf(x, y, z, w))
   {}
 
   /// Component wise constructor.
   /// @param x X value.
   /// @param y Y value.
   /// @param z Z value.
-  inline V3Arg(double x, double y, double z)
-    : v3(x, y, z)
+  inline QuatArg(double x, double y, double z, double w)
+    : q(x, y, z, w)
   {}
 
   /// Copy constructor.
   /// @param other The value to copy.
-  inline V3Arg(const V3Arg &other)
-    : v3(other.v3){};
+  inline QuatArg(const QuatArg &other)
+    : q(other.q)
+  {}
 
-  /// Convert to @c Vector3f.
+  /// Convert to @c Quaternionf.
   /// @return The single precision vector 3.
-  inline operator Vector3f() const { return v3; }
+  inline operator Quaternionf() const { return q; }
 
   /// Indexing operator.
   /// @param i The element index [0, 2].
   /// @return The requested element
-  inline double operator[](int i) const { return v3[i]; }
+  inline double operator[](int i) const { return q[i]; }
 
-  /// Vector 3 value.
-  Vector3d v3;
+  /// Quaternion value.
+  Quaterniond q;
 };
 }  // namespace tes
 
-#endif  // _3ESV3ARG_H_
+#endif  // _3ESQUATARG_H
