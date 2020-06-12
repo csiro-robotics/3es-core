@@ -50,7 +50,7 @@ bool Quaternion<T>::operator!=(const Quaternion<T> &other) const
 
 
 template <typename T>
-bool Quaternion<T>::isEqual(const Quaternion<T> &other, const T &epsilon)
+bool Quaternion<T>::isEqual(const Quaternion<T> &other, const T &epsilon) const
 {
   return std::abs(x - other.x) <= epsilon && std::abs(y - other.y) <= epsilon && std::abs(z - other.z) <= epsilon &&
          std::abs(w - other.w) <= epsilon;

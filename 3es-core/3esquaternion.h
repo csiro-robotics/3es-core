@@ -148,7 +148,7 @@ public:
   /// @param other The vector to compare to.
   /// @param epsilon The error tolerance.
   /// @return True this and @p other are equal with @p epsilon.
-  bool isEqual(const Quaternion<T> &other, const T &epsilon = Vector3<T>::Epsilon);
+  bool isEqual(const Quaternion<T> &other, const T &epsilon = Vector3<T>::Epsilon) const;
 
   /// Checks if this quaternion is exactly identity.
   /// @return True if this is exactly the identity quaternion.
