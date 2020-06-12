@@ -6,6 +6,7 @@
 #include "3esmeshmessages.h"
 #include "3esrotation.h"
 #include "3estransferprogress.h"
+#include "3estransform.h"
 
 #include <algorithm>
 #include <vector>
@@ -45,6 +46,7 @@ unsigned writeComponent(PacketWriter &packet, uint32_t meshId, uint32_t offset, 
   msg.offset = offset;
   msg.reserved = 0;
   msg.count = transferCount;
+  msg.elementType = meshComponentElementType<T>();
 
   unsigned written = msg.write(packet);
   // Jump to offset.
@@ -65,9 +67,9 @@ unsigned writeComponent(PacketWriter &packet, uint32_t meshId, uint32_t offset, 
 
 
 template <typename T, int ELEMSTRIDE = 1>
-bool readComponent(PacketReader &packet, MeshComponentMessage &msg, std::vector<T> &elements)
+bool readComponent(PacketReader &packet, const MeshComponentMessage &msg, std::vector<T> &elements)
 {
-  if (!msg.read(packet))
+  if (msg.elementType != meshComponentElementType<T>())
   {
     return false;
   }
@@ -107,33 +109,45 @@ uint16_t MeshResource::typeId() const
 
 int MeshResource::create(PacketWriter &packet) const
 {
-  Vector3f pos, scale;
-  Quaternionf rot;
   MeshCreateMessage msg;
-
-  packet.reset(typeId(), MeshCreateMessage::MessageId);
+  ObjectAttributesd attributes;
+  Transform transform = this->transform();
 
   msg.meshId = id();
   msg.vertexCount = vertexCount();
   msg.indexCount = indexCount();
+  msg.flags = 0;
   msg.drawType = drawType();
 
-  transformToQuaternionTranslation(transform(), rot, pos, scale);
-  msg.attributes.colour = tint();
-  msg.attributes.position[0] = pos[0];
-  msg.attributes.position[1] = pos[1];
-  msg.attributes.position[2] = pos[2];
-  msg.attributes.rotation[0] = rot[0];
-  msg.attributes.rotation[1] = rot[1];
-  msg.attributes.rotation[2] = rot[2];
-  msg.attributes.rotation[3] = rot[3];
-  msg.attributes.scale[0] = scale[0];
-  msg.attributes.scale[1] = scale[1];
-  msg.attributes.scale[2] = scale[2];
+  if (transform.preferDoublePrecision())
+  {
+    msg.flags |= McfDoublePrecision;
+  }
 
-  msg.write(packet);
+  packet.reset(typeId(), MeshCreateMessage::MessageId);
 
-  return 0;
+  const Vector3d pos(transform.position());
+  const Quaterniond rot(transform.rotation());
+  const Vector3d scale(transform.scale());
+
+  attributes.colour = tint();
+  attributes.position[0] = pos[0];
+  attributes.position[1] = pos[1];
+  attributes.position[2] = pos[2];
+  attributes.rotation[0] = rot[0];
+  attributes.rotation[1] = rot[1];
+  attributes.rotation[2] = rot[2];
+  attributes.rotation[3] = rot[3];
+  attributes.scale[0] = scale[0];
+  attributes.scale[1] = scale[1];
+  attributes.scale[2] = scale[2];
+
+  if (msg.write(packet, attributes))
+  {
+    return 0;
+  }
+
+  return -1;
 }
 
 
@@ -179,8 +193,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
                                           targetCount);
     break;
 
-  case MmtIndex:
-  {
+  case MmtIndex: {
     // Indices need special handling to cater for the potential data width change.
     unsigned width = 0;
     dataSource = reinterpret_cast<const uint8_t *>(indices(dataStride, width));
@@ -212,13 +225,12 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
                                           targetCount);
     break;
 
-  case MmtFinalise:
-  {
+  case MmtFinalise: {
     MeshFinaliseMessage msg;
     unsigned stride = 0;
     packet.reset(typeId(), MeshFinaliseMessage::MessageId);
     msg.meshId = id();
-    msg.flags = (normals(stride) == nullptr) ? MbfCalculateNormals : 0;
+    msg.flags = (normals(stride) == nullptr) ? MffCalculateNormals : 0;
     msg.write(packet);
     // Mark complete.
     progress.complete = true;
@@ -258,8 +270,9 @@ unsigned MeshResource::writeIndices(PacketWriter &packet, uint32_t meshId, uint3
   {
     effectiveByteLimit = 0;
   }
+
   // Truncate to 16-bits and allow for a fair amount of overhead.
-  // FIXME: Without the additional overhead I was getting missing messages at the client with
+  // FIXME: Without additional overhead padding I was getting missing messages at the client with
   // no obvious error path.
   byteLimit = std::min(byteLimit, 0xff00u);
   effectiveByteLimit = byteLimit ? std::min(effectiveByteLimit, byteLimit) : effectiveByteLimit;
@@ -273,12 +286,24 @@ unsigned MeshResource::writeIndices(PacketWriter &packet, uint32_t meshId, uint3
   msg.offset = offset;
   msg.reserved = 0;
   msg.count = transferCount;
+  switch (indexByteWidth)
+  {
+  case 1:
+    msg.elementType = McetUInt8;
+    break;
+  case 2:
+    msg.elementType = McetUInt16;
+    break;
+  case 4:
+    msg.elementType = McetUInt32;
+    break;
+  default:
+    return 0u;  // Failed
+  }
 
-  // printf("MeshResource indices: %d : %d\n", msg.messageId, componentCount);
   unsigned write;
   write = msg.write(packet);
 
-  // FIXME: should write the index width.
   // Jump to offset.
   dataSource += dataStride * offset;
   if (indexByteWidth == 1)
@@ -333,9 +358,10 @@ unsigned MeshResource::writeColours(PacketWriter &packet, uint32_t meshId, uint3
 bool MeshResource::readCreate(PacketReader &packet)
 {
   MeshCreateMessage msg;
+  ObjectAttributesd attributes;
   bool ok = true;
-  ok = ok && msg.read(packet);
-  return ok && processCreate(msg);
+  ok = ok && msg.read(packet, attributes);
+  return ok && processCreate(msg, attributes);
 }
 
 
@@ -344,40 +370,54 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
   MeshComponentMessage msg;
   bool ok = false;
 
+  if (!msg.read(packet))
+  {
+    return false;
+  }
+
   switch (messageType)
   {
-  case MmtVertex:
-  {
+  case MmtVertex: {
     std::vector<float> verts;
     ok = readComponent<float, 3>(packet, msg, verts);
     ok = ok && processVertices(msg, verts.data(), unsigned(verts.size() / 3));
     break;
   }
-  case MmtIndex:
-  {
+  case MmtIndex: {
     // FIXME: should read the index width from packet.
     unsigned indexStride = 0, indexWidth = 0;
     indices(indexStride, indexWidth);
+    // Check packet element type against the index width.
+    // FIXME: support mismatch between incoming elementType and the indexWidth
     if (indexStride && (indexWidth == 1 || indexWidth == 2 || indexWidth == 4))
     {
       switch (indexWidth)
       {
-      case 1:
-      {
+      case 1: {
+        if (msg.elementType != McetInt8 && msg.elementType != McetUInt8)
+        {
+          return false;
+        }
         std::vector<uint8_t> indices;
         ok = readComponent<uint8_t>(packet, msg, indices);
         ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
         break;
       }
-      case 2:
-      {
+      case 2: {
+        if (msg.elementType != McetInt16 && msg.elementType != McetUInt16)
+        {
+          return false;
+        }
         std::vector<uint16_t> indices;
         ok = readComponent<uint16_t>(packet, msg, indices);
         ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
         break;
       }
-      case 4:
-      {
+      case 4: {
+        if (msg.elementType != McetInt32 && msg.elementType != McetUInt32)
+        {
+          return false;
+        }
         std::vector<uint32_t> indices;
         ok = readComponent<uint32_t>(packet, msg, indices);
         ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
@@ -391,22 +431,19 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
     }
     break;
   }
-  case MmtVertexColour:
-  {
+  case MmtVertexColour: {
     std::vector<uint32_t> colours;
     ok = readComponent<uint32_t>(packet, msg, colours);
     ok = ok && processColours(msg, colours.data(), unsigned(colours.size()));
     break;
   }
-  case MmtNormal:
-  {
+  case MmtNormal: {
     std::vector<float> normals;
     ok = readComponent<float, 3>(packet, msg, normals);
     ok = ok && processNormals(msg, normals.data(), unsigned(normals.size() / 3));
     break;
   }
-  case MmtUv:
-  {
+  case MmtUv: {
     std::vector<float> uvs;
     ok = readComponent<float, 2>(packet, msg, uvs);
     ok = ok && processUVs(msg, uvs.data(), unsigned(uvs.size() / 2));
@@ -480,9 +517,10 @@ void MeshResource::nextPhase(TransferProgress &progress) const
 }
 
 
-bool MeshResource::processCreate(const MeshCreateMessage &msg)
+bool MeshResource::processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes)
 {
   TES_UNUSED(msg);
+  TES_UNUSED(attributes);
   return false;
 }
 

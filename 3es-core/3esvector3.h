@@ -97,7 +97,7 @@ public:
   /// Copy constructor from a different numeric type.
   /// @param other Vector to copy the value of.
   template <typename Q>
-  explicit inline Vector3(const Vector3<Q> &other)
+  inline Vector3(const Vector3<Q> &other)
     : x(T(other.x))
     , y(T(other.y))
     , z(T(other.z))

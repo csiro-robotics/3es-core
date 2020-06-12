@@ -26,7 +26,7 @@ struct SimpleMeshImp
   std::vector<uint32_t> colours;
   std::vector<Vector3f> normals;
   std::vector<UV> uvs;
-  Matrix4f transform;
+  Transform transform;
   uint32_t id;
   uint32_t tint;
   unsigned components;
@@ -40,7 +40,7 @@ struct SimpleMeshImp
     , references(1)
     , drawType(DtTriangles)
   {
-    transform = Matrix4f::identity;
+    transform = Transform::identity(false);
   }
 
 
@@ -63,7 +63,7 @@ struct SimpleMeshImp
   inline void clear(unsigned componentFlags)
   {
     clearArrays();
-    transform = Matrix4f::identity;
+    transform = Transform::identity(false);
     id = 0;
     tint = 0xffffffffu;
     components = componentFlags;
@@ -89,7 +89,7 @@ SimpleMesh::SimpleMesh(uint32_t id, const UIntArg &vertexCount, const UIntArg &i
 {
   _imp->id = id;
   _imp->drawType = drawType;
-  _imp->transform = Matrix4f::identity;
+  _imp->transform = Transform::identity(false);
   _imp->tint = 0xffffffff;
 
   if (vertexCount)
@@ -172,13 +172,13 @@ uint32_t SimpleMesh::id() const
 }
 
 
-Matrix4f SimpleMesh::transform() const
+Transform SimpleMesh::transform() const
 {
   return _imp->transform;
 }
 
 
-void SimpleMesh::setTransform(const Matrix4f &transform)
+void SimpleMesh::setTransform(const Transform &transform)
 {
   copyOnWrite();
   _imp->transform = transform;
@@ -550,7 +550,7 @@ void SimpleMesh::copyOnWrite()
 }
 
 
-bool SimpleMesh::processCreate(const MeshCreateMessage &msg)
+bool SimpleMesh::processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes)
 {
   copyOnWrite();
   _imp->id = msg.meshId;
@@ -558,11 +558,11 @@ bool SimpleMesh::processCreate(const MeshCreateMessage &msg)
   setIndexCount(msg.indexCount);
   setDrawType((DrawType)msg.drawType);
 
-  Matrix4f transform = prsTransform(Vector3f(msg.attributes.position), Quaternionf(msg.attributes.rotation),
-                                    Vector3f(msg.attributes.scale));
+  Transform transform = Transform(Vector3d(attributes.position), Quaterniond(attributes.rotation),
+                                  Vector3d(attributes.scale), msg.flags & McfDoublePrecision);
 
   setTransform(transform);
-  setTint(msg.attributes.colour);
+  setTint(attributes.colour);
   return true;
 }
 

@@ -5,8 +5,6 @@
 
 using namespace tes;
 
-const Vector3f Text3D::DefaultFacing(0, -1, 0);
-
 Text3D::Text3D(const Text3D &other)
   : Shape(SIdText3D)
   , _text(nullptr)
@@ -37,7 +35,7 @@ bool Text3D::writeCreate(PacketWriter &stream) const
 {
   bool ok = true;
   stream.reset(routingId(), CreateMessage::MessageId);
-  ok = _data.write(stream) && ok;
+  ok = _data.write(stream, _attributes) && ok;
 
   // Write line count and lines.
   const uint16_t textLength = _textLength;
@@ -102,7 +100,7 @@ Text3D &Text3D::operator=(Text3D &&other)
 
 Shape *Text3D::clone() const
 {
-  Text3D *copy = new Text3D(nullptr, (uint16_t)0);
+  Text3D *copy = new Text3D(nullptr, IdCat());
   onClone(copy);
   return copy;
 }

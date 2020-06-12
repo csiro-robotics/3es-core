@@ -19,7 +19,7 @@ void makeCone(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, s
   // Build two radial vectors out from the cone axis perpendicular to each other (like a cylinder). We'll use these
   // to build the base ring.
   Vector3f radials[2];
-  const float nearAlignedDot = std::cos(85.0f / 180.0f * M_PI);
+  const float nearAlignedDot = std::cos(85.0f / 180.0f * float(M_PI));
   if (axis.dot(Vector3f::axisy) < nearAlignedDot)
   {
     radials[0] = Vector3f::axisy.cross(axis);

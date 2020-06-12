@@ -57,7 +57,7 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
   EXPECT_EQ(mesh.typeId(), reference.typeId());
   EXPECT_EQ(mesh.uniqueKey(), reference.uniqueKey());
 
-  EXPECT_TRUE(mesh.transform().equals(reference.transform()));
+  EXPECT_TRUE(mesh.transform().isEqual(reference.transform()));
   EXPECT_EQ(mesh.tint(), reference.tint());
   EXPECT_EQ(mesh.vertexCount(), reference.vertexCount());
   EXPECT_EQ(mesh.indexCount(), reference.indexCount());
@@ -217,20 +217,20 @@ void validateShape(const Shape &shape, const Shape &reference, const ResourceMap
   EXPECT_EQ(shape.data().flags, reference.data().flags);
   EXPECT_EQ(shape.data().reserved, reference.data().reserved);
 
-  EXPECT_EQ(shape.data().attributes.colour, reference.data().attributes.colour);
+  EXPECT_EQ(shape.attributes().colour, reference.attributes().colour);
 
-  EXPECT_EQ(shape.data().attributes.position[0], reference.data().attributes.position[0]);
-  EXPECT_EQ(shape.data().attributes.position[1], reference.data().attributes.position[1]);
-  EXPECT_EQ(shape.data().attributes.position[2], reference.data().attributes.position[2]);
+  EXPECT_EQ(shape.attributes().position[0], reference.attributes().position[0]);
+  EXPECT_EQ(shape.attributes().position[1], reference.attributes().position[1]);
+  EXPECT_EQ(shape.attributes().position[2], reference.attributes().position[2]);
 
-  EXPECT_EQ(shape.data().attributes.rotation[0], reference.data().attributes.rotation[0]);
-  EXPECT_EQ(shape.data().attributes.rotation[1], reference.data().attributes.rotation[1]);
-  EXPECT_EQ(shape.data().attributes.rotation[2], reference.data().attributes.rotation[2]);
-  EXPECT_EQ(shape.data().attributes.rotation[3], reference.data().attributes.rotation[3]);
+  EXPECT_EQ(shape.attributes().rotation[0], reference.attributes().rotation[0]);
+  EXPECT_EQ(shape.attributes().rotation[1], reference.attributes().rotation[1]);
+  EXPECT_EQ(shape.attributes().rotation[2], reference.attributes().rotation[2]);
+  EXPECT_EQ(shape.attributes().rotation[3], reference.attributes().rotation[3]);
 
-  EXPECT_EQ(shape.data().attributes.scale[0], reference.data().attributes.scale[0]);
-  EXPECT_EQ(shape.data().attributes.scale[1], reference.data().attributes.scale[1]);
-  EXPECT_EQ(shape.data().attributes.scale[2], reference.data().attributes.scale[2]);
+  EXPECT_EQ(shape.attributes().scale[0], reference.attributes().scale[0]);
+  EXPECT_EQ(shape.attributes().scale[1], reference.attributes().scale[1]);
+  EXPECT_EQ(shape.attributes().scale[2], reference.attributes().scale[2]);
 }
 
 
@@ -393,7 +393,7 @@ void validateShape(const MeshSet &shape, const MeshSet &reference, const Resourc
     const MeshResource *part = static_cast<const MeshResource *>(resIter->second);
     const MeshResource *refPart = reference.partResource(i);
 
-    EXPECT_TRUE(shape.partTransform(i).equals(reference.partTransform(i)));
+    EXPECT_TRUE(shape.partTransform(i).isEqual(reference.partTransform(i)));
     EXPECT_EQ(shape.partColour(i), reference.partColour(i));
     validateMesh(*part, *refPart);
   }

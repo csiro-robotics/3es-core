@@ -109,9 +109,9 @@ PointCloud *PointCloud::clone() const
 }
 
 
-Matrix4f PointCloud::transform() const
+Transform PointCloud::transform() const
 {
-  return Matrix4f::identity;
+  return Transform::identity(false);
 }
 
 
@@ -449,7 +449,7 @@ void PointCloud::copyOnWrite()
 }
 
 
-bool PointCloud::processCreate(const MeshCreateMessage &msg)
+bool PointCloud::processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes)
 {
   if (msg.drawType != DtPoints)
   {
@@ -468,17 +468,17 @@ bool PointCloud::processCreate(const MeshCreateMessage &msg)
   _imp->normals = nullptr;  // Pending.
   _imp->colours = nullptr;  // Pending
 
-  Matrix4f transform = prsTransform(Vector3f(msg.attributes.position), Quaternionf(msg.attributes.rotation),
-                                    Vector3f(msg.attributes.scale));
+  Transform transform(Vector3d(attributes.position), Quaterniond(attributes.rotation), Vector3d(attributes.scale),
+                      msg.flags & McfDoublePrecision);
 
   // Does not accept a transform.
-  if (!transform.equals(Matrix4f::identity))
+  if (!transform.isEqual(Transform::identity()))
   {
     return false;
   }
 
   // Does not accept a tint.
-  if (msg.attributes.colour != 0xffffffffu)
+  if (attributes.colour != 0xffffffffu)
   {
     return false;
   }

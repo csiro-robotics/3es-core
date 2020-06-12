@@ -11,7 +11,7 @@
 
 using namespace tes;
 
-MeshSet::MeshSet(const Id &id, const UIntArg &partCount)
+MeshSet::MeshSet(const IdCat &id, const UIntArg &partCount)
   : Shape(SIdMeshSet, id)
   // , _parts(partCount.i ? new Part[partCount.i] : nullptr)
   , _parts(nullptr)
@@ -30,7 +30,7 @@ MeshSet::MeshSet(const Id &id, const UIntArg &partCount)
 }
 
 
-MeshSet::MeshSet(const MeshResource *part, const Id &id)
+MeshSet::MeshSet(const MeshResource *part, const IdCat &id)
   : Shape(SIdMeshSet, id)
   , _parts(new Part[1])
   , _partCount(1)
@@ -53,7 +53,7 @@ bool MeshSet::writeCreate(PacketWriter &stream) const
     return false;
   }
 
-  ObjectAttributes attr;
+  ObjectAttributesd attr;
   uint32_t partId;
   uint16_t numberOfParts = uint16_t(partCount());
 
@@ -61,6 +61,7 @@ bool MeshSet::writeCreate(PacketWriter &stream) const
 
   stream.writeElement(numberOfParts);
 
+  bool ok = true;
   for (int i = 0; i < numberOfParts; ++i)
   {
     const Part &part = _parts[i];
@@ -74,23 +75,31 @@ bool MeshSet::writeCreate(PacketWriter &stream) const
       partId = 0;
     }
 
-    attr.position[0] = static_cast<decltype(attr.position[0])>(part.transform.position()[0]);
-    attr.position[1] = static_cast<decltype(attr.position[1])>(part.transform.position()[1]);
-    attr.position[2] = static_cast<decltype(attr.position[2])>(part.transform.position()[2]);
-    attr.rotation[0] = static_cast<decltype(attr.rotation[0])>(part.transform.rotation()[0]);
-    attr.rotation[1] = static_cast<decltype(attr.rotation[1])>(part.transform.rotation()[1]);
-    attr.rotation[2] = static_cast<decltype(attr.rotation[2])>(part.transform.rotation()[2]);
-    attr.rotation[3] = static_cast<decltype(attr.rotation[3])>(part.transform.rotation()[3]);
-    attr.scale[0] = static_cast<decltype(attr.scale[0])>(part.transform.scale()[0]);
-    attr.scale[1] = static_cast<decltype(attr.scale[1])>(part.transform.scale()[1]);
-    attr.scale[2] = static_cast<decltype(attr.scale[2])>(part.transform.scale()[2]);
+    attr.position[0] = part.transform.position()[0];
+    attr.position[1] = part.transform.position()[1];
+    attr.position[2] = part.transform.position()[2];
+    attr.rotation[0] = part.transform.rotation()[0];
+    attr.rotation[1] = part.transform.rotation()[1];
+    attr.rotation[2] = part.transform.rotation()[2];
+    attr.rotation[3] = part.transform.rotation()[3];
+    attr.scale[0] = part.transform.scale()[0];
+    attr.scale[1] = part.transform.scale()[1];
+    attr.scale[2] = part.transform.scale()[2];
     attr.colour = part.colour.c;
 
-    stream.writeElement(partId);
-    attr.write(stream);
+    ok = stream.writeElement(partId) == sizeof(partId) && ok;
+    // The precision of the transforms is determined by the CreateMessage::flag OFDoublePrecision only.
+    if (_data.flags & OFDoublePrecision)
+    {
+      ok = attr.write(stream) && ok;
+    }
+    else
+    {
+      ok = static_cast<ObjectAttributesf>(attr).write(stream) && ok;
+    }
   }
 
-  return true;
+  return ok;
 }
 
 
@@ -101,7 +110,8 @@ bool MeshSet::readCreate(PacketReader &stream)
     return false;
   }
 
-  ObjectAttributes attr;
+  // Setup attributes to support double precision. Actual read depends on the CreateMessage flag OFDoublePrecision.
+  ObjectAttributesd attr;
   uint32_t partId = 0;
   uint16_t numberOfParts = 0;
 
@@ -123,25 +133,16 @@ bool MeshSet::readCreate(PacketReader &stream)
     _partCount = numberOfParts;
   }
 
+  const bool expect_double_precision = (_data.flags & OFDoublePrecision) != 0;
   for (unsigned i = 0; i < _partCount; ++i)
   {
-    attr.position[0] = static_cast<decltype(attr.position[0])>(_parts[i].transform.position[0]);
-    attr.position[1] = static_cast<decltype(attr.position[1])>(_parts[i].transform.position[1]);
-    attr.position[2] = static_cast<decltype(attr.position[2])>(_parts[i].transform.position[2]);
-    attr.rotation[0] = static_cast<decltype(attr.rotation[0])>(_parts[i].transform.rotation[0]);
-    attr.rotation[1] = static_cast<decltype(attr.rotation[1])>(_parts[i].transform.rotation[1]);
-    attr.rotation[2] = static_cast<decltype(attr.rotation[2])>(_parts[i].transform.rotation[2]);
-    attr.rotation[3] = static_cast<decltype(attr.rotation[3])>(_parts[i].transform.rotation[3]);
-    attr.scale[0] = static_cast<decltype(attr.scale[0])>(_parts[i].transform.scale[0]);
-    attr.scale[1] = static_cast<decltype(attr.scale[1])>(_parts[i].transform.scale[1]);
-    attr.scale[2] = static_cast<decltype(attr.scale[2])>(_parts[i].transform.scale[2]);
-
     ok = ok && stream.readElement(partId) == sizeof(partId);
-    ok = ok && attr.read(stream);
+    ok = ok && attr.read(stream, expect_double_precision);
 
     if (ok)
     {
-      _parts[i].transform = prsTransform(Vector3f(attr.position), Quaternionf(attr.rotation), Vector3f(attr.scale));
+      _parts[i].transform = Transform(Vector3d(attr.position), Quaterniond(attr.rotation), Vector3d(attr.scale));
+      _parts[i].transform.setPreferDoublePrecision(expect_double_precision);
       // We can only reference dummy meshes here.
       _parts[i].resource = new MeshPlaceholder(partId);
       _parts[i].colour = Colour(attr.colour);

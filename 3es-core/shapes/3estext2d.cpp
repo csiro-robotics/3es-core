@@ -35,7 +35,7 @@ bool Text2D::writeCreate(PacketWriter &stream) const
 {
   bool ok = true;
   stream.reset(routingId(), CreateMessage::MessageId);
-  ok = _data.write(stream) && ok;
+  ok = _data.write(stream, _attributes) && ok;
 
   // Write line count and lines.
   const uint16_t textLength = _textLength;
@@ -100,7 +100,7 @@ Text2D &Text2D::operator=(Text2D &&other)
 
 Shape *Text2D::clone() const
 {
-  Text2D *copy = new Text2D(nullptr, (uint16_t)0);
+  Text2D *copy = new Text2D(nullptr, IdCat());
   onClone(copy);
   return copy;
 }

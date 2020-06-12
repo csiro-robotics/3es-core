@@ -21,40 +21,33 @@ namespace tes
 class _3es_coreAPI Arrow : public Shape
 {
 public:
-  /// Default direction used as a reference orientation for packing the rotation.
-  ///
-  /// The @c rotation() value is relative to this vector.
-  ///
-  /// The default is <tt>(0, 0, 1)</tt>
-  static const Vector3d DefaultDirection;
+  /// Construct an arrow object.
+  /// @param id The shape id and category, unique among @c Arrow objects, or zero for a transient shape.
+  /// @param transform The directional transformation for the shape.
+  Arrow(const IdCat &id = IdCat(), const Directional &transform = Directional());
 
   /// Construct an arrow object.
-  /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  /// @param origin The start point for the array.
-  /// @param dir The direction vector of the arrow.
-  /// @param length The arrow length.
-  /// @param radius Radius of the arrow body.
-  Arrow(const Id &id, const Vector3d &origin = Vector3d(0, 0, 0), const Vector3d &dir = DefaultDirection,
-        float length = 1.0f, float radius = 0.025f);
+  /// @param id The shape id and category, unique among @c Arrow objects, or zero for a transient shape.
+  /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
+  Arrow(const IdCat &id, const Transform &transform);
 
   inline const char *type() const override { return "arrow"; }
 
   /// Set the arrow radius.
   /// @param radius The new arrow radius.
   /// @return @c *this
-  Arrow &setRadius(float radius);
+  Arrow &setRadius(double radius);
   /// Get the arrow radius. Defines the shaft radius, while the head flanges to a sightly larger radius.
   /// @return The arrow body radius.
-  float radius() const;
+  double radius() const;
 
   /// Set the arrow length from base to tip.
   /// @param length Set the length to set.
   /// @return @c *this
-  Arrow &setLength(float length);
+  Arrow &setLength(double length);
   /// Get the arrow length from base to tip.
   /// @return The arrow length.
-  float length() const;
+  double length() const;
 
   /// Set the arrow origin. This is the arrow base position.
   ///
@@ -83,14 +76,19 @@ public:
 };
 
 
-inline Arrow::Arrow(const Id &id, const Vector3d &origin, const Vector3d &dir, float length, float radius)
-  : Shape(SIdArrow, id, Transform(origin, Vector3d(radius, radius, length)))
+inline Arrow::Arrow(const IdCat &id, const Directional &transform)
+  : Shape(SIdArrow, id, transform)
 {
-  setDirection(dir);
 }
 
 
-inline Arrow &Arrow::setRadius(float radius)
+inline Arrow::Arrow(const IdCat &id, const Transform &transform)
+  : Shape(SIdArrow, id, transform)
+{
+}
+
+
+inline Arrow &Arrow::setRadius(double radius)
 {
   Vector3d s = Shape::scale();
   s.x = s.y = radius;
@@ -99,13 +97,13 @@ inline Arrow &Arrow::setRadius(float radius)
 }
 
 
-inline float Arrow::radius() const
+inline double Arrow::radius() const
 {
   return scale().x;
 }
 
 
-inline Arrow &Arrow::setLength(float length)
+inline Arrow &Arrow::setLength(double length)
 {
   Vector3d s = Shape::scale();
   s.z = length;
@@ -114,7 +112,7 @@ inline Arrow &Arrow::setLength(float length)
 }
 
 
-inline float Arrow::length() const
+inline double Arrow::length() const
 {
   return scale().z;
 }
@@ -136,9 +134,9 @@ inline Vector3d Arrow::origin() const
 inline Arrow &Arrow::setDirection(const Vector3d &direction)
 {
   Quaterniond rot;
-  if (direction.dot(DefaultDirection) > -0.9998)
+  if (direction.dot(Directional::DefaultDirection) > -0.9998)
   {
-    rot = Quaterniond(DefaultDirection, direction);
+    rot = Quaterniond(Directional::DefaultDirection, direction);
   }
   else
   {
@@ -152,7 +150,7 @@ inline Arrow &Arrow::setDirection(const Vector3d &direction)
 inline Vector3d Arrow::direction() const
 {
   Quaterniond rot = rotation();
-  return rot * DefaultDirection;
+  return rot * Directional::DefaultDirection;
 }
 }  // namespace tes
 

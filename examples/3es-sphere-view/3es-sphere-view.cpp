@@ -15,8 +15,8 @@
 #include <unordered_map>
 #include <vector>
 
-#define TEXT_ID ((uint32_t)1)
-#define SPHERE_ID 2
+#define TEXT_ID 1u
+#define SPHERE_ID 2u
 
 // Example to view a sphere tessellation. This code duplicates tessellate/3essphere code and adds 3ES commands.
 typedef tes::Vector3f Vector3f;
@@ -342,7 +342,7 @@ int main(int argc, char **argvNonConst)
   std::cout << "Initialise sphere for " << iterations << " iterations." << std::endl;
   sphereInitialise(vertices, indices, &sphereMap);
   const tes::Vector3f textPos(0.05f, 0.05f, 0);
-  TES_TEXT2D_SCREEN(tesServer, TES_COLOUR(LimeGreen), "Initial", textPos);
+  TES_TEXT2D_SCREEN(tesServer, TES_COLOUR(LimeGreen), "Initial", 0u, textPos);
   TES_SERVER_UPDATE(tesServer, 0.0f);
 
 #ifdef TES_ENABLE

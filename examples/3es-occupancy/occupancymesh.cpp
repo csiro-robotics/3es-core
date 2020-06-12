@@ -70,9 +70,9 @@ uint32_t OccupancyMesh::id() const
 }
 
 
-tes::Matrix4f OccupancyMesh::transform() const
+tes::Transform OccupancyMesh::transform() const
 {
-  return tes::Matrix4f::identity;
+  return tes::Transform::identity(false);
 }
 
 
@@ -247,6 +247,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
   tes::MeshRedefineMessage msg;
   tes::MeshComponentMessage cmpmsg;
   tes::MeshFinaliseMessage finalmsg;
+  tes::ObjectAttributesd attributes;
 
   // Work out how many vertices we'll have after all modifications are done.
   size_t oldVertexCount = _detail->vertices.size();
@@ -262,10 +263,10 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
   msg.vertexCount = (uint32_t)newVertexCount;
   msg.indexCount = 0;
   msg.drawType = drawType(0);
-  msg.attributes.identity();
+  attributes.identity();
 
   packet.reset(tes::MtMesh, tes::MeshRedefineMessage::MessageId);
-  msg.write(packet);
+  msg.write(packet, attributes);
 
   packet.finalise();
   g_tesServer->send(packet);
@@ -280,6 +281,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
   {
     cmpmsg.offset = vertexIndex;
     packet.reset(tes::MtMesh, tes::MmtVertex);
+    cmpmsg.elementType = McetFloat32;
     cmpmsg.write(packet);
     // Write the invalid value.
     packet.writeArray<float>(_detail->vertices[vertexIndex].v, 3);
@@ -288,6 +290,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
 
     // Send colour and position update.
     packet.reset(tes::MtMesh, tes::MmtVertexColour);
+    cmpmsg.elementType = McetUInt32;
     cmpmsg.write(packet);
     // Write the invalid value.
     packet.writeArray<uint32_t>(&_detail->colours[vertexIndex], 1);
@@ -320,18 +323,21 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
     {
       cmpmsg.count = uint16_t(std::min<size_t>(transferLimit, newVertexCount - cmpmsg.offset));
 
+      cmpmsg.elementType = McetFloat32;
       packet.reset(tes::MtMesh, tes::MmtVertex);
       cmpmsg.write(packet);
       packet.writeArray<float>(_detail->vertices[cmpmsg.offset].v, cmpmsg.count * 3);
       packet.finalise();
       g_tesServer->send(packet);
 
+      cmpmsg.elementType = McetFloat32;
       packet.reset(tes::MtMesh, tes::MmtNormal);
       cmpmsg.write(packet);
       packet.writeArray<float>(_detail->normals[cmpmsg.offset].v, cmpmsg.count * 3);
       packet.finalise();
       g_tesServer->send(packet);
 
+      cmpmsg.elementType = McetUInt32;
       packet.reset(tes::MtMesh, tes::MmtVertexColour);
       cmpmsg.write(packet);
       packet.writeArray<uint32_t>(&_detail->colours[cmpmsg.offset], cmpmsg.count);
@@ -358,6 +364,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
         packet.reset(tes::MtMesh, tes::MmtVertexColour);
         cmpmsg.offset = voxelIndex;
         cmpmsg.count = 1;
+        cmpmsg.elementType = McetUInt32;
         cmpmsg.write(packet);
         packet.writeArray<uint32_t>(&_detail->colours[voxelIndex], 1);
         packet.finalise();
@@ -369,7 +376,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
   // Finalise the modifications.
   finalmsg.meshId = _id;
   // Rely on EDL shader.
-  finalmsg.flags = 0;  // tes::MbfCalculateNormals;
+  finalmsg.flags = 0;  // tes::MffCalculateNormals;
   packet.reset(tes::MtMesh, finalmsg.MessageId);
   finalmsg.write(packet);
   packet.finalise();

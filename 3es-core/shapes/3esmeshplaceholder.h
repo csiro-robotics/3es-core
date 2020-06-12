@@ -29,7 +29,7 @@ public:
   uint32_t id() const override;
 
   /// @copydoc MeshResource::transform()
-  Matrix4f transform() const override;
+  Transform transform() const override;
   /// @copydoc MeshResource::tint()
   uint32_t tint() const override;
   /// @copydoc MeshResource::drawType()

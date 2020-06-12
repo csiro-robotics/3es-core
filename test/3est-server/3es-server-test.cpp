@@ -104,7 +104,7 @@ class Oscilator : public ShapeMover
 public:
   inline Oscilator(Shape *shape, float amplitude = 1.0f, float period = 5.0f, const Vector3f &axis = Vector3f(0, 0, 1))
     : ShapeMover(shape)
-    , _referencePos(shape ? shape->position() : Vector3f::zero)
+    , _referencePos(shape ? Vector3f(shape->position()) : Vector3f::zero)
     , _axis(axis)
     , _amplitude(amplitude)
     , _period(period)
@@ -117,7 +117,7 @@ public:
   inline float amplitude() const { return _amplitude; }
   inline float period() const { return _period; }
 
-  void reset() override { _referencePos = shape() ? shape()->position() : _referencePos; }
+  void reset() override { _referencePos = shape() ? Vector3f(shape()->position()) : _referencePos; }
 
   void update(float time, float dt) override
   {
@@ -127,7 +127,7 @@ public:
   }
 
 protected:
-  void onShapeChange() override { _referencePos = (shape()) ? shape()->position() : _referencePos; }
+  void onShapeChange() override { _referencePos = (shape()) ? Vector3f(shape()->position()) : _referencePos; }
 
 private:
   Vector3f _referencePos;
@@ -210,15 +210,15 @@ void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Shap
     const Vector3f pos(0.0f);
     Arrow *arrow;
 
-    arrow = new Arrow(nextId++, pos, Vector3f(1, 0, 0), arrowLength, arrowRadius);
+    arrow = new Arrow(nextId++, Directional(pos, Vector3f(1, 0, 0), arrowLength, arrowRadius));
     arrow->setColour(Colour::Colours[Colour::Red]);
     shapes.emplace_back(arrow);
 
-    arrow = new Arrow(nextId++, pos, Vector3f(0, 1, 0), arrowLength, arrowRadius);
+    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 1, 0), arrowLength, arrowRadius));
     arrow->setColour(Colour::Colours[Colour::ForestGreen]);
     shapes.emplace_back(arrow);
 
-    arrow = new Arrow(nextId++, pos, Vector3f(0, 0, 1), arrowLength, arrowRadius);
+    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 0, 1), arrowLength, arrowRadius));
     arrow->setColour(Colour::Colours[Colour::DodgerBlue]);
     shapes.emplace_back(arrow);
   }
@@ -234,7 +234,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("arrow", argc, argv))
   {
-    Arrow *arrow = new Arrow(nextId++, CatArrow);
+    Arrow *arrow = new Arrow(IdCat(nextId++, CatArrow));
     arrow->setRadius(0.5f);
     arrow->setLength(1.0f);
     arrow->setColour(Colour::Colours[Colour::SeaGreen]);
@@ -247,7 +247,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("box", argc, argv))
   {
-    Box *box = new Box(nextId++, CatBox);
+    Box *box = new Box(IdCat(nextId++, CatBox));
     box->setScale(Vector3f(0.45f));
     box->setColour(Colour::Colours[Colour::MediumSlateBlue]);
     shapes.emplace_back(box);
@@ -259,7 +259,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("capsule", argc, argv))
   {
-    Capsule *capsule = new Capsule(nextId++, CatCapsule, Vector3f(0, 0, 0));
+    Capsule *capsule = new Capsule(IdCat(nextId++, CatCapsule), Directional::identity());
     capsule->setLength(2.0f);
     capsule->setRadius(0.3f);
     capsule->setColour(Colour::Colours[Colour::LavenderBlush]);
@@ -272,9 +272,9 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("cone", argc, argv))
   {
-    Cone *cone = new Cone(nextId++, CatCone);
+    Cone *cone = new Cone(IdCat(nextId++, CatCone));
     cone->setLength(2.0f);
-    cone->setAngle(25.0f / 360.0f * float(M_PI));
+    cone->setRadius(0.25f);
     cone->setColour(Colour::Colours[Colour::SandyBrown]);
     shapes.emplace_back(cone);
     if (!noMove)
@@ -285,7 +285,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("cylinder", argc, argv))
   {
-    Cylinder *cylinder = new Cylinder(nextId++, CatCylinder);
+    Cylinder *cylinder = new Cylinder(IdCat(nextId++, CatCylinder));
     cylinder->setScale(Vector3f(0.45f));
     cylinder->setColour(Colour::Colours[Colour::FireBrick]);
     shapes.emplace_back(cylinder);
@@ -297,7 +297,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("plane", argc, argv))
   {
-    Plane *plane = new Plane(nextId++, CatPlane);
+    Plane *plane = new Plane(IdCat(nextId++, CatPlane));
     plane->setNormal(Vector3f(1.0f, 1.0f, 0.0f).normalised());
     plane->setScale(1.5f);
     plane->setNormalLength(0.5f);
@@ -311,7 +311,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("pose", argc, argv))
   {
-    Pose *pose = new Pose(nextId++, CatPose);
+    Pose *pose = new Pose(IdCat(nextId++, CatPose));
     pose->setRotation(Quaternionf().setAxisAngle(Vector3f::axisz, float(0.25 * M_PI)));
     shapes.emplace_back(pose);
     if (!noMove)
@@ -322,7 +322,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("sphere", argc, argv))
   {
-    Sphere *sphere = new Sphere(nextId++, CatSphere);
+    Sphere *sphere = new Sphere(IdCat(nextId++, CatSphere));
     sphere->setRadius(0.75f);
     sphere->setColour(Colour::Colours[Colour::Coral]);
     shapes.emplace_back(sphere);
@@ -334,7 +334,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("star", argc, argv))
   {
-    Star *star = new Star(nextId++, CatStar);
+    Star *star = new Star(IdCat(nextId++, CatStar));
     star->setRadius(0.75f);
     star->setColour(Colour::Colours[Colour::DarkGreen]);
     shapes.emplace_back(star);
@@ -349,7 +349,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     static const Vector3f lineSet[] = { Vector3f(0, 0, 0),        Vector3f(0, 0, 1), Vector3f(0, 0, 1),
                                         Vector3f(0.25f, 0, 0.8f), Vector3f(0, 0, 1), Vector3f(-0.25f, 0, 0.8f) };
     const unsigned lineVertexCount = sizeof(lineSet) / sizeof(lineSet[0]);
-    MeshShape *lines = new MeshShape(DtLines, lineSet[0].v, lineVertexCount, sizeof(lineSet[0]), nextId++, CatLines);
+    MeshShape *lines = new MeshShape(DtLines, lineSet[0].v, lineVertexCount, sizeof(lineSet[0]), IdCat(nextId++, CatLines));
     shapes.emplace_back(lines);
     // if (!noMove)
     // {
@@ -371,7 +371,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
                                         Colour::Colours[Colour::Blue].c,  Colour::Colours[Colour::White].c,
                                         Colour::Colours[Colour::White].c, Colour::Colours[Colour::White].c };
     MeshShape *triangles =
-      new MeshShape(DtTriangles, triangleSet[0].v, triVertexCount, sizeof(triangleSet[0]), nextId++, CatTriangles);
+      new MeshShape(DtTriangles, triangleSet[0].v, triVertexCount, sizeof(triangleSet[0]), IdCat(nextId++, CatTriangles));
     triangles->setColours(colours);
     triangles->duplicateArrays();
     shapes.emplace_back(triangles);
@@ -386,7 +386,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     MeshResource *meshRes = createTestMesh();
     resources.emplace_back(meshRes);
     const unsigned partCount = 2;
-    MeshSet *mesh = new MeshSet(nextId++, CatMesh, partCount);
+    MeshSet *mesh = new MeshSet(IdCat(nextId++, CatMesh), partCount);
     mesh->setPart(0, meshRes, Matrix4f::identity, Colour::Colours[Colour::YellowGreen]);
     mesh->setPart(1, meshRes, Matrix4f::translation(Vector3f(0, 0, 1.5f)), Colour::Colours[Colour::SkyBlue]);
     shapes.emplace_back(mesh);
@@ -404,7 +404,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     static const uint32_t colours[] = { Colour::Colours[Colour::Black].c, Colour::Colours[Colour::Red].c,
                                         Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Blue].c,
                                         Colour::Colours[Colour::White].c };
-    MeshShape *points = new MeshShape(DtPoints, pts[0].v, pointsCount, sizeof(pts[0]), nextId++, CatPoints);
+    MeshShape *points = new MeshShape(DtPoints, pts[0].v, pointsCount, sizeof(pts[0]), IdCat(nextId++, CatPoints));
     points->setColours(colours);
     points->setDrawScale(3.0f);
     shapes.emplace_back(points);
@@ -417,7 +417,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   if (allShapes || haveOption("cloud", argc, argv) || haveOption("cloudpart", argc, argv))
   {
     MeshResource *cloud = createTestCloud();
-    PointCloudShape *points = new PointCloudShape(cloud, nextId++, CatPoints, 1.25f);
+    PointCloudShape *points = new PointCloudShape(cloud, IdCat(nextId++, CatPoints), 1.25f);
     if (haveOption("cloudpart", argc, argv))
     {
       // Partial indexing.
@@ -447,7 +447,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     const float separation = 0.3f;
     const float blockOffset = -0.5f * blockSize * separation;
 
-    std::vector<Shape*> manyShapes(manyCount);
+    std::vector<Shape *> manyShapes(manyCount);
     unsigned id = nextId++;
     unsigned i = 0;
     for (int z = 0; z < blockSize; ++z)
@@ -461,7 +461,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
           pos.y = blockOffset + float(y) * separation;
           pos.z = blockOffset + float(z) * separation;
 
-          Capsule *capsule = new Capsule(id, CatCapsule, Vector3f(0, 0, 0));
+          Capsule *capsule = new Capsule(IdCat(id, CatCapsule), Directional::identity(false));
           capsule->setLength(0.4f);
           capsule->setRadius(0.15f);
           capsule->setColour(Colour::cycle(i));
@@ -523,9 +523,9 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   if (allShapes || haveOption("text2d", argc, argv))
   {
     Text2D *text;
-    text = new Text2D("Hello Screen", nextId++, CatText2D, Vector3f(0.25f, 0.75f, 0.0f));
+    text = new Text2D("Hello Screen", IdCat(nextId++, CatText2D), Spherical(Vector3f(0.25f, 0.75f, 0.0f)));
     shapes.emplace_back(text);
-    text = new Text2D("Hello World 2D", nextId++, CatText2D, Vector3f(1.0f, 1.0f, 1.0f));
+    text = new Text2D("Hello World 2D", IdCat(nextId++, CatText2D), Spherical(Vector3f(1.0f, 1.0f, 1.0f)));
     text->setInWorldSpace(true);
     shapes.emplace_back(text);
   }
@@ -533,9 +533,9 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   if (allShapes || haveOption("text3d", argc, argv))
   {
     Text3D *text;
-    text = new Text3D("Hello World 3D", nextId++, CatText3D, Vector3f(-1.0f, -1.0f, 1.0f), Vector3f(-1.0f, 0, 0));
+    text = new Text3D("Hello World 3D", IdCat(nextId++, CatText3D), Directional(Vector3f(-1.0f, -1.0f, 1.0f), Vector3f(-1.0f, 0, 0)));
     shapes.emplace_back(text);
-    text = new Text3D("Hello World 3D Facing", nextId++, CatText3D, Vector3f(-1.0f, -1.0f, 0.0f), 8);
+    text = new Text3D("Hello World 3D Facing", IdCat(nextId++, CatText3D), Directional(Vector3f(-1.0f, -1.0f, 0.0f), 8.0f));
     text->setScreenFacing(true);
     shapes.emplace_back(text);
   }

@@ -16,12 +16,12 @@ struct V3Arg
   /// Single precision pointer constructor.
   /// @param v Vector 3 array.
   inline V3Arg(const float v[3])
-    : v3(Vector3f(v))
+    : v3(v)
   {}
   /// Double precision pointer constructor.
   /// @param v Vector 3  array.
   inline V3Arg(const double v[3])
-    : v3(v)
+    : v3(Vector3d(v))
   {}
   /// Single precision vector constructor.
   /// @param v Vector 3 value.
@@ -47,7 +47,7 @@ struct V3Arg
   /// @param y Y value.
   /// @param z Z value.
   inline V3Arg(double x, double y, double z)
-    : v3(x, y, z)
+    : v3(Vector3d(x, y, z))
   {}
 
   /// Copy constructor.
@@ -65,7 +65,7 @@ struct V3Arg
   inline double operator[](int i) const { return v3[i]; }
 
   /// Vector 3 value.
-  Vector3d v3;
+  Vector3f v3;
 };
 }  // namespace tes
 

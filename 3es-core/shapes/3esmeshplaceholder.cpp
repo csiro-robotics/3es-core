@@ -22,9 +22,9 @@ uint32_t MeshPlaceholder::id() const
 }
 
 
-Matrix4f MeshPlaceholder::transform() const
+Transform MeshPlaceholder::transform() const
 {
-  return Matrix4f::identity;
+  return Transform::identity();
 }
 
 

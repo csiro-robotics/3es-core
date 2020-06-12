@@ -49,6 +49,7 @@ list(APPEND PUBLIC_HEADERS
   3estcpsocket.h
   3estimer.h
   3estransferprogress.h
+  3estransform.h
   3estrigeom.h
   3estrigeom.inl
   3esv3arg.h
@@ -81,7 +82,6 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/3esstar.h
   shapes/3estext2d.h
   shapes/3estext3d.h
-  shapes/3estransform.h
 )
 
 list(APPEND PUBLIC_TESSELLATE_HEADERS
@@ -118,6 +118,7 @@ list(APPEND SOURCES
   3esspinlock.cpp
   3esstreamutil.cpp
   3estimer.cpp
+  3estransform.cpp
   3esvector3.cpp
   3esvector4.cpp
 

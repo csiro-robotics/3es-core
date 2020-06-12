@@ -41,8 +41,7 @@ public:
   /// @param position A translation to apply to all shapes in the collection.
   /// @param rotation A rotation transformation to apply to all shapes in the collection.
   /// @param scale Scaling to apply to all shapes in the collection.
-  MultiShape(Shape **shapes, const UIntArg &shapeCount, const V3Arg &position = Vector3f::zero,
-             const QuaternionArg &rotation = Quaternionf::identity, const V3Arg &scale = Vector3f::one);
+  MultiShape(Shape **shapes, const UIntArg &shapeCount, const Transform &transform = Transform());
 
   /// Destructor.
   ~MultiShape();
@@ -70,15 +69,11 @@ private:
   bool _ownShapes = false;    ///< True if _shapes is internally allocated and elements are to be deleted.
 };
 
-inline MultiShape::MultiShape(Shape **shapes, const UIntArg &shapeCount, const V3Arg &position,
-                              const QuaternionArg &rotation, const V3Arg &scale)
-  : Shape(shapes[0]->routingId(), shapes[0]->id(), shapes[0]->category())
+inline MultiShape::MultiShape(Shape **shapes, const UIntArg &shapeCount, const Transform &transform)
+  : Shape(shapes[0]->routingId(), IdCat(shapes[0]->id(), shapes[0]->category()), transform)
   , _shapes(shapes)
   , _itemCount(std::min(static_cast<uint32_t>(shapeCount), ShapeCountLimit))
 {
-  setPosition(position);
-  setRotation(rotation);
-  setScale(scale);
   _data.flags |= OFMultiShape;
 }
 }  // namespace tes

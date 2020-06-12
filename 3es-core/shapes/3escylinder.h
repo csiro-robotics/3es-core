@@ -21,40 +21,33 @@ namespace tes
 class _3es_coreAPI Cylinder : public Shape
 {
 public:
-  /// Default direction used as a reference orientation for packing the rotation.
-  ///
-  /// The @c rotation() value is relative to this vector.
-  ///
-  /// The default is <tt>(0, 0, 1)</tt>
-  static const Vector3d DefaultAxis;
+  /// Construct a cylinder object.
+  /// @param id The shape id and category, unique among @c Capsule objects, or zero for a transient shape.
+  /// @param transform The directional transformation for the capsule.
+  Cylinder(const IdCat &id = IdCat(), const Directional &transform = Directional());
 
   /// Construct a cylinder object.
-  /// @param id The shape ID, unique among @c Capsule objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  /// @param centre Centre @c position() of the cylindef.
-  /// @param axis Defines the cylinder's primary axis.
-  /// @param radius Radius of the cylinder walls.
-  /// @param length Length of the cylinder body.
-  Cylinder(const Id &id = Id(), const Vector3d &centre = Vector3d(0, 0, 0), const Vector3d &axis = DefaultAxis,
-           float radius = 1.0f, float length = 1.0f);
+  /// @param id The shape id and category, unique among @c Capsule objects, or zero for a transient shape.
+  /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
+  Cylinder(const IdCat &id, const Transform &transform);
 
   inline const char *type() const override { return "cylinder"; }
 
   /// Set the cylinder body radius.
   /// @param radius The radius to set.
   /// @return @c *this
-  Cylinder &setRadius(float radius);
+  Cylinder &setRadius(double radius);
   /// Get the cylinder radius.
   /// @return The cylinder radius.
-  float radius() const;
+  double radius() const;
 
   /// Set the cylinder body length.
   /// @param length The body length to set.
   /// @return @c *this
-  Cylinder &setLength(float radius);
+  Cylinder &setLength(double radius);
   /// Get the cylinder body length.
   /// @param The body length.
-  float length() const;
+  double length() const;
 
   /// Set the position fo the cylinder centre.
   /// @param centre The centre coordinate.
@@ -76,15 +69,19 @@ public:
 };
 
 
-inline Cylinder::Cylinder(const Id &id, const Vector3d &centre, const Vector3d &axis,
-          float radius, float length)
-  : Shape(SIdCylinder, id, Transform(centre, Vector3d(radius, radius, length)))
+inline Cylinder::Cylinder(const IdCat &id, const Directional &transform)
+  : Shape(SIdCylinder, id, transform)
 {
-  setAxis(axis);
 }
 
 
-inline Cylinder &Cylinder::setRadius(float radius)
+inline Cylinder::Cylinder(const IdCat &id, const Transform &transform)
+  : Shape(SIdCylinder, id, transform)
+{
+}
+
+
+inline Cylinder &Cylinder::setRadius(double radius)
 {
   Vector3d s = Shape::scale();
   s.x = s.y = radius;
@@ -93,13 +90,13 @@ inline Cylinder &Cylinder::setRadius(float radius)
 }
 
 
-inline float Cylinder::radius() const
+inline double Cylinder::radius() const
 {
   return scale().x;
 }
 
 
-inline Cylinder &Cylinder::setLength(float length)
+inline Cylinder &Cylinder::setLength(double length)
 {
   Vector3d s = Shape::scale();
   s.z = length;
@@ -108,7 +105,7 @@ inline Cylinder &Cylinder::setLength(float length)
 }
 
 
-inline float Cylinder::length() const
+inline double Cylinder::length() const
 {
   return scale().z;
 }
@@ -130,9 +127,9 @@ inline Vector3d Cylinder::centre() const
 inline Cylinder &Cylinder::setAxis(const Vector3d &axis)
 {
   Quaterniond rot;
-  if (axis.dot(DefaultAxis) > -0.9998f)
+  if (axis.dot(Directional::DefaultDirection) > -0.9998f)
   {
-    rot = Quaterniond(DefaultAxis, axis);
+    rot = Quaterniond(Directional::DefaultDirection, axis);
   }
   else
   {
@@ -146,7 +143,7 @@ inline Cylinder &Cylinder::setAxis(const Vector3d &axis)
 inline Vector3d Cylinder::axis() const
 {
   Quaterniond rot = rotation();
-  return rot * DefaultAxis;
+  return rot * Directional::DefaultDirection;
 }
 }  // namespace tes
 

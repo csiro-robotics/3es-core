@@ -37,7 +37,7 @@ public:
   ~OccupancyMesh();
 
   uint32_t id() const override;
-  tes::Matrix4f transform() const override;
+  tes::Transform transform() const override;
   uint32_t tint() const override;
   uint8_t drawType(int stream) const override;
 

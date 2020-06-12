@@ -197,7 +197,7 @@ int populateMap(const Options &opt)
   map.setClampingThresMin(0.01);
   // printf("min: %g\n", map.getClampingThresMinLog());
 
-  TES_POINTCLOUDSHAPE(g_tesServer, TES_COLOUR(SteelBlue), &mapMesh, RES_Map, CAT_Map);
+  TES_POINTCLOUDSHAPE(g_tesServer, TES_COLOUR(SteelBlue), &mapMesh, tes::IdCat(RES_Map, CAT_Map));
   // Ensure mesh is created for later update.
   TES_SERVER_UPDATE(g_tesServer, 0.0f);
 
@@ -308,7 +308,7 @@ int populateMap(const Options &opt)
 #else   // _MSC_VER
       sprintf(timeStrBuffer, "%g", timestamp - timebase);
 #endif  // _MSC_VER
-      TES_TEXT2D_SCREEN(g_tesServer, TES_COLOUR(White), timeStrBuffer, 0u, CAT_Info, Vector3f(0.05f, 0.1f, 0.0f));
+      TES_TEXT2D_SCREEN(g_tesServer, TES_COLOUR(White), timeStrBuffer, tes::IdCat(0u, CAT_Info), Vector3f(0.05f, 0.1f, 0.0f));
       // Draw sample lines.
       if (opt.rays & Rays_Lines)
       {

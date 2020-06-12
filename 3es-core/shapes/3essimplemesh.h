@@ -59,7 +59,7 @@ public:
   virtual uint32_t id() const override;
 
   /// @copydoc Resource::transform()
-  virtual Matrix4f transform() const override;
+  virtual Transform transform() const override;
 
   /// Set the object transformation matrix for this mesh.
   ///
@@ -67,7 +67,7 @@ public:
   /// object matrix and a transformation matrix for each contains @c MeshResource.
   ///
   /// @param transform The object transformation matrix for the mesh.
-  void setTransform(const Matrix4f &transform);
+  void setTransform(const Transform &transform);
 
   /// @copydoc MeshResource::tint()
   virtual uint32_t tint() const override;
@@ -148,7 +148,7 @@ public:
 private:
   void copyOnWrite();
 
-  bool processCreate(const MeshCreateMessage &msg) override;
+  bool processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes) override;
   bool processVertices(const MeshComponentMessage &msg, const float *vertices, unsigned vertexCount) override;
   bool processIndices(const MeshComponentMessage &msg, const uint8_t *indices, unsigned indexCount) override;
   bool processIndices(const MeshComponentMessage &msg, const uint16_t *indices, unsigned indexCount) override;

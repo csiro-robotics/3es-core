@@ -17,37 +17,18 @@ namespace tes
 class _3es_coreAPI Pose : public Shape
 {
 public:
-  /// @overload
-  Pose(uint32_t id = 0u, const V3Arg &pos = V3Arg(0, 0, 0), const V3Arg &scale = V3Arg(1.0f, 1.0f, 1.0f),
-      const QuaternionArg &rot = QuaternionArg(0, 0, 0, 1));
-  /// Construct a pose object.
-  /// @param id The shape ID, unique among @c Pose objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  /// @param pos Marks the centre position of the pose.
-  /// @param scale Defines the size of the pose, were (1, 1, 1) denotes a pose with unit arms.
-  /// @param rot Quaternion rotation to apply to the pose.
-  Pose(uint32_t id, uint16_t category, const V3Arg &pos = V3Arg(0, 0, 0), const V3Arg &scale = V3Arg(1, 1, 1),
-      const QuaternionArg &rot = QuaternionArg(0, 0, 0, 1));
+  /// Construct a box object.
+  /// @param id The shape id and category, with unique id among @c Pose objects, or zero for a transient shape.
+  /// @param transform The pose transformation matrix.
+  Pose(const IdCat &id = IdCat(), const Transform &transform = Transform());
 
   inline const char *type() const override { return "pose"; }
 };
 
 
-inline Pose::Pose(uint32_t id, const V3Arg &pos, const V3Arg &scale, const QuaternionArg &rot)
-  : Shape(SIdPose, id)
+inline Pose::Pose(const IdCat &id, const Transform &transform)
+  : Shape(SIdPose, id, transform)
 {
-  setPosition(pos);
-  setRotation(rot);
-  setScale(scale);
-}
-
-
-inline Pose::Pose(uint32_t id, uint16_t category, const V3Arg &pos, const V3Arg &scale, const QuaternionArg &rot)
-  : Shape(SIdPose, id, category)
-{
-  setPosition(pos);
-  setRotation(rot);
-  setScale(scale);
 }
 }  // namespace tes
 

@@ -21,40 +21,33 @@ namespace tes
 class _3es_coreAPI Cone : public Shape
 {
 public:
-  /// Default direction used as a reference orientation for packing the rotation.
-  ///
-  /// The @c rotation() value is relative to this vector.
-  ///
-  /// The default is <tt>(0, 0, 1)</tt>
-  static const Vector3d DefaultDir;
+  /// Construct a cone object.
+  /// @param id The shape id and category, unique among @c Cone objects, or zero for a transient shape.
+  /// @param transform The directional transformation for the shape. The radius specified is applied at the base.
+  Cone(const IdCat &id = IdCat(), const Directional &transform = Directional());
 
   /// Construct a cone object.
-  /// @param id The shape ID, unique among @c Cone objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  /// @param point Defines the cone apex.
-  /// @param dir Cone direction.
-  /// @param angle Angle from cone axis to walls at the apex (radians).
-  /// @param length Length of the cone from apex to base.
-  Cone(const Id &id = Id(), const Vector3d &point = Vector3d(0, 0, 0), const Vector3d &dir = DefaultDir,
-       float angle = 45.0f / 180.0f * float(M_PI), float length = 1.0f);
+  /// @param id The shape id and category, unique among @c Cone objects, or zero for a transient shape.
+  /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
+  Cone(const IdCat &id, const Transform &transform);
 
   inline const char *type() const override { return "cone"; }
 
-  /// Sets the cone angle at the apex (radians).
-  /// @param angle The angle to set (radians).
+  /// Sets the cone radius at the base.
+  /// @param radius The base radius.
   /// @return @c *this
-  Cone &setAngle(float angle);
+  Cone &setRadius(double radius);
   /// Get the cone angle at the apex (radians).
   /// @return The cone angle (radians).
-  float angle() const;
+  double radius() const;
 
   /// Set the cone length, apex to base.
   /// @param length The length to set.
   /// @return @c *this
-  Cone &setLength(float length);
+  Cone &setLength(double length);
   /// Get the cone length, apex to base.
   /// @return The cone length.
-  float length() const;
+  double length() const;
 
   /// Set the position of the cone apex.
   /// @param point The apex coordinate.
@@ -77,47 +70,43 @@ public:
 };
 
 
-inline Cone::Cone(const Id &id, const Vector3d &point, const Vector3d &dir, float angle, float length)
-  : Shape(SIdCone, id, Transform(point, Vector3d(angle, angle, length)))
+inline Cone::Cone(const IdCat &id, const Directional &transform)
+  : Shape(SIdCone, id, transform)
 {
-  setDirection(dir);
 }
 
 
-inline Cone &Cone::setAngle(float angle)
+inline Cone::Cone(const IdCat &id, const Transform &transform)
+  : Shape(SIdCone, id, transform)
+{
+}
+
+
+inline Cone &Cone::setRadius(double radius)
 {
   Vector3d s = scale();
-  s.x = s.y = s.z * std::tan(angle);
+  s.x = s.y = radius;
   setScale(s);
   return *this;
 }
 
 
-inline float Cone::angle() const
+inline double Cone::radius() const
 {
   return scale().x;
-  // scale X/Y encode the radius of the cone base.
-  // Convert to angle angle as:
-  //   tan(theta) = radius / length
-  //   theta = atan(radius / length)
-  const Vector3d s = scale();
-  const float length = s.z;
-  const float radius = s.x;
-  return (length != 0.0f) ? std::atan(radius / length) : 0.0f;
 }
 
 
-inline Cone &Cone::setLength(float length)
+inline Cone &Cone::setLength(double length)
 {
-  // Changing the length requires maintaining the angle, so we must adjust the radius to suit.
-  const float angle = this->angle();
-  _data.attributes.scale[2] = length;
-  setAngle(angle);
+  Vector3d s = scale();
+  s.z = length;
+  setScale(s);
   return *this;
 }
 
 
-inline float Cone::length() const
+inline double Cone::length() const
 {
   return scale().z;
 }
@@ -139,9 +128,9 @@ inline Vector3d Cone::point() const
 inline Cone &Cone::setDirection(const Vector3d &dir)
 {
   Quaterniond rot;
-  if (dir.dot(DefaultDir) > -0.9998)
+  if (dir.dot(Directional::DefaultDirection) > -0.9998)
   {
-    rot = Quaterniond(DefaultDir, dir);
+    rot = Quaterniond(Directional::DefaultDirection, dir);
   }
   else
   {
@@ -155,7 +144,7 @@ inline Cone &Cone::setDirection(const Vector3d &dir)
 inline Vector3d Cone::direction() const
 {
   Quaterniond rot = rotation();
-  return rot * DefaultDir;
+  return rot * Directional::DefaultDirection;
 }
 }  // namespace tes
 

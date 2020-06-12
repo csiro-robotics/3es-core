@@ -622,8 +622,8 @@
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Pose() constructor.
 #define TES_POSE(server, colour, ...)                           \
-  if (server)                                                  \
-  {                                                            \
+  if (server)                                                   \
+  {                                                             \
     (server)->create(tes::Pose(__VA_ARGS__).setColour(colour)); \
   }
 /// @ingroup tesmacros
@@ -632,8 +632,8 @@
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Pose() constructor.
 #define TES_POSE_T(server, colour, ...)                                              \
-  if (server)                                                                       \
-  {                                                                                 \
+  if (server)                                                                        \
+  {                                                                                  \
     (server)->create(tes::Pose(__VA_ARGS__).setColour(colour).setTransparent(true)); \
   }
 /// @ingroup tesmacros
@@ -642,8 +642,8 @@
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p Pose() constructor.
 #define TES_POSE_W(server, colour, ...)                                            \
-  if (server)                                                                     \
-  {                                                                               \
+  if (server)                                                                      \
+  {                                                                                \
     (server)->create(tes::Pose(__VA_ARGS__).setColour(colour).setWireframe(true)); \
   }
 
@@ -870,13 +870,13 @@
 /// @param v1 Second triangle vertex.
 /// @param v2 Third triangle vertex.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
-#define TES_TRIANGLE(server, colour, v0, v1, v2, ...)                                              \
-  if (server)                                                                                      \
-  {                                                                                                \
-    const tes::V3Arg _tri[3] = { tes::V3Arg(v0), tes::V3Arg(v1), tes::V3Arg(v2) };                 \
-    tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(tes::Vector3f), ##__VA_ARGS__); \
-    shape.setColour(colour).setTwoSided(true);                                                     \
-    (server)->create(shape);                                                                       \
+#define TES_TRIANGLE(server, colour, v0, v1, v2, ...)                                          \
+  if (server)                                                                                  \
+  {                                                                                            \
+    const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
+    tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(_tri[0]), ##__VA_ARGS__);      \
+    shape.setColour(colour).setTwoSided(true);                                                 \
+    (server)->create(shape);                                                                   \
   }
 
 /// @ingroup tesmacros
@@ -887,14 +887,14 @@
 /// @param v1 A triangle vertex.
 /// @param v2 A triangle vertex.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
-#define TES_TRIANGLE_W(server, colour, v0, v1, v2, ...)                                      \
-  if (server)                                                                                \
-  {                                                                                          \
-    const tes::V3Arg _tri[3] = { tes::V3Arg(v0), tes::V3Arg(v1), tes::V3Arg(v2) };           \
-    tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(_tri[0]), ##__VA_ARGS__); \
-    shape.setColour(colour);                                                                 \
-    shape.setWireframe(true);                                                                \
-    (server)->create(shape);                                                                 \
+#define TES_TRIANGLE_W(server, colour, v0, v1, v2, ...)                                        \
+  if (server)                                                                                  \
+  {                                                                                            \
+    const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
+    tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(_tri[0]), ##__VA_ARGS__);      \
+    shape.setColour(colour);                                                                   \
+    shape.setWireframe(true);                                                                  \
+    (server)->create(shape);                                                                   \
   }
 /// @ingroup tesmacros
 /// Single transparent triangle.
@@ -904,13 +904,13 @@
 /// @param v1 A triangle vertex.
 /// @param v2 A triangle vertex.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
-#define TES_TRIANGLE_T(server, colour, v0, v1, v2, ...)                                      \
-  {                                                                                          \
-    const tes::V3Arg _tri[3] = { tes::V3Arg(v0), tes::V3Arg(v1), tes::V3Arg(v2) };           \
-    tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(_tri[0]), ##__VA_ARGS__); \
-    shape.setColour(colour);                                                                 \
-    shape.setTransparent(true).setTwoSided(true);                                            \
-    (server)->create(shape);                                                                 \
+#define TES_TRIANGLE_T(server, colour, v0, v1, v2, ...)                                        \
+  {                                                                                            \
+    const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
+    tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(_tri[0]), ##__VA_ARGS__);      \
+    shape.setColour(colour);                                                                   \
+    shape.setTransparent(true).setTwoSided(true);                                              \
+    (server)->create(shape);                                                                   \
   }
 
 /// @ingroup tesmacros
@@ -927,14 +927,14 @@
 /// @param i1 Index to a triangle vertex.
 /// @param i2 Index to a triangle vertex.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
-#define TES_TRIANGLE_I(server, colour, verts, i0, i1, i2, ...)                                   \
-  if (server)                                                                                    \
-  {                                                                                              \
-    const tes::V3Arg _tri[3] = { tes::V3Arg((verts) + (i0 * 3)), tes::V3Arg((verts) + (i1 * 3)), \
-                                 tes::V3Arg((verts) + (i2 * 3)) };                               \
-    tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(_tri[0]), ##__VA_ARGS__);     \
-    shape.setColour(colour);                                                                     \
-    (server)->create(shape);                                                                     \
+#define TES_TRIANGLE_I(server, colour, verts, i0, i1, i2, ...)                                            \
+  if (server)                                                                                             \
+  {                                                                                                       \
+    const tes::Vector3f _tri[3] = { tes::Vector3f((verts) + (i0 * 3)), tes::Vector3f((verts) + (i1 * 3)), \
+                                    tes::Vector3f((verts) + (i2 * 3)) };                                  \
+    tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(_tri[0]), ##__VA_ARGS__);                 \
+    shape.setColour(colour);                                                                              \
+    (server)->create(shape);                                                                              \
   }
 
 /// @ingroup tesmacros
@@ -954,9 +954,9 @@
 #define TES_TRIANGLE_IW(server, colour, verts, i0, i1, i2, ...)                                  \
   if (server)                                                                                    \
   {                                                                                              \
-    const tes::V3Arg _tri[3] = { tes::V3Arg((verts) + (i0 * 3)), tes::V3Arg((verts) + (i1 * 3)), \
-                                 tes::V3Arg((verts) + (i2 * 3)) };                               \
-    tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(_tri[0]), ##__VA_ARGS__);     \
+    const tes::Vector3f _tri[3] = { tes::Vector3f((verts) + (i0 * 3)), tes::Vector3f((verts) + (i1 * 3)), \
+                                    tes::Vector3f((verts) + (i2 * 3)) };                                  \
+    tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(_tri[0]), ##__VA_ARGS__);                 \
     shape.setColour(colour);                                                                     \
     shape.setWireframe(true);                                                                    \
     (server)->create(shape);                                                                     \
@@ -979,9 +979,9 @@
 #define TES_TRIANGLE_IT(server, colour, verts, i0, i1, i2, ...)                                  \
   if (server)                                                                                    \
   {                                                                                              \
-    const tes::V3Arg _tri[3] = { tes::V3Arg((verts) + (i0 * 3)), tes::V3Arg((verts) + (i1 * 3)), \
-                                 tes::V3Arg((verts) + (i2 * 3)) };                               \
-    tes::MeshShape shape(tes::DtTriangles, _tri[0].v3.v, 3, sizeof(_tri[0]), ##__VA_ARGS__);     \
+    const tes::Vector3f _tri[3] = { tes::Vector3f((verts) + (i0 * 3)), tes::Vector3f((verts) + (i1 * 3)), \
+                                    tes::Vector3f((verts) + (i2 * 3)) };                                  \
+    tes::MeshShape shape(tes::DtTriangles, _tri[0].v, 3, sizeof(_tri[0]), ##__VA_ARGS__);                 \
     shape.setColour(colour);                                                                     \
     shape.setTransparent(true).setTwoSided(true);                                                \
     (server)->create(shape);                                                                     \
@@ -1024,8 +1024,8 @@
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
 #define TES_POSE_END(server, id)                             \
-  if (server)                                               \
-  {                                                         \
+  if (server)                                                \
+  {                                                          \
     (server)->destroy(tes::Pose(static_cast<uint32_t>(id))); \
   }
 /// @ingroup tesmacros

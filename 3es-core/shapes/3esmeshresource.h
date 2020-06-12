@@ -6,16 +6,19 @@
 
 #include "3es-core.h"
 #include "3esresource.h"
-
-#include "3esmatrix4.h"
+#include "3estransform.h"
 
 namespace tes
 {
 struct MeshCreateMessage;
 struct MeshComponentMessage;
+template <typename real> struct ObjectAttributes;
 
 /// Represents a mesh part or object. These are visualised via @c MeshSet,
 /// which may contain several @c MeshResource parts.
+///
+/// @todo Update to support double precision vertices and normals including quantised transfer.
+/// The mesh creation already does respect the @c transform() flag @c Transform::preferDoublePrecision() .
 class _3es_coreAPI MeshResource : public Resource
 {
 public:
@@ -32,7 +35,7 @@ public:
   /// Returns @c MtMesh
   uint16_t typeId() const override;
 
-  virtual Matrix4f transform() const = 0;
+  virtual Transform transform() const = 0;
   virtual uint32_t tint() const = 0;
 
   /// Returns the @c DrawType of the mesh.
@@ -241,7 +244,7 @@ public:
 protected:
   virtual void nextPhase(TransferProgress &progress) const;
 
-  virtual bool processCreate(const MeshCreateMessage &msg);
+  virtual bool processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes);
   virtual bool processVertices(const MeshComponentMessage &msg, const float *vertices, unsigned vertexCount);
   virtual bool processIndices(const MeshComponentMessage &msg, const uint8_t *indices, unsigned indexCount);
   virtual bool processIndices(const MeshComponentMessage &msg, const uint16_t *indices, unsigned indexCount);

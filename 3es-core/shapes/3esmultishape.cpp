@@ -14,7 +14,7 @@ MultiShape::~MultiShape()
       delete _shapes[i];
     }
 
-    delete [] _shapes;
+    delete[] _shapes;
   }
 }
 
@@ -41,7 +41,7 @@ bool MultiShape::writeCreate(PacketWriter &stream) const
 
   for (unsigned i = 0; i < creationBlockCount; ++i)
   {
-    ok = _shapes[i]->data().attributes.write(stream) && ok;
+    ok = _shapes[i]->attributes().write(stream, _shapes[i]->data().flags & OFDoublePrecision) && ok;
   }
 
   return ok;
@@ -73,7 +73,8 @@ int MultiShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
 
   for (unsigned i = 0; i < blockCount; ++i)
   {
-    ok = _shapes[itemOffset + i]->data().attributes.write(stream) && ok;
+    const Shape *shape = _shapes[itemOffset + i];
+    ok = shape->attributes().write(stream, shape->data().flags & OFDoublePrecision) && ok;
   }
 
   progressMarker += blockCount;
@@ -99,7 +100,7 @@ MultiShape &MultiShape::takeOwnership()
 {
   if (!_ownShapes)
   {
-    Shape **shapes = new Shape*[_itemCount];
+    Shape **shapes = new Shape *[_itemCount];
     for (unsigned i = 0; i < _itemCount; ++i)
     {
       shapes[i] = _shapes[i];

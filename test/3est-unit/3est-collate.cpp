@@ -51,9 +51,11 @@ void collationTest(bool compress, CollatedPacketDecoder *decoderOverride = nullp
 
   // I> Test each constructor.
   // 1. drawType, verts, vcount, vstrideBytes, pos, rot, scale
-  MeshShape referenceMesh(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-                          indices.data(), unsigned(indices.size()), 42, 1, Vector3f(1.2f, 2.3f, 3.4f),
-                          Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)), Vector3f(1.0f, 1.2f, 0.8f));
+  MeshShape referenceMesh(
+    DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()), indices.data(),
+    unsigned(indices.size()), IdCat(42u, 1),
+    Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+              Vector3f(1.0f, 1.2f, 0.8f)));
   referenceMesh.setNormals(normals.data()->v, sizeof(*normals.data()));
 
   // Use the encoder as a connection.

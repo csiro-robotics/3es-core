@@ -7,6 +7,7 @@
 #include "3espacketwriter.h"
 #include "3esrotation.h"
 #include "3essimplemesh.h"
+#include "3estransform.h"
 
 #include <vector>
 
@@ -40,7 +41,7 @@ struct MutableMeshImp
   SimpleMesh mesh;
   std::vector<VertexChange> vertexChanges;
   std::vector<IndexChange> indexChanges;
-  Matrix4f newTransform;
+  Transform newTransform;
   unsigned newVertexCount = ~0;
   unsigned newIndexCount = ~0;
   uint32_t tint = 0xffffffffu;
@@ -69,7 +70,7 @@ const SimpleMesh &MutableMesh::meshResource() const
   return _imp->mesh;
 }
 
-void MutableMesh::setTransform(const Matrix4f &transform)
+void MutableMesh::setTransform(const Transform &transform)
 {
   _imp->newTransform = transform;
   _imp->transformDirty = _imp->dirty = true;
@@ -273,43 +274,58 @@ void MutableMesh::update(Connection *con)
 
   // Send mesh redefinition message.
   std::vector<uint8_t> buffer(0xffffu);
-  tes::PacketWriter packet(buffer.data(), (uint16_t)buffer.size());
-  tes::MeshRedefineMessage msg;
-  tes::MeshComponentMessage cmpmsg;
-  tes::MeshFinaliseMessage finalmsg;
+  PacketWriter packet(buffer.data(), (uint16_t)buffer.size());
+  MeshRedefineMessage msg;
+  MeshComponentMessage cmpmsg;
+  MeshFinaliseMessage finalmsg;
 
   // Work out how many vertices we'll have after all modifications are done.
   const unsigned newVertexCount = pendingVertexCount();
   const unsigned newIndexCount = pendingIndexCount();
 
-  const Matrix4f transform = (_imp->transformDirty) ? _imp->newTransform : _imp->mesh.transform();
-  Vector3f translation;
-  Vector3f scale;
-  Quaternionf rotation;
-
-  transformToQuaternionTranslation(transform, rotation, translation, &scale);
+  const Transform transform = (_imp->transformDirty) ? _imp->newTransform : _imp->mesh.transform();
 
   msg.meshId = _imp->mesh.id();
   msg.vertexCount = newVertexCount;
   msg.indexCount = newIndexCount;
   msg.drawType = _imp->mesh.drawType(0);
-  msg.attributes.identity();
-  msg.attributes.colour = _imp->mesh.tint();
-  msg.attributes.position[0] = translation.x;
-  msg.attributes.position[1] = translation.y;
-  msg.attributes.position[2] = translation.z;
-  msg.attributes.rotation[0] = rotation.x;
-  msg.attributes.rotation[1] = rotation.y;
-  msg.attributes.rotation[2] = rotation.z;
-  msg.attributes.rotation[3] = rotation.w;
-  msg.attributes.scale[0] = scale.x;
-  msg.attributes.scale[1] = scale.y;
-  msg.attributes.scale[2] = scale.z;
-
-  msg.attributes.colour = (_imp->tintDirty) ? _imp->tint : _imp->mesh.tint();
 
   packet.reset(tes::MtMesh, tes::MeshRedefineMessage::MessageId);
-  msg.write(packet);
+  if (transform.preferDoublePrecision())
+  {
+    msg.flags |= McfDoublePrecision;
+    ObjectAttributesd attributes;
+    attributes.identity();
+    attributes.colour = (_imp->tintDirty) ? _imp->tint : _imp->mesh.tint();
+    attributes.position[0] = transform.position().x;
+    attributes.position[1] = transform.position().y;
+    attributes.position[2] = transform.position().z;
+    attributes.rotation[0] = transform.rotation().x;
+    attributes.rotation[1] = transform.rotation().y;
+    attributes.rotation[2] = transform.rotation().z;
+    attributes.rotation[3] = transform.rotation().w;
+    attributes.scale[0] = transform.scale().x;
+    attributes.scale[1] = transform.scale().y;
+    attributes.scale[2] = transform.scale().z;
+    msg.write(packet, attributes);
+  }
+  else
+  {
+    ObjectAttributesf attributes;
+    attributes.identity();
+    attributes.colour = (_imp->tintDirty) ? _imp->tint : _imp->mesh.tint();
+    attributes.position[0] = float(transform.position().x);
+    attributes.position[1] = float(transform.position().y);
+    attributes.position[2] = float(transform.position().z);
+    attributes.rotation[0] = float(transform.rotation().x);
+    attributes.rotation[1] = float(transform.rotation().y);
+    attributes.rotation[2] = float(transform.rotation().z);
+    attributes.rotation[3] = float(transform.rotation().w);
+    attributes.scale[0] = float(transform.scale().x);
+    attributes.scale[1] = float(transform.scale().y);
+    attributes.scale[2] = float(transform.scale().z);
+    msg.write(packet, attributes);
+  }
 
   packet.finalise();
   con->send(packet);
@@ -332,6 +348,7 @@ void MutableMesh::update(Connection *con)
 
       if (vertexDef.componentFlag & SimpleMesh::Vertex)
       {
+        cmpmsg.elementType = McetFloat32;
         packet.reset(tes::MtMesh, tes::MmtVertex);
         cmpmsg.write(packet);
 
@@ -344,6 +361,7 @@ void MutableMesh::update(Connection *con)
 
       if (vertexDef.componentFlag & SimpleMesh::Colour)
       {
+        cmpmsg.elementType = McetUInt32;
         packet.reset(tes::MtMesh, tes::MmtVertexColour);
         cmpmsg.write(packet);
 
@@ -356,6 +374,7 @@ void MutableMesh::update(Connection *con)
 
       if (vertexDef.componentFlag & SimpleMesh::Normal)
       {
+        cmpmsg.elementType = McetFloat32;
         packet.reset(tes::MtMesh, tes::MmtNormal);
         cmpmsg.write(packet);
 
@@ -368,6 +387,7 @@ void MutableMesh::update(Connection *con)
 
       if (vertexDef.componentFlag & SimpleMesh::Uv)
       {
+        cmpmsg.elementType = McetFloat32;
         packet.reset(tes::MtMesh, tes::MmtUv);
         cmpmsg.write(packet);
 
@@ -388,6 +408,7 @@ void MutableMesh::update(Connection *con)
       const IndexChange &indexDef = _imp->indexChanges[i];
       cmpmsg.offset = indexDef.writeIndex;
       cmpmsg.count = 1;
+      cmpmsg.elementType = McetUInt32;
 
       packet.reset(tes::MtMesh, tes::MmtIndex);
       cmpmsg.write(packet);
@@ -405,7 +426,7 @@ void MutableMesh::update(Connection *con)
   // Finalise the modifications.
   finalmsg.meshId = _imp->mesh.id();
   // Rely on EDL shader.
-  finalmsg.flags = 0;  // tes::MbfCalculateNormals;
+  finalmsg.flags = 0;  // tes::MffCalculateNormals;
   packet.reset(tes::MtMesh, finalmsg.MessageId);
   finalmsg.write(packet);
   packet.finalise();

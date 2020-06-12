@@ -24,12 +24,12 @@ public:
   /// @param partCount The number of parts to the mesh.
   /// @param id The unique mesh shape ID, zero for transient (not recommended for mesh shapes).
   /// @param category The mesh shape category.
-  MeshSet(const Id &id = 0u, const UIntArg &partCount = 0);
+  MeshSet(const IdCat &id = 0u, const UIntArg &partCount = 0);
   /// Create a shape with a single @p part with transform matching the shape transform.
   /// @param part The mesh part.
   /// @param id The unique mesh shape ID, zero for transient (not recommended for mesh shapes).
   /// @param category The mesh shape category.
-  MeshSet(const MeshResource *part, const Id &id = Id());
+  MeshSet(const MeshResource *part, const IdCat &id = IdCat());
 
   /// Destructor.
   ~MeshSet();

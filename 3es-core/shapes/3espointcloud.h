@@ -44,7 +44,7 @@ public:
 
   /// Always the identity matrix.
   /// @return An identity matrix.
-  Matrix4f transform() const override;
+  Transform transform() const override;
 
   /// Always returns white.
   /// @return White.
@@ -200,7 +200,7 @@ private:
   /// Make a copy of underlying data if currently shared with another instance.
   void copyOnWrite();
 
-  bool processCreate(const MeshCreateMessage &msg) override;
+  bool processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes) override;
   bool processVertices(const MeshComponentMessage &msg, const float *vertices, unsigned vertexCount) override;
   bool processColours(const MeshComponentMessage &msg, const uint32_t *colours, unsigned colourCount) override;
   bool processNormals(const MeshComponentMessage &msg, const float *normals, unsigned normalCount) override;

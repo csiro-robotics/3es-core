@@ -24,21 +24,18 @@ class _3es_coreAPI Box : public Shape
 {
 public:
   /// Construct a box object.
-  /// @param id The shape ID, unique among @c Box objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  /// @param pos Marks the centre position of the box.
-  /// @param scale Defines the size of the box, were (1, 1, 1) denotes a unit box.
-  /// @param rot Quaternion rotation to apply to the box.
-  Box(const Id &id = Id(), const Transform &transform = Transform());
+  /// @param id The shape id and category, with unique id among @c Box objects, or zero for a transient shape.
+  /// @param transform The box transformation matrix. The position is the box centre, while a unit scale denotes a unit
+  /// box.
+  Box(const IdCat &id = IdCat(), const Transform &transform = Transform());
 
   inline const char *type() const override { return "box"; }
 };
 
 
-inline Box::Box(const Id &id, const Transform &transform)
+inline Box::Box(const IdCat &id, const Transform &transform)
   : Shape(SIdBox, id, transform)
-{
-}
+{}
 }  // namespace tes
 
 #endif  // _3ESBOX_H_

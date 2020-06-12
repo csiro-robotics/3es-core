@@ -20,24 +20,12 @@ namespace tes
 class _3es_coreAPI Text3D : public Shape
 {
 public:
-  static const Vector3f DefaultFacing;
+  /// Construct a 3D text.
+  /// @param text The text to display.
+  /// @param id The shape id and category, with unique id among @c Text3D objects, or zero for a transient shape.
+  /// @param transform Directional transformation for the text. The length is used to control the font size.
+  Text3D(const char *text = "", const IdCat &id = IdCat(), const Directional &transform = Directional());
 
-  // Text3D(const char *text, uint16_t textLength, const V3Arg &pos = V3Arg(0, 0, 0), int fontSize = 12);
-  // Text3D(const char *text, uint16_t textLength, const V3Arg &pos, const V3Arg &facing, int fontSize = 12);
-  // Text3D(const char *text, uint16_t textLength, uint32_t id, const V3Arg &pos = V3Arg(0, 0, 0), int fontSize = 12);
-  // Text3D(const char *text, uint16_t textLength, uint32_t id, const V3Arg &pos, const V3Arg &facing, int fontSize =
-  // 12); Text3D(const char *text, uint16_t textLength, uint32_t id, uint16_t category, const V3Arg &pos = V3Arg(0, 0,
-  // 0), int fontSize = 12); Text3D(const char *text, uint16_t textLength, uint32_t id, uint16_t category, const V3Arg
-  // &pos, const V3Arg &facing, int fontSize = 12);
-  Text3D(const char *text = "", const V3Arg &pos = V3Arg(0, 0, 0), int fontSize = 12);
-  Text3D(const char *text, const V3Arg &pos, const V3Arg &facing, int fontSize = 12);
-  Text3D(const char *text, uint32_t id, const V3Arg &pos = V3Arg(0, 0, 0), int fontSize = 12);
-  Text3D(const char *text, uint32_t id, const V3Arg &pos, const V3Arg &facing, int fontSize = 12);
-  Text3D(const char *text, uint32_t id, uint16_t category, const V3Arg &pos = V3Arg(0, 0, 0), int fontSize = 12);
-  /// Construct a box object.
-  /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  Text3D(const char *text, uint32_t id, uint16_t category, const V3Arg &pos, const V3Arg &facing, int fontSize = 12);
   /// Copy constructor
   Text3D(const Text3D &other);
   /// Move constructor
@@ -50,11 +38,11 @@ public:
   bool screenFacing() const;
   Text3D &setScreenFacing(bool worldSpace);
 
-  Text3D &setFacing(const V3Arg &toCamera);
-  Vector3f facing() const;
+  Text3D &setFacing(const Vector3d &toCamera);
+  Vector3d facing() const;
 
-  int fontSize() const;
-  Text3D &setFontSize(int size);
+  double fontSize() const;
+  Text3D &setFontSize(double size);
 
   inline char *text() const { return _text; }
   inline uint16_t textLength() const { return _textLength; }
@@ -79,142 +67,12 @@ private:
 };
 
 
-// inline Text3D::Text3D(const char *text, uint16_t textLength, const V3Arg &pos, int fontSize)
-//  : Shape(SIdText3D)
-//  , _text(nullptr)
-//  , _textLength(0)
-//{
-//  setPosition(pos);
-//  setText(text, textLength);
-//  setFontSize(fontSize);
-//}
-
-
-// inline Text3D::Text3D(const char *text, uint16_t textLength, const V3Arg &pos, const V3Arg &facing, int fontSize)
-//  : Shape(SIdText3D)
-//  , _text(nullptr)
-//  , _textLength(0)
-//{
-//  setPosition(pos);
-//  setText(text, textLength);
-//  setFontSize(fontSize);
-//}
-
-
-// inline Text3D::Text3D(const char *text, uint16_t textLength, uint32_t id, const V3Arg &pos, int fontSize)
-//  : Shape(SIdText3D, id)
-//  , _text(nullptr)
-//  , _textLength(0)
-//{
-//  setPosition(pos);
-//  setText(text, textLength);
-//  setFontSize(fontSize);
-//}
-
-
-// inline Text3D::Text3D(const char *text, uint16_t textLength, uint32_t id, const V3Arg &pos, const V3Arg &facing, int
-// fontSize)
-//  : Shape(SIdText3D, id)
-//  , _text(nullptr)
-//  , _textLength(0)
-//{
-//  setPosition(pos);
-//  setText(text, textLength);
-//  setFontSize(fontSize);
-//}
-
-
-// inline Text3D::Text3D(const char *text, uint16_t textLength, uint32_t id, uint16_t category, const V3Arg &pos, int
-// fontSize)
-//  : Shape(SIdText3D, id, category)
-//  , _text(nullptr)
-//  , _textLength(0)
-//{
-//  setPosition(pos);
-//  setText(text, textLength);
-//  setFontSize(fontSize);
-//}
-
-
-// inline Text3D::Text3D(const char *text, uint16_t textLength, uint32_t id, uint16_t category, const V3Arg &pos, const
-// V3Arg &facing, int fontSize)
-//  : Shape(SIdText3D, id, category)
-//  , _text(nullptr)
-//  , _textLength(0)
-//{
-//  setPosition(pos);
-//  setText(text, textLength);
-//  setFontSize(fontSize);
-//}
-
-
-inline Text3D::Text3D(const char *text, const V3Arg &pos, int fontSize)
-  : Shape(SIdText3D)
+inline Text3D::Text3D(const char *text, const IdCat &id, const Directional &transform)
+  : Shape(SIdText3D, id, transform)
   , _text(nullptr)
   , _textLength(0)
 {
-  setPosition(pos);
   setText(text, text ? (uint16_t)strlen(text) : 0);
-  setFontSize(fontSize);
-}
-
-
-inline Text3D::Text3D(const char *text, const V3Arg &pos, const V3Arg &facing, int fontSize)
-  : Shape(SIdText3D)
-  , _text(nullptr)
-  , _textLength(0)
-{
-  setPosition(pos);
-  setText(text, text ? (uint16_t)strlen(text) : 0);
-  setFacing(facing);
-  setFontSize(fontSize);
-}
-
-
-inline Text3D::Text3D(const char *text, uint32_t id, const V3Arg &pos, int fontSize)
-  : Shape(SIdText3D, id)
-  , _text(nullptr)
-  , _textLength(0)
-{
-  setPosition(pos);
-  setText(text, text ? (uint16_t)strlen(text) : 0);
-  setFontSize(fontSize);
-}
-
-
-inline Text3D::Text3D(const char *text, uint32_t id, const V3Arg &pos, const V3Arg &facing, int fontSize)
-  : Shape(SIdText3D, id)
-  , _text(nullptr)
-  , _textLength(0)
-{
-  setPosition(pos);
-  setText(text, text ? (uint16_t)strlen(text) : 0);
-  setFacing(facing);
-  setFontSize(fontSize);
-}
-
-
-inline Text3D::Text3D(const char *text, uint32_t id, uint16_t category, const V3Arg &pos, int fontSize)
-  : Shape(SIdText3D, id, category)
-  , _text(nullptr)
-  , _textLength(0)
-{
-  setPosition(pos);
-  setText(text, text ? (uint16_t)strlen(text) : 0);
-  setFontSize(fontSize);
-}
-
-
-inline Text3D::Text3D(const char *text, uint32_t id, uint16_t category, const V3Arg &pos, const V3Arg &facing,
-                      int fontSize)
-  : Shape(SIdText3D, id, category)
-  , _text(nullptr)
-  , _textLength(0)
-{
-  setPosition(pos);
-  setText(text, text ? (uint16_t)strlen(text) : 0);
-  setFacing(facing);
-  setFontSize(fontSize);
 }
 
 
@@ -232,39 +90,39 @@ inline Text3D &Text3D::setScreenFacing(bool worldSpace)
 }
 
 
-inline Text3D &Text3D::setFacing(const V3Arg &toCamera)
+inline Text3D &Text3D::setFacing(const Vector3d &toCamera)
 {
   setScreenFacing(false);
-  Quaternionf rot;
-  if (toCamera.v3.dot(DefaultFacing) > -0.9998f)
+  Quaterniond rot;
+  if (toCamera.dot(Directional::DefaultDirection) > -0.9998f)
   {
-    rot = Quaternionf(DefaultFacing, toCamera);
+    rot = Quaterniond(Directional::DefaultDirection, toCamera);
   }
   else
   {
-    rot.setAxisAngle(Vector3f::axisx, M_PI);
+    rot.setAxisAngle(Vector3d::axisx, M_PI);
   }
   setRotation(rot);
   return *this;
 }
 
 
-inline Vector3f Text3D::facing() const
+inline Vector3d Text3D::facing() const
 {
-  Quaternionf rot = rotation();
-  return rot * DefaultFacing;
+  Quaterniond rot = rotation();
+  return rot * Directional::DefaultDirection;
 }
 
 
-inline int Text3D::fontSize() const
+inline double Text3D::fontSize() const
 {
-  return (int)_data.attributes.scale[2];
+  return _attributes.scale[2];
 }
 
 
-inline Text3D &Text3D::setFontSize(int size)
+inline Text3D &Text3D::setFontSize(double size)
 {
-  _data.attributes.scale[2] = (float)size;
+  _attributes.scale[2] = size;
   return *this;
 }
 }  // namespace tes
