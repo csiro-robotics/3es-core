@@ -8,6 +8,10 @@
 #include "3esintarg.h"
 #include "3esmeshmessages.h"
 #include "3esshape.h"
+#include "3esvertexstream.h"
+
+#include <vector>
+#include <utility>
 
 namespace tes
 {
@@ -48,26 +52,6 @@ public:
 
   MeshShape();
 
-  /// Transient triangle set constructor accepting an iterator and optional positioning.
-  /// @param vertices Pointer to the vertex array. Must be at least 3 elements per vertex.
-  /// @param vertexCount The number of vertices in @c vertices.
-  /// @param vertexByteSize The size of a single vertex in @p vertices. Must be at least three floats (12).
-  /// @param position Local to world positioning of the triangles. Defaults to the origin.
-  /// @param rotation Local to world rotation of the triangles. Defaults to identity.
-  /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const float *vertices, const UIntArg &vertexCount, size_t vertexByteSize,
-            const Transform &transform = Transform());
-
-  /// Transient triangle set constructor accepting vertex and index iterators and optional positioning.
-  /// @param vertices Pointer to the vertex array. Must be at least 3 elements per vertex.
-  /// @param vertexCount The number of vertices in @c vertices.
-  /// @param vertexByteSize The size of a single vertex in @p vertices. Must be at least three floats (12).
-  /// @param position Local to world positioning of the triangles. Defaults to the origin.
-  /// @param rotation Local to world rotation of the triangles. Defaults to identity.
-  /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const float *vertices, const UIntArg &vertexCount, size_t vertexByteSize,
-            const unsigned *indices, const UIntArg &indexCount, const Transform &transform = Transform());
-
   /// Persistent triangle constructor accepting an iterator and optional positioning.
   /// @param vertices Pointer to the vertex array. Must be at least 3 elements per vertex.
   /// @param vertexCount The number of vertices in @c vertices.
@@ -76,8 +60,7 @@ public:
   /// @param position Local to world positioning of the triangles. Defaults to the origin.
   /// @param rotation Local to world rotation of the triangles. Defaults to identity.
   /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const float *vertices, const UIntArg &vertexCount, size_t vertexByteSize,
-            const IdCat &id, const Transform &transform = Transform());
+  MeshShape(DrawType drawType, const IdCat &id, const VertexStream &vertices, const Transform &transform = Transform());
 
   /// Persistent triangle constructor accepting vertex and triangle iterators and optional positioning.
   /// @param vertices Pointer to the vertex array. Must be at least 3 elements per vertex.
@@ -87,9 +70,8 @@ public:
   /// @param position Local to world positioning of the triangles. Defaults to the origin.
   /// @param rotation Local to world rotation of the triangles. Defaults to identity.
   /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const float *vertices, const UIntArg &vertexCount, size_t vertexByteSize,
-            const unsigned *indices, const UIntArg &indexCount, const IdCat &id,
-            const Transform &transform = Transform());
+  MeshShape(DrawType drawType, const IdCat &id, const VertexStream &vertices, const unsigned *indices,
+            const UIntArg &indexCount, const Transform &transform = Transform());
 
   /// Destructor.
   ~MeshShape();
@@ -142,7 +124,7 @@ public:
   /// @param normals The normals array.
   /// @param normalByteSize the number of bytes between each element of @p normals.
   /// @return this
-  MeshShape &setNormals(const float *normals, size_t normalByteSize);
+  MeshShape &setNormals(const VertexStream &normals);
 
   /// Sets a single normal to be shared by all vertices in the mesh.
   /// Sets @c calculateNormals() to false.
@@ -156,7 +138,12 @@ public:
   /// For @c DtPoints , this also clears @c setColourByHeight().
   ///
   /// @param colours The colours array.
-  MeshShape &setColours(const uint32_t *colours);
+  inline MeshShape &setColours(const VertexStream &colours)
+  {
+    setColourByHeight(false);
+    _colours = colours;
+    return *this;
+  }
 
   /// Expand the vertex set into a new block of memory.
   ///
@@ -173,18 +160,10 @@ public:
   /// Does nothing if already owning the memory.
   MeshShape &duplicateArrays();
 
-  inline unsigned vertexCount() const { return _vertexCount; }
-  inline const float *vertices() const { return _vertices; }
-  /// Vertex stride in float elements.
-  inline size_t vertexStride() const { return _vertexStride; }
-  inline size_t vertexByteStride() const { return _vertexStride * sizeof(float); }
-  inline const float *normals() const { return _normals; }
-  inline size_t normalsStride() const { return _normalsStride; }
-  inline size_t normalsByteStride() const { return _normalsStride * sizeof(float); }
-  inline size_t normalsCount() const { return _normalsCount; }
-  inline unsigned indexCount() const { return _indexCount; }
-  inline const unsigned *indices() const { return _indices; }
-  inline const uint32_t *colours() const { return _colours; }
+  inline const VertexStream &vertices() const { return _vertices; }
+  inline const VertexStream &normals() const { return _normals; }
+  inline const VertexStream &indices() const { return _indices; }
+  inline const VertexStream &colours() const { return _colours; }
   inline DrawType drawType() const { return _drawType; }
 
   /// Writes the standard create message and appends mesh data.
@@ -209,126 +188,40 @@ protected:
 
   void releaseArrays();
 
-  const float *_vertices;    ///< Mesh vertices.
-  unsigned _vertexStride;    ///< Stride into _vertices in float elements, not bytes.
-  unsigned _vertexCount;     ///< Number of @c _vertices.
-  const float *_normals;     ///< Normals array, one per vertex.
-  unsigned _normalsStride;   ///< Stride into _normals in float elements, not bytes.
-  unsigned _normalsCount;    ///< Number of @c _normals. Must be 0, 1 or @c _vertexCount.
-                             ///< 0 indicates no normals, 1 indicates a single, shared normal (for voxels),
-                             ///< otherwise there must be one per normal.
-  const uint32_t *_colours;  ///< Per vertex colours. Null for none.
-  const unsigned *_indices;  ///< Optional triangle indices.
-  unsigned _indexCount;      ///< Number of @c indices. Divide by 3 for the triangle count.
-  float _drawScale = 0.0f;   ///< Draw scale: point scaling, line width, etc.
-  DrawType _drawType;        ///< The primitive to render.
-  bool _ownPointers;         ///< Does this instance own its vertices and indices?
-  bool _ownNormals;          ///< Does this instance own its normals? Always true if @p _ownPointers is true.
+  VertexStream _vertices;   ///< Mesh vertices.
+  VertexStream _normals;    ///< Normal stream. Expect zero, one per vertex or one to apply to all vertices.
+  VertexStream _colours;    ///< Per vertex colours. Null for none.
+  VertexStream _indices;    ///< Per vertex colours. Null for none.
+  float _drawScale = 0.0f;  ///< Draw scale: point scaling, line width, etc.
+  DrawType _drawType;       ///< The primitive to render.
 };
 
 
 inline MeshShape::MeshShape()
   : Shape(SIdMeshShape)
-  , _vertices(nullptr)
-  , _vertexStride(3)
-  , _vertexCount(0)
-  , _normals(nullptr)
-  , _normalsStride(3)
-  , _normalsCount(0)
-  , _colours(nullptr)
-  , _indices(nullptr)
-  , _indexCount(0)
   , _drawType(DtTriangles)
-  , _ownPointers(false)
-  , _ownNormals(false)
 {}
 
 
-inline MeshShape::MeshShape(DrawType drawType, const float *vertices, const UIntArg &vertexCount, size_t vertexByteSize,
-                            const Transform &transform)
-  : Shape(SIdMeshShape, IdCat(), transform)
-  , _vertices(vertices)
-  , _vertexStride(unsigned(vertexByteSize / sizeof(float)))
-  , _vertexCount(vertexCount)
-  , _normals(nullptr)
-  , _normalsStride(3)
-  , _normalsCount(0)
-  , _colours(nullptr)
-  , _indices(nullptr)
-  , _indexCount(0)
-  , _drawType(drawType)
-  , _ownPointers(false)
-  , _ownNormals(false)
-{
-  if (drawType == DtPoints)
-  {
-    setColourByHeight(true);
-  }
-}
-
-
-inline MeshShape::MeshShape(DrawType drawType, const float *vertices, const UIntArg &vertexCount, size_t vertexByteSize,
-                            const unsigned *indices, const UIntArg &indexCount, const Transform &transform)
-  : Shape(SIdMeshShape, IdCat(), transform)
-  , _vertices(vertices)
-  , _vertexStride(unsigned(vertexByteSize / sizeof(float)))
-  , _vertexCount(vertexCount)
-  , _normals(nullptr)
-  , _normalsStride(3)
-  , _normalsCount(0)
-  , _colours(nullptr)
-  , _indices(indices)
-  , _indexCount(indexCount)
-  , _drawType(drawType)
-  , _ownPointers(false)
-  , _ownNormals(false)
-{
-  if (drawType == DtPoints)
-  {
-    setColourByHeight(true);
-  }
-}
-
-
-inline MeshShape::MeshShape(DrawType drawType, const float *vertices, const UIntArg &vertexCount, size_t vertexByteSize,
-                            const IdCat &id, const Transform &transform)
-  : Shape(SIdMeshShape, id, transform)
-  , _vertices(vertices)
-  , _vertexStride(unsigned(vertexByteSize / sizeof(float)))
-  , _vertexCount(vertexCount)
-  , _normals(nullptr)
-  , _normalsStride(3)
-  , _normalsCount(0)
-  , _colours(nullptr)
-  , _indices(nullptr)
-  , _indexCount(0)
-  , _drawType(drawType)
-  , _ownPointers(false)
-  , _ownNormals(false)
-{
-  if (drawType == DtPoints)
-  {
-    setColourByHeight(true);
-  }
-}
-
-
-inline MeshShape::MeshShape(DrawType drawType, const float *vertices, const UIntArg &vertexCount, size_t vertexByteSize,
-                            const unsigned *indices, const UIntArg &indexCount, const IdCat &id,
+inline MeshShape::MeshShape(DrawType drawType, const IdCat &id, const VertexStream &vertices,
                             const Transform &transform)
   : Shape(SIdMeshShape, id, transform)
   , _vertices(vertices)
-  , _vertexStride(unsigned(vertexByteSize / sizeof(float)))
-  , _vertexCount(vertexCount)
-  , _normals(nullptr)
-  , _normalsStride(3)
-  , _normalsCount(0)
-  , _colours(nullptr)
-  , _indices(indices)
-  , _indexCount(indexCount)
   , _drawType(drawType)
-  , _ownPointers(false)
-  , _ownNormals(false)
+{
+  if (drawType == DtPoints)
+  {
+    setColourByHeight(true);
+  }
+}
+
+
+inline MeshShape::MeshShape(DrawType drawType, const IdCat &id, const VertexStream &vertices, const unsigned *indices,
+                            const UIntArg &indexCount, const Transform &transform)
+  : Shape(SIdMeshShape, id, transform)
+  , _vertices(vertices)
+  , _indices(indices, indexCount.i, 1u)
+  , _drawType(drawType)
 {
   if (drawType == DtPoints)
   {

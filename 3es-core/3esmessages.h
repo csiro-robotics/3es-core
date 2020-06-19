@@ -171,6 +171,27 @@ enum ControlFlag
   CFFramePersist = (1 << 0),
 };
 
+/// Data type identifies for any data stream type. Also used in @c VertexStream to identify the contained data type.
+/// Note the packed types are not valid to be held in a @c VertexStream and are only used in transmission.
+enum DataStreamType
+{
+  DctNone,    ///< No type: invalid.
+  DctInt8,    ///< Elements packed using 8-bit signed integers.
+  DctUInt8,   ///< Elements packed using 8-bit unsigned integers.
+  DctInt16,   ///< Elements packed using 16-bit signed integers.
+  DctUInt16,  ///< Elements packed using 16-bit unsigned integers.
+  DctInt32,   ///< Elements packed using 32-bit signed integers.
+  DctUInt32,  ///< Elements packed using 32-bit unsigned integers.
+  DctFloat32, ///< Elements packed using single precision floating point values.
+  DctFloat64, ///< Elements packed using double precision floating point values.
+  /// Elements packed using 16-bit signed integers used to quantise single precision floating point values.
+  /// The quantisation scale factor immeidately preceeds the data array as a 32-bit floating point value.
+  DctPackedFloat16,
+  /// Elements packed using 32-bit signed integers used to quantise double precision floating point values.
+  /// The quantisation scale factor immeidately preceeds the data array as a 64-bit floating point value.
+  DctPackedFloat32,
+};
+
 /// Information about the server. This is sent to clients on connection.
 /// Defines global settings for this server.
 struct _3es_coreAPI ServerInfoMessage

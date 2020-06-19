@@ -84,152 +84,64 @@ MeshShape::~MeshShape()
 }
 
 
-MeshShape &MeshShape::setNormals(const float *normals, size_t normalByteSize)
+MeshShape &MeshShape::setNormals(const VertexStream &normals)
 {
-  if (_ownNormals)
-  {
-    delete[] _normals;
-  }
-  _ownNormals = false;
+  setCalculateNormals(false);
   _normals = normals;
-  _normalsStride = unsigned(normalByteSize / sizeof(*_normals));
-  _normalsCount = _normals ? _vertexCount : 0;
-  if (_ownPointers)
-  {
-    // Pointers are owned. Need to copy the normals.
-    float *newNormals = nullptr;
-    _normalsStride = 3;
-    if (_normalsCount)
-    {
-      newNormals = new float[3 * _normalsCount];
-      if (normalByteSize == sizeof(*_normals) * _normalsStride)
-      {
-        memcpy(newNormals, normals, normalByteSize * _normalsCount);
-      }
-      else
-      {
-        const size_t elementStride = normalByteSize / sizeof(*normals);
-        for (size_t i = 0; i < _normalsCount; ++i)
-        {
-          newNormals[i * 3 + 0] = normals[0];
-          newNormals[i * 3 + 1] = normals[1];
-          newNormals[i * 3 + 2] = normals[2];
-          normals += elementStride;
-        }
-      }
-    }
-    _normals = newNormals;
-    _ownNormals = true;
-    setCalculateNormals(false);
-  }
   return *this;
 }
 
 
 MeshShape &MeshShape::setUniformNormal(const Vector3f &normal)
 {
-  if (_ownNormals)
-  {
-    delete[] _normals;
-  }
-
-  float *normals = new float[3 * 1];
-  _normalsCount = 1;
-  _normals = normals;
-  _ownNormals = true;
-  normals[0] = normal[0];
-  normals[1] = normal[1];
-  normals[2] = normal[2];
   setCalculateNormals(false);
+  Vector3f *n = new Vector3f(normal);
+  _normals = std::move(VertexStream(n->v, 1, 3, 3, false));
+  _normals.duplicateArray();
   return *this;
 }
 
 
-MeshShape &MeshShape::setColours(const uint32_t *colours)
+template <typename T>
+void expandVertices(VertexStream &vertices, VertexStream &indices)
 {
-  setColourByHeight(false);
-
-  if (_ownPointers)
+  if (vertices.isValid())
   {
-    if (colours)
+    // First unpack all vertices and stop indexing.
+    T *verts = new T[vertices.componentCount() * _indices.count()];
+    T *dst = verts;
+    for (unsigned i = 0; i < indices.count(); ++i)
     {
-      if (vertexCount())
+      const unsigned vind = *indices.ptr<unsigned>(i);
+      for (unsigned j = 0; j < vertices.componentCount(), ++j)
       {
-        delete _colours;
-        uint32_t *newColours = new uint32_t[vertexCount()];
-        _colours = newColours;
-        memcpy(newColours, colours, sizeof(*colours) * vertexCount());
+        const unsigned vind = *indices.ptr<unsigned>(i);
+        *dst = vertices.ptr<T>(vind)[j];
       }
     }
-    else
-    {
-      delete _colours;
-      _colours = nullptr;
-    }
+    vertices.set(verts, indices.count(), vertices.componentCount(), vertices.componentCount(), true);
   }
-  else
-  {
-    _colours = colours;
-  }
-
-  return *this;
 }
 
 
 MeshShape &MeshShape::expandVertices()
 {
-  if (!_indices && !_indexCount)
+  if (_indices.count() == 0)
   {
     return duplicateArrays();
   }
 
-  // We unpack all vertices and stop indexing.
-  float *verts = new float[3 * _indexCount];
-  float *dst = verts;
-  for (unsigned i = 0; i < _indexCount; ++i)
+  // Drop index / in favour of an expanded vertex array. We will end up owning all array memory with a null
+  // index array.
+
+  if (_vertices.type() == DctFloat64)
   {
-    *dst++ = _vertices[_indices[i] * _vertexStride + 0];
-    *dst++ = _vertices[_indices[i] * _vertexStride + 1];
-    *dst++ = _vertices[_indices[i] * _vertexStride + 2];
+    ::expandVertices<double>(_vertices, _indices);
   }
-
-  float *normals = nullptr;
-  if (_normals && _normalsCount == _vertexCount)
+  else
   {
-    normals = new float[3 * _indexCount];
-    dst = normals;
-    for (unsigned i = 0; i < _indexCount; ++i)
-    {
-      *dst++ = _normals[_indices[i] * _normalsStride + 0];
-      *dst++ = _normals[_indices[i] * _normalsStride + 1];
-      *dst++ = _normals[_indices[i] * _normalsStride + 2];
-    }
+    ::expandVertices<float>(_vertices, _indices);
   }
-
-  uint32_t *colours = nullptr;
-  if (_colours)
-  {
-    colours = new uint32_t[_indexCount];
-    uint32_t *dst = colours;
-    for (unsigned i = 0; i < _indexCount; ++i)
-    {
-      *dst++ = _colours[_indices[i]];
-    }
-  }
-
-  releaseArrays();
-
-  _vertices = verts;
-  _vertexCount = _indexCount;
-  _vertexStride = 3;
-  _normals = normals;
-  _normalsCount = (_normals) ? _indexCount : 0;
-  _normalsStride = 3;
-  _colours = colours;
-  _indices = nullptr;
-  _indexCount = 0;
-  _ownPointers = true;
-  _ownNormals = normals != nullptr;
 
   return *this;
 }
@@ -237,32 +149,11 @@ MeshShape &MeshShape::expandVertices()
 
 MeshShape &MeshShape::duplicateArrays()
 {
+  _vertices.duplicateArray();
+  _normals.duplicateArray();
+
   if (!_ownPointers)
   {
-    float *vertices = nullptr;
-    unsigned *indices = nullptr;
-    uint32_t *colours = nullptr;
-
-    if (_vertexCount)
-    {
-      vertices = new float[3 * _vertexCount];
-      if (_vertexStride == 3)
-      {
-        memcpy(vertices, _vertices, sizeof(*vertices) * 3 * _vertexCount);
-      }
-      else
-      {
-        float *dst = vertices;
-        const float *src = _vertices;
-        for (unsigned i = 0; i < _vertexCount; ++i, dst += 3, src += _vertexStride)
-        {
-          dst[0] = src[0];
-          dst[1] = src[1];
-          dst[2] = src[2];
-        }
-      }
-    }
-
     if (_indices && _indexCount)
     {
       indices = new uint32_t[_indexCount];
