@@ -21,7 +21,7 @@
   {                                                     \
   public:                                               \
     static DataStreamType type() { return _type_name; } \
-    static size_t size() { return sizeof(_type); }       \
+    static size_t size() { return sizeof(_type); }      \
   }
 
 
@@ -46,6 +46,66 @@ STREAM_TYPE_INFO(uint32_t, DctUInt32);
 STREAM_TYPE_INFO(float, DctFloat32);
 STREAM_TYPE_INFO(double, DctFloat64);
 
+
+// Afordances:
+// - Take ownership of a copy of the steam
+// - Write to PacketStream as either the same format, or the special cases below:
+//    - DctFloat32 can be written as:
+//      - DctPackedFloat16
+//      - DctPackedFloat32
+//      - DctFloat64
+//    - DctFloat64 can be written as:
+//      - DctPackedFloat16
+//      - DctPackedFloat32
+//      - DctFloat16
+// - Read from PacketStream
+// - Delete
+
+namespace detail
+{
+class _3es_coreAPI VertexStreamAffordances
+{
+public:
+  virtual ~VertexStreamAffordances();
+
+  virtual void release(const void **stream_ptr, bool *has_ownership) const = 0;
+  virtual void takeOwnership(const void **stream_ptr, bool *has_ownership, const VertexStream &stream) const = 0;
+  virtual uint32_t write(PacketWriter &packet, uint32_t offset, const VertexStream &stream) const = 0;
+  virtual uint32_t read(PacketReader &packet, const void **stream_ptr, bool *has_ownership,
+                        const VertexStream &stream) const = 0;
+};
+
+template <typename T>
+class _3es_coreAPI VertexStreamAffordancesT : public VertexStreamAffordances
+{
+public:
+  static VertexStreamAffordances *instance();
+
+  void release(const void **stream_ptr, bool *has_ownership) const override;
+  void takeOwnership(const void **stream_ptr, bool *has_ownership, const VertexStream &stream) const override;
+  uint32_t write(PacketWriter &packet, uint32_t offset, , const VertexStream &stream) const override;
+  uint32_t read(PacketReader &packet, const void **stream_ptr, bool *has_ownership,
+                const VertexStream &stream) const override;
+
+  template <typename WriteType>
+  uint32_t writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+                   const VertexStream &stream) const;
+
+  template <typename FloatType, typename PackedType>
+  uint32_t writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+                         const VertexStream &stream) const;
+};
+
+
+extern template class _3es_coreAPI VertexStreamAffordancesT<int8_t>;
+extern template class _3es_coreAPI VertexStreamAffordancesT<uint8_t>;
+extern template class _3es_coreAPI VertexStreamAffordancesT<int16_t>;
+extern template class _3es_coreAPI VertexStreamAffordancesT<uint16_t>;
+extern template class _3es_coreAPI VertexStreamAffordancesT<int32_t>;
+extern template class _3es_coreAPI VertexStreamAffordancesT<uint32_t>;
+extern template class _3es_coreAPI VertexStreamAffordancesT<float>;
+extern template class _3es_coreAPI VertexStreamAffordancesT<double>;
+}  // namespace detail
 
 /// A helper class for wrapping various input array types into data streams for data transfer.
 ///
@@ -133,19 +193,23 @@ public:
   inline DataStreamType type() const { return _type; }
 
   template <typename T>
-  const T *ptr(size_t element_index);
+  const T *ptr(size_t element_index) const;
 
   template <typename T>
-  const T *ptrAt(size_t element_index);
-
-  uint8_t *writePtr() { return (_ownPointer) ? static_cast<uint8_t *>(const_cast<void *>(_stream)) : nullptr; }
+  const T *ptrAt(size_t element_index) const;
 
   /// Copy the internal array and take ownership. Does nothing if this object already owns its own array memory.
   void duplicateArray();
 
   static uint16_t estimateTransferCount(size_t elementSize, unsigned overhead, unsigned byteLimit);
 
+  unsigned write(PacketWriter &packet, uint32_t offset);
+
+  unsigned read(PacketReader &packet);
+
 private:
+  void *writePtr() { return (_ownPointer) ? const_cast<void *>(_stream) : nullptr; }
+
   const void *_stream;
   unsigned _count;          ///< Number of vertices in the @p _stream .
   uint8_t _componentCount;  ///< Number of data type component elements in each vertex. E.g., Vector3 has 3.
@@ -159,6 +223,9 @@ private:
   uint8_t _basicTypeSize;
   DataStreamType _type;  ///< The simple data type for @c _stream
   bool _ownPointer;      ///< Does this class own the @c _stream pointer?
+  /// Pointer to the implementation for various operations supported on a @c VertexStream . This is using a type
+  /// erasure setup.
+  detail::VertexStreamAffordances *_affordances = nullptr;
 };
 
 /// Write a @c VertexStream to @p packet as a stream of @c DstType . Note this function requires knowing the concrete
@@ -179,10 +246,9 @@ private:
 /// @param packet The data packet to write to.
 /// @param stream The stream to write data from.
 /// @param offset The element offset into @p stream to start writing from. This applies @c stream.componentCount()
-/// @param byteLimit Maximum number of bytes allowed in the packet.
 /// @return The number of items added to the @p packet or zero on any failure (@p packet becomes invalid).
 template <typename DstType, typename SrcType>
-unsigned writeStream(PacketWriter &packet, const VertexStream &stream, uint32_t offset, unsigned byteLimit);
+unsigned writeStream(PacketWriter &packet, const VertexStream &stream, uint32_t offset);
 
 /// Write a @c VertexStream to @p packet as qunatised, and packed data stream. This is intended only for input streams
 /// containing @c float or @c double data such as vertex positions or normals.
@@ -208,13 +274,12 @@ unsigned writeStream(PacketWriter &packet, const VertexStream &stream, uint32_t 
 /// @param packet The data packet to write to.
 /// @param stream The stream to write data from.
 /// @param offset The element offset into @p stream to start writing from. This applies @c stream.componentCount()
-/// @param byteLimit Maximum number of bytes allowed in the packet.
 /// @param packingOrigin Reference origin for each item in the stream or @c nullptr to use `(0, 0, 0)`
 /// @param quantisationUnit Quantisation scaling unit.
 /// @param packedType The target, packed type either @c DctPackedFloat16 or @c DctPackedFloat32 .
 /// @return The number of items added to the @p packet or zero on any failure (@p packet becomes invalid).
 template <typename FloatType, typename PackedType, typename SrcType>
-unsigned writeStreamPackedFloat(PacketWriter &packet, const VertexStream &stream, uint32_t offset, unsigned byteLimit,
+unsigned writeStreamPackedFloat(PacketWriter &packet, const VertexStream &stream, uint32_t offset,
                                 const FloatType *packingOrigin, float quantisationUnit, DataStreamType packedType);
 
 unsigned readStream(PacketReader &packet, VertexStream &stream);
