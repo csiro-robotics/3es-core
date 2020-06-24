@@ -24,12 +24,12 @@ public:
   /// Construct an arrow object.
   /// @param id The shape id and category, unique among @c Arrow objects, or zero for a transient shape.
   /// @param transform The directional transformation for the shape.
-  Arrow(const IdCat &id = IdCat(), const Directional &transform = Directional());
+  Arrow(const ShapeId &id = ShapeId(), const Directional &transform = Directional());
 
   /// Construct an arrow object.
   /// @param id The shape id and category, unique among @c Arrow objects, or zero for a transient shape.
   /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
-  Arrow(const IdCat &id, const Transform &transform);
+  Arrow(const ShapeId &id, const Transform &transform);
 
   inline const char *type() const override { return "arrow"; }
 
@@ -76,13 +76,13 @@ public:
 };
 
 
-inline Arrow::Arrow(const IdCat &id, const Directional &transform)
+inline Arrow::Arrow(const ShapeId &id, const Directional &transform)
   : Shape(SIdArrow, id, transform)
 {
 }
 
 
-inline Arrow::Arrow(const IdCat &id, const Transform &transform)
+inline Arrow::Arrow(const ShapeId &id, const Transform &transform)
   : Shape(SIdArrow, id, transform)
 {
 }

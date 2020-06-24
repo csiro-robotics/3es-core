@@ -26,7 +26,6 @@ list(APPEND PUBLIC_HEADERS
   3esmeshmessages.h
   3esmessages.h
   3esmeta.h
-  3esobjectid.h
   3espacketbuffer.h
   3espacketheader.h
   3espacketreader.h
@@ -78,6 +77,7 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/3espointcloudshape.h
   shapes/3espose.h
   shapes/3esshape.h
+  shapes/3esshapeid.h
   shapes/3esshapes.h
   shapes/3essimplemesh.h
   shapes/3essphere.h

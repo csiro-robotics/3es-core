@@ -6,12 +6,14 @@
 
 #include "3es-core.h"
 
+#include "3esdebug.h"
 #include "3esmessages.h"
 #include "3espacketreader.h"
 #include "3espacketwriter.h"
 #include "3esvector3.h"
 
 #include <cinttypes>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -46,6 +48,7 @@ STREAM_TYPE_INFO(uint32_t, DctUInt32);
 STREAM_TYPE_INFO(float, DctFloat32);
 STREAM_TYPE_INFO(double, DctFloat64);
 
+class VertexStream;
 
 // Afordances:
 // - Take ownership of a copy of the steam
@@ -70,8 +73,9 @@ public:
 
   virtual void release(const void **stream_ptr, bool *has_ownership) const = 0;
   virtual void takeOwnership(const void **stream_ptr, bool *has_ownership, const VertexStream &stream) const = 0;
-  virtual uint32_t write(PacketWriter &packet, uint32_t offset, const VertexStream &stream) const = 0;
-  virtual uint32_t read(PacketReader &packet, const void **stream_ptr, bool *has_ownership,
+  virtual uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+                         const VertexStream &stream) const = 0;
+  virtual uint32_t read(PacketReader &packet, void **stream_ptr, bool *has_ownership,
                         const VertexStream &stream) const = 0;
 };
 
@@ -83,8 +87,9 @@ public:
 
   void release(const void **stream_ptr, bool *has_ownership) const override;
   void takeOwnership(const void **stream_ptr, bool *has_ownership, const VertexStream &stream) const override;
-  uint32_t write(PacketWriter &packet, uint32_t offset, , const VertexStream &stream) const override;
-  uint32_t read(PacketReader &packet, const void **stream_ptr, bool *has_ownership,
+  uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+                 const VertexStream &stream) const override;
+  uint32_t read(PacketReader &packet, void **stream_ptr, bool *has_ownership,
                 const VertexStream &stream) const override;
 
   template <typename WriteType>
@@ -93,9 +98,18 @@ public:
 
   template <typename FloatType, typename PackedType>
   uint32_t writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+                         const FloatType *packingOrigin, const float quantisationUnit,
                          const VertexStream &stream) const;
-};
 
+
+  template <typename ReadType>
+  uint32_t readAs(PacketReader &packet, uint32_t offset, uint32_t count, unsigned componentCount,
+                  void **stream_ptr) const;
+
+  template <typename FloatType, typename ReadType>
+  uint32_t readAsPacked(PacketReader &packet, unsigned offset, unsigned count, unsigned componentCount,
+                        void **stream_ptr) const;
+};
 
 extern template class _3es_coreAPI VertexStreamAffordancesT<int8_t>;
 extern template class _3es_coreAPI VertexStreamAffordancesT<uint8_t>;
@@ -153,6 +167,10 @@ public:
   VertexStream(const T *v, size_t count, size_t componentCount = 1, size_t componentStride = 0,
                bool ownPointer = false);
 
+  VertexStream(const Vector3f *v, size_t count);
+
+  VertexStream(const Vector3d *v, size_t count);
+
   template <typename T>
   VertexStream(const std::vector<T> &v, size_t componentCount = 1, size_t componentStride = 0);
 
@@ -192,18 +210,20 @@ public:
   inline bool ownPointer() const { return _ownPointer; }
   inline DataStreamType type() const { return _type; }
 
+  void swap(VertexStream &other);
+
   template <typename T>
-  const T *ptr(size_t element_index) const;
+  const T *ptr(size_t element_index = 0) const;
 
   template <typename T>
   const T *ptrAt(size_t element_index) const;
 
   /// Copy the internal array and take ownership. Does nothing if this object already owns its own array memory.
-  void duplicateArray();
+  void duplicate();
 
   static uint16_t estimateTransferCount(size_t elementSize, unsigned overhead, unsigned byteLimit);
 
-  unsigned write(PacketWriter &packet, uint32_t offset);
+  unsigned write(PacketWriter &packet, uint32_t offset) const;
 
   unsigned read(PacketReader &packet);
 

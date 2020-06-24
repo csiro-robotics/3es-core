@@ -7,7 +7,7 @@
 #include "3es-core.h"
 
 #include "3escolour.h"
-#include "3esidcat.h"
+#include "3esshapeid.h"
 #include "3esmessages.h"
 #include "3estransform.h"
 
@@ -79,7 +79,7 @@ public:
   /// Create a new shape with the given @c routingId and instance @c id .
   /// @param routingId Identifies the shape type.
   /// @param id The shape instance id.
-  Shape(uint16_t routingId, const IdCat &id = IdCat(), const Transform &transform = Transform());
+  Shape(uint16_t routingId, const ShapeId &id = ShapeId(), const Transform &transform = Transform());
 
   /// Virtual destructor.
   virtual inline ~Shape() = default;
@@ -338,7 +338,7 @@ protected:
   /// @param copy The newly cloned object to copy data to. Must not be null.
   void onClone(Shape *copy) const;
 
-  void init(const IdCat &id, const Transform &transform, uint16_t flags = 0);
+  void init(const ShapeId &id, const Transform &transform, uint16_t flags = 0);
 
   uint16_t _routingId;
   CreateMessage _data;
@@ -346,7 +346,7 @@ protected:
 };
 
 
-inline Shape::Shape(uint16_t routingId, const IdCat &id, const Transform &transform)
+inline Shape::Shape(uint16_t routingId, const ShapeId &id, const Transform &transform)
   : _routingId(routingId)
 {
   init(id, transform);
@@ -354,7 +354,7 @@ inline Shape::Shape(uint16_t routingId, const IdCat &id, const Transform &transf
 }
 
 
-inline void Shape::init(const IdCat &id, const Transform &transform, uint16_t flags)
+inline void Shape::init(const ShapeId &id, const Transform &transform, uint16_t flags)
 {
   _data.id = id.id();
   _data.category = id.category();

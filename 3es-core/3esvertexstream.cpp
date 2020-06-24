@@ -34,19 +34,19 @@ void VertexStream::reset()
 }
 
 
-void VertexStream::duplicateArray()
+void VertexStream::duplicate()
 {
   // No need to copy if we already own the _stream.
   if (!_ownPointer && _stream != nullptr && _count > 0)
   {
-    _affordances->takeOwnership(&_stream, _ & ownPointer, *this);
+    _affordances->takeOwnership(&_stream, &_ownPointer, *this);
   }
 }
 
 
-unsigned VertexStream::write(PacketWriter &packet, uint32_t offset)
+unsigned VertexStream::write(PacketWriter &packet, uint32_t offset) const
 {
-  return _affordances->write(packet, offset, *this);
+  return _affordances->write(packet, offset, type(), *this);
 }
 
 

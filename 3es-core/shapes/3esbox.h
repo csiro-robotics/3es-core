@@ -27,13 +27,13 @@ public:
   /// @param id The shape id and category, with unique id among @c Box objects, or zero for a transient shape.
   /// @param transform The box transformation matrix. The position is the box centre, while a unit scale denotes a unit
   /// box.
-  Box(const IdCat &id = IdCat(), const Transform &transform = Transform());
+  Box(const ShapeId &id = ShapeId(), const Transform &transform = Transform());
 
   inline const char *type() const override { return "box"; }
 };
 
 
-inline Box::Box(const IdCat &id, const Transform &transform)
+inline Box::Box(const ShapeId &id, const Transform &transform)
   : Shape(SIdBox, id, transform)
 {}
 }  // namespace tes

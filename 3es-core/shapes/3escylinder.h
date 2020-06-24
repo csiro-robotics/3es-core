@@ -24,12 +24,12 @@ public:
   /// Construct a cylinder object.
   /// @param id The shape id and category, unique among @c Capsule objects, or zero for a transient shape.
   /// @param transform The directional transformation for the capsule.
-  Cylinder(const IdCat &id = IdCat(), const Directional &transform = Directional());
+  Cylinder(const ShapeId &id = ShapeId(), const Directional &transform = Directional());
 
   /// Construct a cylinder object.
   /// @param id The shape id and category, unique among @c Capsule objects, or zero for a transient shape.
   /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
-  Cylinder(const IdCat &id, const Transform &transform);
+  Cylinder(const ShapeId &id, const Transform &transform);
 
   inline const char *type() const override { return "cylinder"; }
 
@@ -69,13 +69,13 @@ public:
 };
 
 
-inline Cylinder::Cylinder(const IdCat &id, const Directional &transform)
+inline Cylinder::Cylinder(const ShapeId &id, const Directional &transform)
   : Shape(SIdCylinder, id, transform)
 {
 }
 
 
-inline Cylinder::Cylinder(const IdCat &id, const Transform &transform)
+inline Cylinder::Cylinder(const ShapeId &id, const Transform &transform)
   : Shape(SIdCylinder, id, transform)
 {
 }

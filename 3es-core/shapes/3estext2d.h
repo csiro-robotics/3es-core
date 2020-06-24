@@ -24,7 +24,7 @@ public:
   /// @param text The text to display.
   /// @param id The shape id and category, with unique id among @c Text2D objects, or zero for a transient shape.
   /// @param pos The position of the text.
-  Text2D(const char *text = "", const IdCat &id = IdCat(), const Spherical &pos = Spherical());
+  Text2D(const char *text = "", const ShapeId &id = ShapeId(), const Spherical &pos = Spherical());
   /// Copy constructor
   Text2D(const Text2D &other);
   /// Move constructor
@@ -60,7 +60,7 @@ private:
 };
 
 
-inline Text2D::Text2D(const char *text, const IdCat &id, const Spherical &pos)
+inline Text2D::Text2D(const char *text, const ShapeId &id, const Spherical &pos)
   : Shape(SIdText2D, id, pos)
   , _text(nullptr)
   , _textLength(0)

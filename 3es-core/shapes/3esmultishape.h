@@ -70,7 +70,7 @@ private:
 };
 
 inline MultiShape::MultiShape(Shape **shapes, const UIntArg &shapeCount, const Transform &transform)
-  : Shape(shapes[0]->routingId(), IdCat(shapes[0]->id(), shapes[0]->category()), transform)
+  : Shape(shapes[0]->routingId(), ShapeId(shapes[0]->id(), shapes[0]->category()), transform)
   , _shapes(shapes)
   , _itemCount(std::min(static_cast<uint32_t>(shapeCount), ShapeCountLimit))
 {

@@ -100,7 +100,7 @@ Text3D &Text3D::operator=(Text3D &&other)
 
 Shape *Text3D::clone() const
 {
-  Text3D *copy = new Text3D(nullptr, IdCat());
+  Text3D *copy = new Text3D(nullptr, ShapeId());
   onClone(copy);
   return copy;
 }

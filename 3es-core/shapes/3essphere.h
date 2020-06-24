@@ -22,12 +22,12 @@ public:
   /// Create a sphere.
   /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a transient shape.
   /// @param transform The spherical transform for the sphere.
-  Sphere(const IdCat &id = IdCat(), const Spherical &transform = Spherical());
+  Sphere(const ShapeId &id = ShapeId(), const Spherical &transform = Spherical());
 
   /// Create an ellipsoid. This constructor allows for scaling and rotating the sphere in order to create an ellipsoid.
   /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a transient shape.
   /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
-  Sphere(const IdCat &id, const Transform &transform);
+  Sphere(const ShapeId &id, const Transform &transform);
 
   inline const char *type() const override { return "sphere"; }
 
@@ -49,13 +49,13 @@ public:
 };
 
 
-inline Sphere::Sphere(const IdCat &id, const Spherical &transform)
+inline Sphere::Sphere(const ShapeId &id, const Spherical &transform)
   : Shape(SIdSphere, id, transform)
 {
 }
 
 
-inline Sphere::Sphere(const IdCat &id, const Transform &transform)
+inline Sphere::Sphere(const ShapeId &id, const Transform &transform)
   : Shape(SIdSphere, id, transform)
 {
 }

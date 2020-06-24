@@ -100,7 +100,7 @@ Text2D &Text2D::operator=(Text2D &&other)
 
 Shape *Text2D::clone() const
 {
-  Text2D *copy = new Text2D(nullptr, IdCat());
+  Text2D *copy = new Text2D(nullptr, ShapeId());
   onClone(copy);
   return copy;
 }

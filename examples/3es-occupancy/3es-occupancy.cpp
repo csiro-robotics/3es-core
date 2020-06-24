@@ -5,6 +5,7 @@
 
 #include "3esvector3.h"
 
+#include <3escolour.h>
 #include <3esservermacros.h>
 
 #include "occupancyloader.h"
@@ -12,6 +13,7 @@
 #include "p2p.h"
 
 #include <csignal>
+#include <cstring>
 #include <cstddef>
 #include <fstream>
 #include <sstream>
@@ -146,8 +148,8 @@ void renderVoxels(const UnorderedKeySet &keys, const octomap::OcTree &map, const
     }
 
     // Render slightly smaller than the actual voxel size.
-    TES_VOXELS(g_tesServer, colour, 0.95f * float(map.getResolution()), centres.data()->v, unsigned(centres.size()),
-               sizeof(*centres.data()), 0u, category);
+    TES_VOXELS(g_tesServer, colour, 0.95f * float(map.getResolution()), tes::ShapeId(0u, category),
+               tes::VertexStream(centres));
   }
 }
 #endif  // TES_ENABLE
@@ -197,7 +199,7 @@ int populateMap(const Options &opt)
   map.setClampingThresMin(0.01);
   // printf("min: %g\n", map.getClampingThresMinLog());
 
-  TES_POINTCLOUDSHAPE(g_tesServer, TES_COLOUR(SteelBlue), &mapMesh, tes::IdCat(RES_Map, CAT_Map));
+  TES_POINTCLOUDSHAPE(g_tesServer, TES_COLOUR(SteelBlue), &mapMesh, tes::ShapeId(RES_Map, CAT_Map));
   // Ensure mesh is created for later update.
   TES_SERVER_UPDATE(g_tesServer, 0.0f);
 
@@ -308,12 +310,12 @@ int populateMap(const Options &opt)
 #else   // _MSC_VER
       sprintf(timeStrBuffer, "%g", timestamp - timebase);
 #endif  // _MSC_VER
-      TES_TEXT2D_SCREEN(g_tesServer, TES_COLOUR(White), timeStrBuffer, tes::IdCat(0u, CAT_Info), Vector3f(0.05f, 0.1f, 0.0f));
+      TES_TEXT2D_SCREEN(g_tesServer, TES_COLOUR(White), timeStrBuffer, tes::ShapeId(0u, CAT_Info),
+                        Vector3f(0.05f, 0.1f, 0.0f));
       // Draw sample lines.
       if (opt.rays & Rays_Lines)
       {
-        TES_LINES(g_tesServer, TES_COLOUR(DarkOrange), rays.data()->v, unsigned(rays.size()), sizeof(*rays.data()), 0u,
-                  CAT_Rays);
+        TES_LINES(g_tesServer, TES_COLOUR(DarkOrange), tes::ShapeId(0u, CAT_Rays), tes::VertexStream(rays));
       }
       rays.clear();
       // Render touched voxels in bulk.
@@ -327,8 +329,7 @@ int populateMap(const Options &opt)
       }
       if (opt.samples)
       {
-        TES_POINTS(g_tesServer, TES_COLOUR(Orange), samples.data()->v, unsigned(samples.size()),
-                   sizeof(*samples.data()), 0u, CAT_OccupiedCells);
+        TES_POINTS(g_tesServer, TES_COLOUR(Orange), tes::ShapeId(0u, CAT_OccupiedCells), tes::VertexStream(samples));
       }
       samples.clear();
       // TES_SERVER_UPDATE(g_tesServer, 0.0f);

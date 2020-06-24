@@ -50,7 +50,7 @@ void onSignal(int arg)
 
 MeshShape *createPointsMesh(unsigned id, const std::vector<Vector3f> &vertices)
 {
-  MeshShape *shape = new MeshShape(DtPoints, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f), id);
+  MeshShape *shape = new MeshShape(DtPoints, tes::ShapeId(id), tes::VertexStream(vertices));
   return shape;
 }
 
@@ -70,16 +70,14 @@ MeshShape *createLinesMesh(unsigned id, const std::vector<Vector3f> &vertices, c
     lineIndices.push_back(indices[i + 0]);
   }
 
-  MeshShape *shape = new MeshShape(DtLines, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f),
-                                   lineIndices.data(), unsigned(lineIndices.size()), id);
+  MeshShape *shape = new MeshShape(DtLines, ShapeId(id), VertexStream(vertices), VertexStream(lineIndices));
   return shape;
 }
 
 
 MeshShape *createTrianglesMesh(unsigned id, const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices)
 {
-  MeshShape *shape = new MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f),
-                                   indices.data(), unsigned(indices.size()), id);
+  MeshShape *shape = new MeshShape(DtTriangles, ShapeId(id), VertexStream(vertices), VertexStream(indices));
   return shape;
 }
 
@@ -104,8 +102,7 @@ MeshShape *createVoxelsMesh(unsigned id)
     }
   }
 
-  MeshShape *shape = new MeshShape(DtVoxels, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f), id);
-
+  MeshShape *shape = new MeshShape(DtVoxels, ShapeId(id), VertexStream(vertices));
   shape->setUniformNormal(Vector3f(voxelScale));
   return shape;
 }
@@ -265,8 +262,8 @@ std::ostream &logShapeExtensions(std::ostream &o, const MeshShape &shape, const 
 
   o << indent << "\"vertices\" : [";
 
-  const float *verts = shape.vertices();
-  for (unsigned v = 0; v < shape.vertexCount(); ++v, verts += shape.vertexStride())
+  const float *verts = shape.vertices().ptr<float>(0);
+  for (unsigned v = 0; v < shape.vertices().count(); ++v, verts += shape.vertices().elementStride())
   {
     if (v > 0)
     {
@@ -277,11 +274,12 @@ std::ostream &logShapeExtensions(std::ostream &o, const MeshShape &shape, const 
   o << '\n' << indent << "]";
   dangling = true;
 
-  if (shape.indexCount())
+  if (shape.indices().count())
   {
     closeDangling(dangling);
     o << indent << "\"indices\" : [";
-    for (unsigned i = 0; i < shape.indexCount(); ++i)
+    const uint32_t *inds = shape.indices().ptr<uint32_t>(0);
+    for (unsigned i = 0; i < shape.indices().count(); ++i)
     {
       if (i > 0)
       {
@@ -293,19 +291,19 @@ std::ostream &logShapeExtensions(std::ostream &o, const MeshShape &shape, const 
         o << '\n' << indent << "  ";
       }
 
-      o << shape.indices()[i];
+      o << inds[i];
     }
     o << '\n' << indent << "]";
     dangling = true;
   }
 
-  if (shape.normalsCount())
+  if (shape.normals().count())
   {
     closeDangling(dangling);
     o << indent << "\"normals\" : [";
 
-    const float *normals = shape.normals();
-    for (unsigned n = 0; n < shape.normalsCount(); ++n, normals += shape.normalsStride())
+    const float *normals = shape.normals().ptr<float>(0);
+    for (unsigned n = 0; n < shape.normals().count(); ++n, normals += shape.normals().elementStride())
     {
       if (n > 0)
       {

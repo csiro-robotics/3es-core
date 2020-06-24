@@ -260,22 +260,26 @@ void validateShape(const MeshShape &shape, const MeshShape &reference, const Res
   validateShape(static_cast<const Shape>(shape), static_cast<const Shape>(reference), resources);
 
   EXPECT_EQ(shape.drawType(), reference.drawType());
-  EXPECT_EQ(shape.vertexCount(), reference.vertexCount());
-  EXPECT_EQ(shape.vertexStride(), reference.vertexStride());
-  EXPECT_EQ(shape.normalsCount(), reference.normalsCount());
-  EXPECT_EQ(shape.normalsStride(), reference.normalsStride());
-  EXPECT_EQ(shape.indexCount(), reference.indexCount());
+  EXPECT_EQ(shape.vertices().count(), reference.vertices().count());
+  EXPECT_EQ(shape.vertices().componentCount(), reference.vertices().componentCount());
+  EXPECT_EQ(shape.vertices().elementStride(), reference.vertices().elementStride());
+  EXPECT_EQ(shape.indices().count(), reference.indices().count());
+  EXPECT_EQ(shape.indices().componentCount(), reference.indices().componentCount());
+  EXPECT_EQ(shape.indices().elementStride(), reference.indices().elementStride());
+  EXPECT_EQ(shape.normals().count(), reference.normals().count());
+  EXPECT_EQ(shape.normals().componentCount(), reference.normals().componentCount());
+  EXPECT_EQ(shape.normals().elementStride(), reference.normals().elementStride());
 
   // Validate vertices.
   Vector3f v, r;
-  if (shape.vertexCount() == reference.vertexCount() && shape.vertexCount())
+  if (shape.vertices().count() == reference.vertices().count() && shape.vertices().count())
   {
-    ASSERT_NE(shape.vertices(), nullptr);
-    ASSERT_NE(reference.vertices(), nullptr);
-    for (unsigned i = 0; i < shape.vertexCount(); ++i)
+    ASSERT_TRUE(shape.vertices().isValid());
+    ASSERT_TRUE(reference.vertices().isValid());
+    for (unsigned i = 0; i < shape.vertices().count(); ++i)
     {
-      v = Vector3f(shape.vertices() + i * shape.vertexStride());
-      r = Vector3f(reference.vertices() + i * reference.vertexStride());
+      v = Vector3f(shape.vertices().ptr<float>(i));
+      r = Vector3f(reference.vertices().ptr<float>(i));
 
       if (v != r)
       {
@@ -285,15 +289,15 @@ void validateShape(const MeshShape &shape, const MeshShape &reference, const Res
     }
   }
 
-  if (shape.indexCount() == reference.indexCount() && shape.indexCount())
+  if (shape.indices().count() == reference.indices().count() && shape.indices().count())
   {
-    ASSERT_NE(shape.indices(), nullptr);
-    ASSERT_NE(reference.indices(), nullptr);
+    ASSERT_NE(shape.indices().ptr<uint32_t>(), nullptr);
+    ASSERT_NE(reference.indices().ptr<uint32_t>(), nullptr);
     unsigned is, ir;
-    for (unsigned i = 0; i < shape.indexCount(); ++i)
+    for (unsigned i = 0; i < shape.indices().count(); ++i)
     {
-      is = shape.indices()[i];
-      ir = reference.indices()[i];
+      is = *shape.indices().ptr<uint32_t>(i);
+      ir = *reference.indices().ptr<uint32_t>(i);
 
       if (is != ir)
       {
@@ -303,14 +307,14 @@ void validateShape(const MeshShape &shape, const MeshShape &reference, const Res
     }
   }
 
-  if (shape.normalsCount() == reference.normalsCount() && shape.normalsCount())
+  if (shape.normals().count() == reference.normals().count() && shape.normals().count())
   {
-    ASSERT_NE(shape.normals(), nullptr);
-    ASSERT_NE(reference.normals(), nullptr);
-    for (unsigned i = 0; i < shape.normalsCount(); ++i)
+    ASSERT_TRUE(shape.vertices().isValid());
+    ASSERT_TRUE(reference.vertices().isValid());
+    for (unsigned i = 0; i < shape.normals().count(); ++i)
     {
-      v = Vector3f(shape.normals() + i * shape.normalsStride());
-      r = Vector3f(reference.normals() + i * reference.normalsStride());
+      v = Vector3f(shape.normals().ptr<float>(i));
+      r = Vector3f(reference.normals().ptr<float>(i));
 
       if (v != r)
       {
@@ -320,18 +324,14 @@ void validateShape(const MeshShape &shape, const MeshShape &reference, const Res
     }
   }
 
-  if (reference.colours())
-  {
-    ASSERT_NE(shape.colours(), nullptr);
-  }
-
-  if (shape.vertexCount() == reference.vertexCount() && reference.colours())
+  if (shape.colours().count() == reference.colours().count() && reference.colours().count() &&
+      shape.colours().count() == shape.vertices().count())
   {
     Colour cs, cr;
-    for (unsigned i = 0; i < shape.vertexCount(); ++i)
+    for (unsigned i = 0; i < shape.colours().count(); ++i)
     {
-      cs = shape.colours()[i];
-      cr = reference.colours()[i];
+      cs = *shape.colours().ptr<uint32_t>(i);
+      cr = *reference.colours().ptr<uint32_t>(i);
 
       if (cs != cr)
       {

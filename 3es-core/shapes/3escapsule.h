@@ -24,11 +24,11 @@ public:
   /// Construct a capsule object.
   /// @param id The shape id and catgory, unique among @c Capsule objects, or zero for a transient shape.
   /// @param transform The directional transformation for the shape.
-  Capsule(const IdCat &id = IdCat(), const Directional &transform = Directional());
+  Capsule(const ShapeId &id = ShapeId(), const Directional &transform = Directional());
   /// Construct a capsule object.
   /// @param id The shape id and catgory, unique among @c Capsule objects, or zero for a transient shape.
   /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
-  Capsule(const IdCat &id, const Transform &transform);
+  Capsule(const ShapeId &id, const Transform &transform);
 
   inline const char *type() const override { return "capsule"; }
 
@@ -68,12 +68,12 @@ public:
 };
 
 
-inline Capsule::Capsule(const IdCat &id, const Directional &transform)
+inline Capsule::Capsule(const ShapeId &id, const Directional &transform)
   : Shape(SIdCapsule, id, transform)
 {}
 
 
-inline Capsule::Capsule(const IdCat &id, const Transform &transform)
+inline Capsule::Capsule(const ShapeId &id, const Transform &transform)
   : Shape(SIdCapsule, id, transform)
 {}
 

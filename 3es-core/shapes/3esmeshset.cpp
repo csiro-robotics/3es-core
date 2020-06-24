@@ -11,7 +11,7 @@
 
 using namespace tes;
 
-MeshSet::MeshSet(const IdCat &id, const UIntArg &partCount)
+MeshSet::MeshSet(const ShapeId &id, const UIntArg &partCount)
   : Shape(SIdMeshSet, id)
   // , _parts(partCount.i ? new Part[partCount.i] : nullptr)
   , _parts(nullptr)
@@ -30,7 +30,7 @@ MeshSet::MeshSet(const IdCat &id, const UIntArg &partCount)
 }
 
 
-MeshSet::MeshSet(const MeshResource *part, const IdCat &id)
+MeshSet::MeshSet(const MeshResource *part, const ShapeId &id)
   : Shape(SIdMeshSet, id)
   , _parts(new Part[1])
   , _partCount(1)

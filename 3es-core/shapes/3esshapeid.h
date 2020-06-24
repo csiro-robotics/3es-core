@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESIDCAT_H
-#define _3ESIDCAT_H
+#ifndef _3ESSHAPEID_H
+#define _3ESSHAPEID_H
 
 #include "3es-core.h"
 
@@ -16,41 +16,25 @@ namespace tes
 /// explicitly destroyed. The ID must be unique for the particular shape type, but shapes of different types may share
 /// IDs. Zero ID shapes (transient) are nevery unique identified.
 ///
-/// An @c IdCat may also be constructed from a pointer value as a convenient way to generate a unique shape ID.
+/// An @c ShapeId may also be constructed from a pointer value as a convenient way to generate a unique shape ID.
 ///
 /// Note; the id 0xffffffu is reserved.
-class IdCat
+class ShapeId
 {
 public:
-  IdCat(uint32_t id = 0, uint16_t category = 0)
-    : _id(id)
-    , _category(category)
-  {}
-
-  IdCat(int id, uint16_t category = 0)
-    : _id(unsigned(id))
-    , _category(category)
-  {}
-
-#ifdef TES_64
-  IdCat(size_t id, uint16_t category = 0)
+  ShapeId(size_t id = 0u, uint16_t category = 0u)
     : _id(uint32_t(id))
     , _category(category)
   {}
-#endif  // TES_64
 
-  IdCat(const void *id_ptr, uint16_t category = 0)
-    : _category(category)
-  {
-    setId(id_ptr);
-  }
+  // ShapeId(const void *id_ptr, uint16_t category = 0)
+  //   : _category(category)
+  // {
+  //   setId(id_ptr);
+  // }
 
   inline uint32_t id() const { return _id; }
-  inline void setId(uint32_t id) { _id = id; }
-
-#ifdef TES_64
   inline void setId(size_t id) { _id = uint32_t(id); }
-#endif  // TES_64
 
   /// Set the @c id() from a pointer.
   ///
@@ -76,4 +60,4 @@ private:
 };  // namespace tes
 }  // namespace tes
 
-#endif  // _3ESIDCAT_H
+#endif  // _3ESSHAPEID_H

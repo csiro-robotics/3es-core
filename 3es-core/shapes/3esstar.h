@@ -23,12 +23,12 @@ public:
   /// Create a star.
   /// @param id The shape id and category, with unique id among @c Star objects, or zero for a transient shape.
   /// @param transform The spherical transform for the star.
-  Star(const IdCat &id = IdCat(), const Spherical &transform = Spherical());
+  Star(const ShapeId &id = ShapeId(), const Spherical &transform = Spherical());
 
   /// Create a fully scale star. This constructor allows for scaling and rotating the star.
   /// @param id The shape id and category, with unique id among @c Star objects, or zero for a transient shape.
   /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
-  Star(const IdCat &id, const Transform &transform);
+  Star(const ShapeId &id, const Transform &transform);
 
   inline const char *type() const override { return "star"; }
 
@@ -50,13 +50,13 @@ public:
 };
 
 
-inline Star::Star(const IdCat &id, const Spherical &transform)
+inline Star::Star(const ShapeId &id, const Spherical &transform)
   : Shape(SIdStar, id, transform)
 {
 }
 
 
-inline Star::Star(const IdCat &id, const Transform &transform)
+inline Star::Star(const ShapeId &id, const Transform &transform)
   : Shape(SIdStar, id, transform)
 {
 }

@@ -6,6 +6,7 @@
 #include "p2p.h"
 
 #ifdef TES_ENABLE
+#include <3escolour.h>
 #include <3esservermacros.h>
 #include <3estransferprogress.h>
 

@@ -5,7 +5,8 @@
 #define _3ESMESHSHAPE_H_
 
 #include "3es-core.h"
-#include "3esintarg.h"
+
+#include "3esdebug.h"
 #include "3esmeshmessages.h"
 #include "3esshape.h"
 #include "3esvertexstream.h"
@@ -35,19 +36,15 @@ public:
   /// This is the default colour for @c DtPoints.
   ///
   /// Note: normals must be sent before completing vertices and indices. Best done first.
-  enum SendDataType
+  enum SendDataType : uint16_t
   {
     SDT_Vertices,
     SDT_Indices,
     SDT_Normals,
-    /// Sending a single normals for all vertices (voxel extents).
-    SDT_UniformNormal,
     SDT_Colours,
 
-    /// Should the received expect a message with an explicit finalisation marker?
-    SDT_ExpectEnd = (1u << 14),
     /// Last send message?
-    SDT_End = (1u << 15),
+    SDT_End = 0xffffu
   };
 
   MeshShape();
@@ -60,7 +57,8 @@ public:
   /// @param position Local to world positioning of the triangles. Defaults to the origin.
   /// @param rotation Local to world rotation of the triangles. Defaults to identity.
   /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const IdCat &id, const VertexStream &vertices, const Transform &transform = Transform());
+  MeshShape(DrawType drawType, const ShapeId &id, const VertexStream &vertices = VertexStream(),
+            const Transform &transform = Transform());
 
   /// Persistent triangle constructor accepting vertex and triangle iterators and optional positioning.
   /// @param vertices Pointer to the vertex array. Must be at least 3 elements per vertex.
@@ -70,8 +68,8 @@ public:
   /// @param position Local to world positioning of the triangles. Defaults to the origin.
   /// @param rotation Local to world rotation of the triangles. Defaults to identity.
   /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const IdCat &id, const VertexStream &vertices, const unsigned *indices,
-            const UIntArg &indexCount, const Transform &transform = Transform());
+  MeshShape(DrawType drawType, const ShapeId &id, const VertexStream &vertices, const VertexStream &indices,
+            const Transform &transform = Transform());
 
   /// Destructor.
   ~MeshShape();
@@ -138,10 +136,10 @@ public:
   /// For @c DtPoints , this also clears @c setColourByHeight().
   ///
   /// @param colours The colours array.
-  inline MeshShape &setColours(const VertexStream &colours)
+  inline MeshShape &setColours(const uint32_t *colours)
   {
     setColourByHeight(false);
-    _colours = colours;
+    _colours = std::move(VertexStream(colours, _vertices.count()));
     return *this;
   }
 
@@ -158,9 +156,18 @@ public:
 
   /// Duplicate internal arrays and take ownership of the memory.
   /// Does nothing if already owning the memory.
+  /// @return this
   MeshShape &duplicateArrays();
 
+  /// Access the vertices as a @c VertexStream . The underlying pointer type must be either @c float or @c double .
+  /// @return The vertices vertex stream.
   inline const VertexStream &vertices() const { return _vertices; }
+  /// Access the normals as a @c VertexStream . The underlying pointer type must be either @c float or @c double .
+  ///
+  /// When non-null, the count may either match the @c vertices() count or 1, indicating a single normal for all
+  /// vertices.
+  ///
+  /// @return The normals vertex stream.
   inline const VertexStream &normals() const { return _normals; }
   inline const VertexStream &indices() const { return _indices; }
   inline const VertexStream &colours() const { return _colours; }
@@ -173,11 +180,11 @@ public:
   /// - Draw type : uint8
   /// @param stream The stream to write to.
   /// @return True on success.
-  bool writeCreate(PacketWriter &stream) const override;
-  int writeData(PacketWriter &stream, unsigned &progressMarker) const override;
+  bool writeCreate(PacketWriter &packet) const override;
+  int writeData(PacketWriter &packet, unsigned &progressMarker) const override;
 
-  bool readCreate(PacketReader &stream) override;
-  virtual bool readData(PacketReader &stream) override;
+  bool readCreate(PacketReader &packet) override;
+  virtual bool readData(PacketReader &packet) override;
 
   /// Deep copy clone.
   /// @return A deep copy.
@@ -185,8 +192,6 @@ public:
 
 protected:
   void onClone(MeshShape *copy) const;
-
-  void releaseArrays();
 
   VertexStream _vertices;   ///< Mesh vertices.
   VertexStream _normals;    ///< Normal stream. Expect zero, one per vertex or one to apply to all vertices.
@@ -203,7 +208,7 @@ inline MeshShape::MeshShape()
 {}
 
 
-inline MeshShape::MeshShape(DrawType drawType, const IdCat &id, const VertexStream &vertices,
+inline MeshShape::MeshShape(DrawType drawType, const ShapeId &id, const VertexStream &vertices,
                             const Transform &transform)
   : Shape(SIdMeshShape, id, transform)
   , _vertices(vertices)
@@ -216,13 +221,16 @@ inline MeshShape::MeshShape(DrawType drawType, const IdCat &id, const VertexStre
 }
 
 
-inline MeshShape::MeshShape(DrawType drawType, const IdCat &id, const VertexStream &vertices, const unsigned *indices,
-                            const UIntArg &indexCount, const Transform &transform)
+inline MeshShape::MeshShape(DrawType drawType, const ShapeId &id, const VertexStream &vertices,
+                            const VertexStream &indices, const Transform &transform)
   : Shape(SIdMeshShape, id, transform)
   , _vertices(vertices)
-  , _indices(indices, indexCount.i, 1u)
+  , _indices(indices)
   , _drawType(drawType)
 {
+  TES_ASSERT2(_indices.type() == DctInt8 || _indices.type() == DctInt16 || _indices.type() == DctInt32 ||
+                _indices.type() == DctUInt8 || _indices.type() == DctUInt16 || _indices.type() == DctUInt32,
+              "Indices not of integery type (4-byte width limit)")
   if (drawType == DtPoints)
   {
     setColourByHeight(true);
