@@ -171,66 +171,110 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     progress.progress = 0;
   }
 
-  const uint8_t *dataSource = nullptr;
+  VertexStream dataSource;
   uint32_t targetCount = 0;
   unsigned writeCount = 0;
-  unsigned dataStride = 0;
   switch (progress.phase)
   {
   case MmtVertex:
-    dataSource = reinterpret_cast<const uint8_t *>(vertices(dataStride));
-    targetCount = vertexCount();
     packet.reset(typeId(), MmtVertex);
-    writeCount = writeComponent<float, 3>(packet, id(), (uint32_t)progress.progress, byteLimit, dataSource, dataStride,
-                                          targetCount);
+    dataSource = vertices(0);
+    switch (dataSource.type())
+    {
+    case DctFloat32:
+    case DctFloat64:
+    case DctPackedFloat16:
+    case DctPackedFloat32:
+      break;
+    default:
+      TES_THROW(Exception("Bad vertex position type", __FILE__, __LINE__), -1);
+    }
+    if (dataSource.componentCount() != 3)
+    {
+      TES_THROW(Exception("Bad vertex position component count", __FILE__, __LINE__), -1);
+    }
     break;
 
   case MmtVertexColour:
-    dataSource = reinterpret_cast<const uint8_t *>(colours(dataStride));
-    targetCount = vertexCount();
     packet.reset(typeId(), MmtVertexColour);
-    writeCount = writeComponent<uint32_t>(packet, id(), (uint32_t)progress.progress, byteLimit, dataSource, dataStride,
-                                          targetCount);
+    dataSource = colours(0);
+    switch (dataSource.type())
+    {
+    case DctUInt32:
+      break;
+    default:
+      TES_THROW(Exception("Bad vertex colour type", __FILE__, __LINE__), -1);
+    }
+    if (dataSource.componentCount() != 1)
+    {
+      TES_THROW(Exception("Bad vertex colour component count", __FILE__, __LINE__), -1);
+    }
     break;
 
-  case MmtIndex: {
-    // Indices need special handling to cater for the potential data width change.
-    unsigned width = 0;
-    dataSource = reinterpret_cast<const uint8_t *>(indices(dataStride, width));
-    if (width == 0 || dataStride == 0)
-    {
-      // Width or stride not specified.
-      return -1;
-    }
-    targetCount = indexCount();
+  case MmtIndex:
     packet.reset(typeId(), MmtIndex);
-    writeCount =
-      writeIndices(packet, id(), (uint32_t)progress.progress, byteLimit, dataSource, dataStride, width, targetCount);
+    dataSource = indices(0);
+    switch (dataSource.type())
+    {
+    case DctInt8:
+    case DctUInt8:
+    case DctInt16:
+    case DctUInt16:
+    case DctInt32:
+    case DctUInt32:
+      break;
+    default:
+      TES_THROW(Exception("Bad index type", __FILE__, __LINE__), -1);
+    }
+    if (dataSource.componentCount() != 1)
+    {
+      TES_THROW(Exception("Bad index component count", __FILE__, __LINE__), -1);
+    }
     break;
-  }
 
   case MmtNormal:
-    dataSource = reinterpret_cast<const uint8_t *>(normals(dataStride));
-    targetCount = vertexCount();
     packet.reset(typeId(), MmtNormal);
-    writeCount = writeComponent<float, 3>(packet, id(), (uint32_t)progress.progress, byteLimit, dataSource, dataStride,
-                                          targetCount);
+    dataSource = normals(0);
+    switch (dataSource.type())
+    {
+    case DctFloat32:
+    case DctFloat64:
+    case DctPackedFloat16:
+    case DctPackedFloat32:
+      break;
+    default:
+      TES_THROW(Exception("Bad vertex normal type", __FILE__, __LINE__), -1);
+    }
+    if (dataSource.componentCount() != 3)
+    {
+      TES_THROW(Exception("Bad vertex normal component count", __FILE__, __LINE__), -1);
+    }
     break;
 
   case MmtUv:
-    dataSource = reinterpret_cast<const uint8_t *>(uvs(dataStride));
-    targetCount = vertexCount();
     packet.reset(typeId(), MmtUv);
-    writeCount = writeComponent<float, 3>(packet, id(), (uint32_t)progress.progress, byteLimit, dataSource, dataStride,
-                                          targetCount);
+    dataSource = uvs(0);
+    switch (dataSource.type())
+    {
+    case DctFloat32:
+    case DctFloat64:
+    case DctPackedFloat16:
+    case DctPackedFloat32:
+      break;
+    default:
+      TES_THROW(Exception("Bad vertex UV type", __FILE__, __LINE__), -1);
+    }
+    if (dataSource.componentCount() != 2)
+    {
+      TES_THROW(Exception("Bad vertex UV component count", __FILE__, __LINE__), -1);
+    }
     break;
 
   case MmtFinalise: {
     MeshFinaliseMessage msg;
-    unsigned stride = 0;
     packet.reset(typeId(), MeshFinaliseMessage::MessageId);
     msg.meshId = id();
-    msg.flags = (normals(stride) == nullptr) ? MffCalculateNormals : 0;
+    msg.flags = (!normals(0).isValid()) ? MffCalculateNormals : 0;
     msg.write(packet);
     // Mark complete.
     progress.complete = true;
@@ -243,115 +287,26 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     break;
   }
 
-  progress.progress += writeCount;
-  if (!progress.complete && progress.progress >= targetCount)
+  if (dataSource.isValid())
+  {
+    writeCount = dataSource.write(packet, uint32_t(progress.progress));
+
+    if (writeCount == 0 && dataSource.count() > 0)
+    {
+      // Failed to write when we should have.
+      return -1;
+    }
+
+    progress.progress += writeCount;
+  }
+
+  if (!progress.complete && progress.progress >= dataSource.count())
   {
     // Phase complete. Progress to the next phase.
     nextPhase(progress);
   }
 
   return 0;
-}
-
-
-unsigned MeshResource::writeIndices(PacketWriter &packet, uint32_t meshId, uint32_t offset, unsigned byteLimit,
-                                    const uint8_t *dataSource, unsigned dataStride, unsigned indexByteWidth,
-                                    uint32_t componentCount)
-{
-  uint32_t index;
-  MeshComponentMessage msg;
-  const unsigned elementSize = sizeof(index);
-  unsigned effectiveByteLimit;
-  if (packet.bytesRemaining() >= sizeof(msg) + sizeof(PacketWriter::CrcType))
-  {
-    effectiveByteLimit = packet.bytesRemaining() - unsigned(sizeof(msg) + sizeof(PacketWriter::CrcType));
-  }
-  else
-  {
-    effectiveByteLimit = 0;
-  }
-
-  // Truncate to 16-bits and allow for a fair amount of overhead.
-  // FIXME: Without additional overhead padding I was getting missing messages at the client with
-  // no obvious error path.
-  byteLimit = std::min(byteLimit, 0xff00u);
-  effectiveByteLimit = byteLimit ? std::min(effectiveByteLimit, byteLimit) : effectiveByteLimit;
-  uint16_t transferCount = estimateTransferCount(elementSize, effectiveByteLimit, int(sizeof(MeshComponentMessage)));
-  if (transferCount > componentCount - offset)
-  {
-    transferCount = (uint16_t)(componentCount - offset);
-  }
-
-  msg.meshId = meshId;
-  msg.offset = offset;
-  msg.reserved = 0;
-  msg.count = transferCount;
-  switch (indexByteWidth)
-  {
-  case 1:
-    msg.elementType = McetUInt8;
-    break;
-  case 2:
-    msg.elementType = McetUInt16;
-    break;
-  case 4:
-    msg.elementType = McetUInt32;
-    break;
-  default:
-    return 0u;  // Failed
-  }
-
-  unsigned write;
-  write = msg.write(packet);
-
-  // Jump to offset.
-  dataSource += dataStride * offset;
-  if (indexByteWidth == 1)
-  {
-    for (unsigned i = 0; i < transferCount; ++i)
-    {
-      index = *dataSource;
-      write += unsigned(packet.writeElement(index));
-      dataSource += dataStride;
-    }
-  }
-  else if (indexByteWidth == 2)
-  {
-    for (unsigned i = 0; i < transferCount; ++i)
-    {
-      index = *reinterpret_cast<const uint16_t *>(dataSource);
-      write += unsigned(packet.writeElement(index));
-      dataSource += dataStride;
-    }
-  }
-  else if (indexByteWidth == 4)
-  {
-    write += unsigned(packet.writeArray(reinterpret_cast<const uint32_t *>(dataSource), transferCount));
-    dataSource += dataStride * transferCount;
-  }
-
-  return transferCount;
-}
-
-
-unsigned MeshResource::writeVectors3(PacketWriter &packet, uint32_t meshId, uint32_t offset, unsigned byteLimit,
-                                     const uint8_t *dataSource, unsigned dataStride, uint32_t componentCount)
-{
-  return writeComponent<float, 3>(packet, meshId, offset, byteLimit, dataSource, dataStride, componentCount);
-}
-
-
-unsigned MeshResource::writeVectors2(PacketWriter &packet, uint32_t meshId, uint32_t offset, unsigned byteLimit,
-                                     const uint8_t *dataSource, unsigned dataStride, uint32_t componentCount)
-{
-  return writeComponent<float, 2>(packet, meshId, offset, byteLimit, dataSource, dataStride, componentCount);
-}
-
-
-unsigned MeshResource::writeColours(PacketWriter &packet, uint32_t meshId, uint32_t offset, unsigned byteLimit,
-                                    const uint8_t *dataSource, unsigned dataStride, uint32_t componentCount)
-{
-  return writeComponent<uint32_t>(packet, meshId, offset, byteLimit, dataSource, dataStride, componentCount);
 }
 
 
@@ -368,85 +323,58 @@ bool MeshResource::readCreate(PacketReader &packet)
 bool MeshResource::readTransfer(int messageType, PacketReader &packet)
 {
   MeshComponentMessage msg;
-  bool ok = false;
+  bool ok = true;
 
   if (!msg.read(packet))
   {
     return false;
   }
 
+  VertexStream readStream;
+
+  // Read offset and count
+  uint32_t offset = 0;
+  uint16_t count = 0;
+
+  // Read vertex stream offset and count.
+  ok = packet.readElement(offset) == sizeof(offset) && ok;
+  ok = packet.readElement(count) == sizeof(count) && ok;
+
   switch (messageType)
   {
   case MmtVertex: {
-    std::vector<float> verts;
-    ok = readComponent<float, 3>(packet, msg, verts);
-    ok = ok && processVertices(msg, verts.data(), unsigned(verts.size() / 3));
+    readStream = VertexStream(static_cast<Vector3d *>(nullptr), 0, 3);
+    // Read the expected number of items.
+    readStream.read(packet, offset, count);
+    ok = processVertices(msg, readStream) && ok;
     break;
   }
   case MmtIndex: {
-    // FIXME: should read the index width from packet.
-    unsigned indexStride = 0, indexWidth = 0;
-    indices(indexStride, indexWidth);
-    // Check packet element type against the index width.
-    // FIXME: support mismatch between incoming elementType and the indexWidth
-    if (indexStride && (indexWidth == 1 || indexWidth == 2 || indexWidth == 4))
-    {
-      switch (indexWidth)
-      {
-      case 1: {
-        if (msg.elementType != McetInt8 && msg.elementType != McetUInt8)
-        {
-          return false;
-        }
-        std::vector<uint8_t> indices;
-        ok = readComponent<uint8_t>(packet, msg, indices);
-        ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
-        break;
-      }
-      case 2: {
-        if (msg.elementType != McetInt16 && msg.elementType != McetUInt16)
-        {
-          return false;
-        }
-        std::vector<uint16_t> indices;
-        ok = readComponent<uint16_t>(packet, msg, indices);
-        ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
-        break;
-      }
-      case 4: {
-        if (msg.elementType != McetInt32 && msg.elementType != McetUInt32)
-        {
-          return false;
-        }
-        std::vector<uint32_t> indices;
-        ok = readComponent<uint32_t>(packet, msg, indices);
-        ok = ok && processIndices(msg, indices.data(), unsigned(indices.size()));
-        break;
-      }
-      }
-    }
-    else
-    {
-      ok = false;
-    }
+    readStream = VertexStream(static_cast<uint32_t *>(nullptr), 0);
+    // Read the expected number of items.
+    readStream.read(packet, offset, count);
+    ok = processIndices(msg, readStream) && ok;
     break;
   }
   case MmtVertexColour: {
-    std::vector<uint32_t> colours;
-    ok = readComponent<uint32_t>(packet, msg, colours);
-    ok = ok && processColours(msg, colours.data(), unsigned(colours.size()));
+    readStream = VertexStream(static_cast<uint32_t *>(nullptr), 0);
+    // Read the expected number of items.
+    readStream.read(packet, offset, count);
+    ok = processColours(msg, readStream) && ok;
     break;
   }
   case MmtNormal: {
-    std::vector<float> normals;
-    ok = readComponent<float, 3>(packet, msg, normals);
-    ok = ok && processNormals(msg, normals.data(), unsigned(normals.size() / 3));
+    readStream = VertexStream(static_cast<Vector3d *>(nullptr), 0, 3);
+    // Read the expected number of items.
+    readStream.read(packet, offset, count);
+    ok = processNormals(msg, readStream) && ok;
     break;
   }
   case MmtUv: {
-    std::vector<float> uvs;
-    ok = readComponent<float, 2>(packet, msg, uvs);
-    ok = ok && processUVs(msg, uvs.data(), unsigned(uvs.size() / 2));
+    readStream = VertexStream(static_cast<Vector3d *>(nullptr), 0, 2);
+    // Read the expected number of items.
+    readStream.read(packet, offset, count);
+    ok = processUVs(msg, readStream) && ok;
     break;
   }
   }
@@ -463,13 +391,11 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
 void MeshResource::nextPhase(TransferProgress &progress) const
 {
   int next = MmtFinalise;
-  unsigned stride = 0;
-  unsigned width = 0;
   switch (progress.phase)
   {
     // First call.
   case 0:
-    if (vertexCount() && vertices(stride))
+    if (vertexCount() && vertices().isValid())
     {
       next = MmtVertex;
       break;
@@ -477,7 +403,7 @@ void MeshResource::nextPhase(TransferProgress &progress) const
     // Don't break.
     TES_FALLTHROUGH;
   case MmtVertex:
-    if (indexCount() && indices(stride, width))
+    if (indexCount() && indices().isValid())
     {
       next = MmtIndex;
       break;
@@ -485,7 +411,7 @@ void MeshResource::nextPhase(TransferProgress &progress) const
     // Don't break.
     TES_FALLTHROUGH;
   case MmtIndex:
-    if (vertexCount() && colours(stride))
+    if (vertexCount() && colours().isValid())
     {
       next = MmtVertexColour;
       break;
@@ -493,7 +419,7 @@ void MeshResource::nextPhase(TransferProgress &progress) const
     // Don't break.
     TES_FALLTHROUGH;
   case MmtVertexColour:
-    if (vertexCount() && normals(stride))
+    if (vertexCount() && normals().isValid())
     {
       next = MmtNormal;
       break;
@@ -501,7 +427,7 @@ void MeshResource::nextPhase(TransferProgress &progress) const
     // Don't break.
     TES_FALLTHROUGH;
   case MmtNormal:
-    if (vertexCount() && uvs(stride))
+    if (vertexCount() && uvs().isValid())
     {
       next = MmtUv;
       break;
@@ -525,64 +451,41 @@ bool MeshResource::processCreate(const MeshCreateMessage &msg, const ObjectAttri
 }
 
 
-bool MeshResource::processVertices(const MeshComponentMessage &msg, const float *vertices, unsigned vertexCount)
+bool MeshResource::processVertices(const MeshComponentMessage &msg, const VertexStream &stream)
 {
   TES_UNUSED(msg);
-  TES_UNUSED(vertices);
-  TES_UNUSED(vertexCount);
+  TES_UNUSED(stream);
   return false;
 }
 
 
-bool MeshResource::processIndices(const MeshComponentMessage &msg, const uint8_t *indices, unsigned indexCount)
+bool MeshResource::processIndices(const MeshComponentMessage &msg, const VertexStream &stream)
 {
   TES_UNUSED(msg);
-  TES_UNUSED(indices);
-  TES_UNUSED(indexCount);
+  TES_UNUSED(stream);
   return false;
 }
 
 
-bool MeshResource::processIndices(const MeshComponentMessage &msg, const uint16_t *indices, unsigned indexCount)
+bool MeshResource::processColours(const MeshComponentMessage &msg, const VertexStream &stream)
 {
   TES_UNUSED(msg);
-  TES_UNUSED(indices);
-  TES_UNUSED(indexCount);
+  TES_UNUSED(stream);
   return false;
 }
 
 
-bool MeshResource::processIndices(const MeshComponentMessage &msg, const uint32_t *indices, unsigned indexCount)
+bool MeshResource::processNormals(const MeshComponentMessage &msg, const VertexStream &stream)
 {
   TES_UNUSED(msg);
-  TES_UNUSED(indices);
-  TES_UNUSED(indexCount);
+  TES_UNUSED(stream);
   return false;
 }
 
 
-bool MeshResource::processColours(const MeshComponentMessage &msg, const uint32_t *colours, unsigned colourCount)
+bool MeshResource::processUVs(const MeshComponentMessage &msg, const VertexStream &stream)
 {
   TES_UNUSED(msg);
-  TES_UNUSED(colours);
-  TES_UNUSED(colourCount);
-  return false;
-}
-
-
-bool MeshResource::processNormals(const MeshComponentMessage &msg, const float *normals, unsigned normalCount)
-{
-  TES_UNUSED(msg);
-  TES_UNUSED(normals);
-  TES_UNUSED(normalCount);
-  return false;
-}
-
-
-bool MeshResource::processUVs(const MeshComponentMessage &msg, const float *uvs, unsigned uvCount)
-{
-  TES_UNUSED(msg);
-  TES_UNUSED(uvs);
-  TES_UNUSED(uvCount);
+  TES_UNUSED(stream);
   return false;
 }

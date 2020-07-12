@@ -105,45 +105,37 @@ unsigned OccupancyMesh::indexCount(int stream) const
 }
 
 
-const float *OccupancyMesh::vertices(unsigned &stride, int stream) const
+VertexStream OccupancyMesh::vertices(int stream) const
 {
   TES_UNUSED(stream);
-  stride = sizeof(Vector3f);
-  return (!_detail->vertices.empty()) ? _detail->vertices.data()->v : nullptr;
+  return VertexStream(_detail->vertices);
 }
 
 
-const uint8_t *OccupancyMesh::indices(unsigned &stride, unsigned &width, int stream) const
+VertexStream OccupancyMesh::indices(int stream) const
 {
-  TES_UNUSED(stride);
-  TES_UNUSED(width);
   TES_UNUSED(stream);
-  // width = stride = sizeof(IndexType);
-  // return (!_detail->indices.empty()) ? reinterpret_cast<const uint8_t *>(_detail->indices.data()) : nullptr;
-  return nullptr;
+  return VertexStream();
 }
 
-const float *OccupancyMesh::normals(unsigned &stride, int stream) const
+VertexStream OccupancyMesh::normals(int stream) const
 {
   TES_UNUSED(stream);
-  stride = sizeof(Vector3f);
-  return (!_detail->normals.empty()) ? _detail->normals.data()->v : nullptr;
+  return VertexStream(_detail->normals);
 }
 
 
-const float *OccupancyMesh::uvs(unsigned &stride, int stream) const
+VertexStream OccupancyMesh::uvs(int stream) const
 {
   TES_UNUSED(stream);
-  TES_UNUSED(stride);
-  return nullptr;
+  return VertexStream();
 }
 
 
-const uint32_t *OccupancyMesh::colours(unsigned &stride, int stream) const
+VertexStream OccupancyMesh::colours(int stream) const
 {
   TES_UNUSED(stream);
-  stride = sizeof(uint32_t);
-  return (!_detail->colours.empty()) ? _detail->colours.data() : nullptr;
+  return VertexStream(_detail->colours);
 }
 
 tes::Resource *OccupancyMesh::clone() const

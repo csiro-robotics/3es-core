@@ -83,8 +83,7 @@ struct SimpleMeshImp
 }  // namespace tes
 
 
-SimpleMesh::SimpleMesh(uint32_t id, const UIntArg &vertexCount, const UIntArg &indexCount, DrawType drawType,
-                       unsigned components)
+SimpleMesh::SimpleMesh(uint32_t id, size_t vertexCount, size_t indexCount, DrawType drawType, unsigned components)
   : _imp(new SimpleMeshImp(components))
 {
   _imp->id = id;
@@ -284,10 +283,10 @@ unsigned SimpleMesh::vertexCount(int stream) const
 }
 
 
-void SimpleMesh::setVertexCount(const UIntArg &count)
+void SimpleMesh::setVertexCount(size_t count)
 {
   copyOnWrite();
-  _imp->vertices.resize(count.i);
+  _imp->vertices.resize(count);
   if ((_imp->components & Colour))
   {
     _imp->colours.resize(_imp->vertices.size());
@@ -305,18 +304,18 @@ void SimpleMesh::setVertexCount(const UIntArg &count)
 }
 
 
-void SimpleMesh::reserveVertexCount(const UIntArg &count)
+void SimpleMesh::reserveVertexCount(size_t count)
 {
   copyOnWrite();
-  _imp->vertices.reserve(count.i);
+  _imp->vertices.reserve(count);
 }
 
 
-unsigned SimpleMesh::addVertices(const Vector3f *v, const UIntArg &count)
+unsigned SimpleMesh::addVertices(const Vector3f *v, size_t count)
 {
   copyOnWrite();
   size_t offset = _imp->vertices.size();
-  setVertexCount(unsigned(_imp->vertices.size() + count.i));
+  setVertexCount(unsigned(_imp->vertices.size() + count));
   for (unsigned i = 0; i < count; ++i)
   {
     _imp->vertices[offset + i] = v[i];
@@ -325,13 +324,13 @@ unsigned SimpleMesh::addVertices(const Vector3f *v, const UIntArg &count)
 }
 
 
-unsigned SimpleMesh::setVertices(const UIntArg &at, const Vector3f *v, const UIntArg &count)
+unsigned SimpleMesh::setVertices(size_t at, const Vector3f *v, size_t count)
 {
   copyOnWrite();
   unsigned set = 0;
-  for (unsigned i = at; i < at.i + count.i && i < _imp->vertices.size(); ++i)
+  for (unsigned i = at; i < at + count && i < _imp->vertices.size(); ++i)
   {
-    _imp->vertices[i] = v[i - at.i];
+    _imp->vertices[i] = v[i - at];
     ++set;
   }
   return set;
@@ -344,14 +343,13 @@ const Vector3f *SimpleMesh::vertices() const
 }
 
 
-const float *SimpleMesh::vertices(unsigned &stride, int stream) const
+VertexStream SimpleMesh::vertices(int stream) const
 {
-  stride = sizeof(Vector3f);
-  if (!stream && !_imp->vertices.empty())
+  if (stream == 0 && !_imp->vertices.empty())
   {
-    return &_imp->vertices[0].x;
+    return VertexStream(_imp->vertices);
   }
-  return nullptr;
+  return VertexStream();
 }
 
 
@@ -371,10 +369,10 @@ unsigned SimpleMesh::indexCount(int stream) const
 }
 
 
-void SimpleMesh::setIndexCount(const UIntArg &count)
+void SimpleMesh::setIndexCount(size_t count)
 {
   copyOnWrite();
-  _imp->indices.resize(count.i);
+  _imp->indices.resize(count);
   if (count)
   {
     _imp->components |= Index;
@@ -382,18 +380,18 @@ void SimpleMesh::setIndexCount(const UIntArg &count)
 }
 
 
-void SimpleMesh::reserveIndexCount(const UIntArg &count)
+void SimpleMesh::reserveIndexCount(size_t count)
 {
   copyOnWrite();
-  _imp->indices.reserve(count.i);
+  _imp->indices.reserve(count);
 }
 
 
-void SimpleMesh::addIndices(const uint32_t *idx, const UIntArg &count)
+void SimpleMesh::addIndices(const uint32_t *idx, size_t count)
 {
   copyOnWrite();
   size_t offset = _imp->indices.size();
-  setIndexCount(unsigned(count.i + offset));
+  setIndexCount(unsigned(count + offset));
   for (unsigned i = 0; i < count; ++i)
   {
     _imp->indices[i + offset] = idx[i];
@@ -401,11 +399,11 @@ void SimpleMesh::addIndices(const uint32_t *idx, const UIntArg &count)
 }
 
 
-unsigned SimpleMesh::setIndices(const UIntArg &at, const uint32_t *idx, const UIntArg &count)
+unsigned SimpleMesh::setIndices(size_t at, const uint32_t *idx, size_t count)
 {
   copyOnWrite();
   unsigned set = 0;
-  for (unsigned i = at; i < at.i + count.i && i < _imp->indices.size(); ++i)
+  for (unsigned i = at; i < at + count && i < _imp->indices.size(); ++i)
   {
     _imp->indices[i] = idx[set++];
   }
@@ -419,18 +417,17 @@ const uint32_t *SimpleMesh::indices() const
 }
 
 
-const uint8_t *SimpleMesh::indices(unsigned &stride, unsigned &width, int stream) const
+VertexStream SimpleMesh::indices(int stream) const
 {
-  stride = width = sizeof(uint32_t);
-  if (!stream && (_imp->components & Index) && !_imp->indices.empty())
+  if (stream == 0 && (_imp->components & Index) && !_imp->indices.empty())
   {
-    return reinterpret_cast<const uint8_t *>(_imp->indices.data());
+    return VertexStream(_imp->indices);
   }
-  return nullptr;
+  return VertexStream();
 }
 
 
-unsigned SimpleMesh::setNormals(const UIntArg &at, const Vector3f *n, const UIntArg &count)
+unsigned SimpleMesh::setNormals(size_t at, const Vector3f *n, size_t count)
 {
   copyOnWrite();
   unsigned set = 0;
@@ -439,7 +436,7 @@ unsigned SimpleMesh::setNormals(const UIntArg &at, const Vector3f *n, const UInt
     _imp->normals.resize(_imp->vertices.size());
     _imp->components |= Normal;
   }
-  for (unsigned i = at; i < at.i + count.i && i < _imp->normals.size(); ++i)
+  for (unsigned i = at; i < at + count && i < _imp->normals.size(); ++i)
   {
     _imp->normals[i] = n[set++];
   }
@@ -453,18 +450,17 @@ const Vector3f *SimpleMesh::normals() const
 }
 
 
-const float *SimpleMesh::normals(unsigned &stride, int stream) const
+VertexStream SimpleMesh::normals(int stream) const
 {
-  stride = sizeof(Vector3f);
-  if (!stream && (_imp->components & Normal) && !_imp->normals.empty())
+  if (stream == 0 && (_imp->components & Normal) && !_imp->normals.empty())
   {
-    return &_imp->normals[0].x;
+    return VertexStream(_imp->normals);
   }
-  return nullptr;
+  return VertexStream();
 }
 
 
-unsigned SimpleMesh::setColours(const UIntArg &at, const uint32_t *c, const UIntArg &count)
+unsigned SimpleMesh::setColours(size_t at, const uint32_t *c, size_t count)
 {
   copyOnWrite();
   unsigned set = 0;
@@ -473,9 +469,10 @@ unsigned SimpleMesh::setColours(const UIntArg &at, const uint32_t *c, const UInt
     _imp->colours.resize(_imp->vertices.size());
     _imp->components |= Colour;
   }
-  for (unsigned i = at; i < at.i + count.i && i < _imp->colours.size(); ++i)
+
+  for (unsigned i = at; i < at + count && i < _imp->colours.size(); ++i)
   {
-    _imp->colours[i] = c[i - at.i];
+    _imp->colours[i] = c[i - at];
     ++set;
   }
   return set;
@@ -488,18 +485,17 @@ const uint32_t *SimpleMesh::colours() const
 }
 
 
-const uint32_t *SimpleMesh::colours(unsigned &stride, int stream) const
+VertexStream SimpleMesh::colours(int stream) const
 {
-  stride = sizeof(uint32_t);
-  if (!stream && (_imp->components & Colour) && !_imp->colours.empty())
+  if (stream == 0 && (_imp->components & Colour) && !_imp->colours.empty())
   {
-    return _imp->colours.data();
+    return VertexStream(_imp->colours);
   }
-  return nullptr;
+  return VertexStream();
 }
 
 
-unsigned SimpleMesh::setUvs(const UIntArg &at, const float *uvs, const UIntArg &count)
+unsigned SimpleMesh::setUvs(size_t at, const float *uvs, size_t count)
 {
   copyOnWrite();
   unsigned set = 0;
@@ -508,9 +504,9 @@ unsigned SimpleMesh::setUvs(const UIntArg &at, const float *uvs, const UIntArg &
     _imp->uvs.resize(_imp->vertices.size());
     _imp->components |= Uv;
   }
-  for (unsigned i = at; i < at.i + count.i && i < _imp->uvs.size(); ++i)
+  for (unsigned i = at; i < at + count && i < _imp->uvs.size(); ++i)
   {
-    const UV uv = { uvs[(i - at.i) * 2 + 0], uvs[(i - at.i) * 2 + 1] };
+    const UV uv = { uvs[(i - at) * 2 + 0], uvs[(i - at) * 2 + 1] };
     _imp->uvs[i] = uv;
     ++set;
   }
@@ -528,14 +524,13 @@ const float *SimpleMesh::uvs() const
 }
 
 
-const float *SimpleMesh::uvs(unsigned &stride, int stream) const
+VertexStream SimpleMesh::uvs(int stream) const
 {
-  stride = sizeof(UV);
-  if (!stream && (_imp->components & Uv) && !_imp->uvs.empty())
+  if (stream == 0 && (_imp->components & Uv) && !_imp->uvs.empty())
   {
-    return &_imp->uvs[0].u;
+    return VertexStream(_imp->uvs);
   }
-  return nullptr;
+  return VertexStream();
 }
 
 
@@ -567,54 +562,63 @@ bool SimpleMesh::processCreate(const MeshCreateMessage &msg, const ObjectAttribu
 }
 
 
-bool SimpleMesh::processVertices(const MeshComponentMessage &msg, const float *vertices, unsigned vertexCount)
+bool SimpleMesh::processVertices(const MeshComponentMessage &msg, const VertexStream &stream)
 {
-  static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Vertex size mismatch");
-  return setVertices(msg.offset, (const Vector3f *)vertices, vertexCount) == vertexCount;
+  copyOnWrite();
+  for (unsigned i = 0; i < stream.count() && i + msg.offset < vertexCount(); ++i)
+  {
+    for (unsigned j = 0; j < 3; ++j)
+    {
+      _imp->vertices[i + msg.offset][j] = stream.get<float>(i, j);
+    }
+  }
+  return stream.count() + msg.offset < vertexCount();
 }
 
 
-bool SimpleMesh::processIndices(const MeshComponentMessage &msg, const uint8_t *indices, unsigned indexCount)
+bool SimpleMesh::processIndices(const MeshComponentMessage &msg, const VertexStream &stream)
 {
-  TES_UNUSED(msg);
-  TES_UNUSED(indices);
-  TES_UNUSED(indexCount);
-  // Expect 4 byte indices.
-  return false;
+  return setIndices(msg.offset, stream.ptr<uint32_t>(), stream.count());
 }
 
 
-bool SimpleMesh::processIndices(const MeshComponentMessage &msg, const uint16_t *indices, unsigned indexCount)
+bool SimpleMesh::processColours(const MeshComponentMessage &msg, const VertexStream &stream)
 {
-  TES_UNUSED(msg);
-  TES_UNUSED(indices);
-  TES_UNUSED(indexCount);
-  // Expect 4 byte indices.
-  return false;
+  return setColours(msg.offset, stream.ptr<uint32_t>(), stream.count());
 }
 
 
-bool SimpleMesh::processIndices(const MeshComponentMessage &msg, const uint32_t *indices, unsigned indexCount)
+bool SimpleMesh::processNormals(const MeshComponentMessage &msg, const VertexStream &stream)
 {
-  // Accept 4 byte indices.
-  return setIndices(msg.offset, indices, indexCount) == indexCount;
+  copyOnWrite();
+  if (!(_imp->components & Normal) && vertexCount())
+  {
+    _imp->normals.resize(vertexCount());
+    _imp->components |= Normal;
+  }
+  for (unsigned i = 0; i < stream.count() && i + msg.offset < vertexCount(); ++i)
+  {
+    for (unsigned j = 0; j < 3; ++j)
+    {
+      _imp->normals[i + msg.offset][j] = stream.get<float>(i, j);
+    }
+  }
+  return stream.count() + msg.offset < vertexCount();
 }
 
 
-bool SimpleMesh::processColours(const MeshComponentMessage &msg, const uint32_t *colours, unsigned colourCount)
+bool SimpleMesh::processUVs(const MeshComponentMessage &msg, const VertexStream &stream)
 {
-  return setColours(msg.offset, colours, colourCount) == colourCount;
-}
-
-
-bool SimpleMesh::processNormals(const MeshComponentMessage &msg, const float *normals, unsigned normalCount)
-{
-  static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Normal size mismatch");
-  return setNormals(msg.offset, (const Vector3f *)normals, normalCount) == normalCount;
-}
-
-
-bool SimpleMesh::processUVs(const MeshComponentMessage &msg, const float *uvs, unsigned uvCount)
-{
-  return setUvs(msg.offset, uvs, uvCount) == uvCount;
+  copyOnWrite();
+  if (!(_imp->components & Normal) && vertexCount())
+  {
+    _imp->uvs.resize(vertexCount());
+    _imp->components |= Normal;
+  }
+  for (unsigned i = 0; i < stream.count() && i + msg.offset < vertexCount(); ++i)
+  {
+    _imp->uvs[i + msg.offset].u = stream.get<float>(i, 0);
+    _imp->uvs[i + msg.offset].v = stream.get<float>(i, 1);
+  }
+  return stream.count() + msg.offset < vertexCount();
 }

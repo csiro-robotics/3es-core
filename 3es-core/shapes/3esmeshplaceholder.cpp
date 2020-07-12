@@ -52,44 +52,38 @@ unsigned MeshPlaceholder::indexCount(int /* stream */) const
 }
 
 
-const float *MeshPlaceholder::vertices(unsigned &stride, int stream) const
+VertexStream MeshPlaceholder::vertices(int stream) const
 {
-  TES_UNUSED(stride);
   TES_UNUSED(stream);
-  return nullptr;
+  return VertexStream();
 }
 
 
-const uint8_t *MeshPlaceholder::indices(unsigned &stride, unsigned &width, int stream) const
+VertexStream MeshPlaceholder::indices(int stream) const
 {
-  TES_UNUSED(stride);
-  TES_UNUSED(width);
   TES_UNUSED(stream);
-  return nullptr;
+  return VertexStream();
 }
 
 
-const float *MeshPlaceholder::normals(unsigned &stride, int stream) const
+VertexStream MeshPlaceholder::normals(int stream) const
 {
-  TES_UNUSED(stride);
   TES_UNUSED(stream);
-  return nullptr;
+  return VertexStream();
 }
 
 
-const float *MeshPlaceholder::uvs(unsigned &stride, int stream) const
+VertexStream MeshPlaceholder::uvs(int stream) const
 {
-  TES_UNUSED(stride);
   TES_UNUSED(stream);
-  return nullptr;
+  return VertexStream();
 }
 
 
-const uint32_t *MeshPlaceholder::colours(unsigned &stride, int stream) const
+VertexStream MeshPlaceholder::colours(int stream) const
 {
-  TES_UNUSED(stride);
   TES_UNUSED(stream);
-  return nullptr;
+  return VertexStream();
 }
 
 

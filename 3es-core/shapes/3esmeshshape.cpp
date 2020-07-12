@@ -27,8 +27,7 @@ struct DataPhase
 }  // namespace
 
 MeshShape::~MeshShape()
-{
-}
+{}
 
 
 MeshShape &MeshShape::setNormals(const VertexStream &normals)
@@ -59,7 +58,6 @@ void expandVertices(VertexStream &vertices, VertexStream &indices)
     T *dst = verts;
     for (unsigned i = 0; i < indices.count(); ++i)
     {
-      const unsigned vind = *indices.ptr<unsigned>(i);
       for (unsigned j = 0; j < vertices.componentCount(); ++j)
       {
         const unsigned vind = *indices.ptr<unsigned>(i);
@@ -122,30 +120,23 @@ int MeshShape::writeData(PacketWriter &packet, unsigned &progressMarker) const
 {
   bool ok = true;
   DataMessage msg;
-  // Local byte overhead needs to account for the size of sendType, offset and itemCount.
-  // Use a larger value as I haven't got the edge cases quite right yet.
-  const size_t localByteOverhead = 100;
   msg.id = _data.id;
   packet.reset(routingId(), DataMessage::MessageId);
   ok = msg.write(packet);
 
   // Send vertices or indices?
   uint32_t offset;
-  uint16_t sendType;
 
   // Resolve what we are currently sending.
   unsigned phaseIndex = 0;
   unsigned previousPhaseOffset = 0;
 
   // Order to send data in and information required to automate sending.
-  const DataPhase phases[] = {
-    { SDT_Vertices, _vertices.type(), &_vertices },
-    { SDT_Indices, _indices.type(), &_indices },
-    { SDT_Normals, _normals.type(), &_normals },
-    { SDT_Colours, _colours.type(), &_colours }
-  };
+  const DataPhase phases[] = { { SDT_Vertices, _vertices.type(), &_vertices },
+                               { SDT_Indices, _indices.type(), &_indices },
+                               { SDT_Normals, _normals.type(), &_normals },
+                               { SDT_Colours, _colours.type(), &_colours } };
 
-  
   // While progressMarker is greater than or equal to the sum of the previous phase counts and the current phase count.
   // Also terminate of out of phases.
   while (phaseIndex < sizeof(phases) / sizeof(phases[0]) &&
@@ -162,32 +153,46 @@ int MeshShape::writeData(PacketWriter &packet, unsigned &progressMarker) const
   unsigned targetCount = 0;
   switch (phaseIndex)
   {
-    case SDT_Vertices:
-      ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
+  case SDT_Vertices:
+    ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
+    if (_quantisationUnit > 0)
+    {
+      writeCount = _vertices.writePacked(packet, offset, _quantisationUnit);
+    }
+    else
+    {
       writeCount = _vertices.write(packet, offset);
-      targetCount = _vertices.count();
-      break;
-    case SDT_Indices:
-      ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
-      writeCount = _indices.write(packet, offset);
-      targetCount = _indices.count();
-      break;
-    case SDT_Normals:
-      ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
+    }
+    targetCount = _vertices.count();
+    break;
+  case SDT_Indices:
+    ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
+    writeCount = _indices.write(packet, offset);
+    targetCount = _indices.count();
+    break;
+  case SDT_Normals:
+    ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
+    if (_quantisationUnit > 0)
+    {
+      writeCount = _normals.writePacked(packet, offset, 1.0f / float(0xffff));
+    }
+    else
+    {
       writeCount = _normals.write(packet, offset);
-      targetCount = _normals.count();
-      break;
-    case SDT_Colours:
-      ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
-      writeCount = _colours.write(packet, offset);
-      targetCount = _colours.count();
-      break;
+    }
+    targetCount = _normals.count();
+    break;
+  case SDT_Colours:
+    ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
+    writeCount = _colours.write(packet, offset);
+    targetCount = _colours.count();
+    break;
 
-    default:
-      // Either all done or no data to send.
-      ok = packet.writeElement(uint16_t(SDT_End)) == sizeof(uint16_t) && ok;
-      done = true;
-      break;
+  default:
+    // Either all done or no data to send.
+    ok = packet.writeElement(uint16_t(SDT_End)) == sizeof(uint16_t) && ok;
+    done = true;
+    break;
   }
 
   ok = writeCount != targetCount && ok;
@@ -220,8 +225,8 @@ bool MeshShape::readCreate(PacketReader &packet)
 
   _vertices.set(static_cast<float *>(nullptr), 0, 3);
   _normals.set(static_cast<float *>(nullptr), 0, 3);
-  _indices.set(static_cast<uint32_t*>(nullptr), 0);
-  _colours.set(static_cast<uint32_t*>(nullptr), 0);
+  _indices.set(static_cast<uint32_t *>(nullptr), 0);
+  _colours.set(static_cast<uint32_t *>(nullptr), 0);
 
   ok = ok && packet.readElement(drawType) == sizeof(drawType);
   _drawType = (DrawType)drawType;
@@ -244,9 +249,6 @@ bool MeshShape::readData(PacketReader &packet)
   // Record and mask out end flags.
   dataType = dataType;
 
-
-  // FIXME: resolve the 'const' pointer casting. Reading was a retrofit.
-  bool complete = false;
   unsigned endReadCount = 0;
   switch (dataType)
   {
@@ -269,7 +271,6 @@ bool MeshShape::readData(PacketReader &packet)
     break;
   case SDT_End:
     // We should technically read zero sized data.
-    complete = true;
     break;
   default:
     // Unknown data type.
@@ -301,6 +302,7 @@ void MeshShape::onClone(MeshShape *copy) const
   copy->_indices.duplicate();
   copy->_colours = VertexStream(_indices);
   copy->_colours.duplicate();
+  copy->_quantisationUnit = _quantisationUnit;
   copy->_drawScale = _drawScale;
   copy->_drawType = _drawType;
 }

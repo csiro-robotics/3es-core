@@ -358,20 +358,18 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
     }
   };
 
-  unsigned stride = 0;
   if (mesh.vertexCount())
   {
     closeDangling(dangling);
     o << indent2 << "\"vertices\" : [";
-    const float *verts = mesh.vertices(stride);
-    stride /= unsigned(sizeof(*verts));
-    for (unsigned v = 0; v < mesh.vertexCount(); ++v, verts += stride)
+    VertexStream verts = mesh.vertices();
+    for (unsigned v = 0; v < verts.count(); ++v)
     {
       if (v > 0)
       {
         o << ',';
       }
-      o << '\n' << indent2 << "  " << verts[v + 0] << ", " << verts[v + 1] << ", " << verts[v + 2];
+      o << '\n' << indent2 << "  " << verts.get<float>(v, 0) << ", " << verts.get<float>(v, 2) << ", " << verts.get<float>(v, 2);
     }
     o << '\n' << indent2 << "]";
     dangling = true;
@@ -382,9 +380,9 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
     closeDangling(dangling);
     o << indent2 << "\"indices\" : [";
     unsigned indexWidth = 0;
-    const uint8_t *indBytes = mesh.indices(stride, indexWidth);
+    VertexStream indices = mesh.indices();
 
-    for (unsigned i = 0; i < mesh.indexCount(); ++i, indBytes += stride)
+    for (unsigned i = 0; i < indices.count(); ++i)
     {
       if (i > 0)
       {
@@ -396,70 +394,52 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
         o << '\n' << indent2 << "  ";
       }
 
-      switch (indexWidth)
-      {
-      case 1:
-        o << int(*indBytes);
-        break;
-      case 2:
-        o << *(const uint16_t *)indBytes;
-        break;
-      case 4:
-        o << *(const uint32_t *)indBytes;
-        break;
-      default:
-        o << "\"invalid\" : true\n";
-        i = mesh.indexCount();
-        break;
-      }
+      o << indices.get<uint32_t>(i);
     }
     o << '\n' << indent2 << "]";
     dangling = true;
   }
 
-  if (!vertexOnly && mesh.normals(stride))
+  if (!vertexOnly && mesh.normals().isValid())
   {
     closeDangling(dangling);
     o << indent2 << "\"normals\" : [";
-    const float *normals = mesh.normals(stride);
-    stride /= unsigned(sizeof(*normals));
-    for (unsigned n = 0; n < mesh.vertexCount(); ++n, normals += stride)
+    VertexStream normals = mesh.normals();
+    for (unsigned n = 0; n < normals.count(); ++n)
     {
       if (n > 0)
       {
         o << ',';
       }
-      o << '\n' << indent2 << "  " << normals[n + 0] << ", " << normals[n + 1] << ", " << normals[n + 2];
+      o << '\n' << indent2 << "  " << normals.get<float>(n, 0) << ", " << normals.get<float>(n, 1) << ", " << normals.get<float>(n, 2);
     }
     o << '\n' << indent2 << "]";
     dangling = true;
   }
 
-  if (!vertexOnly && mesh.uvs(stride))
+  if (!vertexOnly && mesh.uvs().isValid())
   {
     closeDangling(dangling);
     o << indent2 << "\"uvs\" : [";
-    const float *uvs = mesh.uvs(stride);
-    stride /= unsigned(sizeof(*uvs));
-    for (unsigned u = 0; u < mesh.vertexCount(); ++u, uvs += stride)
+    VertexStream uvs = mesh.uvs();
+    for (unsigned u = 0; u < uvs.count(); ++u)
     {
       if (u > 0)
       {
         o << ',';
       }
-      o << '\n' << indent2 << "  " << uvs[u + 0] << ", " << uvs[u + 1];
+      o << '\n' << indent2 << "  " << uvs.get<float>(u, 0) << ", " << uvs.get<float>(u, 1);
     }
     o << '\n' << indent2 << "]";
     dangling = true;
   }
 
-  if (mesh.colours(stride))
+  if (mesh.colours().isValid())
   {
     closeDangling(dangling);
     o << indent << "\"colours\" : [";
-    const uint32_t *colours = mesh.colours(stride);
-    stride /= unsigned(sizeof(*colours));
-    for (unsigned c = 0; c < mesh.vertexCount(); ++c, colours += stride)
+    VertexStream colours = mesh.colours();
+    for (unsigned c = 0; c < colours.count(); ++c)
     {
       if (c > 0)
       {
@@ -470,7 +450,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
       {
         o << '\n' << indent2 << "  ";
       }
-      o << colours[c];
+      o << colours.get<uint32_t>(c);
     }
     o << '\n' << indent2 << "]";
     dangling = true;

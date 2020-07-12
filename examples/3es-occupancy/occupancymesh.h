@@ -44,11 +44,11 @@ public:
   unsigned vertexCount(int stream) const override;
   unsigned indexCount(int stream) const override;
 
-  const float *vertices(unsigned &stride, int stream) const override;
-  const uint8_t *indices(unsigned &stride, unsigned &width, int stream) const override;
-  const float *normals(unsigned &stride, int stream) const override;
-  const float *uvs(unsigned &stride, int stream) const override;
-  const uint32_t *colours(unsigned &stride, int stream) const override;
+  tes::VertexStream vertices(int stream) const override;
+  tes::VertexStream indices(int stream) const override;
+  tes::VertexStream normals(int stream) const override;
+  tes::VertexStream uvs(int stream) const override;
+  tes::VertexStream colours(int stream) const override;
 
   tes::Resource *clone() const override;
 

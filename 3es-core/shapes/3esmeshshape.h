@@ -193,12 +193,13 @@ public:
 protected:
   void onClone(MeshShape *copy) const;
 
-  VertexStream _vertices;   ///< Mesh vertices.
-  VertexStream _normals;    ///< Normal stream. Expect zero, one per vertex or one to apply to all vertices.
-  VertexStream _colours;    ///< Per vertex colours. Null for none.
-  VertexStream _indices;    ///< Per vertex colours. Null for none.
-  float _drawScale = 0.0f;  ///< Draw scale: point scaling, line width, etc.
-  DrawType _drawType;       ///< The primitive to render.
+  VertexStream _vertices;          ///< Mesh vertices.
+  VertexStream _normals;           ///< Normal stream. Expect zero, one per vertex or one to apply to all vertices.
+  VertexStream _colours;           ///< Per vertex colours. Null for none.
+  VertexStream _indices;           ///< Per vertex colours. Null for none.
+  float _quantisationUnit = 0.0f;  ///< Quantisation for data packing. Zero => no packing.
+  float _drawScale = 0.0f;         ///< Draw scale: point scaling, line width, etc.
+  DrawType _drawType;              ///< The primitive to render.
 };
 
 
