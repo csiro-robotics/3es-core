@@ -14,6 +14,7 @@ list(APPEND PUBLIC_HEADERS
   3escrc.h
   3esdebug.h
   3esendian.h
+  3esexception.h
   3esfeature.h
   3esintarg.h
   3esmaths.h
@@ -46,6 +47,7 @@ list(APPEND PUBLIC_HEADERS
   3esstreamutil.h
   3estcplistensocket.h
   3estcpsocket.h
+  3esthrow.h
   3estimer.h
   3estransferprogress.h
   3estransform.h
@@ -103,6 +105,7 @@ list(APPEND SOURCES
   3escoreutil.cpp
   3escrc.cpp
   3esendian.cpp
+  3esexception.cpp
   3esfeature.cpp
   3esmathsmanip.cpp
   3esmatrix3.cpp
@@ -119,6 +122,7 @@ list(APPEND SOURCES
   3esrotation.cpp
   3esspinlock.cpp
   3esstreamutil.cpp
+  3esthrow.cpp
   3estimer.cpp
   3estransform.cpp
   3esvector3.cpp

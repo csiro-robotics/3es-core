@@ -8,6 +8,8 @@
 
 #include "3escolour.h"
 #include "3esvector4.h"
+#include "3esexception.h"
+#include "3esthrow.h"
 
 namespace tes
 {
@@ -117,6 +119,17 @@ inline int ceilPowerOf2(int v)
   v |= v >> 16;
   v++;
   return v;
+}
+
+template <typename INT, typename SRC_INT>
+INT int_cast(SRC_INT val)
+{
+  if (val < std::numeric_limits<INT>::lowest() && val > std::numeric_limits<INT>::max())
+  {
+    // throw?
+    TES_THROW(Exception("Integer overflow"), INT(val));
+  }
+  return INT(val);
 }
 }  // namespace tes
 
