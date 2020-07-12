@@ -27,9 +27,10 @@ template class VertexStreamAffordancesT<double>;
 
 void VertexStream::reset()
 {
-  if (_ownPointer && _affordances)
+  if (ownPointer() && _affordances)
   {
-    _affordances->release(&_stream, &_ownPointer);
+    _affordances->release(&_stream, ownPointer());
+    _flags &= uint8_t(~Flag::OwnPointer);
   }
 }
 
@@ -37,9 +38,10 @@ void VertexStream::reset()
 void VertexStream::duplicate()
 {
   // No need to copy if we already own the _stream.
-  if (!_ownPointer && _stream != nullptr && _count > 0)
+  if (!ownPointer() && _stream != nullptr && _count > 0)
   {
-    _affordances->takeOwnership(&_stream, &_ownPointer, *this);
+    _affordances->takeOwnership(&_stream, ownPointer(), *this);
+    _flags |= Flag::OwnPointer;
   }
 }
 
@@ -50,10 +52,41 @@ unsigned VertexStream::write(PacketWriter &packet, uint32_t offset) const
 }
 
 
+unsigned VertexStream::writePacked(PacketWriter &packet, uint32_t offset, float quantisation_unit) const
+{
+  DataStreamType packed_type = type();
+  switch (packed_type)
+  {
+  case DctFloat32:
+    packed_type = DctPackedFloat16;
+    break;
+  case DctFloat64:
+    packed_type = DctPackedFloat32;
+    break;
+  default:
+    break;
+  }
+  return _affordances->write(packet, offset, packed_type, *this, quantisation_unit);
+}
+
+
 unsigned VertexStream::read(PacketReader &packet)
 {
   void *dst = writePtr();
-  unsigned res = _affordances->read(packet, &dst, &_ownPointer, *this);
+  bool own_pointer = ownPointer();
+  unsigned res = _affordances->read(packet, &dst, &own_pointer, *this);
+  _flags |= uint8_t(!!own_pointer * Flag::OwnPointer);
+  _stream = dst;
+  return res;
+}
+
+
+unsigned VertexStream::read(PacketReader &packet, unsigned offset, unsigned count)
+{
+  void *dst = writePtr();
+  bool own_pointer = ownPointer();
+  unsigned res = _affordances->read(packet, &dst, &own_pointer, *this, offset, count);
+  _flags |= uint8_t(!!own_pointer * Flag::OwnPointer);
   _stream = dst;
   return res;
 }

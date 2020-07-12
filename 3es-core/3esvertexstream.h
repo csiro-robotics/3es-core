@@ -6,6 +6,7 @@
 
 #include "3es-core.h"
 
+#include "3escoreutil.h"
 #include "3esdebug.h"
 #include "3esmessages.h"
 #include "3espacketreader.h"
@@ -71,12 +72,14 @@ class _3es_coreAPI VertexStreamAffordances
 public:
   virtual ~VertexStreamAffordances();
 
-  virtual void release(const void **stream_ptr, bool *has_ownership) const = 0;
-  virtual void takeOwnership(const void **stream_ptr, bool *has_ownership, const VertexStream &stream) const = 0;
+  virtual void release(const void **stream_ptr, bool has_ownership) const = 0;
+  virtual void takeOwnership(const void **stream_ptr, bool has_ownership, const VertexStream &stream) const = 0;
   virtual uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                         const VertexStream &stream) const = 0;
+                         const VertexStream &stream, float quantisation_unit = 0.0) const = 0;
   virtual uint32_t read(PacketReader &packet, void **stream_ptr, bool *has_ownership,
                         const VertexStream &stream) const = 0;
+  virtual uint32_t read(PacketReader &packet, void **stream_ptr, bool *has_ownership, const VertexStream &stream,
+                        unsigned offset, unsigned count) const = 0;
 };
 
 template <typename T>
@@ -85,12 +88,14 @@ class _3es_coreAPI VertexStreamAffordancesT : public VertexStreamAffordances
 public:
   static VertexStreamAffordances *instance();
 
-  void release(const void **stream_ptr, bool *has_ownership) const override;
-  void takeOwnership(const void **stream_ptr, bool *has_ownership, const VertexStream &stream) const override;
-  uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                 const VertexStream &stream) const override;
+  void release(const void **stream_ptr, bool has_ownership) const override;
+  void takeOwnership(const void **stream_ptr, bool has_ownership, const VertexStream &stream) const override;
+  uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, const VertexStream &stream,
+                 float quantisation_unit = 0.0) const override;
   uint32_t read(PacketReader &packet, void **stream_ptr, bool *has_ownership,
                 const VertexStream &stream) const override;
+  uint32_t read(PacketReader &packet, void **stream_ptr, bool *has_ownership, const VertexStream &stream,
+                unsigned offset, unsigned count) const;
 
   template <typename WriteType>
   uint32_t writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
@@ -195,9 +200,10 @@ public:
   void set(const std::vector<Vector3f> &v);
   void set(const std::vector<Vector3d> &v);
 
-  VertexStream &operator=(VertexStream &&other);
+  template <typename T>
+  T get(size_t element_index, size_t component_index = 0) const;
 
-  VertexStream &operator=(const VertexStream &other);
+  VertexStream &operator=(VertexStream other);
 
   inline bool isValid() const { return _stream != nullptr; }
 
@@ -207,7 +213,8 @@ public:
   inline unsigned componentCount() const { return _componentCount; }
   inline unsigned elementStride() const { return _elementStride; }
 
-  inline bool ownPointer() const { return _ownPointer; }
+  inline bool ownPointer() const { return int(_flags & Flag::OwnPointer) != 0; }
+  inline bool writable() const { return int(_flags & Flag::Writable) != 0; }
   inline DataStreamType type() const { return _type; }
 
   void swap(VertexStream &other);
@@ -224,28 +231,43 @@ public:
   static uint16_t estimateTransferCount(size_t elementSize, unsigned overhead, unsigned byteLimit);
 
   unsigned write(PacketWriter &packet, uint32_t offset) const;
+  unsigned writePacked(PacketWriter &packet, uint32_t offset, float quantisation_unit) const;
 
+  /// Read : reading offset and count from the @p packet
   unsigned read(PacketReader &packet);
 
-private:
-  void *writePtr() { return (_ownPointer) ? const_cast<void *>(_stream) : nullptr; }
+  /// Read : skipping offset and count, with @p count given.
+  unsigned read(PacketReader &packet, unsigned offset, unsigned count);
 
-  const void *_stream;
-  unsigned _count;          ///< Number of vertices in the @p _stream .
-  uint8_t _componentCount;  ///< Number of data type component elements in each vertex. E.g., Vector3 has 3.
+  friend inline void swap(VertexStream &a, VertexStream &b) { a.swap(b); }
+
+private:
+  void *writePtr() { return (ownPointer()) ? const_cast<void *>(_stream) : nullptr; }
+
+  /// Flag values for @c _flags
+  enum Flag : uint8_t
+  {
+    Zero = 0,               ///< Zero value
+    OwnPointer = (1 << 0),  ///< Indicates this object owns the heap allocation for @c _stream
+    Writable = (1 << 1),    ///< Is writing to @c _stream allowed?
+  };
+
+  const void *_stream{ nullptr };
+  unsigned _count{ 0 };          ///< Number of vertices in the @p _stream .
+  uint8_t _componentCount{ 0 };  ///< Number of data type component elements in each vertex. E.g., Vector3 has 3.
   /// Number of data type elements between each vertex. For any densely packed array this value will match
   /// @c _componentCount . For alined, or interleaved arrays, this valid will be larger than @c _componentCount .
   ///
   /// For example, an array of 16 byte aligned @c float3 vertices will have a @c _componentCount of 3 and a
   /// @c _elementStride of 4.
-  uint8_t _elementStride;
+  uint8_t _elementStride{ 0 };
   /// Size of the basic @c _type stored in @c stream .
-  uint8_t _basicTypeSize;
-  DataStreamType _type;  ///< The simple data type for @c _stream
-  bool _ownPointer;      ///< Does this class own the @c _stream pointer?
+  uint8_t _basicTypeSize{ 0 };
+  DataStreamType _type{ DctNone };  ///< The simple data type for @c _stream
+  uint8_t _flags{ Flag::Zero };     ///< Does this class own the @c _stream pointer?
   /// Pointer to the implementation for various operations supported on a @c VertexStream . This is using a type
   /// erasure setup.
-  detail::VertexStreamAffordances *_affordances = nullptr;
+  detail::VertexStreamAffordances *_affordances{ nullptr };
 };
 
 /// Write a @c VertexStream to @p packet as a stream of @c DstType . Note this function requires knowing the concrete
