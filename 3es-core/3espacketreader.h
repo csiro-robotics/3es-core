@@ -21,6 +21,16 @@ public:
   /// Creates a new packet reader for the given packet and its CRC.
   PacketReader(const PacketHeader *packet);
 
+  /// Move constructor.
+  /// @param other Packet to move
+  PacketReader(PacketReader &&other);
+
+  PacketReader &operator=(PacketReader &&other);
+
+  void swap(PacketReader &other);
+
+  friend inline void swap(PacketReader &a, PacketReader &b) { a.swap(b); }
+
   /// Calculates the CRC value, returning true if it matches. This also sets
   /// @c isCrcValid() on success.
   ///
