@@ -379,7 +379,6 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
   {
     closeDangling(dangling);
     o << indent2 << "\"indices\" : [";
-    unsigned indexWidth = 0;
     VertexStream indices = mesh.indices();
 
     for (unsigned i = 0; i < indices.count(); ++i)

@@ -30,7 +30,7 @@ inline VertexStream::VertexStream(const T *v, size_t count, size_t componentCoun
 
 
 inline VertexStream::VertexStream(const Vector3f *v, size_t count)
-  : _stream(&v->x)
+  : _stream(v ? &v->x : nullptr)
   , _count(int_cast<unsigned>(count))
   , _componentCount(3)
   , _elementStride(int_cast<uint8_t>(sizeof(Vector3f) / sizeof(float)))
@@ -42,7 +42,7 @@ inline VertexStream::VertexStream(const Vector3f *v, size_t count)
 
 
 inline VertexStream::VertexStream(const Vector3d *v, size_t count)
-  : _stream(&v->x)
+  : _stream(v ? &v->x : nullptr)
   , _count(int_cast<unsigned>(count))
   , _componentCount(3)
   , _elementStride(int_cast<uint8_t>(sizeof(Vector3d) / sizeof(double)))
@@ -53,9 +53,22 @@ inline VertexStream::VertexStream(const Vector3d *v, size_t count)
 {}
 
 
+inline VertexStream::VertexStream(const Colour *c, size_t count)
+  : _stream(c ? &c->c : nullptr)
+  , _count(int_cast<unsigned>(count))
+  , _componentCount(3)
+  , _elementStride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint32_t)))
+  , _basicTypeSize(int_cast<uint8_t>(sizeof(Colour)))
+  , _type(VertexStreamTypeInfo<uint32_t>::type())
+  , _flags(0)
+  , _affordances(detail::VertexStreamAffordancesT<uint32_t>::instance())
+{}
+
+
 template <typename T>
 inline VertexStream::VertexStream(const std::vector<T> &v, size_t componentCount, size_t componentStride)
   : _stream(v.data())
+  , _count(int_cast<unsigned>(v.size() / (componentStride ? componentStride : componentCount)))
   , _componentCount(int_cast<uint8_t>(componentCount))
   , _elementStride(int_cast<uint8_t>(componentStride ? componentStride : componentCount))
   , _basicTypeSize(int_cast<uint8_t>(VertexStreamTypeInfo<T>::size()))
@@ -66,6 +79,7 @@ inline VertexStream::VertexStream(const std::vector<T> &v, size_t componentCount
 
 inline VertexStream::VertexStream(const std::vector<Vector3f> &v)
   : _stream(v.data()->v)
+  , _count(int_cast<unsigned>(v.size()))
   , _componentCount(3)
   , _elementStride(int_cast<uint8_t>(sizeof(Vector3f) / sizeof(float)))
   , _basicTypeSize(int_cast<uint8_t>(VertexStreamTypeInfo<float>::size()))
@@ -83,6 +97,17 @@ inline VertexStream::VertexStream(const std::vector<Vector3d> &v)
   , _type(DctFloat64)
   , _flags(0)
   , _affordances(detail::VertexStreamAffordancesT<double>::instance())
+{}
+
+inline VertexStream::VertexStream(const std::vector<Colour> &c)
+  : _stream(&c.data()->c)
+  , _count(int_cast<unsigned>(c.size()))
+  , _componentCount(3)
+  , _elementStride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint32_t)))
+  , _basicTypeSize(int_cast<uint8_t>(VertexStreamTypeInfo<uint32_t>::size()))
+  , _type(DctUInt32)
+  , _flags(0)
+  , _affordances(detail::VertexStreamAffordancesT<uint32_t>::instance())
 {}
 
 inline VertexStream::VertexStream(VertexStream &&other)
@@ -133,10 +158,18 @@ inline void VertexStream::set(const std::vector<Vector3d> &v)
   *this = std::move(VertexStream(v));
 }
 
+inline void VertexStream::set(const std::vector<Colour> &c)
+{
+  *this = std::move(VertexStream(c));
+}
+
 template <typename T>
 inline T VertexStream::get(size_t element_index, size_t component_index) const
 {
-  throw Exception("<NYI> VertexStream::get()");
+  T datum{ 0 };
+  _affordances->get(&datum, VertexStreamTypeInfo<T>::type(), element_index, component_index, _stream, _count,
+                    _componentCount, _elementStride);
+  return datum;
 }
 
 inline void VertexStream::swap(VertexStream &other)
@@ -228,41 +261,45 @@ void VertexStreamAffordancesT<T>::takeOwnership(const void **stream_ptr, bool ha
 
 template <typename T>
 uint32_t VertexStreamAffordancesT<T>::write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                                            const VertexStream &stream, float quantisation_unit) const
+                                            unsigned byteLimit, const VertexStream &stream,
+                                            float quantisation_unit) const
 {
-  throw tes::Exception("NYI");
-  //   switch (write_as_type)
-  //   {
-  //   case DctInt8:
-  //     return writeAs<int8_t>(packet, offset, write_as_type, stream);
-  //   case DctUInt8:
-  //     return writeAs<uint8_t>(packet, offset, write_as_type, stream);
-  //   case DctInt16:
-  //     return writeAs<int16_t>(packet, offset, write_as_type, stream);
-  //   case DctUInt16:
-  //     return writeAs<uint16_t>(packet, offset, write_as_type, stream);
-  //   case DctInt32:
-  //     return writeAs<int32_t>(packet, offset, write_as_type, stream);
-  //   case DctUInt32:
-  //     return writeAs<uint32_t>(packet, offset, write_as_type, stream);
-  //   case DctFloat32:
-  //     return writeAs<float>(packet, offset, write_as_type, stream);
-  //   case DctFloat64:
-  //     return writeAs<double>(packet, offset, write_as_type, stream);
-  //   case DctPackedFloat16:
-  //     return writeAsPacked<float, int16_t>(packet, offset, write_as_type, nullptr, quantisation_unit, stream);
-  //   case DctPackedFloat32:
-  //     return writeAsPacked<double, int32_t>(packet, offset, write_as_type, nullptr, quantisation_unit, stream);
-  //   default:
-  //     // Throw?
-  //     return 0;
-  //   }
+  switch (write_as_type)
+  {
+  case DctInt8:
+    return writeAs<int8_t>(packet, offset, write_as_type, byteLimit, stream);
+  case DctUInt8:
+    return writeAs<uint8_t>(packet, offset, write_as_type, byteLimit, stream);
+  case DctInt16:
+    return writeAs<int16_t>(packet, offset, write_as_type, byteLimit, stream);
+  case DctUInt16:
+    return writeAs<uint16_t>(packet, offset, write_as_type, byteLimit, stream);
+  case DctInt32:
+    return writeAs<int32_t>(packet, offset, write_as_type, byteLimit, stream);
+  case DctUInt32:
+    return writeAs<uint32_t>(packet, offset, write_as_type, byteLimit, stream);
+  case DctInt64:
+    return writeAs<int64_t>(packet, offset, write_as_type, byteLimit, stream);
+  case DctUInt64:
+    return writeAs<uint64_t>(packet, offset, write_as_type, byteLimit, stream);
+  case DctFloat32:
+    return writeAs<float>(packet, offset, write_as_type, byteLimit, stream);
+  case DctFloat64:
+    return writeAs<double>(packet, offset, write_as_type, byteLimit, stream);
+  case DctPackedFloat16:
+    return writeAsPacked<float, int16_t>(packet, offset, write_as_type, byteLimit, nullptr, quantisation_unit, stream);
+  case DctPackedFloat32:
+    return writeAsPacked<double, int32_t>(packet, offset, write_as_type, byteLimit, nullptr, quantisation_unit, stream);
+  default:
+    // Throw?
+    return 0;
+  }
 }
 
 template <typename T>
 template <typename WriteType>
 uint32_t VertexStreamAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                                              const VertexStream &stream) const
+                                              unsigned byteLimit, const VertexStream &stream) const
 {
   const unsigned itemSize = unsigned(sizeof(WriteType)) * stream.componentCount();
 
@@ -276,8 +313,8 @@ uint32_t VertexStreamAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t off
                             sizeof(uint8_t) +   // element stride
                             sizeof(uint8_t);    // data type;
 
-  uint16_t transferCount =
-    VertexStream::estimateTransferCount(itemSize, overhead + packet.tell(), packet.bytesRemaining());
+  byteLimit = (byteLimit) ? (byteLimit > overhead ? byteLimit - overhead : 0) : packet.bytesRemaining();
+  uint16_t transferCount = VertexStream::estimateTransferCount(itemSize, overhead, byteLimit);
   if (transferCount > stream.count() - offset)
   {
     transferCount = uint16_t(stream.count() - offset);
@@ -303,7 +340,8 @@ uint32_t VertexStreamAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t off
     // We can write the array directly if the T/WriteType types match and the source array is densely packed (element
     // stride matches component count).
     writeCount +=
-      unsigned(packet.writeArray(reinterpret_cast<const WriteType *>(src), transferCount * stream.componentCount()));
+      unsigned(packet.writeArray(reinterpret_cast<const WriteType *>(src), transferCount * stream.componentCount())) /
+      stream.componentCount();
   }
   else
   {
@@ -331,8 +369,8 @@ uint32_t VertexStreamAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t off
 template <typename T>
 template <typename FloatType, typename PackedType>
 uint32_t VertexStreamAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                                                    const FloatType *packingOrigin, const float quantisationUnit,
-                                                    const VertexStream &stream) const
+                                                    unsigned byteLimit, const FloatType *packingOrigin,
+                                                    const float quantisationUnit, const VertexStream &stream) const
 {
   // packingOrigin is used to define the packing origin. That is, items are packed releative to this.
   // quantisationUnit is the divisor used to quantise data.
@@ -355,8 +393,8 @@ uint32_t VertexStreamAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32
                                                sizeof(quantisationUnit) +                     // quantisationUnit
                                                sizeof(FloatType) * stream.componentCount());  // packingOrigin
 
-  uint16_t transferCount =
-    VertexStream::estimateTransferCount(itemSize, overhead + packet.tell(), packet.bytesRemaining());
+  byteLimit = (byteLimit) ? byteLimit : packet.bytesRemaining();
+  uint16_t transferCount = VertexStream::estimateTransferCount(itemSize, overhead, byteLimit);
   if (transferCount > stream.count() - offset)
   {
     transferCount = uint16_t(stream.count() - offset);
@@ -373,7 +411,8 @@ uint32_t VertexStreamAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32
   ok = packet.writeElement(uint16_t(transferCount)) == sizeof(uint16_t) && ok;
   ok = packet.writeElement(uint8_t(stream.componentCount())) == sizeof(uint8_t) && ok;
   ok = packet.writeElement(uint8_t(write_as_type)) == sizeof(uint8_t) && ok;
-  ok = packet.writeElement(quantisationUnit) == sizeof(quantisationUnit) && ok;
+  const FloatType qUnit{ quantisationUnit };  // quantisationUnit given as float, but pack as the target type.
+  ok = packet.writeElement(qUnit) == sizeof(qUnit) && ok;
 
   if (packingOrigin)
   {
@@ -392,7 +431,8 @@ uint32_t VertexStreamAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32
   unsigned writeCount = 0;
 
   const FloatType quantisationFactor = FloatType{ 1 } / FloatType{ quantisationUnit };
-  for (unsigned i = 0; transferCount; ++i)
+  bool itemOk = true;
+  for (unsigned i = 0; i < transferCount; ++i)
   {
     for (unsigned j = 0; j < stream.componentCount(); ++j)
     {
@@ -408,8 +448,9 @@ uint32_t VertexStreamAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32
         // Failed: quantisation limit reached.
         return 0;
       }
-      writeCount += int_cast<unsigned>(packet.writeElement(packed) / sizeof(packed));
+      itemOk = itemOk && packet.writeElement(packed) == sizeof(packed);
     }
+    writeCount += !!itemOk;
     src += stream.elementStride();
   }
 
@@ -423,8 +464,8 @@ uint32_t VertexStreamAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32
 }
 
 template <typename T>
-uint32_t VertexStreamAffordancesT<T>::read(PacketReader &packet, void **stream_ptr, bool *has_ownership,
-                                           const VertexStream &stream) const
+uint32_t VertexStreamAffordancesT<T>::read(PacketReader &packet, void **stream_ptr, unsigned *stream_size,
+                                           bool *has_ownership, const VertexStream &stream) const
 {
   TES_UNUSED(stream);
   uint32_t offset;
@@ -439,12 +480,13 @@ uint32_t VertexStreamAffordancesT<T>::read(PacketReader &packet, void **stream_p
     return 0;
   }
 
-  return read(packet, stream_ptr, has_ownership, stream, offset, count);
+  return read(packet, stream_ptr, stream_size, has_ownership, stream, offset, count);
 }
 
 template <typename T>
-uint32_t VertexStreamAffordancesT<T>::read(PacketReader &packet, void **stream_ptr, bool *has_ownership,
-                                           const VertexStream &stream, unsigned offset, unsigned count) const
+uint32_t VertexStreamAffordancesT<T>::read(PacketReader &packet, void **stream_ptr, unsigned *stream_size,
+                                           bool *has_ownership, const VertexStream &stream, unsigned offset,
+                                           unsigned count) const
 {
   TES_UNUSED(stream);
   bool ok = true;
@@ -458,9 +500,22 @@ uint32_t VertexStreamAffordancesT<T>::read(PacketReader &packet, void **stream_p
     return 0;
   }
 
-  if (*stream_ptr == nullptr || !*has_ownership)
+  T *new_ptr = nullptr;
+  if (*stream_ptr == nullptr || !*has_ownership || *stream_size < (offset + count))
   {
-    *stream_ptr = new T[(offset + count) * componentCount];
+    // Current stream too small. Reallocate.
+    new_ptr = new T[(offset + count) * componentCount];
+  }
+
+  if (new_ptr)
+  {
+    if (*stream_ptr)
+    {
+      std::copy(static_cast<const T *>(*stream_ptr),
+                static_cast<const T *>(*stream_ptr) + (offset + count) * componentCount, new_ptr);
+    }
+    *stream_ptr = new_ptr;
+    *stream_size = offset + count;
     *has_ownership = true;
   }
 
@@ -478,6 +533,10 @@ uint32_t VertexStreamAffordancesT<T>::read(PacketReader &packet, void **stream_p
     return readAs<int32_t>(packet, offset, count, componentCount, stream_ptr);
   case DctUInt32:
     return readAs<uint32_t>(packet, offset, count, componentCount, stream_ptr);
+  case DctInt64:
+    return readAs<int64_t>(packet, offset, count, componentCount, stream_ptr);
+  case DctUInt64:
+    return readAs<uint64_t>(packet, offset, count, componentCount, stream_ptr);
   case DctFloat32:
     return readAs<float>(packet, offset, count, componentCount, stream_ptr);
   case DctFloat64:
@@ -493,13 +552,60 @@ uint32_t VertexStreamAffordancesT<T>::read(PacketReader &packet, void **stream_p
 }
 
 template <typename T>
+bool VertexStreamAffordancesT<T>::get(void *dst, DataStreamType as_type, size_t element_index, size_t component_index,
+                                      const void *stream, size_t element_count, size_t component_count,
+                                      size_t element_stride) const
+{
+  if (element_index >= element_count || element_index == element_count && component_index >= component_count)
+  {
+    return false;
+  }
+
+  const T *src = static_cast<const T *>(stream);
+  switch (as_type)
+  {
+  case DctInt8:
+    *static_cast<int8_t *>(dst) = int8_t(src[element_index * element_stride + component_index]);
+    break;
+  case DctUInt8:
+    *static_cast<uint8_t *>(dst) = uint8_t(src[element_index * element_stride + component_index]);
+    break;
+  case DctInt16:
+    *static_cast<int16_t *>(dst) = int16_t(src[element_index * element_stride + component_index]);
+    break;
+  case DctUInt16:
+    *static_cast<uint16_t *>(dst) = uint16_t(src[element_index * element_stride + component_index]);
+    break;
+  case DctInt32:
+    *static_cast<int32_t *>(dst) = int32_t(src[element_index * element_stride + component_index]);
+    break;
+  case DctUInt32:
+    *static_cast<uint32_t *>(dst) = uint32_t(src[element_index * element_stride + component_index]);
+    break;
+  case DctInt64:
+    *static_cast<int64_t *>(dst) = int64_t(src[element_index * element_stride + component_index]);
+    break;
+  case DctUInt64:
+    *static_cast<uint64_t *>(dst) = uint64_t(src[element_index * element_stride + component_index]);
+    break;
+  case DctFloat32:
+    *static_cast<float *>(dst) = float(src[element_index * element_stride + component_index]);
+    break;
+  case DctFloat64:
+    *static_cast<double *>(dst) = double(src[element_index * element_stride + component_index]);
+    break;
+  default:
+    TES_THROW(Exception("Unsupported vertex stream read type"), false);
+  }
+
+  return true;
+}
+
+template <typename T>
 template <typename ReadType>
 uint32_t VertexStreamAffordancesT<T>::readAs(PacketReader &packet, unsigned offset, unsigned count,
                                              unsigned componentCount, void **stream_ptr) const
 {
-#if 1
-  throw tes::Exception("NYI");
-#else   // #
   T *dst = static_cast<T *>(*stream_ptr);
   dst += offset * componentCount;
 
@@ -518,7 +624,6 @@ uint32_t VertexStreamAffordancesT<T>::readAs(PacketReader &packet, unsigned offs
   }
 
   return count;
-#endif  // #
 }
 
 template <typename T>
@@ -526,16 +631,13 @@ template <typename FloatType, typename ReadType>
 uint32_t VertexStreamAffordancesT<T>::readAsPacked(PacketReader &packet, unsigned offset, unsigned count,
                                                    unsigned componentCount, void **stream_ptr) const
 {
-#if 1
-  throw tes::Exception("NYI");
-#else   // #
   // First read the packing origin.
   std::unique_ptr<FloatType[]> origin = std::make_unique<FloatType[]>(componentCount);
   // std::vector<FloatType> origin(componentCount);
 
   bool ok = true;
-  FloatType qunatisationUnit = 1;
-  ok = packet.readElement(qunatisationUnit) == sizeof(qunatisationUnit) && ok;
+  FloatType quantisationUnit = 1;
+  ok = packet.readElement(quantisationUnit) == sizeof(quantisationUnit) && ok;
   ok = packet.readArray(origin.get(), componentCount) == componentCount && ok;
 
   if (!ok)
@@ -555,13 +657,12 @@ uint32_t VertexStreamAffordancesT<T>::readAsPacked(PacketReader &packet, unsigne
       {
         return 0;
       }
-      dst[j] = static_cast<T>(readValue * qunatisationUnit + origin[j]);
+      dst[j] = static_cast<T>(readValue * quantisationUnit + origin[j]);
     }
     dst += componentCount;
   }
 
   return count;
-#endif  // #
 }
 }  // namespace detail
 }  // namespace tes

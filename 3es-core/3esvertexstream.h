@@ -6,6 +6,7 @@
 
 #include "3es-core.h"
 
+#include "3escolour.h"
 #include "3escoreutil.h"
 #include "3esdebug.h"
 #include "3esmessages.h"
@@ -13,6 +14,7 @@
 #include "3espacketwriter.h"
 #include "3esvector3.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <memory>
 #include <utility>
@@ -46,6 +48,8 @@ STREAM_TYPE_INFO(int16_t, DctInt16);
 STREAM_TYPE_INFO(uint16_t, DctUInt16);
 STREAM_TYPE_INFO(int32_t, DctInt32);
 STREAM_TYPE_INFO(uint32_t, DctUInt32);
+STREAM_TYPE_INFO(int64_t, DctInt64);
+STREAM_TYPE_INFO(uint64_t, DctUInt64);
 STREAM_TYPE_INFO(float, DctFloat32);
 STREAM_TYPE_INFO(double, DctFloat64);
 
@@ -74,12 +78,14 @@ public:
 
   virtual void release(const void **stream_ptr, bool has_ownership) const = 0;
   virtual void takeOwnership(const void **stream_ptr, bool has_ownership, const VertexStream &stream) const = 0;
-  virtual uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+  virtual uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
                          const VertexStream &stream, float quantisation_unit = 0.0) const = 0;
-  virtual uint32_t read(PacketReader &packet, void **stream_ptr, bool *has_ownership,
+  virtual uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
                         const VertexStream &stream) const = 0;
-  virtual uint32_t read(PacketReader &packet, void **stream_ptr, bool *has_ownership, const VertexStream &stream,
-                        unsigned offset, unsigned count) const = 0;
+  virtual uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
+                        const VertexStream &stream, unsigned offset, unsigned count) const = 0;
+  virtual bool get(void *dst, DataStreamType as_type, size_t element_index, size_t component_index, const void *stream,
+                   size_t element_count, size_t component_count, size_t element_stride) const = 0;
 };
 
 template <typename T>
@@ -90,19 +96,22 @@ public:
 
   void release(const void **stream_ptr, bool has_ownership) const override;
   void takeOwnership(const void **stream_ptr, bool has_ownership, const VertexStream &stream) const override;
-  uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, const VertexStream &stream,
-                 float quantisation_unit = 0.0) const override;
-  uint32_t read(PacketReader &packet, void **stream_ptr, bool *has_ownership,
+  uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
+                 const VertexStream &stream, float quantisation_unit = 0.0) const override;
+  uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
                 const VertexStream &stream) const override;
-  uint32_t read(PacketReader &packet, void **stream_ptr, bool *has_ownership, const VertexStream &stream,
-                unsigned offset, unsigned count) const;
+  uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
+                const VertexStream &stream, unsigned offset, unsigned count) const;
+
+  bool get(void *dst, DataStreamType as_type, size_t element_index, size_t component_index, const void *stream,
+           size_t element_count, size_t component_count, size_t element_stride) const override;
 
   template <typename WriteType>
-  uint32_t writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+  uint32_t writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
                    const VertexStream &stream) const;
 
   template <typename FloatType, typename PackedType>
-  uint32_t writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+  uint32_t writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
                          const FloatType *packingOrigin, const float quantisationUnit,
                          const VertexStream &stream) const;
 
@@ -122,6 +131,8 @@ extern template class _3es_coreAPI VertexStreamAffordancesT<int16_t>;
 extern template class _3es_coreAPI VertexStreamAffordancesT<uint16_t>;
 extern template class _3es_coreAPI VertexStreamAffordancesT<int32_t>;
 extern template class _3es_coreAPI VertexStreamAffordancesT<uint32_t>;
+extern template class _3es_coreAPI VertexStreamAffordancesT<int64_t>;
+extern template class _3es_coreAPI VertexStreamAffordancesT<uint64_t>;
 extern template class _3es_coreAPI VertexStreamAffordancesT<float>;
 extern template class _3es_coreAPI VertexStreamAffordancesT<double>;
 }  // namespace detail
@@ -176,12 +187,16 @@ public:
 
   VertexStream(const Vector3d *v, size_t count);
 
+  VertexStream(const Colour *c, size_t count);
+
   template <typename T>
   VertexStream(const std::vector<T> &v, size_t componentCount = 1, size_t componentStride = 0);
 
   VertexStream(const std::vector<Vector3f> &v);
 
   VertexStream(const std::vector<Vector3d> &v);
+
+  VertexStream(const std::vector<Colour> &v);
 
   VertexStream(VertexStream &&other);
 
@@ -199,9 +214,13 @@ public:
 
   void set(const std::vector<Vector3f> &v);
   void set(const std::vector<Vector3d> &v);
+  void set(const std::vector<Colour> &v);
 
   template <typename T>
   T get(size_t element_index, size_t component_index = 0) const;
+
+  // template <typename T>
+  // bool get(T *dst, size_t element_index, size_t component_index = 0) const;
 
   VertexStream &operator=(VertexStream other);
 
@@ -230,8 +249,8 @@ public:
 
   static uint16_t estimateTransferCount(size_t elementSize, unsigned overhead, unsigned byteLimit);
 
-  unsigned write(PacketWriter &packet, uint32_t offset) const;
-  unsigned writePacked(PacketWriter &packet, uint32_t offset, float quantisation_unit) const;
+  unsigned write(PacketWriter &packet, uint32_t offset, unsigned byteLimit = 0) const;
+  unsigned writePacked(PacketWriter &packet, uint32_t offset, float quantisation_unit, unsigned byteLimit = 0) const;
 
   /// Read : reading offset and count from the @p packet
   unsigned read(PacketReader &packet);

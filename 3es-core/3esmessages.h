@@ -176,14 +176,16 @@ enum ControlFlag
 enum DataStreamType
 {
   DctNone,    ///< No type: invalid.
-  DctInt8,    ///< Elements packed using 8-bit signed integers.
-  DctUInt8,   ///< Elements packed using 8-bit unsigned integers.
-  DctInt16,   ///< Elements packed using 16-bit signed integers.
-  DctUInt16,  ///< Elements packed using 16-bit unsigned integers.
-  DctInt32,   ///< Elements packed using 32-bit signed integers.
-  DctUInt32,  ///< Elements packed using 32-bit unsigned integers.
-  DctFloat32, ///< Elements packed using single precision floating point values.
-  DctFloat64, ///< Elements packed using double precision floating point values.
+  DctInt8,    ///< Elements using 8-bit signed integers.
+  DctUInt8,   ///< Elements using 8-bit unsigned integers.
+  DctInt16,   ///< Elements using 16-bit signed integers.
+  DctUInt16,  ///< Elements using 16-bit unsigned integers.
+  DctInt32,   ///< Elements using 32-bit signed integers.
+  DctUInt32,  ///< Elements using 32-bit unsigned integers.
+  DctInt64,   ///< Elements using 64-bit signed integers.
+  DctUInt64,  ///< Elements using 64-bit unsigned integers.
+  DctFloat32, ///< Elements using single precision floating point values.
+  DctFloat64, ///< Elements using double precision floating point values.
   /// Elements packed using 16-bit signed integers used to quantise single precision floating point values.
   /// The quantisation scale factor immeidately preceeds the data array as a 32-bit floating point value.
   DctPackedFloat16,

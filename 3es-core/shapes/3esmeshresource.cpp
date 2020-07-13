@@ -172,7 +172,6 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
   }
 
   VertexStream dataSource;
-  uint32_t targetCount = 0;
   unsigned writeCount = 0;
   switch (progress.phase)
   {
@@ -222,6 +221,8 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     case DctUInt16:
     case DctInt32:
     case DctUInt32:
+    case DctInt64:
+    case DctUInt64:
       break;
     default:
       TES_THROW(Exception("Bad index type", __FILE__, __LINE__), -1);
@@ -289,7 +290,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
 
   if (dataSource.isValid())
   {
-    writeCount = dataSource.write(packet, uint32_t(progress.progress));
+    writeCount = dataSource.write(packet, uint32_t(progress.progress), byteLimit);
 
     if (writeCount == 0 && dataSource.count() > 0)
     {
@@ -343,7 +344,7 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
   switch (messageType)
   {
   case MmtVertex: {
-    readStream = VertexStream(static_cast<Vector3d *>(nullptr), 0, 3);
+    readStream = VertexStream(static_cast<Vector3d *>(nullptr), 0);
     // Read the expected number of items.
     readStream.read(packet, offset, count);
     ok = processVertices(msg, readStream) && ok;
@@ -364,14 +365,14 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
     break;
   }
   case MmtNormal: {
-    readStream = VertexStream(static_cast<Vector3d *>(nullptr), 0, 3);
+    readStream = VertexStream(static_cast<Vector3d *>(nullptr), 0);
     // Read the expected number of items.
     readStream.read(packet, offset, count);
     ok = processNormals(msg, readStream) && ok;
     break;
   }
   case MmtUv: {
-    readStream = VertexStream(static_cast<Vector3d *>(nullptr), 0, 2);
+    readStream = VertexStream(static_cast<double *>(nullptr), 0, 2);
     // Read the expected number of items.
     readStream.read(packet, offset, count);
     ok = processUVs(msg, readStream) && ok;

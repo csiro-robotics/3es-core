@@ -328,7 +328,7 @@ unsigned SimpleMesh::setVertices(size_t at, const Vector3f *v, size_t count)
 {
   copyOnWrite();
   unsigned set = 0;
-  for (unsigned i = at; i < at + count && i < _imp->vertices.size(); ++i)
+  for (size_t i = at; i < at + count && i < _imp->vertices.size(); ++i)
   {
     _imp->vertices[i] = v[i - at];
     ++set;
@@ -403,7 +403,7 @@ unsigned SimpleMesh::setIndices(size_t at, const uint32_t *idx, size_t count)
 {
   copyOnWrite();
   unsigned set = 0;
-  for (unsigned i = at; i < at + count && i < _imp->indices.size(); ++i)
+  for (size_t i = at; i < at + count && i < _imp->indices.size(); ++i)
   {
     _imp->indices[i] = idx[set++];
   }
@@ -436,7 +436,7 @@ unsigned SimpleMesh::setNormals(size_t at, const Vector3f *n, size_t count)
     _imp->normals.resize(_imp->vertices.size());
     _imp->components |= Normal;
   }
-  for (unsigned i = at; i < at + count && i < _imp->normals.size(); ++i)
+  for (size_t i = at; i < at + count && i < _imp->normals.size(); ++i)
   {
     _imp->normals[i] = n[set++];
   }
@@ -470,7 +470,7 @@ unsigned SimpleMesh::setColours(size_t at, const uint32_t *c, size_t count)
     _imp->components |= Colour;
   }
 
-  for (unsigned i = at; i < at + count && i < _imp->colours.size(); ++i)
+  for (size_t i = at; i < at + count && i < _imp->colours.size(); ++i)
   {
     _imp->colours[i] = c[i - at];
     ++set;
@@ -504,7 +504,7 @@ unsigned SimpleMesh::setUvs(size_t at, const float *uvs, size_t count)
     _imp->uvs.resize(_imp->vertices.size());
     _imp->components |= Uv;
   }
-  for (unsigned i = at; i < at + count && i < _imp->uvs.size(); ++i)
+  for (size_t i = at; i < at + count && i < _imp->uvs.size(); ++i)
   {
     const UV uv = { uvs[(i - at) * 2 + 0], uvs[(i - at) * 2 + 1] };
     _imp->uvs[i] = uv;
@@ -528,7 +528,7 @@ VertexStream SimpleMesh::uvs(int stream) const
 {
   if (stream == 0 && (_imp->components & Uv) && !_imp->uvs.empty())
   {
-    return VertexStream(_imp->uvs);
+    return VertexStream(&_imp->uvs.data()->u, _imp->uvs.size(), 2);
   }
   return VertexStream();
 }

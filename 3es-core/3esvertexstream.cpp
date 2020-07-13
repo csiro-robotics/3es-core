@@ -20,6 +20,8 @@ template class VertexStreamAffordancesT<int16_t>;
 template class VertexStreamAffordancesT<uint16_t>;
 template class VertexStreamAffordancesT<int32_t>;
 template class VertexStreamAffordancesT<uint32_t>;
+template class VertexStreamAffordancesT<int64_t>;
+template class VertexStreamAffordancesT<uint64_t>;
 template class VertexStreamAffordancesT<float>;
 template class VertexStreamAffordancesT<double>;
 }  // namespace tes::detail
@@ -46,13 +48,14 @@ void VertexStream::duplicate()
 }
 
 
-unsigned VertexStream::write(PacketWriter &packet, uint32_t offset) const
+unsigned VertexStream::write(PacketWriter &packet, uint32_t offset, unsigned byteLimit) const
 {
-  return _affordances->write(packet, offset, type(), *this);
+  return _affordances->write(packet, offset, type(), byteLimit, *this);
 }
 
 
-unsigned VertexStream::writePacked(PacketWriter &packet, uint32_t offset, float quantisation_unit) const
+unsigned VertexStream::writePacked(PacketWriter &packet, uint32_t offset, float quantisation_unit,
+                                   unsigned byteLimit) const
 {
   DataStreamType packed_type = type();
   switch (packed_type)
@@ -66,7 +69,7 @@ unsigned VertexStream::writePacked(PacketWriter &packet, uint32_t offset, float 
   default:
     break;
   }
-  return _affordances->write(packet, offset, packed_type, *this, quantisation_unit);
+  return _affordances->write(packet, offset, packed_type, byteLimit, *this, quantisation_unit);
 }
 
 
@@ -74,7 +77,12 @@ unsigned VertexStream::read(PacketReader &packet)
 {
   void *dst = writePtr();
   bool own_pointer = ownPointer();
-  unsigned res = _affordances->read(packet, &dst, &own_pointer, *this);
+  unsigned res = _affordances->read(packet, &dst, &_count, &own_pointer, *this);
+  if (_stream != dst)
+  {
+    // If we reallocated, then we will have allocated more compactly.
+    _elementStride = _componentCount;
+  }
   _flags |= uint8_t(!!own_pointer * Flag::OwnPointer);
   _stream = dst;
   return res;
@@ -85,7 +93,12 @@ unsigned VertexStream::read(PacketReader &packet, unsigned offset, unsigned coun
 {
   void *dst = writePtr();
   bool own_pointer = ownPointer();
-  unsigned res = _affordances->read(packet, &dst, &own_pointer, *this, offset, count);
+  unsigned res = _affordances->read(packet, &dst, &_count, &own_pointer, *this, offset, count);
+  if (_stream != dst)
+  {
+    // If we reallocated, then we will have allocated more compactly.
+    _elementStride = _componentCount;
+  }
   _flags |= uint8_t(!!own_pointer * Flag::OwnPointer);
   _stream = dst;
   return res;
