@@ -57,8 +57,8 @@ list(APPEND PUBLIC_HEADERS
   3esvector3.h
   3esvector4.h
   3esvectorhash.h
-  3esvertexstream.h
-  3esvertexstream.inl
+  3esvertexbuffer.h
+  3esvertexbuffer.inl
 )
 
 list(APPEND PUBLIC_SHAPE_HEADERS
@@ -127,7 +127,7 @@ list(APPEND SOURCES
   3estransform.cpp
   3esvector3.cpp
   3esvector4.cpp
-  3esvertexstream.cpp
+  3esvertexbuffer.cpp
 
   shapes/3esarrow.cpp
   shapes/3escapsule.cpp

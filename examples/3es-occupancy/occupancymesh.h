@@ -44,11 +44,11 @@ public:
   unsigned vertexCount(int stream) const override;
   unsigned indexCount(int stream) const override;
 
-  tes::VertexStream vertices(int stream) const override;
-  tes::VertexStream indices(int stream) const override;
-  tes::VertexStream normals(int stream) const override;
-  tes::VertexStream uvs(int stream) const override;
-  tes::VertexStream colours(int stream) const override;
+  tes::VertexBuffer vertices(int stream) const override;
+  tes::VertexBuffer indices(int stream) const override;
+  tes::VertexBuffer normals(int stream) const override;
+  tes::VertexBuffer uvs(int stream) const override;
+  tes::VertexBuffer colours(int stream) const override;
 
   tes::Resource *clone() const override;
 

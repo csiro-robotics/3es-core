@@ -149,7 +149,7 @@ void renderVoxels(const UnorderedKeySet &keys, const octomap::OcTree &map, const
 
     // Render slightly smaller than the actual voxel size.
     TES_VOXELS(g_tesServer, colour, 0.95f * float(map.getResolution()), tes::ShapeId(0u, category),
-               tes::VertexStream(centres));
+               tes::VertexBuffer(centres));
   }
 }
 #endif  // TES_ENABLE
@@ -315,7 +315,7 @@ int populateMap(const Options &opt)
       // Draw sample lines.
       if (opt.rays & Rays_Lines)
       {
-        TES_LINES(g_tesServer, TES_COLOUR(DarkOrange), tes::ShapeId(0u, CAT_Rays), tes::VertexStream(rays));
+        TES_LINES(g_tesServer, TES_COLOUR(DarkOrange), tes::ShapeId(0u, CAT_Rays), tes::VertexBuffer(rays));
       }
       rays.clear();
       // Render touched voxels in bulk.
@@ -329,7 +329,7 @@ int populateMap(const Options &opt)
       }
       if (opt.samples)
       {
-        TES_POINTS(g_tesServer, TES_COLOUR(Orange), tes::ShapeId(0u, CAT_OccupiedCells), tes::VertexStream(samples));
+        TES_POINTS(g_tesServer, TES_COLOUR(Orange), tes::ShapeId(0u, CAT_OccupiedCells), tes::VertexBuffer(samples));
       }
       samples.clear();
       // TES_SERVER_UPDATE(g_tesServer, 0.0f);

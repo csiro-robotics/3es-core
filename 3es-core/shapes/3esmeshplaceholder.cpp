@@ -52,38 +52,38 @@ unsigned MeshPlaceholder::indexCount(int /* stream */) const
 }
 
 
-VertexStream MeshPlaceholder::vertices(int stream) const
+VertexBuffer MeshPlaceholder::vertices(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexStream();
+  return VertexBuffer();
 }
 
 
-VertexStream MeshPlaceholder::indices(int stream) const
+VertexBuffer MeshPlaceholder::indices(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexStream();
+  return VertexBuffer();
 }
 
 
-VertexStream MeshPlaceholder::normals(int stream) const
+VertexBuffer MeshPlaceholder::normals(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexStream();
+  return VertexBuffer();
 }
 
 
-VertexStream MeshPlaceholder::uvs(int stream) const
+VertexBuffer MeshPlaceholder::uvs(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexStream();
+  return VertexBuffer();
 }
 
 
-VertexStream MeshPlaceholder::colours(int stream) const
+VertexBuffer MeshPlaceholder::colours(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexStream();
+  return VertexBuffer();
 }
 
 

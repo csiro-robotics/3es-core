@@ -171,8 +171,8 @@ enum ControlFlag
   CFFramePersist = (1 << 0),
 };
 
-/// Data type identifies for any data stream type. Also used in @c VertexStream to identify the contained data type.
-/// Note the packed types are not valid to be held in a @c VertexStream and are only used in transmission.
+/// Data type identifies for any data stream type. Also used in @c VertexBuffer to identify the contained data type.
+/// Note the packed types are not valid to be held in a @c VertexBuffer and are only used in transmission.
 enum DataStreamType
 {
   DctNone,    ///< No type: invalid.

@@ -90,8 +90,8 @@
 #define TES_ID(...) tes::ShapeId(__VA_ARGS__)
 
 /// @ingroup tesmacros
-/// A wrapper for constructin a @c VertexStream around the given arguments.
-#define TES_STREAM(...) tes::VertexStream(__VA_ARGS__)
+/// A wrapper for constructin a @c VertexBuffer around the given arguments.
+#define TES_BUFFER(...) tes::VertexBuffer(__VA_ARGS__)
 
 //-----------------------------------------------------------------------------
 // Server setup macros
@@ -870,7 +870,7 @@
   if (server)                                                                                  \
   {                                                                                            \
     const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-    tes::MeshShape shape(tes::DtTriangles, id, tes::VertexStream(_tri, 3), ##__VA_ARGS__);     \
+    tes::MeshShape shape(tes::DtTriangles, id, tes::VertexBuffer(_tri, 3), ##__VA_ARGS__);     \
     shape.setColour(colour).setTwoSided(true);                                                 \
     (server)->create(shape);                                                                   \
   }
@@ -888,7 +888,7 @@
   if (server)                                                                                  \
   {                                                                                            \
     const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-    tes::MeshShape shape(tes::DtTriangles, id, tes::VertexStream(_tri, 3), ##__VA_ARGS__);     \
+    tes::MeshShape shape(tes::DtTriangles, id, tes::VertexBuffer(_tri, 3), ##__VA_ARGS__);     \
     shape.setColour(colour);                                                                   \
     shape.setWireframe(true);                                                                  \
     (server)->create(shape);                                                                   \
@@ -906,7 +906,7 @@
 #define TES_TRIANGLE_T(server, colour, id, v0, v1, v2, ...)                                    \
   {                                                                                            \
     const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-    tes::MeshShape shape(tes::DtTriangles, id, tes::VertexStream(_tri, 3), ##__VA_ARGS__);     \
+    tes::MeshShape shape(tes::DtTriangles, id, tes::VertexBuffer(_tri, 3), ##__VA_ARGS__);     \
     shape.setColour(colour);                                                                   \
     shape.setTransparent(true).setTwoSided(true);                                              \
     (server)->create(shape);                                                                   \
@@ -1309,7 +1309,7 @@ constexpr inline void noop()
 #define TES_COLOUR_I(index) tes::noop()
 #define TES_COLOUR_A(name, a) tes::noop()
 #define TES_ID(...) tes::noop()
-#define TES_STREAM(...) tes::noop()
+#define TES_BUFFER(...) tes::noop()
 
 #define TES_CATEGORY(server, ...) tes::noop()
 #define TES_SERVER_DECL(server) tes::noop()

@@ -170,10 +170,10 @@ unsigned PointCloud::vertexCount(int stream) const
 }
 
 
-VertexStream PointCloud::vertices(int stream) const
+VertexBuffer PointCloud::vertices(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexStream(_imp->vertices, _imp->vertexCount);
+  return VertexBuffer(_imp->vertices, _imp->vertexCount);
 }
 
 
@@ -190,17 +190,17 @@ unsigned PointCloud::indexCount(int stream) const
 }
 
 
-VertexStream PointCloud::indices(int stream) const
+VertexBuffer PointCloud::indices(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexStream();
+  return VertexBuffer();
 }
 
 
-VertexStream PointCloud::normals(int stream) const
+VertexBuffer PointCloud::normals(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexStream(_imp->normals, _imp->normals ? _imp->vertexCount : 0);
+  return VertexBuffer(_imp->normals, _imp->normals ? _imp->vertexCount : 0);
 }
 
 
@@ -210,10 +210,10 @@ const Vector3f *PointCloud::normals() const
 }
 
 
-VertexStream PointCloud::colours(int stream) const
+VertexBuffer PointCloud::colours(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexStream(_imp->colours, _imp->colours ? _imp->vertexCount : 0);
+  return VertexBuffer(_imp->colours, _imp->colours ? _imp->vertexCount : 0);
 }
 
 
@@ -223,9 +223,9 @@ const Colour *PointCloud::colours() const
 }
 
 
-VertexStream PointCloud::uvs(int) const
+VertexBuffer PointCloud::uvs(int) const
 {
-  return VertexStream();
+  return VertexBuffer();
 }
 
 
@@ -482,7 +482,7 @@ bool PointCloud::processCreate(const MeshCreateMessage &msg, const ObjectAttribu
 }
 
 
-bool PointCloud::processVertices(const MeshComponentMessage &msg, const VertexStream &stream)
+bool PointCloud::processVertices(const MeshComponentMessage &msg, const VertexBuffer &stream)
 {
   static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Vertex size mismatch");
   copyOnWrite();
@@ -501,7 +501,7 @@ bool PointCloud::processVertices(const MeshComponentMessage &msg, const VertexSt
 }
 
 
-bool PointCloud::processColours(const MeshComponentMessage &msg, const VertexStream &stream)
+bool PointCloud::processColours(const MeshComponentMessage &msg, const VertexBuffer &stream)
 {
   copyOnWrite();
   unsigned wrote = 0;
@@ -520,7 +520,7 @@ bool PointCloud::processColours(const MeshComponentMessage &msg, const VertexStr
 }
 
 
-bool PointCloud::processNormals(const MeshComponentMessage &msg, const VertexStream &stream)
+bool PointCloud::processNormals(const MeshComponentMessage &msg, const VertexBuffer &stream)
 {
   static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Normal size mismatch");
 

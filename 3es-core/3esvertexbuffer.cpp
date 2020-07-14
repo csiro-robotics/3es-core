@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esvertexstream.h"
+#include "3esvertexbuffer.h"
 
 #include "3espacketwriter.h"
 
@@ -12,22 +12,22 @@ using namespace tes;
 
 namespace tes::detail
 {
-VertexStreamAffordances::~VertexStreamAffordances() = default;
+VertexBufferAffordances::~VertexBufferAffordances() = default;
 
-template class VertexStreamAffordancesT<int8_t>;
-template class VertexStreamAffordancesT<uint8_t>;
-template class VertexStreamAffordancesT<int16_t>;
-template class VertexStreamAffordancesT<uint16_t>;
-template class VertexStreamAffordancesT<int32_t>;
-template class VertexStreamAffordancesT<uint32_t>;
-template class VertexStreamAffordancesT<int64_t>;
-template class VertexStreamAffordancesT<uint64_t>;
-template class VertexStreamAffordancesT<float>;
-template class VertexStreamAffordancesT<double>;
+template class VertexBufferAffordancesT<int8_t>;
+template class VertexBufferAffordancesT<uint8_t>;
+template class VertexBufferAffordancesT<int16_t>;
+template class VertexBufferAffordancesT<uint16_t>;
+template class VertexBufferAffordancesT<int32_t>;
+template class VertexBufferAffordancesT<uint32_t>;
+template class VertexBufferAffordancesT<int64_t>;
+template class VertexBufferAffordancesT<uint64_t>;
+template class VertexBufferAffordancesT<float>;
+template class VertexBufferAffordancesT<double>;
 }  // namespace tes::detail
 
 
-void VertexStream::reset()
+void VertexBuffer::reset()
 {
   if (ownPointer() && _affordances)
   {
@@ -37,7 +37,7 @@ void VertexStream::reset()
 }
 
 
-void VertexStream::duplicate()
+void VertexBuffer::duplicate()
 {
   // No need to copy if we already own the _stream.
   if (!ownPointer() && _stream != nullptr && _count > 0)
@@ -48,13 +48,13 @@ void VertexStream::duplicate()
 }
 
 
-unsigned VertexStream::write(PacketWriter &packet, uint32_t offset, unsigned byteLimit) const
+unsigned VertexBuffer::write(PacketWriter &packet, uint32_t offset, unsigned byteLimit) const
 {
   return _affordances->write(packet, offset, type(), byteLimit, *this);
 }
 
 
-unsigned VertexStream::writePacked(PacketWriter &packet, uint32_t offset, float quantisation_unit,
+unsigned VertexBuffer::writePacked(PacketWriter &packet, uint32_t offset, float quantisation_unit,
                                    unsigned byteLimit) const
 {
   DataStreamType packed_type = type();
@@ -73,7 +73,7 @@ unsigned VertexStream::writePacked(PacketWriter &packet, uint32_t offset, float 
 }
 
 
-unsigned VertexStream::read(PacketReader &packet)
+unsigned VertexBuffer::read(PacketReader &packet)
 {
   void *dst = writePtr();
   bool own_pointer = ownPointer();
@@ -89,7 +89,7 @@ unsigned VertexStream::read(PacketReader &packet)
 }
 
 
-unsigned VertexStream::read(PacketReader &packet, unsigned offset, unsigned count)
+unsigned VertexBuffer::read(PacketReader &packet, unsigned offset, unsigned count)
 {
   void *dst = writePtr();
   bool own_pointer = ownPointer();

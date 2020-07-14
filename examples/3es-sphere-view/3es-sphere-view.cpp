@@ -93,7 +93,7 @@ unsigned tesUnrollDisplay(const std::vector<Vector3f> &vertices, const std::vect
     }
 
     cursor += count;
-    TES_TRIANGLES(tesServer, TES_RGB(200, 200, 200), TES_ID(SPHERE_ID + shapeCount), tes::VertexStream(localVertices));
+    TES_TRIANGLES(tesServer, TES_RGB(200, 200, 200), TES_ID(SPHERE_ID + shapeCount), tes::VertexBuffer(localVertices));
     ++shapeCount;
   }
 
@@ -203,8 +203,8 @@ void sphereInitialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &in
   // Send the initial sphere. We know it has less than 65k vertices.
   if (!vertices.empty() && !indices.empty())
   {
-    TES_TRIANGLES(tesServer, TES_RGB(200, 200, 200), TES_ID(SPHERE_ID), tes::VertexStream(vertices),
-                  tes::VertexStream(indices));
+    TES_TRIANGLES(tesServer, TES_RGB(200, 200, 200), TES_ID(SPHERE_ID), tes::VertexBuffer(vertices),
+                  tes::VertexBuffer(indices));
   }
 }
 

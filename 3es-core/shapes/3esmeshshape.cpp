@@ -22,7 +22,7 @@ struct DataPhase
   MeshShape::SendDataType info_type;
   DataStreamType send_type;
   // Data pointer. May have null context (skipped).
-  const VertexStream *stream;
+  const VertexBuffer *stream;
 };
 }  // namespace
 
@@ -30,7 +30,7 @@ MeshShape::~MeshShape()
 {}
 
 
-MeshShape &MeshShape::setNormals(const VertexStream &normals)
+MeshShape &MeshShape::setNormals(const VertexBuffer &normals)
 {
   setCalculateNormals(false);
   _normals = normals;
@@ -42,14 +42,14 @@ MeshShape &MeshShape::setUniformNormal(const Vector3f &normal)
 {
   setCalculateNormals(false);
   Vector3f *n = new Vector3f(normal);
-  _normals = std::move(VertexStream(n->v, 1, 3, 3, false));
+  _normals = std::move(VertexBuffer(n->v, 1, 3, 3, false));
   _normals.duplicate();
   return *this;
 }
 
 
 template <typename T>
-void expandVertices(VertexStream &vertices, VertexStream &indices)
+void expandVertices(VertexBuffer &vertices, VertexBuffer &indices)
 {
   if (vertices.isValid())
   {
@@ -294,13 +294,13 @@ Shape *MeshShape::clone() const
 void MeshShape::onClone(MeshShape *copy) const
 {
   Shape::onClone(copy);
-  copy->_vertices = VertexStream(_vertices);
+  copy->_vertices = VertexBuffer(_vertices);
   copy->_vertices.duplicate();
-  copy->_normals = VertexStream(_indices);
+  copy->_normals = VertexBuffer(_indices);
   copy->_normals.duplicate();
-  copy->_indices = VertexStream(_indices);
+  copy->_indices = VertexBuffer(_indices);
   copy->_indices.duplicate();
-  copy->_colours = VertexStream(_indices);
+  copy->_colours = VertexBuffer(_indices);
   copy->_colours.duplicate();
   copy->_quantisationUnit = _quantisationUnit;
   copy->_drawScale = _drawScale;

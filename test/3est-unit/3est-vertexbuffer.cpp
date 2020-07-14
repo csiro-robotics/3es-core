@@ -7,7 +7,7 @@
 
 #include <3espacketreader.h>
 #include <3espacketwriter.h>
-#include <3esvertexstream.h>
+#include <3esvertexbuffer.h>
 #include <tessellate/3essphere.h>
 
 #include "3est-common.h"
@@ -20,7 +20,7 @@
 namespace tes
 {
 template <typename D, typename T>
-void testBufferReadAsType(const VertexStream &buffer, const std::vector<T> &reference, const char *context,
+void testBufferReadAsType(const VertexBuffer &buffer, const std::vector<T> &reference, const char *context,
                           std::function<void(size_t, size_t, D, D, const char *)> validate =
                             std::function<void(size_t, size_t, D, D, const char *)>())
 {
@@ -36,6 +36,7 @@ void testBufferReadAsType(const VertexStream &buffer, const std::vector<T> &refe
 
   D datum{ 0 }, ref{ 0 };
   size_t ref_idx = 0;
+  // Start with reading individual elements.
   for (size_t i = 0; i < buffer.count(); ++i)
   {
     for (size_t j = 0; j < buffer.componentCount(); ++j)
@@ -46,10 +47,43 @@ void testBufferReadAsType(const VertexStream &buffer, const std::vector<T> &refe
       ++ref_idx;
     }
   }
+
+  // Now try reading as a single block.
+  std::vector<D> data(buffer.count() * buffer.componentCount());
+  size_t read_elements = buffer.get<D>(0, buffer.count(), data.data(), data.size());
+  ASSERT_EQ(read_elements, buffer.count());
+  ref_idx = 0;
+  for (size_t i = 0; i < buffer.count(); ++i)
+  {
+    for (size_t j = 0; j < buffer.componentCount(); ++j)
+    {
+      datum = data[ref_idx];
+      ref = static_cast<D>(reference[ref_idx]);
+      validate(i, j, datum, ref, context);
+      ++ref_idx;
+    }
+  }
+
+  // Try an offset buffered read.
+  size_t offset = buffer.count() / 2;
+  size_t read_count = buffer.count() - offset;
+  read_elements = buffer.get<D>(offset, read_count, data.data(), data.size());
+  ASSERT_EQ(read_elements, read_count);
+  ref_idx = 0;
+  for (size_t i = 0; i < read_count; ++i)
+  {
+    for (size_t j = 0; j < buffer.componentCount(); ++j)
+    {
+      datum = data[ref_idx];
+      ref = static_cast<D>(reference[ref_idx + offset * buffer.componentCount()]);
+      validate(i, j, datum, ref, context);
+      ++ref_idx;
+    }
+  }
 }
 
 template <typename T>
-void testBufferRead(const VertexStream &buffer, const std::vector<T> &reference, const char *context)
+void testBufferRead(const VertexBuffer &buffer, const std::vector<T> &reference, const char *context)
 {
   testBufferReadAsType<int8_t>(buffer, reference, context);
   testBufferReadAsType<uint8_t>(buffer, reference, context);
@@ -106,19 +140,19 @@ void testVector3Buffer()
   fillVertexBuffer(vertices, &reference, real(128000.0));
 
   // Populate the buffer from a Vector3 array and test reading as all types.
-  VertexStream buffer(vertices);
+  VertexBuffer buffer(vertices);
   testBufferRead(buffer, reference, "std::vector<Vector3<real>>");
 
   // Reinitialise the buffer from Vector3 pointer.
-  buffer = VertexStream(vertices.data(), vertices.size());
+  buffer = VertexBuffer(vertices.data(), vertices.size());
   testBufferRead(buffer, reference, "Vector3<real>*");
 
   // Reinitialise from real array
-  buffer = VertexStream(reference, 3);
+  buffer = VertexBuffer(reference, 3);
   testBufferRead(buffer, reference, "std::vector<real>");
 
   // Reinitialise from real array
-  buffer = VertexStream(reference.data(), reference.size() / 3, 3);
+  buffer = VertexBuffer(reference.data(), reference.size() / 3, 3);
   testBufferRead(buffer, reference, "real*");
 
   // Now create a strided array which contains padding elements and test with that.
@@ -134,11 +168,11 @@ void testVector3Buffer()
                 });
 
   // With std::vector constructor.
-  buffer = VertexStream(strided, 3, 4);
+  buffer = VertexBuffer(strided, 3, 4);
   testBufferRead(buffer, reference, "std::vector<real>*[4]");
 
   // With pointer constructor.
-  buffer = VertexStream(strided.data(), strided.size() / 4, 3, 4);
+  buffer = VertexBuffer(strided.data(), strided.size() / 4, 3, 4);
   testBufferRead(buffer, reference, "real*[4]");
 }
 
@@ -156,12 +190,12 @@ void testTBuffer(T seed, T increment, size_t count, const char *type_name)
 
   // Migrate into a vertex buffer.
   std::string context;
-  VertexStream buffer;
-  buffer = VertexStream(reference);
+  VertexBuffer buffer;
+  buffer = VertexBuffer(reference);
   context = std::string("std::vector<") + type_name + ">";
   testBufferRead(buffer, reference, context.c_str());
 
-  buffer = VertexStream(reference.data(), reference.size());
+  buffer = VertexBuffer(reference.data(), reference.size());
   context = std::string("") + type_name + "*";
   testBufferRead(buffer, reference, context.c_str());
 }
@@ -229,12 +263,12 @@ TEST(Buffer, Float64)
 template <typename real>
 void testPacketStreamVector3(bool packed)
 {
-  // Test encoding/decoding a vector3 VertexStream via PacketWriter and PacketReader.
+  // Test encoding/decoding a vector3 VertexBuffer via PacketWriter and PacketReader.
   std::vector<Vector3<real>> vertices;
   std::vector<real> reference;
   fillVertexBuffer(vertices, &reference, real(12.8));
 
-  VertexStream vertexBuffer(vertices);
+  VertexBuffer vertexBuffer(vertices);
 
   // Write the pcket. Note, the routing and message types are unimportant.
   std::vector<uint8_t> raw_buffer(std::numeric_limits<uint16_t>::max());
@@ -258,7 +292,7 @@ void testPacketStreamVector3(bool packed)
   // Now create a reader around the same data.
   PacketReader reader(reinterpret_cast<PacketHeader *>(raw_buffer.data()));
   // Empty the vertexBuffer object before reading.
-  vertexBuffer = VertexStream(static_cast<const real *>(nullptr), 0, 3);
+  vertexBuffer = VertexBuffer(static_cast<const real *>(nullptr), 0, 3);
 
   // Now read.
   unsigned readCount = vertexBuffer.read(reader);

@@ -9,7 +9,7 @@
 #include "3esdebug.h"
 #include "3esmeshmessages.h"
 #include "3esshape.h"
-#include "3esvertexstream.h"
+#include "3esvertexbuffer.h"
 
 #include <vector>
 #include <utility>
@@ -57,7 +57,7 @@ public:
   /// @param position Local to world positioning of the triangles. Defaults to the origin.
   /// @param rotation Local to world rotation of the triangles. Defaults to identity.
   /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const ShapeId &id, const VertexStream &vertices = VertexStream(),
+  MeshShape(DrawType drawType, const ShapeId &id, const VertexBuffer &vertices = VertexBuffer(),
             const Transform &transform = Transform());
 
   /// Persistent triangle constructor accepting vertex and triangle iterators and optional positioning.
@@ -68,7 +68,7 @@ public:
   /// @param position Local to world positioning of the triangles. Defaults to the origin.
   /// @param rotation Local to world rotation of the triangles. Defaults to identity.
   /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const ShapeId &id, const VertexStream &vertices, const VertexStream &indices,
+  MeshShape(DrawType drawType, const ShapeId &id, const VertexBuffer &vertices, const VertexBuffer &indices,
             const Transform &transform = Transform());
 
   /// Destructor.
@@ -122,7 +122,7 @@ public:
   /// @param normals The normals array.
   /// @param normalByteSize the number of bytes between each element of @p normals.
   /// @return this
-  MeshShape &setNormals(const VertexStream &normals);
+  MeshShape &setNormals(const VertexBuffer &normals);
 
   /// Sets a single normal to be shared by all vertices in the mesh.
   /// Sets @c calculateNormals() to false.
@@ -139,7 +139,7 @@ public:
   inline MeshShape &setColours(const uint32_t *colours)
   {
     setColourByHeight(false);
-    _colours = std::move(VertexStream(colours, _vertices.count()));
+    _colours = std::move(VertexBuffer(colours, _vertices.count()));
     return *this;
   }
 
@@ -159,18 +159,18 @@ public:
   /// @return this
   MeshShape &duplicateArrays();
 
-  /// Access the vertices as a @c VertexStream . The underlying pointer type must be either @c float or @c double .
+  /// Access the vertices as a @c VertexBuffer . The underlying pointer type must be either @c float or @c double .
   /// @return The vertices vertex stream.
-  inline const VertexStream &vertices() const { return _vertices; }
-  /// Access the normals as a @c VertexStream . The underlying pointer type must be either @c float or @c double .
+  inline const VertexBuffer &vertices() const { return _vertices; }
+  /// Access the normals as a @c VertexBuffer . The underlying pointer type must be either @c float or @c double .
   ///
   /// When non-null, the count may either match the @c vertices() count or 1, indicating a single normal for all
   /// vertices.
   ///
   /// @return The normals vertex stream.
-  inline const VertexStream &normals() const { return _normals; }
-  inline const VertexStream &indices() const { return _indices; }
-  inline const VertexStream &colours() const { return _colours; }
+  inline const VertexBuffer &normals() const { return _normals; }
+  inline const VertexBuffer &indices() const { return _indices; }
+  inline const VertexBuffer &colours() const { return _colours; }
   inline DrawType drawType() const { return _drawType; }
 
   /// Writes the standard create message and appends mesh data.
@@ -193,10 +193,10 @@ public:
 protected:
   void onClone(MeshShape *copy) const;
 
-  VertexStream _vertices;          ///< Mesh vertices.
-  VertexStream _normals;           ///< Normal stream. Expect zero, one per vertex or one to apply to all vertices.
-  VertexStream _colours;           ///< Per vertex colours. Null for none.
-  VertexStream _indices;           ///< Per vertex colours. Null for none.
+  VertexBuffer _vertices;          ///< Mesh vertices.
+  VertexBuffer _normals;           ///< Normal stream. Expect zero, one per vertex or one to apply to all vertices.
+  VertexBuffer _colours;           ///< Per vertex colours. Null for none.
+  VertexBuffer _indices;           ///< Per vertex colours. Null for none.
   float _quantisationUnit = 0.0f;  ///< Quantisation for data packing. Zero => no packing.
   float _drawScale = 0.0f;         ///< Draw scale: point scaling, line width, etc.
   DrawType _drawType;              ///< The primitive to render.
@@ -209,7 +209,7 @@ inline MeshShape::MeshShape()
 {}
 
 
-inline MeshShape::MeshShape(DrawType drawType, const ShapeId &id, const VertexStream &vertices,
+inline MeshShape::MeshShape(DrawType drawType, const ShapeId &id, const VertexBuffer &vertices,
                             const Transform &transform)
   : Shape(SIdMeshShape, id, transform)
   , _vertices(vertices)
@@ -222,8 +222,8 @@ inline MeshShape::MeshShape(DrawType drawType, const ShapeId &id, const VertexSt
 }
 
 
-inline MeshShape::MeshShape(DrawType drawType, const ShapeId &id, const VertexStream &vertices,
-                            const VertexStream &indices, const Transform &transform)
+inline MeshShape::MeshShape(DrawType drawType, const ShapeId &id, const VertexBuffer &vertices,
+                            const VertexBuffer &indices, const Transform &transform)
   : Shape(SIdMeshShape, id, transform)
   , _vertices(vertices)
   , _indices(indices)
