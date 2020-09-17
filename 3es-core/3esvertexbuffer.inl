@@ -379,7 +379,7 @@ template <typename T>
 template <typename FloatType, typename PackedType>
 uint32_t VertexBufferAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
                                                     unsigned byteLimit, const FloatType *packingOrigin,
-                                                    const float quantisationUnit, const VertexBuffer &stream) const
+                                                    const FloatType quantisationUnit, const VertexBuffer &stream) const
 {
   // packingOrigin is used to define the packing origin. That is, items are packed releative to this.
   // quantisationUnit is the divisor used to quantise data.
@@ -393,8 +393,8 @@ uint32_t VertexBufferAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32
   // - uint16_t count
   // - uint8_t element stride
   // - uint8_t data type
+  // - FloatType quantisationUnit
   // - FloatType[stream.componentCount()] packingOrigin
-  // - float32 quantisationUnit
   const unsigned overhead = int_cast<unsigned>(sizeof(uint32_t) +                             // offset
                                                sizeof(uint16_t) +                             // count
                                                sizeof(uint8_t) +                              // element stride
@@ -420,7 +420,7 @@ uint32_t VertexBufferAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32
   ok = packet.writeElement(uint16_t(transferCount)) == sizeof(uint16_t) && ok;
   ok = packet.writeElement(uint8_t(stream.componentCount())) == sizeof(uint8_t) && ok;
   ok = packet.writeElement(uint8_t(write_as_type)) == sizeof(uint8_t) && ok;
-  const FloatType qUnit{ quantisationUnit };  // quantisationUnit given as float, but pack as the target type.
+  const FloatType qUnit{ quantisationUnit };
   ok = packet.writeElement(qUnit) == sizeof(qUnit) && ok;
 
   if (packingOrigin)
