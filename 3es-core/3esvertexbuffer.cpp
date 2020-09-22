@@ -48,14 +48,14 @@ void VertexBuffer::duplicate()
 }
 
 
-unsigned VertexBuffer::write(PacketWriter &packet, uint32_t offset, unsigned byteLimit) const
+unsigned VertexBuffer::write(PacketWriter &packet, uint32_t offset, unsigned byteLimit, uint32_t receiveOffset) const
 {
-  return _affordances->write(packet, offset, type(), byteLimit, *this);
+  return _affordances->write(packet, offset, type(), byteLimit, receiveOffset, *this);
 }
 
 
-unsigned VertexBuffer::writePacked(PacketWriter &packet, uint32_t offset, float quantisation_unit,
-                                   unsigned byteLimit) const
+unsigned VertexBuffer::writePacked(PacketWriter &packet, uint32_t offset, double quantisation_unit, unsigned byteLimit,
+                                   uint32_t receiveOffset) const
 {
   DataStreamType packed_type = type();
   switch (packed_type)
@@ -69,7 +69,7 @@ unsigned VertexBuffer::writePacked(PacketWriter &packet, uint32_t offset, float 
   default:
     break;
   }
-  return _affordances->write(packet, offset, packed_type, byteLimit, *this, quantisation_unit);
+  return _affordances->write(packet, offset, packed_type, byteLimit, receiveOffset, *this, quantisation_unit);
 }
 
 

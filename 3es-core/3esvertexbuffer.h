@@ -79,7 +79,7 @@ public:
   virtual void release(const void **stream_ptr, bool has_ownership) const = 0;
   virtual void takeOwnership(const void **stream_ptr, bool has_ownership, const VertexBuffer &stream) const = 0;
   virtual uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
-                         const VertexBuffer &stream, float quantisation_unit = 0.0) const = 0;
+                         uint32_t receiveOffset, const VertexBuffer &stream, double quantisation_unit = 0.0) const = 0;
   virtual uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
                         const VertexBuffer &stream) const = 0;
   virtual uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
@@ -98,7 +98,7 @@ public:
   void release(const void **stream_ptr, bool has_ownership) const override;
   void takeOwnership(const void **stream_ptr, bool has_ownership, const VertexBuffer &stream) const override;
   uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
-                 const VertexBuffer &stream, float quantisation_unit = 0.0) const override;
+                 uint32_t receiveOffset, const VertexBuffer &stream, double quantisation_unit = 0.0) const override;
   uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
                 const VertexBuffer &stream) const override;
   uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
@@ -110,11 +110,11 @@ public:
 
   template <typename WriteType>
   uint32_t writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
-                   const VertexBuffer &stream) const;
+                   uint32_t receiveOffset, const VertexBuffer &stream) const;
 
   template <typename FloatType, typename PackedType>
   uint32_t writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
-                         const FloatType *packingOrigin, const float quantisationUnit,
+                         uint32_t receiveOffset, const FloatType *packingOrigin, const FloatType quantisationUnit,
                          const VertexBuffer &stream) const;
 
 
@@ -283,8 +283,11 @@ public:
 
   static uint16_t estimateTransferCount(size_t elementSize, unsigned overhead, unsigned byteLimit);
 
-  unsigned write(PacketWriter &packet, uint32_t offset, unsigned byteLimit = 0) const;
-  unsigned writePacked(PacketWriter &packet, uint32_t offset, float quantisation_unit, unsigned byteLimit = 0) const;
+  // receiveOffset: offset packed into the message for the receiver to handle. Allows a small vertex buffer to represent
+  // a slice of a buffer at the other end.
+  unsigned write(PacketWriter &packet, uint32_t offset, unsigned byteLimit = 0, uint32_t receiveOffset = 0) const;
+  unsigned writePacked(PacketWriter &packet, uint32_t offset, double quantisation_unit, unsigned byteLimit = 0,
+                       uint32_t receiveOffset = 0) const;
 
   /// Read : reading offset and count from the @p packet
   unsigned read(PacketReader &packet);

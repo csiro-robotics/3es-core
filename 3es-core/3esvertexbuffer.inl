@@ -216,7 +216,7 @@ inline const T *VertexBuffer::ptrAt(size_t element_index) const
   return nullptr;
 }
 
-inline uint16_t VertexBuffer::estimateTransferCount(size_t elementSize, unsigned overhead, unsigned byteLimit = 0xff00u)
+inline uint16_t VertexBuffer::estimateTransferCount(size_t elementSize, unsigned overhead, unsigned byteLimit)
 {
   // FIXME: Without additional overhead padding I was getting missing messages at the client with
   // no obvious error path. For this reason, we use 0xff00u, instead of 0xffffu
@@ -270,35 +270,37 @@ void VertexBufferAffordancesT<T>::takeOwnership(const void **stream_ptr, bool ha
 
 template <typename T>
 uint32_t VertexBufferAffordancesT<T>::write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                                            unsigned byteLimit, const VertexBuffer &stream,
-                                            float quantisation_unit) const
+                                            unsigned byteLimit, uint32_t receiveOffset, const VertexBuffer &stream,
+                                            double quantisation_unit) const
 {
   switch (write_as_type)
   {
   case DctInt8:
-    return writeAs<int8_t>(packet, offset, write_as_type, byteLimit, stream);
+    return writeAs<int8_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
   case DctUInt8:
-    return writeAs<uint8_t>(packet, offset, write_as_type, byteLimit, stream);
+    return writeAs<uint8_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
   case DctInt16:
-    return writeAs<int16_t>(packet, offset, write_as_type, byteLimit, stream);
+    return writeAs<int16_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
   case DctUInt16:
-    return writeAs<uint16_t>(packet, offset, write_as_type, byteLimit, stream);
+    return writeAs<uint16_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
   case DctInt32:
-    return writeAs<int32_t>(packet, offset, write_as_type, byteLimit, stream);
+    return writeAs<int32_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
   case DctUInt32:
-    return writeAs<uint32_t>(packet, offset, write_as_type, byteLimit, stream);
+    return writeAs<uint32_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
   case DctInt64:
-    return writeAs<int64_t>(packet, offset, write_as_type, byteLimit, stream);
+    return writeAs<int64_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
   case DctUInt64:
-    return writeAs<uint64_t>(packet, offset, write_as_type, byteLimit, stream);
+    return writeAs<uint64_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
   case DctFloat32:
-    return writeAs<float>(packet, offset, write_as_type, byteLimit, stream);
+    return writeAs<float>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
   case DctFloat64:
-    return writeAs<double>(packet, offset, write_as_type, byteLimit, stream);
+    return writeAs<double>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
   case DctPackedFloat16:
-    return writeAsPacked<float, int16_t>(packet, offset, write_as_type, byteLimit, nullptr, quantisation_unit, stream);
+    return writeAsPacked<float, int16_t>(packet, offset, write_as_type, byteLimit, receiveOffset, nullptr,
+                                         static_cast<float>(quantisation_unit), stream);
   case DctPackedFloat32:
-    return writeAsPacked<double, int32_t>(packet, offset, write_as_type, byteLimit, nullptr, quantisation_unit, stream);
+    return writeAsPacked<double, int32_t>(packet, offset, write_as_type, byteLimit, receiveOffset, nullptr,
+                                          quantisation_unit, stream);
   default:
     // Throw?
     return 0;
@@ -308,7 +310,8 @@ uint32_t VertexBufferAffordancesT<T>::write(PacketWriter &packet, uint32_t offse
 template <typename T>
 template <typename WriteType>
 uint32_t VertexBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                                              unsigned byteLimit, const VertexBuffer &stream) const
+                                              unsigned byteLimit, uint32_t receiveOffset,
+                                              const VertexBuffer &stream) const
 {
   const unsigned itemSize = unsigned(sizeof(WriteType)) * stream.componentCount();
 
@@ -331,7 +334,7 @@ uint32_t VertexBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t off
 
   // Write header
   bool ok = true;
-  ok = packet.writeElement(uint32_t(offset)) == sizeof(uint32_t) && ok;
+  ok = packet.writeElement(uint32_t(offset + receiveOffset)) == sizeof(uint32_t) && ok;
   ok = packet.writeElement(uint16_t(transferCount)) == sizeof(uint16_t) && ok;
   ok = packet.writeElement(uint8_t(stream.componentCount())) == sizeof(uint8_t) && ok;
   ok = packet.writeElement(uint8_t(write_as_type)) == sizeof(uint8_t) && ok;
@@ -378,8 +381,9 @@ uint32_t VertexBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t off
 template <typename T>
 template <typename FloatType, typename PackedType>
 uint32_t VertexBufferAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                                                    unsigned byteLimit, const FloatType *packingOrigin,
-                                                    const FloatType quantisationUnit, const VertexBuffer &stream) const
+                                                    unsigned byteLimit, uint32_t receiveOffset,
+                                                    const FloatType *packingOrigin, const FloatType quantisationUnit,
+                                                    const VertexBuffer &stream) const
 {
   // packingOrigin is used to define the packing origin. That is, items are packed releative to this.
   // quantisationUnit is the divisor used to quantise data.
@@ -416,7 +420,7 @@ uint32_t VertexBufferAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32
 
   // Write header
   bool ok = true;
-  ok = packet.writeElement(uint32_t(offset)) == sizeof(uint32_t) && ok;
+  ok = packet.writeElement(uint32_t(offset + receiveOffset)) == sizeof(uint32_t) && ok;
   ok = packet.writeElement(uint16_t(transferCount)) == sizeof(uint16_t) && ok;
   ok = packet.writeElement(uint8_t(stream.componentCount())) == sizeof(uint8_t) && ok;
   ok = packet.writeElement(uint8_t(write_as_type)) == sizeof(uint8_t) && ok;

@@ -6,10 +6,10 @@
 
 #include "3es-core.h"
 
-#include "3esquaternion.h"
-#include "3esvector3.h"
 #include "3esmatrix4.h"
+#include "3esquaternion.h"
 #include "3esrotation.h"
+#include "3esvector3.h"
 
 namespace tes
 {
@@ -301,10 +301,7 @@ public:
   /// Create an identity @c Spherical transform .
   /// @param preferDouble Sets the @c preferDoublePrecision() flag.
   /// @return An identity @c Spherical transform.
-  inline static const Spherical identity(bool preferDouble = true)
-  {
-    return Spherical(Vector3d(0.0), 1, preferDouble);
-  }
+  inline static const Spherical identity(bool preferDouble = true) { return Spherical(Vector3d(0.0), 1, preferDouble); }
 };
 
 

@@ -124,11 +124,11 @@ protected:
   virtual void nextPhase(TransferProgress &progress) const;
 
   virtual bool processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes);
-  virtual bool processVertices(const MeshComponentMessage &msg, const VertexBuffer &stream);
-  virtual bool processIndices(const MeshComponentMessage &msg, const VertexBuffer &stream);
-  virtual bool processColours(const MeshComponentMessage &msg, const VertexBuffer &stream);
-  virtual bool processNormals(const MeshComponentMessage &msg, const VertexBuffer &stream);
-  virtual bool processUVs(const MeshComponentMessage &msg, const VertexBuffer &stream);
+  virtual bool processVertices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream);
+  virtual bool processIndices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream);
+  virtual bool processColours(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream);
+  virtual bool processNormals(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream);
+  virtual bool processUVs(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream);
 };
 }  // namespace tes
 

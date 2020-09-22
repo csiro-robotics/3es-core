@@ -201,9 +201,9 @@ private:
   void copyOnWrite();
 
   bool processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes) override;
-  bool processVertices(const MeshComponentMessage &msg, const VertexBuffer &stream) override;
-  bool processColours(const MeshComponentMessage &msg, const VertexBuffer &stream) override;
-  bool processNormals(const MeshComponentMessage &msg, const VertexBuffer &stream) override;
+  bool processVertices(const MeshComponentMessage &msg, unsigned count, const VertexBuffer &stream) override;
+  bool processColours(const MeshComponentMessage &msg, unsigned count, const VertexBuffer &stream) override;
+  bool processNormals(const MeshComponentMessage &msg, unsigned count, const VertexBuffer &stream) override;
 
   PointCloudImp *_imp;
 };

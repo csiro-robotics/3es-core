@@ -482,17 +482,17 @@ bool PointCloud::processCreate(const MeshCreateMessage &msg, const ObjectAttribu
 }
 
 
-bool PointCloud::processVertices(const MeshComponentMessage &msg, const VertexBuffer &stream)
+bool PointCloud::processVertices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
 {
   static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Vertex size mismatch");
   copyOnWrite();
   unsigned wrote = 0;
 
-  for (unsigned i = 0; i + msg.offset < _imp->vertexCount && i < msg.count; ++i)
+  for (unsigned i = 0; i + offset < _imp->vertexCount && i < stream.count(); ++i)
   {
     for (int j = 0; j < 3; ++j)
     {
-      _imp->vertices[i + msg.offset][j] = stream.get<float>(i, j);
+      _imp->vertices[i + offset][j] = stream.get<float>(i, j);
     }
     ++wrote;
   }
@@ -501,7 +501,7 @@ bool PointCloud::processVertices(const MeshComponentMessage &msg, const VertexBu
 }
 
 
-bool PointCloud::processColours(const MeshComponentMessage &msg, const VertexBuffer &stream)
+bool PointCloud::processColours(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
 {
   copyOnWrite();
   unsigned wrote = 0;
@@ -510,9 +510,10 @@ bool PointCloud::processColours(const MeshComponentMessage &msg, const VertexBuf
     _imp->colours = new Colour[_imp->vertexCount];
   }
 
-  for (unsigned i = 0; i + msg.offset < _imp->vertexCount && i < msg.count; ++i)
+  for (unsigned i = 0; i + offset < _imp->vertexCount && i < stream.count(); ++i)
   {
-    _imp->colours[i + msg.offset] = stream.get<uint32_t>(i);;
+    _imp->colours[i + offset] = stream.get<uint32_t>(i);
+    ;
     ++wrote;
   }
 
@@ -520,7 +521,7 @@ bool PointCloud::processColours(const MeshComponentMessage &msg, const VertexBuf
 }
 
 
-bool PointCloud::processNormals(const MeshComponentMessage &msg, const VertexBuffer &stream)
+bool PointCloud::processNormals(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
 {
   static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Normal size mismatch");
 
@@ -531,11 +532,11 @@ bool PointCloud::processNormals(const MeshComponentMessage &msg, const VertexBuf
     _imp->normals = new Vector3f[_imp->vertexCount];
   }
 
-  for (unsigned i = 0; i + msg.offset < _imp->vertexCount && i < msg.count; ++i)
+  for (unsigned i = 0; i + offset < _imp->vertexCount && i < stream.count(); ++i)
   {
     for (int j = 0; j < 3; ++j)
     {
-      _imp->normals[i + msg.offset][j] = stream.get<float>(i, j);
+      _imp->normals[i + offset][j] = stream.get<float>(i, j);
     }
     ++wrote;
   }

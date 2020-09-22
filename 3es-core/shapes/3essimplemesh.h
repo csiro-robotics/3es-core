@@ -37,8 +37,8 @@ public:
   /// @param indexCount Number of indices to preallocate.
   /// @param drawType Defines the primitive type being indexed.
   /// @param components The components defined by this mesh. See @c ComponentFlag.
-  SimpleMesh(uint32_t id, size_t vertexCount = 0u, size_t indexCount = 0u,
-             DrawType drawType = DtTriangles, unsigned components = Vertex | Index);
+  SimpleMesh(uint32_t id, size_t vertexCount = 0u, size_t indexCount = 0u, DrawType drawType = DtTriangles,
+             unsigned components = Vertex | Index);
 
 protected:
   /// Copy constructor supporting initial, shallow copy with copy on write semantics.
@@ -149,11 +149,11 @@ private:
   void copyOnWrite();
 
   bool processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes) override;
-  bool processVertices(const MeshComponentMessage &msg, const VertexBuffer &stream) override;
-  bool processIndices(const MeshComponentMessage &msg, const VertexBuffer &stream) override;
-  bool processColours(const MeshComponentMessage &msg, const VertexBuffer &stream) override;
-  bool processNormals(const MeshComponentMessage &msg, const VertexBuffer &stream) override;
-  bool processUVs(const MeshComponentMessage &msg, const VertexBuffer &stream) override;
+  bool processVertices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream) override;
+  bool processIndices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream) override;
+  bool processColours(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream) override;
+  bool processNormals(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream) override;
+  bool processUVs(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream) override;
 
   SimpleMeshImp *_imp;
 };

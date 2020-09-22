@@ -197,7 +197,7 @@ protected:
   VertexBuffer _normals;           ///< Normal stream. Expect zero, one per vertex or one to apply to all vertices.
   VertexBuffer _colours;           ///< Per vertex colours. Null for none.
   VertexBuffer _indices;           ///< Per vertex colours. Null for none.
-  float _quantisationUnit = 0.0f;  ///< Quantisation for data packing. Zero => no packing.
+  double _quantisationUnit = 0.0;  ///< Quantisation for data packing. Zero => no packing.
   float _drawScale = 0.0f;         ///< Draw scale: point scaling, line width, etc.
   DrawType _drawType;              ///< The primitive to render.
 };

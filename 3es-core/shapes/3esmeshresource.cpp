@@ -13,76 +13,6 @@
 
 using namespace tes;
 
-namespace
-{
-template <typename T, int ELEMCOUNT = 1>
-unsigned writeComponent(PacketWriter &packet, uint32_t meshId, uint32_t offset, unsigned byteLimit,
-                        const uint8_t *dataSource, unsigned dataStride, uint32_t componentCount)
-{
-  MeshComponentMessage msg;
-  const unsigned elementSize = sizeof(T) * ELEMCOUNT;
-  unsigned effectiveByteLimit;
-  if (packet.bytesRemaining() >= (sizeof(msg) + sizeof(PacketWriter::CrcType)))
-  {
-    effectiveByteLimit = packet.bytesRemaining() - unsigned(sizeof(msg) + sizeof(PacketWriter::CrcType));
-  }
-  else
-  {
-    effectiveByteLimit = 0;
-  }
-  // Truncate to 16-bits and allow for a fair amount of overhead.
-  // FIXME: Without the additional overhead I was getting missing messages at the client with
-  // no obvious error path.
-  byteLimit = std::min(byteLimit, 0xff00u);
-  effectiveByteLimit = byteLimit ? std::min(effectiveByteLimit, byteLimit) : effectiveByteLimit;
-  uint16_t transferCount =
-    MeshResource::estimateTransferCount(elementSize, effectiveByteLimit, int(sizeof(MeshComponentMessage)));
-  if (transferCount > componentCount - offset)
-  {
-    transferCount = uint16_t(componentCount - offset);
-  }
-
-  msg.meshId = meshId;
-  msg.offset = offset;
-  msg.reserved = 0;
-  msg.count = transferCount;
-  msg.elementType = meshComponentElementType<T>();
-
-  unsigned written = msg.write(packet);
-  // Jump to offset.
-  dataSource += dataStride * offset;
-  for (unsigned i = 0; i < transferCount; ++i)
-  {
-    const T *element = reinterpret_cast<const T *>(dataSource);
-    written = unsigned(packet.writeArray(element, ELEMCOUNT));
-    if (written != ELEMCOUNT)
-    {
-      return i;
-    }
-    dataSource += dataStride;
-  }
-
-  return transferCount;
-}
-
-
-template <typename T, int ELEMSTRIDE = 1>
-bool readComponent(PacketReader &packet, const MeshComponentMessage &msg, std::vector<T> &elements)
-{
-  if (msg.elementType != meshComponentElementType<T>())
-  {
-    return false;
-  }
-
-  bool ok = true;
-  elements.resize(msg.count * ELEMSTRIDE);
-  ok = ok && packet.readArray(elements.data(), msg.count * ELEMSTRIDE) == msg.count * ELEMSTRIDE;
-
-  return ok;
-}
-}  // namespace
-
-
 uint16_t MeshResource::estimateTransferCount(size_t elementSize, unsigned byteLimit, unsigned overhead)
 {
   //                                    packet header           message                         crc
@@ -171,12 +101,16 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     progress.progress = 0;
   }
 
+  packet.reset(typeId(), progress.phase);
+  MeshComponentMessage msg;
+  msg.meshId = id();
+  msg.write(packet);
+
   VertexBuffer dataSource;
   unsigned writeCount = 0;
   switch (progress.phase)
   {
   case MmtVertex:
-    packet.reset(typeId(), MmtVertex);
     dataSource = vertices(0);
     switch (dataSource.type())
     {
@@ -346,36 +280,36 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
   case MmtVertex: {
     readStream = VertexBuffer(static_cast<Vector3d *>(nullptr), 0);
     // Read the expected number of items.
-    readStream.read(packet, offset, count);
-    ok = processVertices(msg, readStream) && ok;
+    readStream.read(packet, 0, count);
+    ok = processVertices(msg, offset, readStream) && ok;
     break;
   }
   case MmtIndex: {
     readStream = VertexBuffer(static_cast<uint32_t *>(nullptr), 0);
     // Read the expected number of items.
-    readStream.read(packet, offset, count);
-    ok = processIndices(msg, readStream) && ok;
+    readStream.read(packet, 0, count);
+    ok = processIndices(msg, offset, readStream) && ok;
     break;
   }
   case MmtVertexColour: {
     readStream = VertexBuffer(static_cast<uint32_t *>(nullptr), 0);
     // Read the expected number of items.
-    readStream.read(packet, offset, count);
-    ok = processColours(msg, readStream) && ok;
+    readStream.read(packet, 0, count);
+    ok = processColours(msg, offset, readStream) && ok;
     break;
   }
   case MmtNormal: {
     readStream = VertexBuffer(static_cast<Vector3d *>(nullptr), 0);
     // Read the expected number of items.
-    readStream.read(packet, offset, count);
-    ok = processNormals(msg, readStream) && ok;
+    readStream.read(packet, 0, count);
+    ok = processNormals(msg, offset, readStream) && ok;
     break;
   }
   case MmtUv: {
     readStream = VertexBuffer(static_cast<double *>(nullptr), 0, 2);
     // Read the expected number of items.
-    readStream.read(packet, offset, count);
-    ok = processUVs(msg, readStream) && ok;
+    readStream.read(packet, 0, count);
+    ok = processUVs(msg, offset, readStream) && ok;
     break;
   }
   }
@@ -452,41 +386,46 @@ bool MeshResource::processCreate(const MeshCreateMessage &msg, const ObjectAttri
 }
 
 
-bool MeshResource::processVertices(const MeshComponentMessage &msg, const VertexBuffer &stream)
+bool MeshResource::processVertices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
 {
   TES_UNUSED(msg);
+  TES_UNUSED(offset);
   TES_UNUSED(stream);
   return false;
 }
 
 
-bool MeshResource::processIndices(const MeshComponentMessage &msg, const VertexBuffer &stream)
+bool MeshResource::processIndices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
 {
   TES_UNUSED(msg);
+  TES_UNUSED(offset);
   TES_UNUSED(stream);
   return false;
 }
 
 
-bool MeshResource::processColours(const MeshComponentMessage &msg, const VertexBuffer &stream)
+bool MeshResource::processColours(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
 {
   TES_UNUSED(msg);
+  TES_UNUSED(offset);
   TES_UNUSED(stream);
   return false;
 }
 
 
-bool MeshResource::processNormals(const MeshComponentMessage &msg, const VertexBuffer &stream)
+bool MeshResource::processNormals(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
 {
   TES_UNUSED(msg);
+  TES_UNUSED(offset);
   TES_UNUSED(stream);
   return false;
 }
 
 
-bool MeshResource::processUVs(const MeshComponentMessage &msg, const VertexBuffer &stream)
+bool MeshResource::processUVs(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
 {
   TES_UNUSED(msg);
+  TES_UNUSED(offset);
   TES_UNUSED(stream);
   return false;
 }

@@ -331,8 +331,6 @@ void MutableMesh::update(Connection *con)
   con->send(packet);
 
   cmpmsg.meshId = _imp->mesh.id();
-  cmpmsg.reserved = 0;
-  cmpmsg.count = 1;
 
   // It would be nice to sort additions/removals to support block updates,
   // however, changes may be interleaved so we have to preserve order.
@@ -343,57 +341,43 @@ void MutableMesh::update(Connection *con)
     for (size_t i = 0; i < _imp->vertexChanges.size(); ++i)
     {
       const VertexChange &vertexDef = _imp->vertexChanges[i];
-      cmpmsg.offset = vertexDef.writeIndex;
-      cmpmsg.count = 1;
 
       if (vertexDef.componentFlag & SimpleMesh::Vertex)
       {
-        cmpmsg.elementType = McetFloat32;
         packet.reset(tes::MtMesh, tes::MmtVertex);
         cmpmsg.write(packet);
-
-        // Write the vertex value.
-        packet.writeArray<float>(vertexDef.position, 3);
-
+        VertexBuffer writeBuffer(vertexDef.position, 1, 3);
+        writeBuffer.write(packet, 0, vertexDef.writeIndex);
         packet.finalise();
         con->send(packet);
       }
 
       if (vertexDef.componentFlag & SimpleMesh::Colour)
       {
-        cmpmsg.elementType = McetUInt32;
         packet.reset(tes::MtMesh, tes::MmtVertexColour);
         cmpmsg.write(packet);
-
-        // Write the vertex value.
-        packet.writeElement<uint32_t>(vertexDef.colour);
-
+        VertexBuffer writeBuffer(&vertexDef.colour, 1);
+        writeBuffer.write(packet, 0, vertexDef.writeIndex);
         packet.finalise();
         con->send(packet);
       }
 
       if (vertexDef.componentFlag & SimpleMesh::Normal)
       {
-        cmpmsg.elementType = McetFloat32;
         packet.reset(tes::MtMesh, tes::MmtNormal);
         cmpmsg.write(packet);
-
-        // Write the vertex value.
-        packet.writeArray<float>(vertexDef.normal, 3);
-
+        VertexBuffer writeBuffer(vertexDef.normal, 1, 3);
+        writeBuffer.write(packet, 0, vertexDef.writeIndex);
         packet.finalise();
         con->send(packet);
       }
 
       if (vertexDef.componentFlag & SimpleMesh::Uv)
       {
-        cmpmsg.elementType = McetFloat32;
         packet.reset(tes::MtMesh, tes::MmtUv);
         cmpmsg.write(packet);
-
-        // Write the vertex value.
-        packet.writeArray<float>(vertexDef.uv, 2);
-
+        VertexBuffer writeBuffer(vertexDef.uv, 1, 2);
+        writeBuffer.write(packet, 0, vertexDef.writeIndex);
         packet.finalise();
         con->send(packet);
       }
@@ -406,16 +390,10 @@ void MutableMesh::update(Connection *con)
     for (size_t i = 0; i < _imp->indexChanges.size(); ++i)
     {
       const IndexChange &indexDef = _imp->indexChanges[i];
-      cmpmsg.offset = indexDef.writeIndex;
-      cmpmsg.count = 1;
-      cmpmsg.elementType = McetUInt32;
-
       packet.reset(tes::MtMesh, tes::MmtIndex);
       cmpmsg.write(packet);
-
-      // Write the vertex value.
-      packet.writeElement<unsigned>(indexDef.indexValue);
-
+      VertexBuffer writeBuffer(&indexDef.indexValue, 1);
+      writeBuffer.write(packet, 0, indexDef.writeIndex);
       packet.finalise();
       con->send(packet);
     }

@@ -303,10 +303,6 @@ struct MeshDestroyMessage
 struct MeshComponentMessage
 {
   uint32_t meshId;
-  uint32_t offset;
-  uint32_t reserved;
-  uint16_t count;
-  uint8_t elementType;    ///< @c MeshComponentElementType
 
   /// Read this message from @p reader.
   /// @param reader The data source.
@@ -315,10 +311,6 @@ struct MeshComponentMessage
   {
     bool ok = true;
     ok = reader.readElement(meshId) == sizeof(meshId) && ok;
-    ok = reader.readElement(offset) == sizeof(offset) && ok;
-    ok = reader.readElement(reserved) == sizeof(reserved) && ok;
-    ok = reader.readElement(count) == sizeof(count) && ok;
-    ok = reader.readElement(elementType) == sizeof(elementType) && ok;
     return ok;
   }
 
@@ -329,10 +321,6 @@ struct MeshComponentMessage
   {
     bool ok = true;
     ok = writer.writeElement(meshId) == sizeof(meshId) && ok;
-    ok = writer.writeElement(offset) == sizeof(offset) && ok;
-    ok = writer.writeElement(reserved) == sizeof(reserved) && ok;
-    ok = writer.writeElement(count) == sizeof(count) && ok;
-    ok = writer.writeElement(elementType) == sizeof(elementType) && ok;
     return ok;
   }
 };
@@ -349,7 +337,7 @@ struct Material
 
   uint32_t meshId;
   uint32_t materialId;
-  uint16_t flags; ///< Reserved for flags. Not used yet.
+  uint16_t flags;  ///< Reserved for flags. Not used yet.
 
   /// Read this message from @p reader.
   /// @param reader The data source.
