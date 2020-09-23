@@ -129,7 +129,6 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     break;
 
   case MmtVertexColour:
-    packet.reset(typeId(), MmtVertexColour);
     dataSource = colours(0);
     switch (dataSource.type())
     {
@@ -145,7 +144,6 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     break;
 
   case MmtIndex:
-    packet.reset(typeId(), MmtIndex);
     dataSource = indices(0);
     switch (dataSource.type())
     {
@@ -168,7 +166,6 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     break;
 
   case MmtNormal:
-    packet.reset(typeId(), MmtNormal);
     dataSource = normals(0);
     switch (dataSource.type())
     {
@@ -187,7 +184,6 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     break;
 
   case MmtUv:
-    packet.reset(typeId(), MmtUv);
     dataSource = uvs(0);
     switch (dataSource.type())
     {

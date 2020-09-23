@@ -150,7 +150,6 @@ int MeshShape::writeData(PacketWriter &packet, unsigned &progressMarker) const
 
   bool done = false;
   unsigned writeCount = 0;
-  unsigned targetCount = 0;
   switch (phaseIndex)
   {
   case SDT_Vertices:
@@ -163,12 +162,10 @@ int MeshShape::writeData(PacketWriter &packet, unsigned &progressMarker) const
     {
       writeCount = _vertices.write(packet, offset);
     }
-    targetCount = _vertices.count();
     break;
   case SDT_Indices:
     ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
     writeCount = _indices.write(packet, offset);
-    targetCount = _indices.count();
     break;
   case SDT_Normals:
     ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
@@ -180,12 +177,10 @@ int MeshShape::writeData(PacketWriter &packet, unsigned &progressMarker) const
     {
       writeCount = _normals.write(packet, offset);
     }
-    targetCount = _normals.count();
     break;
   case SDT_Colours:
     ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
     writeCount = _colours.write(packet, offset);
-    targetCount = _colours.count();
     break;
 
   default:
@@ -195,7 +190,8 @@ int MeshShape::writeData(PacketWriter &packet, unsigned &progressMarker) const
     break;
   }
 
-  ok = writeCount != targetCount && ok;
+  progressMarker += writeCount;
+  ok = done || writeCount > 0;
 
   if (!ok)
   {

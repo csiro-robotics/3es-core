@@ -572,19 +572,19 @@ bool SimpleMesh::processVertices(const MeshComponentMessage &msg, unsigned offse
       _imp->vertices[i + offset][j] = stream.get<float>(i, j);
     }
   }
-  return stream.count() + offset < vertexCount();
+  return stream.count() + offset <= vertexCount();
 }
 
 
 bool SimpleMesh::processIndices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
 {
-  return setIndices(offset, stream.ptr<uint32_t>(), stream.count());
+  return setIndices(offset, stream.ptr<uint32_t>(), stream.count()) == stream.count();
 }
 
 
 bool SimpleMesh::processColours(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
 {
-  return setColours(offset, stream.ptr<uint32_t>(), stream.count());
+  return setColours(offset, stream.ptr<uint32_t>(), stream.count()) == stream.count();
 }
 
 
@@ -603,7 +603,7 @@ bool SimpleMesh::processNormals(const MeshComponentMessage &msg, unsigned offset
       _imp->normals[i + offset][j] = stream.get<float>(i, j);
     }
   }
-  return stream.count() + offset < vertexCount();
+  return stream.count() + offset <= vertexCount();
 }
 
 
@@ -620,5 +620,5 @@ bool SimpleMesh::processUVs(const MeshComponentMessage &msg, unsigned offset, co
     _imp->uvs[i + offset].u = stream.get<float>(i, 0);
     _imp->uvs[i + offset].v = stream.get<float>(i, 1);
   }
-  return stream.count() + offset < vertexCount();
+  return stream.count() + offset <= vertexCount();
 }
