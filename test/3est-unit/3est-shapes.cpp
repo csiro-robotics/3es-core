@@ -338,9 +338,9 @@ void validateFileStream(const char *fileName, const T &referenceShape, const Ser
 
 TEST(Shapes, Arrow)
 {
-  testShape(Arrow(42u, Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 2.0f, 0.05f)));
+  testShape(Arrow(42u, Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.05f, 2.0f)));
   testShape(
-    Arrow(ShapeId(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 2.0f, 0.05f)));
+    Arrow(ShapeId(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.05f, 2.0f)));
 }
 
 TEST(Shapes, Box)

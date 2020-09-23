@@ -71,15 +71,15 @@ void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<cons
     const Vector3f pos(0.0f);
     Arrow *arrow;
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(1, 0, 0), arrowLength, arrowRadius));
+    arrow = new Arrow(nextId++, Directional(pos, Vector3f(1, 0, 0), arrowRadius, arrowLength));
     arrow->setColour(Colour::Colours[Colour::Red]);
     shapes.push_back(arrow);
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 1, 0), arrowLength, arrowRadius));
+    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 1, 0), arrowRadius, arrowLength));
     arrow->setColour(Colour::Colours[Colour::ForestGreen]);
     shapes.push_back(arrow);
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 0, 1), arrowLength, arrowRadius));
+    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 0, 1), arrowRadius, arrowLength));
     arrow->setColour(Colour::Colours[Colour::DodgerBlue]);
     shapes.push_back(arrow);
   }

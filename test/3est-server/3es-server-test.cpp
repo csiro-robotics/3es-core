@@ -210,15 +210,15 @@ void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Shap
     const Vector3f pos(0.0f);
     Arrow *arrow;
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(1, 0, 0), arrowLength, arrowRadius));
+    arrow = new Arrow(nextId++, Directional(pos, Vector3f(1, 0, 0), arrowRadius, arrowLength));
     arrow->setColour(Colour::Colours[Colour::Red]);
     shapes.emplace_back(arrow);
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 1, 0), arrowLength, arrowRadius));
+    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 1, 0), arrowRadius, arrowLength));
     arrow->setColour(Colour::Colours[Colour::ForestGreen]);
     shapes.emplace_back(arrow);
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 0, 1), arrowLength, arrowRadius));
+    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 0, 1), arrowRadius, arrowLength));
     arrow->setColour(Colour::Colours[Colour::DodgerBlue]);
     shapes.emplace_back(arrow);
   }
@@ -537,7 +537,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
                       Directional(Vector3f(-1.0f, -1.0f, 1.0f), Vector3f(-1.0f, 0, 0)));
     shapes.emplace_back(text);
     text = new Text3D("Hello World 3D Facing", ShapeId(nextId++, CatText3D),
-                      Directional(Vector3f(-1.0f, -1.0f, 0.0f), 8.0f));
+                      Directional(Vector3f(-1.0f, -1.0f, 0.0f), 1.0f, 8.0f));
     text->setScreenFacing(true);
     shapes.emplace_back(text);
   }

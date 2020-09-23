@@ -369,7 +369,9 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
       {
         o << ',';
       }
-      o << '\n' << indent2 << "  " << verts.get<float>(v, 0) << ", " << verts.get<float>(v, 2) << ", " << verts.get<float>(v, 2);
+      o << '\n'
+        << indent2 << "  " << verts.get<float>(v, 0) << ", " << verts.get<float>(v, 2) << ", "
+        << verts.get<float>(v, 2);
     }
     o << '\n' << indent2 << "]";
     dangling = true;
@@ -410,7 +412,9 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
       {
         o << ',';
       }
-      o << '\n' << indent2 << "  " << normals.get<float>(n, 0) << ", " << normals.get<float>(n, 1) << ", " << normals.get<float>(n, 2);
+      o << '\n'
+        << indent2 << "  " << normals.get<float>(n, 0) << ", " << normals.get<float>(n, 1) << ", "
+        << normals.get<float>(n, 2);
     }
     o << '\n' << indent2 << "]";
     dangling = true;
@@ -661,7 +665,7 @@ int main(int argc, char **argvNonConst)
   std::vector<Shape *> shapes;
   std::vector<MeshResource *> resources;
 
-  addShape(initShape(new Arrow(nextId++, Directional(Vector3f(0.0f), Vector3f(1, 0, 0), 1.0f, 0.25f))), server, shapes);
+  addShape(initShape(new Arrow(nextId++, Directional(Vector3f(0.0f), Vector3f(1, 0, 0), 0.25f, 1.0f))), server, shapes);
   addShape(
     initShape(new Box(
       nextId++, Transform(Vector3f(0.0f),

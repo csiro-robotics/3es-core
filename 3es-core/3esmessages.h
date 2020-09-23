@@ -175,17 +175,17 @@ enum ControlFlag
 /// Note the packed types are not valid to be held in a @c VertexBuffer and are only used in transmission.
 enum DataStreamType
 {
-  DctNone,    ///< No type: invalid.
-  DctInt8,    ///< Elements using 8-bit signed integers.
-  DctUInt8,   ///< Elements using 8-bit unsigned integers.
-  DctInt16,   ///< Elements using 16-bit signed integers.
-  DctUInt16,  ///< Elements using 16-bit unsigned integers.
-  DctInt32,   ///< Elements using 32-bit signed integers.
-  DctUInt32,  ///< Elements using 32-bit unsigned integers.
-  DctInt64,   ///< Elements using 64-bit signed integers.
-  DctUInt64,  ///< Elements using 64-bit unsigned integers.
-  DctFloat32, ///< Elements using single precision floating point values.
-  DctFloat64, ///< Elements using double precision floating point values.
+  DctNone,     ///< No type: invalid.
+  DctInt8,     ///< Elements using 8-bit signed integers.
+  DctUInt8,    ///< Elements using 8-bit unsigned integers.
+  DctInt16,    ///< Elements using 16-bit signed integers.
+  DctUInt16,   ///< Elements using 16-bit unsigned integers.
+  DctInt32,    ///< Elements using 32-bit signed integers.
+  DctUInt32,   ///< Elements using 32-bit unsigned integers.
+  DctInt64,    ///< Elements using 64-bit signed integers.
+  DctUInt64,   ///< Elements using 64-bit unsigned integers.
+  DctFloat32,  ///< Elements using single precision floating point values.
+  DctFloat64,  ///< Elements using double precision floating point values.
   /// Elements packed using 16-bit signed integers used to quantise single precision floating point values.
   /// The quantisation scale factor immeidately preceeds the data array as a 32-bit floating point value.
   DctPackedFloat16,
@@ -649,7 +649,7 @@ struct _3es_coreAPI UpdateMessage
   template <typename real>
   inline bool write(PacketWriter &writer, const ObjectAttributes<real> &attributes) const
   {
-    bool ok = (flags & OFDoublePrecision) && sizeof(real) == 8 || !(flags & OFDoublePrecision) && sizeof(real) == 4;
+    bool ok = true;
     ok = writer.writeElement(id) == sizeof(id) && ok;
     ok = writer.writeElement(flags) == sizeof(flags) && ok;
     ok = attributes.write(writer, flags & OFDoublePrecision) && ok;
