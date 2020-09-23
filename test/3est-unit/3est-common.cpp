@@ -223,15 +223,30 @@ void validateShape(const MeshShape &shape, const MeshShape &reference, const Res
   validateShape(static_cast<const Shape>(shape), static_cast<const Shape>(reference), resources);
 
   EXPECT_EQ(shape.drawType(), reference.drawType());
-  EXPECT_EQ(shape.vertices().count(), reference.vertices().count());
-  EXPECT_EQ(shape.vertices().componentCount(), reference.vertices().componentCount());
-  EXPECT_EQ(shape.vertices().elementStride(), reference.vertices().elementStride());
-  EXPECT_EQ(shape.indices().count(), reference.indices().count());
-  EXPECT_EQ(shape.indices().componentCount(), reference.indices().componentCount());
-  EXPECT_EQ(shape.indices().elementStride(), reference.indices().elementStride());
-  EXPECT_EQ(shape.normals().count(), reference.normals().count());
-  EXPECT_EQ(shape.normals().componentCount(), reference.normals().componentCount());
-  EXPECT_EQ(shape.normals().elementStride(), reference.normals().elementStride());
+  if (reference.vertices().count())
+  {
+    EXPECT_EQ(shape.vertices().count(), reference.vertices().count());
+    EXPECT_EQ(shape.vertices().componentCount(), reference.vertices().componentCount());
+    EXPECT_EQ(shape.vertices().elementStride(), reference.vertices().elementStride());
+  }
+  if (reference.indices().count())
+  {
+    EXPECT_EQ(shape.indices().count(), reference.indices().count());
+    EXPECT_EQ(shape.indices().componentCount(), reference.indices().componentCount());
+    EXPECT_EQ(shape.indices().elementStride(), reference.indices().elementStride());
+  }
+  if (reference.normals().count())
+  {
+    EXPECT_EQ(shape.normals().count(), reference.normals().count());
+    EXPECT_EQ(shape.normals().componentCount(), reference.normals().componentCount());
+    EXPECT_EQ(shape.normals().elementStride(), reference.normals().elementStride());
+  }
+  if (reference.colours().count())
+  {
+    EXPECT_EQ(shape.colours().count(), reference.colours().count());
+    EXPECT_EQ(shape.colours().componentCount(), reference.colours().componentCount());
+    EXPECT_EQ(shape.colours().elementStride(), reference.colours().elementStride());
+  }
 
   // Validate vertices.
   Vector3f v, r;

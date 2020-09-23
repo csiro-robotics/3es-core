@@ -339,7 +339,8 @@ void validateFileStream(const char *fileName, const T &referenceShape, const Ser
 TEST(Shapes, Arrow)
 {
   testShape(Arrow(42u, Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 2.0f, 0.05f)));
-  testShape(Arrow(ShapeId(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 2.0f, 0.05f)));
+  testShape(
+    Arrow(ShapeId(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 2.0f, 0.05f)));
 }
 
 TEST(Shapes, Box)
@@ -348,8 +349,8 @@ TEST(Shapes, Box)
     42u, Transform(Vector3f(1.2f, 2.3f, 3.4f),
                    Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f)), Vector3f(1, 3, 2))));
   testShape(Box(ShapeId(42u, 1), Transform(Vector3f(1.2f, 2.3f, 3.4f),
-                                         Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f)),
-                                         Vector3f(1, 3, 2))));
+                                           Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f)),
+                                           Vector3f(1, 3, 2))));
 }
 
 TEST(Shapes, Capsule)
@@ -362,7 +363,8 @@ TEST(Shapes, Capsule)
 TEST(Shapes, Cone)
 {
   testShape(Cone(ShapeId(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.35f, 3.0f)));
-  testShape(Cone(ShapeId(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.35f, 3.0f)));
+  testShape(
+    Cone(ShapeId(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.35f, 3.0f)));
 }
 
 TEST(Shapes, Cylinder)
@@ -536,7 +538,8 @@ TEST(Shapes, Mesh)
 TEST(Shapes, Plane)
 {
   testShape(Plane(ShapeId(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 5.0f, 0.75f)));
-  testShape(Plane(ShapeId(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 5.0f, 0.75f)));
+  testShape(
+    Plane(ShapeId(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 5.0f, 0.75f)));
 }
 
 TEST(Shapes, PointCloud)

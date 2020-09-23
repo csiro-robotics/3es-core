@@ -1,19 +1,18 @@
 //
 // author: Kazys Stepanas
 //
-#include <gtest/gtest.h>
-
-#include <cinttypes>
+#include "3est-common.h"
 
 #include <3espacketreader.h>
 #include <3espacketwriter.h>
 #include <3esvertexbuffer.h>
 #include <tessellate/3essphere.h>
 
-#include "3est-common.h"
+#include <gtest/gtest.h>
 
 #include <algorithm>
 #include <functional>
+#include <cinttypes>
 #include <cmath>
 #include <vector>
 
@@ -25,12 +24,12 @@ void testBufferReadAsType(const VertexBuffer &buffer, const std::vector<T> &refe
                             std::function<void(size_t, size_t, D, D, const char *)>())
 {
   ASSERT_TRUE(buffer.isValid()) << context;
-  ASSERT_GT(buffer.count(), 0) << context;
+  ASSERT_GT(buffer.count(), 0u) << context;
   ASSERT_EQ(buffer.count() * buffer.componentCount(), reference.size()) << context;
 
   if (!validate)
   {
-    validate = [](size_t i, size_t j, T val, T ref, const char *context)  //
+    validate = [](size_t i, size_t j, D val, D ref, const char *context)  //
     { ASSERT_EQ(val, ref) << context << " @ [" << i << ',' << j << ']'; };
   }
 
@@ -275,7 +274,7 @@ void testPacketStreamVector3(bool packed)
   PacketWriter writer(raw_buffer.data(), int_cast<uint16_t>(raw_buffer.size()));
 
   unsigned writeCount = 0;
-  float quantisation = 0.001f;
+  real quantisation = real(0.001);
 
   if (!packed)
   {
@@ -308,9 +307,10 @@ void testPacketStreamVector3(bool packed)
   }
   else
   {
-    testBufferReadAsType<real, real>(vertexBuffer, reference, "Vector3 from stream",
-                               [quantisation](size_t i, size_t j, real val, real ref, const char *context)  //
-                               { ASSERT_NEAR(val, ref, quantisation) << context << " @ [" << i << ',' << j << ']'; });
+    testBufferReadAsType<real, real>(
+      vertexBuffer, reference, "Vector3 from stream",
+      [quantisation](size_t i, size_t j, real val, real ref, const char *context)  //
+      { ASSERT_NEAR(val, ref, quantisation) << context << " @ [" << i << ',' << j << ']'; });
   }
 }
 
