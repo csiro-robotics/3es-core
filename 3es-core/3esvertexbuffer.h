@@ -261,6 +261,7 @@ public:
   inline bool isValid() const { return _stream != nullptr; }
 
   inline unsigned count() const { return _count; }
+  inline unsigned addressableCount() const { return _count * _componentCount; }
   inline unsigned basicTypeSize() const { return _basicTypeSize; }
   inline unsigned byteStride() const { return _elementStride * _basicTypeSize; }
   inline unsigned componentCount() const { return _componentCount; }
@@ -310,13 +311,13 @@ private:
 
   const void *_stream{ nullptr };
   unsigned _count{ 0 };          ///< Number of vertices in the @p _stream .
-  uint8_t _componentCount{ 0 };  ///< Number of data type component elements in each vertex. E.g., Vector3 has 3.
+  uint8_t _componentCount{ 1 };  ///< Number of data type component elements in each vertex. E.g., Vector3 has 3.
   /// Number of data type elements between each vertex. For any densely packed array this value will match
   /// @c _componentCount . For alined, or interleaved arrays, this valid will be larger than @c _componentCount .
   ///
   /// For example, an array of 16 byte aligned @c float3 vertices will have a @c _componentCount of 3 and a
   /// @c _elementStride of 4.
-  uint8_t _elementStride{ 0 };
+  uint8_t _elementStride{ 1 };
   /// Size of the basic @c _type stored in @c stream .
   uint8_t _basicTypeSize{ 0 };
   DataStreamType _type{ DctNone };  ///< The simple data type for @c _stream

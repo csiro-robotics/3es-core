@@ -5,14 +5,6 @@
 namespace tes
 {
 inline VertexBuffer::VertexBuffer()
-  : _stream(nullptr)
-  , _count(0)
-  , _componentCount(1)
-  , _elementStride(1)
-  , _basicTypeSize(0)
-  , _type(DctNone)
-  , _flags(0)
-  , _affordances(nullptr)
 {}
 
 template <typename T>
@@ -56,7 +48,7 @@ inline VertexBuffer::VertexBuffer(const Vector3d *v, size_t count)
 inline VertexBuffer::VertexBuffer(const Colour *c, size_t count)
   : _stream(c ? &c->c : nullptr)
   , _count(int_cast<unsigned>(count))
-  , _componentCount(3)
+  , _componentCount(1)
   , _elementStride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint32_t)))
   , _basicTypeSize(int_cast<uint8_t>(sizeof(Colour)))
   , _type(VertexBufferTypeInfo<uint32_t>::type())
@@ -102,7 +94,7 @@ inline VertexBuffer::VertexBuffer(const std::vector<Vector3d> &v)
 inline VertexBuffer::VertexBuffer(const std::vector<Colour> &c)
   : _stream(&c.data()->c)
   , _count(int_cast<unsigned>(c.size()))
-  , _componentCount(3)
+  , _componentCount(1)
   , _elementStride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint32_t)))
   , _basicTypeSize(int_cast<uint8_t>(VertexBufferTypeInfo<uint32_t>::size()))
   , _type(DctUInt32)
@@ -123,6 +115,7 @@ inline VertexBuffer::VertexBuffer(VertexBuffer &&other)
 
 inline VertexBuffer::VertexBuffer(const VertexBuffer &other)
   : _stream(other._stream)
+  , _count(other._count)
   , _componentCount(other._componentCount)
   , _elementStride(other._elementStride)
   , _basicTypeSize(other._basicTypeSize)
@@ -220,7 +213,7 @@ inline uint16_t VertexBuffer::estimateTransferCount(size_t elementSize, unsigned
 {
   // FIXME: Without additional overhead padding I was getting missing messages at the client with
   // no obvious error path. For this reason, we use 0xff00u, instead of 0xffffu
-  //                                    packet header           message                         crc
+  //           packet header           message                 crc
   const size_t maxTransfer =
     (0xff00u - (sizeof(PacketHeader) + overhead + sizeof(PacketWriter::CrcType))) / elementSize;
   size_t count = byteLimit ? byteLimit / elementSize : maxTransfer;
@@ -525,7 +518,11 @@ uint32_t VertexBufferAffordancesT<T>::read(PacketReader &packet, void **stream_p
     if (*stream_ptr)
     {
       std::copy(static_cast<const T *>(*stream_ptr),
-                static_cast<const T *>(*stream_ptr) + (offset + count) * componentCount, new_ptr);
+                static_cast<const T *>(*stream_ptr) + (*stream_size) * componentCount, new_ptr);
+      if (*has_ownership)
+      {
+        delete[] * stream_ptr;
+      }
     }
     *stream_ptr = new_ptr;
     *stream_size = offset + count;
