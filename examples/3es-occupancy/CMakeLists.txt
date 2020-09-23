@@ -1,4 +1,10 @@
-find_package(octomap QUIET)
+option(TES_WITH_OCTOMAP_EXAMPLE "Enable the octomap example visualisation?" OFF)
+
+if(NOT TES_WITH_OCTOMAP_EXAMPLE)
+  return()
+endif(NOT TES_WITH_OCTOMAP_EXAMPLE)
+
+find_package(octomap REQUIRED)
 
 # Handle older and newer octomap incldue dir variables.
 # Convert older (1.8) to newer (currently in devel)
