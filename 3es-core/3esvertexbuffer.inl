@@ -351,13 +351,15 @@ uint32_t VertexBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t off
   else
   {
     // We have either a striding mismatch or a type mismatch. Componentwise write
-    for (unsigned i = 0; transferCount; ++i)
+    for (unsigned i = 0; i < transferCount; ++i)
     {
+      unsigned componentWriteCount = 0;
       for (unsigned j = 0; j < stream.componentCount(); ++j)
       {
         const WriteType dstValue = static_cast<WriteType>(src[j]);
-        writeCount += unsigned(packet.writeElement(dstValue) / sizeof(dstValue));
+        componentWriteCount += unsigned(packet.writeElement(dstValue) / sizeof(dstValue));
       }
+      writeCount += componentWriteCount / stream.componentCount();
       src += stream.elementStride();
     }
   }
