@@ -4,105 +4,105 @@
 
 namespace tes
 {
-inline VertexBuffer::VertexBuffer()
+inline DataBuffer::DataBuffer()
 {}
 
 template <typename T>
-inline VertexBuffer::VertexBuffer(const T *v, size_t count, size_t componentCount, size_t componentStride,
+inline DataBuffer::DataBuffer(const T *v, size_t count, size_t componentCount, size_t componentStride,
                                   bool ownPointer)
   : _stream(v)
   , _count(int_cast<unsigned>(count))
   , _componentCount(int_cast<uint8_t>(componentCount))
   , _elementStride(int_cast<uint8_t>(componentStride ? componentStride : componentCount))
-  , _basicTypeSize(int_cast<uint8_t>(VertexBufferTypeInfo<T>::size()))
-  , _type(VertexBufferTypeInfo<T>::type())
+  , _basicTypeSize(int_cast<uint8_t>(DataBufferTypeInfo<T>::size()))
+  , _type(DataBufferTypeInfo<T>::type())
   , _flags(!!ownPointer * Flag::OwnPointer)
-  , _affordances(detail::VertexBufferAffordancesT<T>::instance())
+  , _affordances(detail::DataBufferAffordancesT<T>::instance())
 {}
 
 
-inline VertexBuffer::VertexBuffer(const Vector3f *v, size_t count)
+inline DataBuffer::DataBuffer(const Vector3f *v, size_t count)
   : _stream(v ? &v->x : nullptr)
   , _count(int_cast<unsigned>(count))
   , _componentCount(3)
   , _elementStride(int_cast<uint8_t>(sizeof(Vector3f) / sizeof(float)))
   , _basicTypeSize(int_cast<uint8_t>(sizeof(Vector3f)))
-  , _type(VertexBufferTypeInfo<float>::type())
+  , _type(DataBufferTypeInfo<float>::type())
   , _flags(0)
-  , _affordances(detail::VertexBufferAffordancesT<float>::instance())
+  , _affordances(detail::DataBufferAffordancesT<float>::instance())
 {}
 
 
-inline VertexBuffer::VertexBuffer(const Vector3d *v, size_t count)
+inline DataBuffer::DataBuffer(const Vector3d *v, size_t count)
   : _stream(v ? &v->x : nullptr)
   , _count(int_cast<unsigned>(count))
   , _componentCount(3)
   , _elementStride(int_cast<uint8_t>(sizeof(Vector3d) / sizeof(double)))
   , _basicTypeSize(int_cast<uint8_t>(sizeof(Vector3d)))
-  , _type(VertexBufferTypeInfo<double>::type())
+  , _type(DataBufferTypeInfo<double>::type())
   , _flags(0)
-  , _affordances(detail::VertexBufferAffordancesT<double>::instance())
+  , _affordances(detail::DataBufferAffordancesT<double>::instance())
 {}
 
 
-inline VertexBuffer::VertexBuffer(const Colour *c, size_t count)
+inline DataBuffer::DataBuffer(const Colour *c, size_t count)
   : _stream(c ? &c->c : nullptr)
   , _count(int_cast<unsigned>(count))
   , _componentCount(1)
   , _elementStride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint32_t)))
   , _basicTypeSize(int_cast<uint8_t>(sizeof(Colour)))
-  , _type(VertexBufferTypeInfo<uint32_t>::type())
+  , _type(DataBufferTypeInfo<uint32_t>::type())
   , _flags(0)
-  , _affordances(detail::VertexBufferAffordancesT<uint32_t>::instance())
+  , _affordances(detail::DataBufferAffordancesT<uint32_t>::instance())
 {}
 
 
 template <typename T>
-inline VertexBuffer::VertexBuffer(const std::vector<T> &v, size_t componentCount, size_t componentStride)
+inline DataBuffer::DataBuffer(const std::vector<T> &v, size_t componentCount, size_t componentStride)
   : _stream(v.data())
   , _count(int_cast<unsigned>(v.size() / (componentStride ? componentStride : componentCount)))
   , _componentCount(int_cast<uint8_t>(componentCount))
   , _elementStride(int_cast<uint8_t>(componentStride ? componentStride : componentCount))
-  , _basicTypeSize(int_cast<uint8_t>(VertexBufferTypeInfo<T>::size()))
-  , _type(VertexBufferTypeInfo<T>::type())
+  , _basicTypeSize(int_cast<uint8_t>(DataBufferTypeInfo<T>::size()))
+  , _type(DataBufferTypeInfo<T>::type())
   , _flags(0)
-  , _affordances(detail::VertexBufferAffordancesT<T>::instance())
+  , _affordances(detail::DataBufferAffordancesT<T>::instance())
 {}
 
-inline VertexBuffer::VertexBuffer(const std::vector<Vector3f> &v)
+inline DataBuffer::DataBuffer(const std::vector<Vector3f> &v)
   : _stream(v.data()->v)
   , _count(int_cast<unsigned>(v.size()))
   , _componentCount(3)
   , _elementStride(int_cast<uint8_t>(sizeof(Vector3f) / sizeof(float)))
-  , _basicTypeSize(int_cast<uint8_t>(VertexBufferTypeInfo<float>::size()))
+  , _basicTypeSize(int_cast<uint8_t>(DataBufferTypeInfo<float>::size()))
   , _type(DctFloat32)
   , _flags(0)
-  , _affordances(detail::VertexBufferAffordancesT<float>::instance())
+  , _affordances(detail::DataBufferAffordancesT<float>::instance())
 {}
 
-inline VertexBuffer::VertexBuffer(const std::vector<Vector3d> &v)
+inline DataBuffer::DataBuffer(const std::vector<Vector3d> &v)
   : _stream(v.data()->v)
   , _count(int_cast<unsigned>(v.size()))
   , _componentCount(3)
   , _elementStride(int_cast<uint8_t>(sizeof(Vector3d) / sizeof(double)))
-  , _basicTypeSize(int_cast<uint8_t>(VertexBufferTypeInfo<double>::size()))
+  , _basicTypeSize(int_cast<uint8_t>(DataBufferTypeInfo<double>::size()))
   , _type(DctFloat64)
   , _flags(0)
-  , _affordances(detail::VertexBufferAffordancesT<double>::instance())
+  , _affordances(detail::DataBufferAffordancesT<double>::instance())
 {}
 
-inline VertexBuffer::VertexBuffer(const std::vector<Colour> &c)
+inline DataBuffer::DataBuffer(const std::vector<Colour> &c)
   : _stream(&c.data()->c)
   , _count(int_cast<unsigned>(c.size()))
   , _componentCount(1)
   , _elementStride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint32_t)))
-  , _basicTypeSize(int_cast<uint8_t>(VertexBufferTypeInfo<uint32_t>::size()))
+  , _basicTypeSize(int_cast<uint8_t>(DataBufferTypeInfo<uint32_t>::size()))
   , _type(DctUInt32)
   , _flags(0)
-  , _affordances(detail::VertexBufferAffordancesT<uint32_t>::instance())
+  , _affordances(detail::DataBufferAffordancesT<uint32_t>::instance())
 {}
 
-inline VertexBuffer::VertexBuffer(VertexBuffer &&other)
+inline DataBuffer::DataBuffer(DataBuffer &&other)
   : _stream(std::exchange(other._stream, nullptr))
   , _count(std::exchange(other._count, 0))
   , _componentCount(std::exchange(other._componentCount, 0))
@@ -113,7 +113,7 @@ inline VertexBuffer::VertexBuffer(VertexBuffer &&other)
   , _affordances(std::exchange(other._affordances, nullptr))
 {}
 
-inline VertexBuffer::VertexBuffer(const VertexBuffer &other)
+inline DataBuffer::DataBuffer(const DataBuffer &other)
   : _stream(other._stream)
   , _count(other._count)
   , _componentCount(other._componentCount)
@@ -124,57 +124,57 @@ inline VertexBuffer::VertexBuffer(const VertexBuffer &other)
   , _affordances(other._affordances)
 {}
 
-inline VertexBuffer::~VertexBuffer()
+inline DataBuffer::~DataBuffer()
 {
   reset();
 }
 
 template <typename T>
-inline void VertexBuffer::set(const T *v, size_t count, size_t componentCount, size_t componentStride, bool ownPointer)
+inline void DataBuffer::set(const T *v, size_t count, size_t componentCount, size_t componentStride, bool ownPointer)
 {
-  *this = std::move(VertexBuffer(v, count, componentCount, componentStride, ownPointer));
+  *this = std::move(DataBuffer(v, count, componentCount, componentStride, ownPointer));
 }
 
 template <typename T>
-inline void VertexBuffer::set(const std::vector<T> &v, size_t componentCount, size_t componentStride)
+inline void DataBuffer::set(const std::vector<T> &v, size_t componentCount, size_t componentStride)
 {
-  *this = std::move(VertexBuffer(v, componentCount, componentStride));
+  *this = std::move(DataBuffer(v, componentCount, componentStride));
 }
 
-inline void VertexBuffer::set(const std::vector<Vector3f> &v)
+inline void DataBuffer::set(const std::vector<Vector3f> &v)
 {
-  *this = std::move(VertexBuffer(v));
+  *this = std::move(DataBuffer(v));
 }
 
-inline void VertexBuffer::set(const std::vector<Vector3d> &v)
+inline void DataBuffer::set(const std::vector<Vector3d> &v)
 {
-  *this = std::move(VertexBuffer(v));
+  *this = std::move(DataBuffer(v));
 }
 
-inline void VertexBuffer::set(const std::vector<Colour> &c)
+inline void DataBuffer::set(const std::vector<Colour> &c)
 {
-  *this = std::move(VertexBuffer(c));
+  *this = std::move(DataBuffer(c));
 }
 
 template <typename T>
-inline T VertexBuffer::get(size_t element_index, size_t component_index) const
+inline T DataBuffer::get(size_t element_index, size_t component_index) const
 {
   T datum{ 0 };
-  _affordances->get(VertexBufferTypeInfo<T>::type(), element_index, component_index, 1, _stream, _count,
+  _affordances->get(DataBufferTypeInfo<T>::type(), element_index, component_index, 1, _stream, _count,
                     _componentCount, _elementStride, &datum, 1);
   return datum;
 }
 
 template <typename T>
-inline size_t VertexBuffer::get(size_t element_index, size_t element_count, T *dst, size_t capacity) const
+inline size_t DataBuffer::get(size_t element_index, size_t element_count, T *dst, size_t capacity) const
 {
   const size_t components_read =
-    _affordances->get(VertexBufferTypeInfo<T>::type(), element_index, 0, element_count * _componentCount, _stream,
+    _affordances->get(DataBufferTypeInfo<T>::type(), element_index, 0, element_count * _componentCount, _stream,
                       _count, _componentCount, _elementStride, dst, capacity);
   return components_read / componentCount();
 }
 
-inline void VertexBuffer::swap(VertexBuffer &other)
+inline void DataBuffer::swap(DataBuffer &other)
 {
   std::swap(_stream, other._stream);
   std::swap(_count, other._count);
@@ -186,30 +186,30 @@ inline void VertexBuffer::swap(VertexBuffer &other)
   std::swap(_affordances, other._affordances);
 }
 
-inline VertexBuffer &VertexBuffer::operator=(VertexBuffer other)
+inline DataBuffer &DataBuffer::operator=(DataBuffer other)
 {
   swap(other);
   return *this;
 }
 
 template <typename T>
-inline const T *VertexBuffer::ptr(size_t element_index) const
+inline const T *DataBuffer::ptr(size_t element_index) const
 {
-  TES_ASSERT2(VertexBufferTypeInfo<T>::type() == _type, "Element type mismatch");
+  TES_ASSERT2(DataBufferTypeInfo<T>::type() == _type, "Element type mismatch");
   return &static_cast<const T *>(_stream)[element_index];
 }
 
 template <typename T>
-inline const T *VertexBuffer::ptrAt(size_t element_index) const
+inline const T *DataBuffer::ptrAt(size_t element_index) const
 {
-  if (VertexBufferTypeInfo<T>::type() == _type)
+  if (DataBufferTypeInfo<T>::type() == _type)
   {
     return &static_cast<const T *>(_stream)[element_index];
   }
   return nullptr;
 }
 
-inline uint16_t VertexBuffer::estimateTransferCount(size_t elementSize, unsigned overhead, unsigned byteLimit)
+inline uint16_t DataBuffer::estimateTransferCount(size_t elementSize, unsigned overhead, unsigned byteLimit)
 {
   // FIXME: Without additional overhead padding I was getting missing messages at the client with
   // no obvious error path. For this reason, we use 0xff00u, instead of 0xffffu
@@ -228,14 +228,14 @@ inline uint16_t VertexBuffer::estimateTransferCount(size_t elementSize, unsigned
 namespace detail
 {
 template <typename T>
-VertexBufferAffordances *VertexBufferAffordancesT<T>::instance()
+DataBufferAffordances *DataBufferAffordancesT<T>::instance()
 {
-  static VertexBufferAffordancesT<T> obj;
+  static DataBufferAffordancesT<T> obj;
   return &obj;
 }
 
 template <typename T>
-void VertexBufferAffordancesT<T>::release(const void **stream_ptr, bool has_ownership) const
+void DataBufferAffordancesT<T>::release(const void **stream_ptr, bool has_ownership) const
 {
   if (has_ownership)
   {
@@ -245,8 +245,8 @@ void VertexBufferAffordancesT<T>::release(const void **stream_ptr, bool has_owne
 }
 
 template <typename T>
-void VertexBufferAffordancesT<T>::takeOwnership(const void **stream_ptr, bool has_ownership,
-                                                const VertexBuffer &stream) const
+void DataBufferAffordancesT<T>::takeOwnership(const void **stream_ptr, bool has_ownership,
+                                              const DataBuffer &stream) const
 {
   if (has_ownership || *stream_ptr == nullptr)
   {
@@ -262,9 +262,9 @@ void VertexBufferAffordancesT<T>::takeOwnership(const void **stream_ptr, bool ha
 }
 
 template <typename T>
-uint32_t VertexBufferAffordancesT<T>::write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                                            unsigned byteLimit, uint32_t receiveOffset, const VertexBuffer &stream,
-                                            double quantisation_unit) const
+uint32_t DataBufferAffordancesT<T>::write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+                                          unsigned byteLimit, uint32_t receiveOffset, const DataBuffer &stream,
+                                          double quantisation_unit) const
 {
   switch (write_as_type)
   {
@@ -302,9 +302,9 @@ uint32_t VertexBufferAffordancesT<T>::write(PacketWriter &packet, uint32_t offse
 
 template <typename T>
 template <typename WriteType>
-uint32_t VertexBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                                              unsigned byteLimit, uint32_t receiveOffset,
-                                              const VertexBuffer &stream) const
+uint32_t DataBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+                                            unsigned byteLimit, uint32_t receiveOffset,
+                                            const DataBuffer &stream) const
 {
   const unsigned itemSize = unsigned(sizeof(WriteType)) * stream.componentCount();
 
@@ -319,7 +319,7 @@ uint32_t VertexBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t off
                             sizeof(uint8_t);    // data type;
 
   byteLimit = (byteLimit) ? (byteLimit > overhead ? byteLimit - overhead : 0) : packet.bytesRemaining();
-  uint16_t transferCount = VertexBuffer::estimateTransferCount(itemSize, overhead, byteLimit);
+  uint16_t transferCount = DataBuffer::estimateTransferCount(itemSize, overhead, byteLimit);
   if (transferCount > stream.count() - offset)
   {
     transferCount = uint16_t(stream.count() - offset);
@@ -339,7 +339,7 @@ uint32_t VertexBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t off
 
   const T *src = stream.ptr<T>(offset * stream.elementStride());
   unsigned writeCount = 0;
-  if (VertexBufferTypeInfo<T>::type() == VertexBufferTypeInfo<WriteType>::type() &&
+  if (DataBufferTypeInfo<T>::type() == DataBufferTypeInfo<WriteType>::type() &&
       stream.elementStride() == stream.componentCount())
   {
     // We can write the array directly if the T/WriteType types match and the source array is densely packed (element
@@ -375,10 +375,10 @@ uint32_t VertexBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t off
 
 template <typename T>
 template <typename FloatType, typename PackedType>
-uint32_t VertexBufferAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                                                    unsigned byteLimit, uint32_t receiveOffset,
-                                                    const FloatType *packingOrigin, const FloatType quantisationUnit,
-                                                    const VertexBuffer &stream) const
+uint32_t DataBufferAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+                                                  unsigned byteLimit, uint32_t receiveOffset,
+                                                  const FloatType *packingOrigin, const FloatType quantisationUnit,
+                                                  const DataBuffer &stream) const
 {
   // packingOrigin is used to define the packing origin. That is, items are packed releative to this.
   // quantisationUnit is the divisor used to quantise data.
@@ -402,7 +402,7 @@ uint32_t VertexBufferAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32
                                                sizeof(FloatType) * stream.componentCount());  // packingOrigin
 
   byteLimit = (byteLimit) ? byteLimit : packet.bytesRemaining();
-  uint16_t transferCount = VertexBuffer::estimateTransferCount(itemSize, overhead, byteLimit);
+  uint16_t transferCount = DataBuffer::estimateTransferCount(itemSize, overhead, byteLimit);
   if (transferCount > stream.count() - offset)
   {
     transferCount = uint16_t(stream.count() - offset);
@@ -472,8 +472,8 @@ uint32_t VertexBufferAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32
 }
 
 template <typename T>
-uint32_t VertexBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr, unsigned *stream_size,
-                                           bool *has_ownership, const VertexBuffer &stream) const
+uint32_t DataBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr, unsigned *stream_size,
+                                         bool *has_ownership, const DataBuffer &stream) const
 {
   TES_UNUSED(stream);
   uint32_t offset;
@@ -492,14 +492,14 @@ uint32_t VertexBufferAffordancesT<T>::read(PacketReader &packet, void **stream_p
 }
 
 template <typename T>
-uint32_t VertexBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr, unsigned *stream_size,
-                                           bool *has_ownership, const VertexBuffer &stream, unsigned offset,
-                                           unsigned count) const
+uint32_t DataBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr, unsigned *stream_size,
+                                         bool *has_ownership, const DataBuffer &stream, unsigned offset,
+                                         unsigned count) const
 {
   TES_UNUSED(stream);
   bool ok = true;
   uint8_t componentCount = 0;  // tream.componentCount();;
-  uint8_t packetType = 0;      // VertexBufferTypeInfo<T>::type();
+  uint8_t packetType = 0;      // DataBufferTypeInfo<T>::type();
   ok = packet.readElement(componentCount) == sizeof(componentCount) && ok;
   ok = packet.readElement(packetType) == sizeof(packetType) && ok;
 
@@ -583,10 +583,10 @@ inline size_t affordanceCopy(DST *dst, size_t dst_capacity, const SRC *src, size
 }
 
 template <typename T>
-size_t VertexBufferAffordancesT<T>::get(DataStreamType as_type, size_t element_index, size_t component_index,
-                                        size_t component_read_count, const void *stream, size_t stream_element_count,
-                                        size_t stream_component_count, size_t stream_element_stride, void *dst,
-                                        size_t dst_capacity) const
+size_t DataBufferAffordancesT<T>::get(DataStreamType as_type, size_t element_index, size_t component_index,
+                                      size_t component_read_count, const void *stream, size_t stream_element_count,
+                                      size_t stream_component_count, size_t stream_element_stride, void *dst,
+                                      size_t dst_capacity) const
 {
   if (element_index >= stream_element_count ||
       element_index == stream_element_count && component_index >= stream_component_count || component_read_count == 0)
@@ -661,8 +661,8 @@ size_t VertexBufferAffordancesT<T>::get(DataStreamType as_type, size_t element_i
 
 template <typename T>
 template <typename ReadType>
-uint32_t VertexBufferAffordancesT<T>::readAs(PacketReader &packet, unsigned offset, unsigned count,
-                                             unsigned componentCount, void **stream_ptr) const
+uint32_t DataBufferAffordancesT<T>::readAs(PacketReader &packet, unsigned offset, unsigned count,
+                                           unsigned componentCount, void **stream_ptr) const
 {
   T *dst = static_cast<T *>(*stream_ptr);
   dst += offset * componentCount;
@@ -686,8 +686,8 @@ uint32_t VertexBufferAffordancesT<T>::readAs(PacketReader &packet, unsigned offs
 
 template <typename T>
 template <typename FloatType, typename ReadType>
-uint32_t VertexBufferAffordancesT<T>::readAsPacked(PacketReader &packet, unsigned offset, unsigned count,
-                                                   unsigned componentCount, void **stream_ptr) const
+uint32_t DataBufferAffordancesT<T>::readAsPacked(PacketReader &packet, unsigned offset, unsigned count,
+                                                 unsigned componentCount, void **stream_ptr) const
 {
   // First read the packing origin.
   std::unique_ptr<FloatType[]> origin = std::make_unique<FloatType[]>(componentCount);

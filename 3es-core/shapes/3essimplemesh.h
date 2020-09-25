@@ -112,7 +112,7 @@ public:
   inline bool setVertex(size_t at, const Vector3f &v) { return setVertices(at, &v, 1u) == 1u; }
   unsigned setVertices(size_t at, const Vector3f *v, size_t count);
   const Vector3f *vertices() const;
-  virtual VertexBuffer vertices(int stream) const override;
+  virtual DataBuffer vertices(int stream) const override;
 
   unsigned indexCount() const;
   virtual unsigned indexCount(int stream) const override;
@@ -124,17 +124,17 @@ public:
   inline bool setIndex(size_t at, uint32_t i) { return setIndices(at, &i, 1u) == 1u; }
   unsigned setIndices(size_t at, const uint32_t *idx, size_t count);
   const uint32_t *indices() const;
-  virtual VertexBuffer indices(int stream) const override;
+  virtual DataBuffer indices(int stream) const override;
 
   inline bool setNormal(size_t at, const Vector3f &n) { return setNormals(at, &n, 1u) == 1u; }
   unsigned setNormals(size_t at, const Vector3f *n, size_t count);
   const Vector3f *normals() const;
-  virtual VertexBuffer normals(int stream) const override;
+  virtual DataBuffer normals(int stream) const override;
 
   inline bool setColour(size_t at, uint32_t c) { return setColours(at, &c, 1u) == 1u; }
   unsigned setColours(size_t at, const uint32_t *c, size_t count);
   const uint32_t *colours() const;
-  virtual VertexBuffer colours(int stream) const override;
+  virtual DataBuffer colours(int stream) const override;
 
   inline bool setUv(size_t at, float u, float v)
   {
@@ -143,17 +143,17 @@ public:
   }
   unsigned setUvs(size_t at, const float *uvs, size_t count);
   const float *uvs() const;
-  virtual VertexBuffer uvs(int stream) const override;
+  virtual DataBuffer uvs(int stream) const override;
 
 private:
   void copyOnWrite();
 
   bool processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes) override;
-  bool processVertices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream) override;
-  bool processIndices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream) override;
-  bool processColours(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream) override;
-  bool processNormals(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream) override;
-  bool processUVs(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream) override;
+  bool processVertices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream) override;
+  bool processIndices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream) override;
+  bool processColours(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream) override;
+  bool processNormals(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream) override;
+  bool processUVs(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream) override;
 
   SimpleMeshImp *_imp;
 };

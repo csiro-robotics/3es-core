@@ -346,7 +346,7 @@ void MutableMesh::update(Connection *con)
       {
         packet.reset(tes::MtMesh, tes::MmtVertex);
         cmpmsg.write(packet);
-        VertexBuffer writeBuffer(vertexDef.position, 1, 3);
+        DataBuffer writeBuffer(vertexDef.position, 1, 3);
         writeBuffer.write(packet, 0, vertexDef.writeIndex);
         packet.finalise();
         con->send(packet);
@@ -356,7 +356,7 @@ void MutableMesh::update(Connection *con)
       {
         packet.reset(tes::MtMesh, tes::MmtVertexColour);
         cmpmsg.write(packet);
-        VertexBuffer writeBuffer(&vertexDef.colour, 1);
+        DataBuffer writeBuffer(&vertexDef.colour, 1);
         writeBuffer.write(packet, 0, vertexDef.writeIndex);
         packet.finalise();
         con->send(packet);
@@ -366,7 +366,7 @@ void MutableMesh::update(Connection *con)
       {
         packet.reset(tes::MtMesh, tes::MmtNormal);
         cmpmsg.write(packet);
-        VertexBuffer writeBuffer(vertexDef.normal, 1, 3);
+        DataBuffer writeBuffer(vertexDef.normal, 1, 3);
         writeBuffer.write(packet, 0, vertexDef.writeIndex);
         packet.finalise();
         con->send(packet);
@@ -376,7 +376,7 @@ void MutableMesh::update(Connection *con)
       {
         packet.reset(tes::MtMesh, tes::MmtUv);
         cmpmsg.write(packet);
-        VertexBuffer writeBuffer(vertexDef.uv, 1, 2);
+        DataBuffer writeBuffer(vertexDef.uv, 1, 2);
         writeBuffer.write(packet, 0, vertexDef.writeIndex);
         packet.finalise();
         con->send(packet);
@@ -392,7 +392,7 @@ void MutableMesh::update(Connection *con)
       const IndexChange &indexDef = _imp->indexChanges[i];
       packet.reset(tes::MtMesh, tes::MmtIndex);
       cmpmsg.write(packet);
-      VertexBuffer writeBuffer(&indexDef.indexValue, 1);
+      DataBuffer writeBuffer(&indexDef.indexValue, 1);
       writeBuffer.write(packet, 0, indexDef.writeIndex);
       packet.finalise();
       con->send(packet);

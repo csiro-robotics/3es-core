@@ -343,13 +343,13 @@ const Vector3f *SimpleMesh::vertices() const
 }
 
 
-VertexBuffer SimpleMesh::vertices(int stream) const
+DataBuffer SimpleMesh::vertices(int stream) const
 {
   if (stream == 0 && !_imp->vertices.empty())
   {
-    return VertexBuffer(_imp->vertices);
+    return DataBuffer(_imp->vertices);
   }
-  return VertexBuffer();
+  return DataBuffer();
 }
 
 
@@ -417,13 +417,13 @@ const uint32_t *SimpleMesh::indices() const
 }
 
 
-VertexBuffer SimpleMesh::indices(int stream) const
+DataBuffer SimpleMesh::indices(int stream) const
 {
   if (stream == 0 && (_imp->components & Index) && !_imp->indices.empty())
   {
-    return VertexBuffer(_imp->indices);
+    return DataBuffer(_imp->indices);
   }
-  return VertexBuffer();
+  return DataBuffer();
 }
 
 
@@ -450,13 +450,13 @@ const Vector3f *SimpleMesh::normals() const
 }
 
 
-VertexBuffer SimpleMesh::normals(int stream) const
+DataBuffer SimpleMesh::normals(int stream) const
 {
   if (stream == 0 && (_imp->components & Normal) && !_imp->normals.empty())
   {
-    return VertexBuffer(_imp->normals);
+    return DataBuffer(_imp->normals);
   }
-  return VertexBuffer();
+  return DataBuffer();
 }
 
 
@@ -485,13 +485,13 @@ const uint32_t *SimpleMesh::colours() const
 }
 
 
-VertexBuffer SimpleMesh::colours(int stream) const
+DataBuffer SimpleMesh::colours(int stream) const
 {
   if (stream == 0 && (_imp->components & Colour) && !_imp->colours.empty())
   {
-    return VertexBuffer(_imp->colours);
+    return DataBuffer(_imp->colours);
   }
-  return VertexBuffer();
+  return DataBuffer();
 }
 
 
@@ -524,13 +524,13 @@ const float *SimpleMesh::uvs() const
 }
 
 
-VertexBuffer SimpleMesh::uvs(int stream) const
+DataBuffer SimpleMesh::uvs(int stream) const
 {
   if (stream == 0 && (_imp->components & Uv) && !_imp->uvs.empty())
   {
-    return VertexBuffer(&_imp->uvs.data()->u, _imp->uvs.size(), 2);
+    return DataBuffer(&_imp->uvs.data()->u, _imp->uvs.size(), 2);
   }
-  return VertexBuffer();
+  return DataBuffer();
 }
 
 
@@ -562,7 +562,7 @@ bool SimpleMesh::processCreate(const MeshCreateMessage &msg, const ObjectAttribu
 }
 
 
-bool SimpleMesh::processVertices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
+bool SimpleMesh::processVertices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
   copyOnWrite();
   for (unsigned i = 0; i < stream.count() && i + offset < vertexCount(); ++i)
@@ -576,19 +576,19 @@ bool SimpleMesh::processVertices(const MeshComponentMessage &msg, unsigned offse
 }
 
 
-bool SimpleMesh::processIndices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
+bool SimpleMesh::processIndices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
   return setIndices(offset, stream.ptr<uint32_t>(), stream.count()) == stream.count();
 }
 
 
-bool SimpleMesh::processColours(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
+bool SimpleMesh::processColours(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
   return setColours(offset, stream.ptr<uint32_t>(), stream.count()) == stream.count();
 }
 
 
-bool SimpleMesh::processNormals(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
+bool SimpleMesh::processNormals(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
   copyOnWrite();
   if (!(_imp->components & Normal) && vertexCount())
@@ -607,7 +607,7 @@ bool SimpleMesh::processNormals(const MeshComponentMessage &msg, unsigned offset
 }
 
 
-bool SimpleMesh::processUVs(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
+bool SimpleMesh::processUVs(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
   copyOnWrite();
   if (!(_imp->components & Normal) && vertexCount())

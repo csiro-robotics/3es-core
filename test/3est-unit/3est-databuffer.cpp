@@ -5,7 +5,7 @@
 
 #include <3espacketreader.h>
 #include <3espacketwriter.h>
-#include <3esvertexbuffer.h>
+#include <3esdatabuffer.h>
 #include <tessellate/3essphere.h>
 
 #include <gtest/gtest.h>
@@ -19,7 +19,7 @@
 namespace tes
 {
 template <typename D, typename T>
-void testBufferReadAsType(const VertexBuffer &buffer, const std::vector<T> &reference, const char *context,
+void testBufferReadAsType(const DataBuffer &buffer, const std::vector<T> &reference, const char *context,
                           std::function<void(size_t, size_t, D, D, const char *)> validate =
                             std::function<void(size_t, size_t, D, D, const char *)>())
 {
@@ -82,7 +82,7 @@ void testBufferReadAsType(const VertexBuffer &buffer, const std::vector<T> &refe
 }
 
 template <typename T>
-void testBufferRead(const VertexBuffer &buffer, const std::vector<T> &reference, const char *context)
+void testBufferRead(const DataBuffer &buffer, const std::vector<T> &reference, const char *context)
 {
   testBufferReadAsType<int8_t>(buffer, reference, context);
   testBufferReadAsType<uint8_t>(buffer, reference, context);
@@ -98,7 +98,7 @@ void testBufferRead(const VertexBuffer &buffer, const std::vector<T> &reference,
 
 
 template <typename real>
-void fillVertexBuffer(std::vector<Vector3<real>> &vertices, std::vector<real> *reference, real radius)
+void fillDataBuffer(std::vector<Vector3<real>> &vertices, std::vector<real> *reference, real radius)
 {
   // Populate our vertices with a set of points from a sphere.
   Vector3<real> vert{ real(0) };
@@ -136,22 +136,22 @@ void testVector3Buffer()
   std::vector<Vector3<real>> vertices;
   std::vector<real> reference;
   // Use a large radius to excite integer conversions and truncation.
-  fillVertexBuffer(vertices, &reference, real(128000.0));
+  fillDataBuffer(vertices, &reference, real(128000.0));
 
   // Populate the buffer from a Vector3 array and test reading as all types.
-  VertexBuffer buffer(vertices);
+  DataBuffer buffer(vertices);
   testBufferRead(buffer, reference, "std::vector<Vector3<real>>");
 
   // Reinitialise the buffer from Vector3 pointer.
-  buffer = VertexBuffer(vertices.data(), vertices.size());
+  buffer = DataBuffer(vertices.data(), vertices.size());
   testBufferRead(buffer, reference, "Vector3<real>*");
 
   // Reinitialise from real array
-  buffer = VertexBuffer(reference, 3);
+  buffer = DataBuffer(reference, 3);
   testBufferRead(buffer, reference, "std::vector<real>");
 
   // Reinitialise from real array
-  buffer = VertexBuffer(reference.data(), reference.size() / 3, 3);
+  buffer = DataBuffer(reference.data(), reference.size() / 3, 3);
   testBufferRead(buffer, reference, "real*");
 
   // Now create a strided array which contains padding elements and test with that.
@@ -167,11 +167,11 @@ void testVector3Buffer()
                 });
 
   // With std::vector constructor.
-  buffer = VertexBuffer(strided, 3, 4);
+  buffer = DataBuffer(strided, 3, 4);
   testBufferRead(buffer, reference, "std::vector<real>*[4]");
 
   // With pointer constructor.
-  buffer = VertexBuffer(strided.data(), strided.size() / 4, 3, 4);
+  buffer = DataBuffer(strided.data(), strided.size() / 4, 3, 4);
   testBufferRead(buffer, reference, "real*[4]");
 }
 
@@ -189,12 +189,12 @@ void testTBuffer(T seed, T increment, size_t count, const char *type_name)
 
   // Migrate into a vertex buffer.
   std::string context;
-  VertexBuffer buffer;
-  buffer = VertexBuffer(reference);
+  DataBuffer buffer;
+  buffer = DataBuffer(reference);
   context = std::string("std::vector<") + type_name + ">";
   testBufferRead(buffer, reference, context.c_str());
 
-  buffer = VertexBuffer(reference.data(), reference.size());
+  buffer = DataBuffer(reference.data(), reference.size());
   context = std::string("") + type_name + "*";
   testBufferRead(buffer, reference, context.c_str());
 }
@@ -262,12 +262,12 @@ TEST(Buffer, Float64)
 template <typename real>
 void testPacketStreamVector3(bool packed)
 {
-  // Test encoding/decoding a vector3 VertexBuffer via PacketWriter and PacketReader.
+  // Test encoding/decoding a vector3 DataBuffer via PacketWriter and PacketReader.
   std::vector<Vector3<real>> vertices;
   std::vector<real> reference;
-  fillVertexBuffer(vertices, &reference, real(12.8));
+  fillDataBuffer(vertices, &reference, real(12.8));
 
-  VertexBuffer vertexBuffer(vertices);
+  DataBuffer DataBuffer(vertices);
 
   // Write the pcket. Note, the routing and message types are unimportant.
   std::vector<uint8_t> raw_buffer(std::numeric_limits<uint16_t>::max());
@@ -278,11 +278,11 @@ void testPacketStreamVector3(bool packed)
 
   if (!packed)
   {
-    writeCount = vertexBuffer.write(writer, 0);
+    writeCount = DataBuffer.write(writer, 0);
   }
   else
   {
-    writeCount = vertexBuffer.writePacked(writer, 0, quantisation);
+    writeCount = DataBuffer.writePacked(writer, 0, quantisation);
   }
 
   ASSERT_EQ(writeCount, vertices.size());
@@ -290,11 +290,11 @@ void testPacketStreamVector3(bool packed)
 
   // Now create a reader around the same data.
   PacketReader reader(reinterpret_cast<PacketHeader *>(raw_buffer.data()));
-  // Empty the vertexBuffer object before reading.
-  vertexBuffer = VertexBuffer(static_cast<const real *>(nullptr), 0, 3);
+  // Empty the DataBuffer object before reading.
+  DataBuffer = DataBuffer(static_cast<const real *>(nullptr), 0, 3);
 
   // Now read.
-  unsigned readCount = vertexBuffer.read(reader);
+  unsigned readCount = DataBuffer.read(reader);
 
   ASSERT_NE(readCount, 0);
   ASSERT_EQ(readCount, writeCount);
@@ -303,12 +303,12 @@ void testPacketStreamVector3(bool packed)
 
   if (!packed)
   {
-    testBufferReadAsType<real, real>(vertexBuffer, reference, "Vector3 from stream");
+    testBufferReadAsType<real, real>(DataBuffer, reference, "Vector3 from stream");
   }
   else
   {
     testBufferReadAsType<real, real>(
-      vertexBuffer, reference, "Vector3 from stream",
+      DataBuffer, reference, "Vector3 from stream",
       [quantisation](size_t i, size_t j, real val, real ref, const char *context)  //
       { ASSERT_NEAR(val, ref, quantisation) << context << " @ [" << i << ',' << j << ']'; });
   }

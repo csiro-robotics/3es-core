@@ -225,14 +225,14 @@ Name              | Value     | Description
 Compress          | 1         | Collated packet payload is GZIP compressed. Compression begins after the message structure. That is, neither packet header nor the message are compressed.
 
 
-@section vertexbufferpayload Vertex Buffer Payloads
+@section databufferpayload Data Buffer Payloads
 
-Some messages will write a `VertexBuffer` based payload. This is not a message of itself, but is a consistent payload
-data block. Vertex buffers are used to transfer large amounts of data associated with meshes. Multiple messages with
-a `VertexBuffer` payload will often be required to transmit the entire data set. The `Offset` field marks where in the
+Some messages will write a `DataBuffer` based payload. This is not a message of itself, but is a consistent payload
+data block. Data buffers are used to transfer large amounts of data associated with meshes. Multiple messages with
+a `DataBuffer` payload will often be required to transmit the entire data set. The `Offset` field marks where in the
 buffer the payload should be assembled.
 
-Wherever a `VertexBuffer` is refereneced, the following payload is expected:
+Wherever a `DataBuffer` is refereneced, the following payload is expected:
 
 Datum               | Byte Size | Description
 ------------------- | --------: | ------------------------------------------------
@@ -245,7 +245,7 @@ Content Type        | 1         | The type of the data in this payload.
 Data                | array     | The data content array. The byte size depends on the `Content Type`. There will be `Count * Component Count` items present.
 
 Buffers may contain more than one component or channel such as in a Vector3 vertex array (float content). For example,
-a `VertexBuffer` built to transfer 12 Vector3 values will contain the following payload values:
+a `DataBuffer` built to transfer 12 Vector3 values will contain the following payload values:
 
 - Offset = 0
 - Count = 12  : all vertices being set
@@ -374,7 +374,7 @@ UVs. All messages have the same structure:
 Datum             | Byte Size | Description
 ----------------- | --------: | -------------------------------------------------------------------
 Resource ID       | 4         | The resource ID of the mesh to which the data belong.
-Vertex Buffer     | varies    | The remainder of the payload is a vertex buffer.
+Data Buffer       | varies    | The remainder of the payload is a vertex buffer.
 
 The vertex buffer payloads have certain expectations placed on them.
 
@@ -392,7 +392,7 @@ is likely exceeded by any complex mesh, so the offset identifies where to start 
 vertices. Each message can only transmit at most 65535 vertices because of the 2-byte count limit. The limit is actually
 much lower than this because of the overall packet payload byte limit of 65535. For the sake of this example, let us say
 that each packet can contain 30000 vertices. This will be split across three vertex messages. Each message identifies
-the vertex count and the offset for the `VertexBuffer` payload, which is the index of the first vertex in the packet.
+the vertex count and the offset for the `DataBuffer` payload, which is the index of the first vertex in the packet.
 In this case, we have the following three messages:
 
 - offset 0, count 30000
@@ -672,7 +672,7 @@ Mesh shapes write the following data messages:
 Datum             | Byte Size | Description
 ----------------- | --------: | -------------------------------------------------------------------
 Data Type ID      | 2         | Identifies the data payload: vertices, indices, normals, etc.
-Vertex Buffer     | varies    | The data payload - see @ref vertexbufferpayload
+Data Buffer       | varies    | The data payload - see @ref databufferpayload
 
 The Data Type ID is one of the following:
 
@@ -689,7 +689,7 @@ Note: packet payload size restrictions may be ignored when serialising to disk.
 @subsection secshapemsgpointclouddata Point Cloud Data Payload
 
 Point cloud shapes can optionally write a set of indices which restrict what is viewed in the referenced point cloud
-mesh resource. The payload is a `VertexBuffer` of any integer type.
+mesh resource. The payload is a `DataBuffer` of any integer type.
 
 Note: packet payload size restrictions may be ignored when serialising to disk.
 

@@ -349,7 +349,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     static const Vector3f lineSet[] = { Vector3f(0, 0, 0),        Vector3f(0, 0, 1), Vector3f(0, 0, 1),
                                         Vector3f(0.25f, 0, 0.8f), Vector3f(0, 0, 1), Vector3f(-0.25f, 0, 0.8f) };
     const unsigned lineVertexCount = sizeof(lineSet) / sizeof(lineSet[0]);
-    MeshShape *lines = new MeshShape(DtLines, ShapeId(nextId++, CatLines), VertexBuffer(lineSet, lineVertexCount));
+    MeshShape *lines = new MeshShape(DtLines, ShapeId(nextId++, CatLines), DataBuffer(lineSet, lineVertexCount));
     shapes.emplace_back(lines);
     // if (!noMove)
     // {
@@ -371,7 +371,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
                                         Colour::Colours[Colour::Blue].c,  Colour::Colours[Colour::White].c,
                                         Colour::Colours[Colour::White].c, Colour::Colours[Colour::White].c };
     MeshShape *triangles =
-      new MeshShape(DtTriangles, ShapeId(nextId++, CatTriangles), VertexBuffer(triangleSet, triVertexCount));
+      new MeshShape(DtTriangles, ShapeId(nextId++, CatTriangles), DataBuffer(triangleSet, triVertexCount));
     triangles->setColours(colours);
     triangles->duplicateArrays();
     shapes.emplace_back(triangles);
@@ -404,7 +404,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     static const uint32_t colours[] = { Colour::Colours[Colour::Black].c, Colour::Colours[Colour::Red].c,
                                         Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Blue].c,
                                         Colour::Colours[Colour::White].c };
-    MeshShape *points = new MeshShape(DtPoints, ShapeId(nextId++, CatPoints), VertexBuffer(pts, pointsCount));
+    MeshShape *points = new MeshShape(DtPoints, ShapeId(nextId++, CatPoints), DataBuffer(pts, pointsCount));
     points->setColours(colours);
     points->setDrawScale(3.0f);
     shapes.emplace_back(points);

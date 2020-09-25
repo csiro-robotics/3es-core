@@ -105,37 +105,37 @@ unsigned OccupancyMesh::indexCount(int stream) const
 }
 
 
-VertexBuffer OccupancyMesh::vertices(int stream) const
+DataBuffer OccupancyMesh::vertices(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexBuffer(_detail->vertices);
+  return DataBuffer(_detail->vertices);
 }
 
 
-VertexBuffer OccupancyMesh::indices(int stream) const
+DataBuffer OccupancyMesh::indices(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexBuffer();
+  return DataBuffer();
 }
 
-VertexBuffer OccupancyMesh::normals(int stream) const
+DataBuffer OccupancyMesh::normals(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexBuffer(_detail->normals);
-}
-
-
-VertexBuffer OccupancyMesh::uvs(int stream) const
-{
-  TES_UNUSED(stream);
-  return VertexBuffer();
+  return DataBuffer(_detail->normals);
 }
 
 
-VertexBuffer OccupancyMesh::colours(int stream) const
+DataBuffer OccupancyMesh::uvs(int stream) const
 {
   TES_UNUSED(stream);
-  return VertexBuffer(_detail->colours);
+  return DataBuffer();
+}
+
+
+DataBuffer OccupancyMesh::colours(int stream) const
+{
+  TES_UNUSED(stream);
+  return DataBuffer(_detail->colours);
 }
 
 tes::Resource *OccupancyMesh::clone() const

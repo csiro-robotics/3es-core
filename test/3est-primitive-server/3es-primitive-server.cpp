@@ -50,7 +50,7 @@ void onSignal(int arg)
 
 MeshShape *createPointsMesh(unsigned id, const std::vector<Vector3f> &vertices)
 {
-  MeshShape *shape = new MeshShape(DtPoints, tes::ShapeId(id), tes::VertexBuffer(vertices));
+  MeshShape *shape = new MeshShape(DtPoints, tes::ShapeId(id), tes::DataBuffer(vertices));
   return shape;
 }
 
@@ -70,14 +70,14 @@ MeshShape *createLinesMesh(unsigned id, const std::vector<Vector3f> &vertices, c
     lineIndices.push_back(indices[i + 0]);
   }
 
-  MeshShape *shape = new MeshShape(DtLines, ShapeId(id), VertexBuffer(vertices), VertexBuffer(lineIndices));
+  MeshShape *shape = new MeshShape(DtLines, ShapeId(id), DataBuffer(vertices), DataBuffer(lineIndices));
   return shape;
 }
 
 
 MeshShape *createTrianglesMesh(unsigned id, const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices)
 {
-  MeshShape *shape = new MeshShape(DtTriangles, ShapeId(id), VertexBuffer(vertices), VertexBuffer(indices));
+  MeshShape *shape = new MeshShape(DtTriangles, ShapeId(id), DataBuffer(vertices), DataBuffer(indices));
   return shape;
 }
 
@@ -102,7 +102,7 @@ MeshShape *createVoxelsMesh(unsigned id)
     }
   }
 
-  MeshShape *shape = new MeshShape(DtVoxels, ShapeId(id), VertexBuffer(vertices));
+  MeshShape *shape = new MeshShape(DtVoxels, ShapeId(id), DataBuffer(vertices));
   shape->setUniformNormal(Vector3f(voxelScale));
   return shape;
 }
@@ -362,7 +362,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
   {
     closeDangling(dangling);
     o << indent2 << "\"vertices\" : [";
-    VertexBuffer verts = mesh.vertices();
+    DataBuffer verts = mesh.vertices();
     for (unsigned v = 0; v < verts.count(); ++v)
     {
       if (v > 0)
@@ -381,7 +381,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
   {
     closeDangling(dangling);
     o << indent2 << "\"indices\" : [";
-    VertexBuffer indices = mesh.indices();
+    DataBuffer indices = mesh.indices();
 
     for (unsigned i = 0; i < indices.count(); ++i)
     {
@@ -405,7 +405,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
   {
     closeDangling(dangling);
     o << indent2 << "\"normals\" : [";
-    VertexBuffer normals = mesh.normals();
+    DataBuffer normals = mesh.normals();
     for (unsigned n = 0; n < normals.count(); ++n)
     {
       if (n > 0)
@@ -424,7 +424,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
   {
     closeDangling(dangling);
     o << indent2 << "\"uvs\" : [";
-    VertexBuffer uvs = mesh.uvs();
+    DataBuffer uvs = mesh.uvs();
     for (unsigned u = 0; u < uvs.count(); ++u)
     {
       if (u > 0)
@@ -441,7 +441,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
   {
     closeDangling(dangling);
     o << indent << "\"colours\" : [";
-    VertexBuffer colours = mesh.colours();
+    DataBuffer colours = mesh.colours();
     for (unsigned c = 0; c < colours.count(); ++c)
     {
       if (c > 0)

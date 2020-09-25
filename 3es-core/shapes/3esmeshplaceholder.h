@@ -39,15 +39,15 @@ public:
   /// @copydoc MeshResource::indexCount()
   unsigned indexCount(int stream = 0) const override;
   /// @copydoc MeshResource::vertices()
-  VertexBuffer vertices(int stream = 0) const override;
+  DataBuffer vertices(int stream = 0) const override;
   /// @copydoc MeshResource::indices()
-  VertexBuffer indices(int stream = 0) const override;
+  DataBuffer indices(int stream = 0) const override;
   /// @copydoc MeshResource::normals()
-  VertexBuffer normals(int stream = 0) const override;
+  DataBuffer normals(int stream = 0) const override;
   /// @copydoc MeshResource::uvs()
-  VertexBuffer uvs(int stream = 0) const override;
+  DataBuffer uvs(int stream = 0) const override;
   /// @copydoc MeshResource::colours()
-  VertexBuffer colours(int stream = 0) const override;
+  DataBuffer colours(int stream = 0) const override;
 
   /// @copydoc Resource::clone()
   Resource *clone() const override;

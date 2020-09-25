@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESVERTEXBUFFER_H
-#define _3ESVERTEXBUFFER_H
+#ifndef _3ESDATABUFFER_H
+#define _3ESDATABUFFER_H
 
 #include "3es-core.h"
 
@@ -22,7 +22,7 @@
 
 #define STREAM_TYPE_INFO(_type, _type_name)             \
   template <>                                           \
-  class VertexBufferTypeInfo<_type>                     \
+  class DataBufferTypeInfo<_type>                       \
   {                                                     \
   public:                                               \
     static DataStreamType type() { return _type_name; } \
@@ -34,11 +34,16 @@ namespace tes
 {
 class PacketWriter;
 
+/// Type traits providing information for type @c T within a @c DataBuffer context.
 template <typename T>
-class VertexBufferTypeInfo
+class DataBufferTypeInfo
 {
 public:
+  /// Query the @c DataStreamType corresponding to @c T .
+  /// @return The corresponding data type.
   static DataStreamType type() { return DctNone; }
+  /// Query the byte size of @c T .
+  /// @return The byte size of @c T .
   static size_t size() { return 0; }
 };
 
@@ -53,7 +58,7 @@ STREAM_TYPE_INFO(uint64_t, DctUInt64);
 STREAM_TYPE_INFO(float, DctFloat32);
 STREAM_TYPE_INFO(double, DctFloat64);
 
-class VertexBuffer;
+class DataBuffer;
 
 // Afordances:
 // - Take ownership of a copy of the steam
@@ -71,38 +76,38 @@ class VertexBuffer;
 
 namespace detail
 {
-class _3es_coreAPI VertexBufferAffordances
+class _3es_coreAPI DataBufferAffordances
 {
 public:
-  virtual ~VertexBufferAffordances();
+  virtual ~DataBufferAffordances();
 
   virtual void release(const void **stream_ptr, bool has_ownership) const = 0;
-  virtual void takeOwnership(const void **stream_ptr, bool has_ownership, const VertexBuffer &stream) const = 0;
+  virtual void takeOwnership(const void **stream_ptr, bool has_ownership, const DataBuffer &stream) const = 0;
   virtual uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
-                         uint32_t receiveOffset, const VertexBuffer &stream, double quantisation_unit = 0.0) const = 0;
+                         uint32_t receiveOffset, const DataBuffer &stream, double quantisation_unit = 0.0) const = 0;
   virtual uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
-                        const VertexBuffer &stream) const = 0;
+                        const DataBuffer &stream) const = 0;
   virtual uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
-                        const VertexBuffer &stream, unsigned offset, unsigned count) const = 0;
+                        const DataBuffer &stream, unsigned offset, unsigned count) const = 0;
   virtual size_t get(DataStreamType as_type, size_t element_index, size_t component_index, size_t component_read_count,
                      const void *stream, size_t stream_element_count, size_t stream_component_count,
                      size_t stream_element_stride, void *dst, size_t dst_capacity) const = 0;
 };
 
 template <typename T>
-class _3es_coreAPI VertexBufferAffordancesT : public VertexBufferAffordances
+class _3es_coreAPI DataBufferAffordancesT : public DataBufferAffordances
 {
 public:
-  static VertexBufferAffordances *instance();
+  static DataBufferAffordances *instance();
 
   void release(const void **stream_ptr, bool has_ownership) const override;
-  void takeOwnership(const void **stream_ptr, bool has_ownership, const VertexBuffer &stream) const override;
+  void takeOwnership(const void **stream_ptr, bool has_ownership, const DataBuffer &stream) const override;
   uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
-                 uint32_t receiveOffset, const VertexBuffer &stream, double quantisation_unit = 0.0) const override;
+                 uint32_t receiveOffset, const DataBuffer &stream, double quantisation_unit = 0.0) const override;
   uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
-                const VertexBuffer &stream) const override;
+                const DataBuffer &stream) const override;
   uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
-                const VertexBuffer &stream, unsigned offset, unsigned count) const;
+                const DataBuffer &stream, unsigned offset, unsigned count) const;
 
   size_t get(DataStreamType as_type, size_t element_index, size_t component_index, size_t component_read_count,
              const void *stream, size_t stream_element_count, size_t stream_component_count,
@@ -110,12 +115,12 @@ public:
 
   template <typename WriteType>
   uint32_t writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
-                   uint32_t receiveOffset, const VertexBuffer &stream) const;
+                   uint32_t receiveOffset, const DataBuffer &stream) const;
 
   template <typename FloatType, typename PackedType>
   uint32_t writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type, unsigned byteLimit,
                          uint32_t receiveOffset, const FloatType *packingOrigin, const FloatType quantisationUnit,
-                         const VertexBuffer &stream) const;
+                         const DataBuffer &stream) const;
 
 
   template <typename ReadType>
@@ -127,26 +132,26 @@ public:
                         void **stream_ptr) const;
 };
 
-extern template class _3es_coreAPI VertexBufferAffordancesT<int8_t>;
-extern template class _3es_coreAPI VertexBufferAffordancesT<uint8_t>;
-extern template class _3es_coreAPI VertexBufferAffordancesT<int16_t>;
-extern template class _3es_coreAPI VertexBufferAffordancesT<uint16_t>;
-extern template class _3es_coreAPI VertexBufferAffordancesT<int32_t>;
-extern template class _3es_coreAPI VertexBufferAffordancesT<uint32_t>;
-extern template class _3es_coreAPI VertexBufferAffordancesT<int64_t>;
-extern template class _3es_coreAPI VertexBufferAffordancesT<uint64_t>;
-extern template class _3es_coreAPI VertexBufferAffordancesT<float>;
-extern template class _3es_coreAPI VertexBufferAffordancesT<double>;
+extern template class _3es_coreAPI DataBufferAffordancesT<int8_t>;
+extern template class _3es_coreAPI DataBufferAffordancesT<uint8_t>;
+extern template class _3es_coreAPI DataBufferAffordancesT<int16_t>;
+extern template class _3es_coreAPI DataBufferAffordancesT<uint16_t>;
+extern template class _3es_coreAPI DataBufferAffordancesT<int32_t>;
+extern template class _3es_coreAPI DataBufferAffordancesT<uint32_t>;
+extern template class _3es_coreAPI DataBufferAffordancesT<int64_t>;
+extern template class _3es_coreAPI DataBufferAffordancesT<uint64_t>;
+extern template class _3es_coreAPI DataBufferAffordancesT<float>;
+extern template class _3es_coreAPI DataBufferAffordancesT<double>;
 }  // namespace detail
 
 /// A helper class for wrapping various input array types into data streams for data transfer.
 ///
-/// A @c VertexBuffer is intended to hold a borrowed pointer for use with mesh data. The stream may represent vertex
+/// A @c DataBuffer is intended to hold a borrowed pointer for use with mesh data. The stream may represent vertex
 /// or index data of various data types and sizes, but is expected to be of a particular type on transfer. For example
-/// a @c VertexBuffer may wrap a @c double array representing a @c Vector3 vertex stream. On transfer, the data may be
+/// a @c DataBuffer may wrap a @c double array representing a @c Vector3 vertex stream. On transfer, the data may be
 /// transfered using single precision, or quantised precision.
 ///
-/// There are several key concepts to understanding how the @c VertexBuffer interprets and stores information. Firstly
+/// There are several key concepts to understanding how the @c DataBuffer interprets and stores information. Firstly
 /// the assumptions are that the source array stores @em vertices which can be represented by a simple @em dataType:
 /// @c intX_t , @c uintX_t , @c float or @c double . The array is broken up into @em vertices where each @em vertex is
 /// composed of @em componentCount consecutive @em dataElements of the simple data type. A vertex be followed by some
@@ -176,35 +181,34 @@ extern template class _3es_coreAPI VertexBufferAffordancesT<double>;
 /// The byte size of the entire array is calculated as <tt>count() * sizeof(dataType) * componentCount</tt>.
 ///
 /// @c componentCount() values above 16 are not supported.
-class _3es_coreAPI VertexBuffer
+class _3es_coreAPI DataBuffer
 {
 public:
-  VertexBuffer();
+  DataBuffer();
 
   template <typename T>
-  VertexBuffer(const T *v, size_t count, size_t componentCount = 1, size_t componentStride = 0,
-               bool ownPointer = false);
+  DataBuffer(const T *v, size_t count, size_t componentCount = 1, size_t componentStride = 0, bool ownPointer = false);
 
-  VertexBuffer(const Vector3f *v, size_t count);
+  DataBuffer(const Vector3f *v, size_t count);
 
-  VertexBuffer(const Vector3d *v, size_t count);
+  DataBuffer(const Vector3d *v, size_t count);
 
-  VertexBuffer(const Colour *c, size_t count);
+  DataBuffer(const Colour *c, size_t count);
 
   template <typename T>
-  VertexBuffer(const std::vector<T> &v, size_t componentCount = 1, size_t componentStride = 0);
+  DataBuffer(const std::vector<T> &v, size_t componentCount = 1, size_t componentStride = 0);
 
-  VertexBuffer(const std::vector<Vector3f> &v);
+  DataBuffer(const std::vector<Vector3f> &v);
 
-  VertexBuffer(const std::vector<Vector3d> &v);
+  DataBuffer(const std::vector<Vector3d> &v);
 
-  VertexBuffer(const std::vector<Colour> &v);
+  DataBuffer(const std::vector<Colour> &v);
 
-  VertexBuffer(VertexBuffer &&other);
+  DataBuffer(DataBuffer &&other);
 
-  VertexBuffer(const VertexBuffer &other);
+  DataBuffer(const DataBuffer &other);
 
-  ~VertexBuffer();
+  ~DataBuffer();
 
   void reset();
 
@@ -221,8 +225,8 @@ public:
   /// Read a single item at the given element index, and component index.
   ///
   /// The element index accounts for element striding, while the component index allows reading intermediate values.
-  /// For example, consider a @c VertexBuffer creates from 10 @c Vector3f elements. This creates a @c float
-  /// @c VertexBuffer with an element count of 10, an element stride of 3 and a component count of 3 (for the XYZ
+  /// For example, consider a @c DataBuffer creates from 10 @c Vector3f elements. This creates a @c float
+  /// @c DataBuffer with an element count of 10, an element stride of 3 and a component count of 3 (for the XYZ
   /// channels of the @c Vector3f . The @p element_index is used to address each @c Vector3f while the
   /// @c component_count is used in the range [0, 2] to extract the XYZ values.
   ///
@@ -237,7 +241,7 @@ public:
   /// There are some caveates to consider here because a buffer may have a @c componentCount() greater than 1 (such as
   /// for @c Vector3&lt;T&gt; buffers). The effect is that for a successful read operation the @p capacity at @p dst
   /// must be at least @p element_count * @c componentCount() . This essentially makes the 'units' of @c capacity
-  /// will different from @p element_index , @p element_count and the return value when the @c VertexBuffer has a
+  /// will different from @p element_index , @p element_count and the return value when the @c DataBuffer has a
   /// @c componentCount() greater than 1. The items are read in a tightly packed fasion into @p dst .
   ///
   /// @note This only supports reading basic types, meaning that template types of @c Vector3&lt;T&gt; and @c Colour
@@ -248,7 +252,7 @@ public:
   /// @param dst The address to read into.
   /// @param capacity The data capacity of @c dst , as the number of @c T elements it can hold.
   /// @tparam T Data type to read as. Must be a basic type as supported by @c DataStreamType (see note above).
-  /// @return The number of @c VertexBuffer @em elements read. The number of @c T elements written to @p dst will be
+  /// @return The number of @c DataBuffer @em elements read. The number of @c T elements written to @p dst will be
   ///   this value times the @c componentCount() .
   template <typename T>
   size_t get(size_t element_index, size_t element_count, T *dst, size_t capacity) const;
@@ -256,7 +260,7 @@ public:
   // template <typename T>
   // bool get(T *dst, size_t element_index, size_t component_index = 0) const;
 
-  VertexBuffer &operator=(VertexBuffer other);
+  DataBuffer &operator=(DataBuffer other);
 
   inline bool isValid() const { return _stream != nullptr; }
 
@@ -271,7 +275,7 @@ public:
   inline bool writable() const { return int(_flags & Flag::Writable) != 0; }
   inline DataStreamType type() const { return _type; }
 
-  void swap(VertexBuffer &other);
+  void swap(DataBuffer &other);
 
   template <typename T>
   const T *ptr(size_t element_index = 0) const;
@@ -296,7 +300,7 @@ public:
   /// Read : skipping offset and count, with @p count given.
   unsigned read(PacketReader &packet, unsigned offset, unsigned count);
 
-  friend inline void swap(VertexBuffer &a, VertexBuffer &b) { a.swap(b); }
+  friend inline void swap(DataBuffer &a, DataBuffer &b) { a.swap(b); }
 
 private:
   void *writePtr() { return (ownPointer()) ? const_cast<void *>(_stream) : nullptr; }
@@ -322,13 +326,13 @@ private:
   uint8_t _basicTypeSize{ 0 };
   DataStreamType _type{ DctNone };  ///< The simple data type for @c _stream
   uint8_t _flags{ Flag::Zero };     ///< Does this class own the @c _stream pointer?
-  /// Pointer to the implementation for various operations supported on a @c VertexBuffer . This is using a type
+  /// Pointer to the implementation for various operations supported on a @c DataBuffer . This is using a type
   /// erasure setup.
-  detail::VertexBufferAffordances *_affordances{ nullptr };
+  detail::DataBufferAffordances *_affordances{ nullptr };
 };
 
-/// Write a @c VertexBuffer to @p packet as a stream of @c DstType . Note this function requires knowing the concrete
-/// type of the @c VertexBuffer data for proper casting. It is assumed that simple casting from @c SrcType t
+/// Write a @c DataBuffer to @p packet as a stream of @c DstType . Note this function requires knowing the concrete
+/// type of the @c DataBuffer data for proper casting. It is assumed that simple casting from @c SrcType t
 /// @c DstType in assignment is valid.
 ///
 /// This function is not recommended for converting from floating point to integer streams or vise versa.
@@ -347,9 +351,9 @@ private:
 /// @param offset The element offset into @p stream to start writing from. This applies @c stream.componentCount()
 /// @return The number of items added to the @p packet or zero on any failure (@p packet becomes invalid).
 template <typename DstType, typename SrcType>
-unsigned writeStream(PacketWriter &packet, const VertexBuffer &stream, uint32_t offset);
+unsigned writeStream(PacketWriter &packet, const DataBuffer &stream, uint32_t offset);
 
-/// Write a @c VertexBuffer to @p packet as qunatised, and packed data stream. This is intended only for input streams
+/// Write a @c DataBuffer to @p packet as qunatised, and packed data stream. This is intended only for input streams
 /// containing @c float or @c double data such as vertex positions or normals.
 ///
 /// For each vertex, we subtract the @p packingOrigin (if given), divide by the @p quantisationUnit then cast to the
@@ -378,13 +382,13 @@ unsigned writeStream(PacketWriter &packet, const VertexBuffer &stream, uint32_t 
 /// @param packedType The target, packed type either @c DctPackedFloat16 or @c DctPackedFloat32 .
 /// @return The number of items added to the @p packet or zero on any failure (@p packet becomes invalid).
 template <typename FloatType, typename PackedType, typename SrcType>
-unsigned writeStreamPackedFloat(PacketWriter &packet, const VertexBuffer &stream, uint32_t offset,
+unsigned writeStreamPackedFloat(PacketWriter &packet, const DataBuffer &stream, uint32_t offset,
                                 const FloatType *packingOrigin, float quantisationUnit, DataStreamType packedType);
 
-unsigned readStream(PacketReader &packet, VertexBuffer &stream);
+unsigned readStream(PacketReader &packet, DataBuffer &stream);
 
 }  // namespace tes
 
-#include "3esvertexbuffer.inl"
+#include "3esdatabuffer.inl"
 
-#endif  // _3ESVERTEXBUFFER_H
+#endif  // _3ESDATABUFFER_H

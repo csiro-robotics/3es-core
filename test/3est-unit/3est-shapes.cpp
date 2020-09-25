@@ -487,49 +487,49 @@ TEST(Shapes, Mesh)
   // I> Test each constructor.
   // 1. drawType, verts, vcount, vstrideBytes, pos, rot, scale
   testShape(
-    MeshShape(DtPoints, ShapeId(), VertexBuffer(vertices),
+    MeshShape(DtPoints, ShapeId(), DataBuffer(vertices),
               Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
                         Vector3f(1.0f, 1.2f, 0.8f))));
   // 2. drawType, verts, vcount, vstrideBytes, indices, icount, pos, rot, scale
   testShape(
-    MeshShape(DtTriangles, ShapeId(), VertexBuffer(vertices), VertexBuffer(indices),
+    MeshShape(DtTriangles, ShapeId(), DataBuffer(vertices), DataBuffer(indices),
               Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
                         Vector3f(1.0f, 1.2f, 0.8f))));
   // 3. drawType, verts, vcount, vstrideBytes, id, pos, rot, scale
   testShape(
-    MeshShape(DtPoints, ShapeId(42u), VertexBuffer(vertices),
+    MeshShape(DtPoints, ShapeId(42u), DataBuffer(vertices),
               Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
                         Vector3f(1.0f, 1.2f, 0.8f))));
   // 4. drawType, verts, vcount, vstrideBytes, indices, icount, id, pos, rot,
   // scale
   testShape(
-    MeshShape(DtTriangles, ShapeId(42u), VertexBuffer(vertices), VertexBuffer(indices),
+    MeshShape(DtTriangles, ShapeId(42u), DataBuffer(vertices), DataBuffer(indices),
               Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
                         Vector3f(1.0f, 1.2f, 0.8f))));
   // 5. drawType, verts, vcount, vstrideBytes, indices, icount, id, cat, pos,
   // rot, scale
   testShape(
-    MeshShape(DtTriangles, ShapeId(42u), VertexBuffer(vertices), VertexBuffer(indices),
+    MeshShape(DtTriangles, ShapeId(42u), DataBuffer(vertices), DataBuffer(indices),
               Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
                         Vector3f(1.0f, 1.2f, 0.8f))));
 
   // II> Test with uniform normal.
   testShape(
-    MeshShape(DtVoxels, ShapeId(42u), VertexBuffer(vertices), VertexBuffer(indices),
+    MeshShape(DtVoxels, ShapeId(42u), DataBuffer(vertices), DataBuffer(indices),
               Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
                         Vector3f(1.0f, 1.2f, 0.8f)))
       .setUniformNormal(Vector3f(0.1f, 0.1f, 0.1f)));
 
   // III> Test will many normals.
   testShape(
-    MeshShape(DtTriangles, ShapeId(42u, 1), VertexBuffer(vertices), VertexBuffer(indices),
+    MeshShape(DtTriangles, ShapeId(42u, 1), DataBuffer(vertices), DataBuffer(indices),
               Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
                         Vector3f(1.0f, 1.2f, 0.8f)))
-      .setNormals(VertexBuffer(normals)));
+      .setNormals(DataBuffer(normals)));
 
   // IV> Test with colours.
   testShape(
-    MeshShape(DtTriangles, ShapeId(), VertexBuffer(vertices), VertexBuffer(indices),
+    MeshShape(DtTriangles, ShapeId(), DataBuffer(vertices), DataBuffer(indices),
               Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
                         Vector3f(1.0f, 1.2f, 0.8f)))
       .setColours(colours.data()));

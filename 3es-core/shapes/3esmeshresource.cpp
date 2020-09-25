@@ -106,7 +106,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
   msg.meshId = id();
   msg.write(packet);
 
-  VertexBuffer dataSource;
+  DataBuffer dataSource;
   unsigned writeCount = 0;
   switch (progress.phase)
   {
@@ -261,7 +261,7 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
     return false;
   }
 
-  VertexBuffer readStream;
+  DataBuffer readStream;
 
   // Read offset and count
   uint32_t offset = 0;
@@ -274,35 +274,35 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
   switch (messageType)
   {
   case MmtVertex: {
-    readStream = VertexBuffer(static_cast<Vector3d *>(nullptr), 0);
+    readStream = DataBuffer(static_cast<Vector3d *>(nullptr), 0);
     // Read the expected number of items.
     readStream.read(packet, 0, count);
     ok = processVertices(msg, offset, readStream) && ok;
     break;
   }
   case MmtIndex: {
-    readStream = VertexBuffer(static_cast<uint32_t *>(nullptr), 0);
+    readStream = DataBuffer(static_cast<uint32_t *>(nullptr), 0);
     // Read the expected number of items.
     readStream.read(packet, 0, count);
     ok = processIndices(msg, offset, readStream) && ok;
     break;
   }
   case MmtVertexColour: {
-    readStream = VertexBuffer(static_cast<uint32_t *>(nullptr), 0);
+    readStream = DataBuffer(static_cast<uint32_t *>(nullptr), 0);
     // Read the expected number of items.
     readStream.read(packet, 0, count);
     ok = processColours(msg, offset, readStream) && ok;
     break;
   }
   case MmtNormal: {
-    readStream = VertexBuffer(static_cast<Vector3d *>(nullptr), 0);
+    readStream = DataBuffer(static_cast<Vector3d *>(nullptr), 0);
     // Read the expected number of items.
     readStream.read(packet, 0, count);
     ok = processNormals(msg, offset, readStream) && ok;
     break;
   }
   case MmtUv: {
-    readStream = VertexBuffer(static_cast<double *>(nullptr), 0, 2);
+    readStream = DataBuffer(static_cast<double *>(nullptr), 0, 2);
     // Read the expected number of items.
     readStream.read(packet, 0, count);
     ok = processUVs(msg, offset, readStream) && ok;
@@ -382,7 +382,7 @@ bool MeshResource::processCreate(const MeshCreateMessage &msg, const ObjectAttri
 }
 
 
-bool MeshResource::processVertices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
+bool MeshResource::processVertices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   TES_UNUSED(offset);
@@ -391,7 +391,7 @@ bool MeshResource::processVertices(const MeshComponentMessage &msg, unsigned off
 }
 
 
-bool MeshResource::processIndices(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
+bool MeshResource::processIndices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   TES_UNUSED(offset);
@@ -400,7 +400,7 @@ bool MeshResource::processIndices(const MeshComponentMessage &msg, unsigned offs
 }
 
 
-bool MeshResource::processColours(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
+bool MeshResource::processColours(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   TES_UNUSED(offset);
@@ -409,7 +409,7 @@ bool MeshResource::processColours(const MeshComponentMessage &msg, unsigned offs
 }
 
 
-bool MeshResource::processNormals(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
+bool MeshResource::processNormals(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   TES_UNUSED(offset);
@@ -418,7 +418,7 @@ bool MeshResource::processNormals(const MeshComponentMessage &msg, unsigned offs
 }
 
 
-bool MeshResource::processUVs(const MeshComponentMessage &msg, unsigned offset, const VertexBuffer &stream)
+bool MeshResource::processUVs(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   TES_UNUSED(offset);

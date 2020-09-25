@@ -65,8 +65,8 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
   // Check vertices and vertex related components.
   if (reference.vertexCount() && mesh.vertexCount() == reference.vertexCount())
   {
-    VertexBuffer meshVerts = mesh.vertices();
-    VertexBuffer refVerts = reference.vertices();
+    DataBuffer meshVerts = mesh.vertices();
+    DataBuffer refVerts = reference.vertices();
 
     ASSERT_TRUE(meshVerts.isValid());
     ASSERT_TRUE(refVerts.isValid());
@@ -88,8 +88,8 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
     {
       ASSERT_TRUE(mesh.normals().isValid()) << "Mesh missing normals.";
 
-      VertexBuffer meshNorms = mesh.normals();
-      VertexBuffer refNorms = reference.normals();
+      DataBuffer meshNorms = mesh.normals();
+      DataBuffer refNorms = reference.normals();
 
       ASSERT_EQ(meshNorms.count(), refNorms.count());
 
@@ -110,8 +110,8 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
     {
       ASSERT_TRUE(mesh.colours().isValid()) << "Mesh missing colours.";
 
-      VertexBuffer meshColours = mesh.colours();
-      VertexBuffer refColours = reference.colours();
+      DataBuffer meshColours = mesh.colours();
+      DataBuffer refColours = reference.colours();
 
       ASSERT_EQ(meshColours.count(), refColours.count());
 
@@ -131,8 +131,8 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
     {
       ASSERT_TRUE(mesh.uvs().isValid()) << "Mesh missing UVs.";
 
-      VertexBuffer meshUVs = mesh.uvs();
-      VertexBuffer refUVs = reference.uvs();
+      DataBuffer meshUVs = mesh.uvs();
+      DataBuffer refUVs = reference.uvs();
 
       ASSERT_EQ(meshUVs.count(), refUVs.count());
 
@@ -152,8 +152,8 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
   // Check indices.
   if (reference.indexCount() && mesh.indexCount() == reference.indexCount())
   {
-    VertexBuffer meshInds = mesh.indices();
-    VertexBuffer refInds = reference.indices();
+    DataBuffer meshInds = mesh.indices();
+    DataBuffer refInds = reference.indices();
 
     ASSERT_TRUE(meshInds.isValid());
     ASSERT_TRUE(refInds.isValid());

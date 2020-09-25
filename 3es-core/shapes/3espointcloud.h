@@ -72,7 +72,7 @@ public:
   /// @copydoc MeshResource::vertexCount()
   unsigned vertexCount(int stream = 0) const override;
   /// @copydoc MeshResource::vertices()
-  VertexBuffer vertices(int stream = 0) const override;
+  DataBuffer vertices(int stream = 0) const override;
   /// Access vertices as a @c Vector3f array.
   /// @return A pointer to the vertex data as a @c Vector3f array. The number of elements matches @c vertexCount().
   const Vector3f *vertices() const;
@@ -83,23 +83,23 @@ public:
 
   /// Not supported.
   /// @return null
-  VertexBuffer indices(int stream = 0) const override;
+  DataBuffer indices(int stream = 0) const override;
 
   /// @copydoc MeshResource::normals()
-  VertexBuffer normals(int stream = 0) const override;
+  DataBuffer normals(int stream = 0) const override;
   /// Access normals as a @c Vector3f array.
   /// @return A pointer to the normal data as a @c Vector3f array. The number of elements matches @c vertexCount().
   const Vector3f *normals() const;
 
   /// @copydoc MeshResource::colours()
-  VertexBuffer colours(int stream = 0) const override;
+  DataBuffer colours(int stream = 0) const override;
   /// Access colours as a @c Colour array.
   /// @return A pointer to the colour data as a @c Colour array. The number of elements matches @c vertexCount().
   const Colour *colours() const;
 
   /// Not supported.
   /// @return null
-  VertexBuffer uvs(int stream = 0) const override;
+  DataBuffer uvs(int stream = 0) const override;
 
   /// Add a single point to the cloud.
   /// The normal is set to zero and the colour to white.
@@ -201,9 +201,9 @@ private:
   void copyOnWrite();
 
   bool processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes) override;
-  bool processVertices(const MeshComponentMessage &msg, unsigned count, const VertexBuffer &stream) override;
-  bool processColours(const MeshComponentMessage &msg, unsigned count, const VertexBuffer &stream) override;
-  bool processNormals(const MeshComponentMessage &msg, unsigned count, const VertexBuffer &stream) override;
+  bool processVertices(const MeshComponentMessage &msg, unsigned count, const DataBuffer &stream) override;
+  bool processColours(const MeshComponentMessage &msg, unsigned count, const DataBuffer &stream) override;
+  bool processNormals(const MeshComponentMessage &msg, unsigned count, const DataBuffer &stream) override;
 
   PointCloudImp *_imp;
 };

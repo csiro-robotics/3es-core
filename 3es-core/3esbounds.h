@@ -33,9 +33,9 @@ public:
 
   /// Initialise a bounding box with the given extents.
   /// @param minExt The bounding box minimum. All components must be less than or equal to
-  ///     @param maxExtents.
+  ///     @p maxExtents.
   /// @param maxExt The bounding box maximum. All components must be greater than or equal to
-  ///     @param minExtents.
+  ///     @p minExtents.
   Bounds(const Vector3<T> &minExt, const Vector3<T> maxExt);
 
   /// Access the minimum extents.
@@ -50,7 +50,7 @@ public:
   void expand(const Vector3<T> &point);
 
   /// Expand the bounding box to include @p other.
-  /// @param point The point to include.
+  /// @param other The bounds to include.
   void expand(const Bounds<T> &other);
 
   /// Returns true if the bounds are valid, with minimum extents less than or equal to the

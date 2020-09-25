@@ -90,8 +90,8 @@
 #define TES_ID(...) tes::ShapeId(__VA_ARGS__)
 
 /// @ingroup tesmacros
-/// A wrapper for constructin a @c VertexBuffer around the given arguments.
-#define TES_BUFFER(...) tes::VertexBuffer(__VA_ARGS__)
+/// A wrapper for constructin a @c DataBuffer around the given arguments.
+#define TES_BUFFER(...) tes::DataBuffer(__VA_ARGS__)
 
 //-----------------------------------------------------------------------------
 // Server setup macros
@@ -870,7 +870,7 @@
   if (server)                                                                                  \
   {                                                                                            \
     const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-    tes::MeshShape shape(tes::DtTriangles, id, tes::VertexBuffer(_tri, 3), ##__VA_ARGS__);     \
+    tes::MeshShape shape(tes::DtTriangles, id, tes::DataBuffer(_tri, 3), ##__VA_ARGS__);       \
     shape.setColour(colour).setTwoSided(true);                                                 \
     (server)->create(shape);                                                                   \
   }
@@ -888,7 +888,7 @@
   if (server)                                                                                  \
   {                                                                                            \
     const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-    tes::MeshShape shape(tes::DtTriangles, id, tes::VertexBuffer(_tri, 3), ##__VA_ARGS__);     \
+    tes::MeshShape shape(tes::DtTriangles, id, tes::DataBuffer(_tri, 3), ##__VA_ARGS__);       \
     shape.setColour(colour);                                                                   \
     shape.setWireframe(true);                                                                  \
     (server)->create(shape);                                                                   \
@@ -906,7 +906,7 @@
 #define TES_TRIANGLE_T(server, colour, id, v0, v1, v2, ...)                                    \
   {                                                                                            \
     const tes::Vector3f _tri[3] = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-    tes::MeshShape shape(tes::DtTriangles, id, tes::VertexBuffer(_tri, 3), ##__VA_ARGS__);     \
+    tes::MeshShape shape(tes::DtTriangles, id, tes::DataBuffer(_tri, 3), ##__VA_ARGS__);       \
     shape.setColour(colour);                                                                   \
     shape.setTransparent(true).setTwoSided(true);                                              \
     (server)->create(shape);                                                                   \
@@ -1068,27 +1068,27 @@
 /// Destroy triangle or triangles with @p id.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
-#define TES_TRIANGLES_END(server, id)                                                              \
-  if (server)                                                                                      \
-  {                                                                                                \
+#define TES_TRIANGLES_END(server, id)                        \
+  if (server)                                                \
+  {                                                          \
     (server)->destroy(tes::MeshShape(tes::DtTriangles, id)); \
   }
 /// @ingroup tesmacros
 /// Destroy arrow with @p id.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
-#define TES_TRIANGLE_END(server, id)                                                               \
-  if (server)                                                                                      \
-  {                                                                                                \
+#define TES_TRIANGLE_END(server, id)                         \
+  if (server)                                                \
+  {                                                          \
     (server)->destroy(tes::MeshShape(tes::DtTriangles, id)); \
   }
 /// @ingroup tesmacros
 /// Destroy voxel set with @p id.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param id The ID of the shape to destroy.
-#define TES_VOXELS_END(server, id)                                                              \
-  if (server)                                                                                   \
-  {                                                                                             \
+#define TES_VOXELS_END(server, id)                        \
+  if (server)                                             \
+  {                                                       \
     (server)->destroy(tes::MeshShape(tes::DtVoxels, id)); \
   }
 

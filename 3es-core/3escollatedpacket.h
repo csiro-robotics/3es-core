@@ -134,7 +134,7 @@ public:
   bool finalise();
 
   /// Access the internal buffer pointer.
-  /// @param[out] Set to the number of used bytes in the collated buffer, including
+  /// @param[out] byteCount Set to the number of used bytes in the collated buffer, including
   ///     the CRC when the packet has been finalised.
   /// @return The internal buffer pointer.
   const uint8_t *buffer(unsigned &byteCount) const;
@@ -208,9 +208,9 @@ public:
   /// @return 0;
   unsigned releaseResource(const Resource *resource) override;
 
-  /// Collated the create message for @p shape.
-  /// @param shape The shape of interest.
-  /// @return The number of bytes added, or -1 on failure (as per @c add()).
+  /// Pack the given @p info into the packet.
+  /// @param info Details on the server.
+  /// @return True on success
   bool sendServerInfo(const ServerInfoMessage &info) override;
 
   /// Add data from @c packet.
@@ -220,7 +220,7 @@ public:
 
   /// Aliased to @p add().
   /// @param buffer The data to add.
-  /// @param bufferSize The number of bytes in @p buffer.
+  /// @param byteCount The number of bytes in @p buffer.
   /// @param allowCollation Ignored in this context.
   /// @return The <tt>packet.packetSize()</tt> on success, or -1 on failure.
   int send(const uint8_t *data, int byteCount, bool allowCollation = true) override;
