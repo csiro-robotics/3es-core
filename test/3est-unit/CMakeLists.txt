@@ -16,4 +16,7 @@ target_include_directories(3est-unit
     $<TARGET_PROPERTY:3es-core,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:GTest::Main,INTERFACE_INCLUDE_DIRECTORIES>
 )
+
+add_test(NAME 3est-unit COMMAND 3est-unit --gtest_output=xml:test-reports/)
+
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" PREFIX source FILES ${SOURCES})
