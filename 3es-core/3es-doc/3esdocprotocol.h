@@ -15,11 +15,11 @@ common platforms are Little Endian and will required byte order swaps before usi
 processors are generally Little Endian.
 
 
-@section Protocol Version
+@section secversion Protocol Version
 
-**Protocol Version: 0.3**
+*Protocol Version: 0.3*
 
-This page documents version 0.1 of the 3<sup>rd</sup> Eye Scene protocol. Changes to the major version number indicate a
+This page documents version 0.3 of the 3<sup>rd</sup> Eye Scene protocol. Changes to the major version number indicate a
 breaking change or an introduction of major features in the core protocol. Point version changes indicate minor changes
 such as the introduction of new flag values.
 
@@ -643,13 +643,14 @@ The `Double Precision` flag affects both the create message `Attributes` for the
 each shape in the create and the data message.
 
 When the `Payload Count` matches the `Shape Count` then there will be no data message. When the `Payload Count` is
-smaller than the `Shape Count`, then there will be at least one data message. See @ref secshapemsgmultishapedata .
+smaller than the `Shape Count`, then there will be at least one data message. The data message payload is the same
+as the creation payload except that `Shape Count` is not present.
 
 A multi-shape is treated as a single single with respect to it's ID. That is, a single destory message with the
 appropriate ID will remove all shapes in the `Multi Shape` set.
 
 
-@subsection secshapemsgdata Shape Data Message
+@section secshapemsgdata Shape Data Message
 
 Shape data messages are only sent for complex shapes. These are shapes which cannot be succinctly defined by their
 create message, even with additional data appended to the create message. All data messages share the following header,
@@ -694,7 +695,7 @@ Note: packet payload size restrictions may be ignored when serialising to disk.
 
 
 
-@subsection secshapemsgupdate Update Shape Message
+@subsection shapemsgupdate Update Shape Message
 
 Shape udpate messages are used to adjust the core attributes of a shape. Most notably, update messages are used to
 reposition shapes in 3D space. Updates messages are only for persistent shapes. Update messages are formatted as
