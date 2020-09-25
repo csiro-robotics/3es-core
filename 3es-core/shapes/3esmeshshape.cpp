@@ -109,9 +109,9 @@ bool MeshShape::writeCreate(PacketWriter &packet) const
   ok = packet.writeElement(count) == sizeof(count) && ok;
   count = _indices.count();
   ok = packet.writeElement(count) == sizeof(count) && ok;
+  ok = packet.writeElement(_drawScale) == sizeof(_drawScale) && ok;
   uint8_t drawType = _drawType;
   ok = packet.writeElement(drawType) == sizeof(drawType) && ok;
-  ok = packet.writeElement(_drawScale) == sizeof(_drawScale) && ok;
   return ok;
 }
 
@@ -227,10 +227,10 @@ bool MeshShape::readCreate(PacketReader &packet)
   _indices.set(static_cast<uint32_t *>(nullptr), 0);
   _colours.set(static_cast<uint32_t *>(nullptr), 0);
 
+  ok = ok && packet.readElement(_drawScale) == sizeof(_drawScale);
+
   ok = ok && packet.readElement(drawType) == sizeof(drawType);
   _drawType = (DrawType)drawType;
-
-  ok = ok && packet.readElement(_drawScale) == sizeof(_drawScale);
 
   return ok;
 }

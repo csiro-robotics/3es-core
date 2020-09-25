@@ -93,16 +93,18 @@ enum ObjectMessageId
 /// Flags controlling the creation and appearance of an object.
 enum ObjectFlag
 {
-  OFNone = 0,                ///< No flags. Default appearance.
-  OFWire = (1 << 0),         ///< Show the object as a wireframe mesh.
-  OFTransparent = (1 << 1),  ///< The object supports transparency. Use the colour alpha channel.
-  OFTwoSided = (1 << 2),     ///< Use a two sided shader.
+  OFNone = 0,  ///< No flags. Default appearance.
+  /// Indicates @c ObjectAttributes is in double precision.
+  OFDoublePrecision = (1 << 0),
+  OFWire = (1 << 1),         ///< Show the object as a wireframe mesh.
+  OFTransparent = (1 << 2),  ///< The object supports transparency. Use the colour alpha channel.
+  OFTwoSided = (1 << 3),     ///< Use a two sided shader.
   /// Shape creation should replace any pre-exiting shape with the same object ID.
   /// Normally duplicate shape creation messages are not allowed. This flag allows a duplicate shape ID
   /// (non-transient) by replacing the previous shape.
-  OFReplace = (1 << 3),
+  OFReplace = (1 << 4),
   /// Creating multiple shapes in one message.
-  OFMultiShape = (1 << 4),
+  OFMultiShape = (1 << 5),
   /// Do not reference count resources or queue resources for sending.
   ///
   /// By default each connection reference counts and queues resources for each shape, sending them from
@@ -113,9 +115,7 @@ enum ObjectFlag
   ///
   /// This should always be used when using the @c OFReplace flag as reference counting can only be maintained with
   /// proper create/destroy command pairs.
-  OFSkipResources = (1 << 5),
-  /// Indicates @c ObjectAttributes is in double precision.
-  OFDoublePrecision = (1 << 6),
+  OFSkipResources = (1 << 6),
 
   OFUser = (1 << 8)  ///< User flags start here.
 };
