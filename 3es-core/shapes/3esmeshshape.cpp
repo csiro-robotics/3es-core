@@ -186,6 +186,9 @@ int MeshShape::writeData(PacketWriter &packet, unsigned &progressMarker) const
   default:
     // Either all done or no data to send.
     ok = packet.writeElement(uint16_t(SDT_End)) == sizeof(uint16_t) && ok;
+    // Write zero offset (4-bytes) and count (2-bytes) for consistency.
+    ok = packet.writeElement(uint32_t(0)) == sizeof(uint32_t) && ok;
+    ok = packet.writeElement(uint16_t(0)) == sizeof(uint16_t) && ok;
     done = true;
     break;
   }
@@ -266,7 +269,14 @@ bool MeshShape::readData(PacketReader &packet)
     ok = _colours.read(packet) > 0 && ok;
     break;
   case SDT_End:
-    // We should technically read zero sized data.
+    // Ensure we have zero offset and count.
+    {
+      uint32_t offset{};
+      uint16_t count{};
+      ok = ok && packet.readElement(offset) == sizeof(offset);
+      ok = ok && packet.readElement(count) == sizeof(count);
+      ok = ok && offset == 0 && count == 0;
+    }
     break;
   default:
     // Unknown data type.
