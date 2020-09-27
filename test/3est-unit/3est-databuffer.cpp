@@ -267,7 +267,7 @@ void testPacketStreamVector3(bool packed)
   std::vector<real> reference;
   fillDataBuffer(vertices, &reference, real(12.8));
 
-  DataBuffer DataBuffer(vertices);
+  DataBuffer dataBuffer(vertices);
 
   // Write the pcket. Note, the routing and message types are unimportant.
   std::vector<uint8_t> raw_buffer(std::numeric_limits<uint16_t>::max());
@@ -278,11 +278,11 @@ void testPacketStreamVector3(bool packed)
 
   if (!packed)
   {
-    writeCount = DataBuffer.write(writer, 0);
+    writeCount = dataBuffer.write(writer, 0);
   }
   else
   {
-    writeCount = DataBuffer.writePacked(writer, 0, quantisation);
+    writeCount = dataBuffer.writePacked(writer, 0, quantisation);
   }
 
   ASSERT_EQ(writeCount, vertices.size());
@@ -291,10 +291,10 @@ void testPacketStreamVector3(bool packed)
   // Now create a reader around the same data.
   PacketReader reader(reinterpret_cast<PacketHeader *>(raw_buffer.data()));
   // Empty the DataBuffer object before reading.
-  DataBuffer = DataBuffer(static_cast<const real *>(nullptr), 0, 3);
+  dataBuffer = DataBuffer(static_cast<const real *>(nullptr), 0, 3);
 
   // Now read.
-  unsigned readCount = DataBuffer.read(reader);
+  unsigned readCount = dataBuffer.read(reader);
 
   ASSERT_NE(readCount, 0);
   ASSERT_EQ(readCount, writeCount);
@@ -303,12 +303,12 @@ void testPacketStreamVector3(bool packed)
 
   if (!packed)
   {
-    testBufferReadAsType<real, real>(DataBuffer, reference, "Vector3 from stream");
+    testBufferReadAsType<real, real>(dataBuffer, reference, "Vector3 from stream");
   }
   else
   {
     testBufferReadAsType<real, real>(
-      DataBuffer, reference, "Vector3 from stream",
+      dataBuffer, reference, "Vector3 from stream",
       [quantisation](size_t i, size_t j, real val, real ref, const char *context)  //
       { ASSERT_NEAR(val, ref, quantisation) << context << " @ [" << i << ',' << j << ']'; });
   }

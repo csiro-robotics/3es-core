@@ -5,7 +5,7 @@ set(SOURCES
   3est-common.h
   3est-core.cpp
   3est-shapes.cpp
-  3est-DataBuffer.cpp
+  3est-databuffer.cpp
 )
 
 add_executable(3est-unit ${SOURCES})
