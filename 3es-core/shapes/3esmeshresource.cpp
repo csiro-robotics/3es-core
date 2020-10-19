@@ -99,6 +99,11 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     // Initialise phase.
     progress.phase = MmtVertex;
     progress.progress = 0;
+    if (vertexCount() == 0)
+    {
+      // No vertices. Skip to next phase.
+      nextPhase(progress);
+    }
   }
 
   packet.reset(typeId(), progress.phase);

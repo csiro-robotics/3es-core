@@ -11,7 +11,7 @@
 
 using namespace tes;
 
-MeshSet::MeshSet(const ShapeId &id, const UIntArg &partCount)
+MeshSet::MeshSet(const Id &id, const UIntArg &partCount)
   : Shape(SIdMeshSet, id)
   // , _parts(partCount.i ? new Part[partCount.i] : nullptr)
   , _parts(nullptr)
@@ -30,7 +30,7 @@ MeshSet::MeshSet(const ShapeId &id, const UIntArg &partCount)
 }
 
 
-MeshSet::MeshSet(const MeshResource *part, const ShapeId &id)
+MeshSet::MeshSet(const MeshResource *part, const Id &id)
   : Shape(SIdMeshSet, id)
   , _parts(new Part[1])
   , _partCount(1)
@@ -39,6 +39,23 @@ MeshSet::MeshSet(const MeshResource *part, const ShapeId &id)
   _parts[0].resource = part;
 }
 
+
+MeshSet::MeshSet(const MeshSet &other)
+  : Shape(other)
+  , _parts(nullptr)
+  , _partCount(0)
+  , _ownPartResources(false)
+{
+  other.onClone(this);
+}
+
+
+MeshSet::MeshSet(MeshSet &&other)
+  : Shape(other)
+  , _parts(std::exchange(other._parts, nullptr))
+  , _partCount(std::exchange(other._partCount, 0))
+  , _ownPartResources(std::exchange(other._ownPartResources, false))
+{}
 
 MeshSet::~MeshSet()
 {

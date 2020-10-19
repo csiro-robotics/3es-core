@@ -24,10 +24,11 @@ public:
   /// @param text The text to display.
   /// @param id The shape id and category, with unique id among @c Text3D objects, or zero for a transient shape.
   /// @param transform Directional transformation for the text. The length is used to control the font size.
-  Text3D(const char *text = "", const ShapeId &id = ShapeId(), const Directional &transform = Directional());
+  Text3D(const char *text = "", const Id &id = Id(), const Directional &transform = Directional());
 
   /// Copy constructor
   Text3D(const Text3D &other);
+
   /// Move constructor
   Text3D(Text3D &&other);
 
@@ -62,15 +63,13 @@ protected:
   void onClone(Text3D *copy) const;
 
 private:
-  char *_text;
-  uint16_t _textLength;
+  char *_text = nullptr;
+  uint16_t _textLength = 0;
 };
 
 
-inline Text3D::Text3D(const char *text, const ShapeId &id, const Directional &transform)
+inline Text3D::Text3D(const char *text, const Id &id, const Directional &transform)
   : Shape(SIdText3D, id, transform)
-  , _text(nullptr)
-  , _textLength(0)
 {
   setText(text, text ? (uint16_t)strlen(text) : 0);
 }

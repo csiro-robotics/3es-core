@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESSHAPEID_H
-#define _3ESSHAPEID_H
+#ifndef _3ESID_H
+#define _3ESID_H
 
 #include "3es-core.h"
 
@@ -10,7 +10,7 @@
 
 /// A helper macro for defining various explicit constructors for @c Id .
 /// This is to deal with an ambituity with casting 0 to an integer or a null pointer.
-#define TES_SHAPE_ID_INT_CTOR(int_type)   \
+#define TES_ID_INT_CTOR(int_type)         \
   Id(int_type id, uint16_t category = 0u) \
     : Id(uint32_t(id), category)          \
   {}
@@ -34,13 +34,13 @@ public:
     , _category(category)
   {}
 
-  TES_SHAPE_ID_INT_CTOR(int8_t);
-  TES_SHAPE_ID_INT_CTOR(uint8_t);
-  TES_SHAPE_ID_INT_CTOR(int16_t);
-  TES_SHAPE_ID_INT_CTOR(uint16_t);
-  TES_SHAPE_ID_INT_CTOR(int32_t);
-  TES_SHAPE_ID_INT_CTOR(int64_t);
-  TES_SHAPE_ID_INT_CTOR(uint64_t);
+  TES_ID_INT_CTOR(int8_t);
+  TES_ID_INT_CTOR(uint8_t);
+  TES_ID_INT_CTOR(int16_t);
+  TES_ID_INT_CTOR(uint16_t);
+  TES_ID_INT_CTOR(int32_t);
+  TES_ID_INT_CTOR(int64_t);
+  TES_ID_INT_CTOR(uint64_t);
 
   template <typename T>
   Id(const T *id_ptr, uint16_t category = 0)
@@ -85,4 +85,4 @@ inline Id operator+(const Id &id, size_t inc)
 }
 }  // namespace tes
 
-#endif  // _3ESSHAPEID_H
+#endif  // _3ESID_H

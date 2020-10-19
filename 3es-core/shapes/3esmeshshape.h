@@ -57,7 +57,7 @@ public:
   /// @param position Local to world positioning of the triangles. Defaults to the origin.
   /// @param rotation Local to world rotation of the triangles. Defaults to identity.
   /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const ShapeId &id, const DataBuffer &vertices = DataBuffer(),
+  MeshShape(DrawType drawType, const Id &id, const DataBuffer &vertices = DataBuffer(),
             const Transform &transform = Transform());
 
   /// Persistent triangle constructor accepting vertex and triangle iterators and optional positioning.
@@ -68,8 +68,16 @@ public:
   /// @param position Local to world positioning of the triangles. Defaults to the origin.
   /// @param rotation Local to world rotation of the triangles. Defaults to identity.
   /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const ShapeId &id, const DataBuffer &vertices, const DataBuffer &indices,
+  MeshShape(DrawType drawType, const Id &id, const DataBuffer &vertices, const DataBuffer &indices,
             const Transform &transform = Transform());
+
+  /// Copy constructor.
+  /// @param other Object to copy.
+  MeshShape(const MeshShape &other);
+
+  /// Move constructor.
+  /// @param other Object to move.
+  MeshShape(MeshShape &&other);
 
   /// Destructor.
   ~MeshShape();
@@ -193,13 +201,13 @@ public:
 protected:
   void onClone(MeshShape *copy) const;
 
-  DataBuffer _vertices;          ///< Mesh vertices.
-  DataBuffer _normals;           ///< Normal stream. Expect zero, one per vertex or one to apply to all vertices.
-  DataBuffer _colours;           ///< Per vertex colours. Null for none.
-  DataBuffer _indices;           ///< Per vertex colours. Null for none.
+  DataBuffer _vertices;            ///< Mesh vertices.
+  DataBuffer _normals;             ///< Normal stream. Expect zero, one per vertex or one to apply to all vertices.
+  DataBuffer _colours;             ///< Per vertex colours. Null for none.
+  DataBuffer _indices;             ///< Per vertex colours. Null for none.
   double _quantisationUnit = 0.0;  ///< Quantisation for data packing. Zero => no packing.
   float _drawScale = 0.0f;         ///< Draw scale: point scaling, line width, etc.
-  DrawType _drawType;              ///< The primitive to render.
+  DrawType _drawType = DtPoints;   ///< The primitive to render.
 };
 
 
@@ -209,8 +217,7 @@ inline MeshShape::MeshShape()
 {}
 
 
-inline MeshShape::MeshShape(DrawType drawType, const ShapeId &id, const DataBuffer &vertices,
-                            const Transform &transform)
+inline MeshShape::MeshShape(DrawType drawType, const Id &id, const DataBuffer &vertices, const Transform &transform)
   : Shape(SIdMeshShape, id, transform)
   , _vertices(vertices)
   , _drawType(drawType)
@@ -222,8 +229,8 @@ inline MeshShape::MeshShape(DrawType drawType, const ShapeId &id, const DataBuff
 }
 
 
-inline MeshShape::MeshShape(DrawType drawType, const ShapeId &id, const DataBuffer &vertices,
-                            const DataBuffer &indices, const Transform &transform)
+inline MeshShape::MeshShape(DrawType drawType, const Id &id, const DataBuffer &vertices, const DataBuffer &indices,
+                            const Transform &transform)
   : Shape(SIdMeshShape, id, transform)
   , _vertices(vertices)
   , _indices(indices)

@@ -26,6 +26,26 @@ struct DataPhase
 };
 }  // namespace
 
+
+MeshShape::MeshShape(const MeshShape &other)
+  : Shape(other)
+{
+  other.onClone(this);
+}
+
+
+MeshShape::MeshShape(MeshShape &&other)
+  : Shape(other)
+  , _vertices(std::move(other._vertices))
+  , _normals(std::move(other._normals))
+  , _colours(std::move(other._colours))
+  , _indices(std::move(other._indices))
+  , _quantisationUnit(std::exchange(other._quantisationUnit, 0.0))
+  , _drawScale(std::exchange(other._drawScale, 0.0f))
+  , _drawType(std::exchange(other._drawType, DtPoints))
+{}
+
+
 MeshShape::~MeshShape()
 {}
 

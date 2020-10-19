@@ -68,6 +68,7 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/3escapsule.h
   shapes/3escone.h
   shapes/3escylinder.h
+  shapes/3esid.h
   shapes/3esmeshplaceholder.h
   shapes/3esmeshresource.h
   shapes/3esmeshset.h
@@ -79,7 +80,6 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/3espointcloudshape.h
   shapes/3espose.h
   shapes/3esshape.h
-  shapes/3esshapeid.h
   shapes/3esshapes.h
   shapes/3essimplemesh.h
   shapes/3essphere.h

@@ -20,16 +20,24 @@ public:
   /// Construct a box object.
   /// @param id The shape id and category, with unique id among @c Pose objects, or zero for a transient shape.
   /// @param transform The pose transformation matrix.
-  Pose(const ShapeId &id = ShapeId(), const Transform &transform = Transform());
+  Pose(const Id &id = Id(), const Transform &transform = Transform());
+
+  /// Copy constructor
+  /// @param other Object to copy.
+  Pose(const Pose &other);
 
   inline const char *type() const override { return "pose"; }
 };
 
 
-inline Pose::Pose(const ShapeId &id, const Transform &transform)
+inline Pose::Pose(const Id &id, const Transform &transform)
   : Shape(SIdPose, id, transform)
-{
-}
+{}
+
+
+inline Pose::Pose(const Pose &other)
+  : Shape(other)
+{}
 }  // namespace tes
 
 #endif  // _3ESPOSE_H_

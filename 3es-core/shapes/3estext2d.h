@@ -24,10 +24,14 @@ public:
   /// @param text The text to display.
   /// @param id The shape id and category, with unique id among @c Text2D objects, or zero for a transient shape.
   /// @param pos The position of the text.
-  Text2D(const char *text = "", const ShapeId &id = ShapeId(), const Spherical &pos = Spherical());
+  Text2D(const char *text = "", const Id &id = Id(), const Spherical &pos = Spherical());
+
   /// Copy constructor
+  /// @param other Object to copy.
   Text2D(const Text2D &other);
+
   /// Move constructor
+  /// @param other Object to move.
   Text2D(Text2D &&other);
 
   ~Text2D();
@@ -55,19 +59,16 @@ protected:
   void onClone(Text2D *copy) const;
 
 private:
-  char *_text;
-  uint16_t _textLength;
+  char *_text = nullptr;
+  uint16_t _textLength = 0;
 };
 
 
-inline Text2D::Text2D(const char *text, const ShapeId &id, const Spherical &pos)
+inline Text2D::Text2D(const char *text, const Id &id, const Spherical &pos)
   : Shape(SIdText2D, id, pos)
-  , _text(nullptr)
-  , _textLength(0)
 {
   setText(text, text ? (uint16_t)strlen(text) : 0);
 }
-
 
 inline bool Text2D::inWorldSpace() const
 {

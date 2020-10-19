@@ -25,12 +25,16 @@ public:
   /// Create a plane.
   /// @param id The shape id and category, unique among @c Plane objects, or zero for a transient shape.
   /// @param transform The directional transformation for the capsule.
-  Plane(const ShapeId &id = ShapeId(), const Directional &transform = Directional());
+  Plane(const Id &id = Id(), const Directional &transform = Directional());
 
   /// Create a plane.
   /// @param id The shape id and category, unique among @c Plane objects, or zero for a transient shape.
   /// @param transform The directional transformation for the capsule.
-  Plane(const ShapeId &id, const Transform &transform);
+  Plane(const Id &id, const Transform &transform);
+
+  /// Copy constructor
+  /// @param other Object to copy.
+  Plane(const Plane &other);
 
   inline const char *type() const override { return "plane"; }
 
@@ -67,16 +71,19 @@ public:
 };
 
 
-inline Plane::Plane(const ShapeId &id, const Directional &transform)
+inline Plane::Plane(const Id &id, const Directional &transform)
   : Shape(SIdPlane, id, transform)
-{
-}
+{}
 
 
-inline Plane::Plane(const ShapeId &id, const Transform &transform)
+inline Plane::Plane(const Id &id, const Transform &transform)
   : Shape(SIdPlane, id, transform)
-{
-}
+{}
+
+
+inline Plane::Plane(const Plane &other)
+  : Shape(other)
+{}
 
 
 inline Plane &Plane::setNormal(const Vector3d &normal)

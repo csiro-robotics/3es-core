@@ -29,7 +29,7 @@ public:
   /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
   /// @param category The category grouping for the shape used for filtering.
   /// @param pointScale Desired point render scale. Use zero or one for the default scale.
-  PointCloudShape(const MeshResource *mesh = nullptr, const ShapeId &id = ShapeId(), float pointScale = 0.0f);
+  PointCloudShape(const MeshResource *mesh = nullptr, const Id &id = Id(), float pointScale = 0.0f);
 
   /// Destructor.
   ~PointCloudShape();
@@ -142,7 +142,7 @@ private:
 };
 
 
-inline PointCloudShape::PointCloudShape(const MeshResource *mesh, const ShapeId &id, float pointScale)
+inline PointCloudShape::PointCloudShape(const MeshResource *mesh, const Id &id, float pointScale)
   : Shape(SIdPointCloud, id)
   , _mesh(mesh)
   , _indices(nullptr)

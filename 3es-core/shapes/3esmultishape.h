@@ -44,6 +44,10 @@ public:
   /// @param scale Scaling to apply to all shapes in the collection.
   MultiShape(Shape **shapes, const UIntArg &shapeCount, const Transform &transform = Transform());
 
+  /// Move constructor
+  /// @param other Object to move.
+  MultiShape(MultiShape &&other);
+
   /// Destructor.
   ~MultiShape();
 
@@ -71,12 +75,21 @@ private:
 };
 
 inline MultiShape::MultiShape(Shape **shapes, const UIntArg &shapeCount, const Transform &transform)
-  : Shape(shapes[0]->routingId(), ShapeId(shapes[0]->id(), shapes[0]->category()), transform)
+  : Shape(shapes[0]->routingId(), Id(shapes[0]->id(), shapes[0]->category()), transform)
   , _shapes(shapes)
   , _itemCount(std::min(static_cast<uint32_t>(shapeCount), ShapeCountLimit))
 {
   _data.flags |= OFMultiShape;
+  setDoublePrecision(shapes[0]->doublePrecision());
 }
+
+
+inline MultiShape::MultiShape(MultiShape &&other)
+  : Shape(other)
+  , _shapes(std::exchange(other._shapes, nullptr))
+  , _itemCount(std::exchange(other._itemCount, 0))
+  , _ownShapes(std::exchange(other._ownShapes, false))
+{}
 }  // namespace tes
 
 #endif  // _3ESMULTISHAPE_H_

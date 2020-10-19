@@ -24,12 +24,16 @@ public:
   /// Construct a cone object.
   /// @param id The shape id and category, unique among @c Cone objects, or zero for a transient shape.
   /// @param transform The directional transformation for the shape. The radius specified is applied at the base.
-  Cone(const ShapeId &id = ShapeId(), const Directional &transform = Directional());
+  Cone(const Id &id = Id(), const Directional &transform = Directional());
 
   /// Construct a cone object.
   /// @param id The shape id and category, unique among @c Cone objects, or zero for a transient shape.
   /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
-  Cone(const ShapeId &id, const Transform &transform);
+  Cone(const Id &id, const Transform &transform);
+
+  /// Copy constructor
+  /// @param other Object to copy.
+  Cone(const Cone &other);
 
   inline const char *type() const override { return "cone"; }
 
@@ -70,16 +74,19 @@ public:
 };
 
 
-inline Cone::Cone(const ShapeId &id, const Directional &transform)
+inline Cone::Cone(const Id &id, const Directional &transform)
   : Shape(SIdCone, id, transform)
-{
-}
+{}
 
 
-inline Cone::Cone(const ShapeId &id, const Transform &transform)
+inline Cone::Cone(const Id &id, const Transform &transform)
   : Shape(SIdCone, id, transform)
-{
-}
+{}
+
+
+inline Cone::Cone(const Cone &other)
+  : Shape(other)
+{}
 
 
 inline Cone &Cone::setRadius(double radius)
