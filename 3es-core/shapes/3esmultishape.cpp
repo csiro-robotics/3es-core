@@ -2,8 +2,8 @@
 
 using namespace tes;
 
-const uint16_t MultiShape::BlockCountLimit = 1024u;
-const uint32_t MultiShape::ShapeCountLimit = 0xffffu;
+const unsigned MultiShape::BlockCountLimit = 1024u;
+const unsigned MultiShape::ShapeCountLimit = 0xffffu;
 
 MultiShape::~MultiShape()
 {
@@ -35,11 +35,12 @@ bool MultiShape::writeCreate(PacketWriter &stream) const
   bool ok = true;
   // Write the total number of items.
   stream.writeElement(_itemCount) == sizeof(_itemCount) && ok;
+
   // Write the number of items in the creation message.
-  const uint16_t creationBlockCount = uint16_t(std::min<unsigned>(_itemCount, BlockCountLimit));
+  uint16_t creationBlockCount = uint16_t(std::min(_itemCount, blockCountLimit()));
   stream.writeElement(creationBlockCount) == sizeof(creationBlockCount) && ok;
 
-  for (unsigned i = 0; i < creationBlockCount; ++i)
+  for (unsigned i = 0; ok && i < creationBlockCount; ++i)
   {
     ok = _shapes[i]->attributes().write(stream, _shapes[i]->data().flags & OFDoublePrecision) && ok;
   }
@@ -50,7 +51,7 @@ bool MultiShape::writeCreate(PacketWriter &stream) const
 
 int MultiShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
 {
-  if (_itemCount <= BlockCountLimit)
+  if (_itemCount <= blockCountLimit())
   {
     // Nothing more to write. Creation packet was enough.
     return 0;
@@ -66,9 +67,9 @@ int MultiShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
     return -1;
   }
 
-  const unsigned itemOffset = (progressMarker + BlockCountLimit);
+  const unsigned itemOffset = (progressMarker + blockCountLimit());
   const unsigned remainingItems = _itemCount - itemOffset;
-  const uint16_t blockCount = uint16_t(std::min<unsigned>(remainingItems, BlockCountLimit));
+  const uint16_t blockCount = uint16_t(std::min<unsigned>(remainingItems, blockCountLimit()));
   stream.writeElement(blockCount) == sizeof(blockCount) && ok;
 
   for (unsigned i = 0; i < blockCount; ++i)
@@ -110,4 +111,10 @@ MultiShape &MultiShape::takeOwnership()
   }
 
   return *this;
+}
+
+
+unsigned MultiShape::blockCountLimit() const
+{
+  return (doublePrecision()) ? BlockCountLimit / 2 : BlockCountLimit;
 }

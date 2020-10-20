@@ -29,10 +29,11 @@ namespace tes
 class _3es_coreAPI MultiShape : public Shape
 {
 public:
-  /// Maximum number of shapes in a multi shape packet. Packet is too large otherwise.
-  static const uint16_t BlockCountLimit;  // = 1024u;
+  /// Maximum number of shapes in a multi shape packet using single precision. Halve for double precision. Packet is too
+  /// large otherwise.
+  static const unsigned BlockCountLimit;  // = 1024u;
   /// Maximum number of shapes in a multi shape.
-  static const uint32_t ShapeCountLimit;  // = 0xffffu;
+  static const unsigned ShapeCountLimit;  // = 0xffffu;
 
   /// Create a new multi-shape with the given set of @p shapes. The @c routingId(), @c id() and @c category() for the
   /// shape set is taken from the first item in the array.
@@ -67,6 +68,8 @@ public:
   ///
   /// @return @c *this
   MultiShape &takeOwnership();
+
+  unsigned blockCountLimit() const;
 
 private:
   Shape **_shapes = nullptr;  ///< The shape array. Pointer ownership is defined by @c _ownShapes .
