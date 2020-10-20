@@ -2,7 +2,7 @@
 
 using namespace tes;
 
-const unsigned MultiShape::BlockCountLimit = 1024u;
+const unsigned MultiShape::BlockCountLimitSingle = 1024u;
 const unsigned MultiShape::ShapeCountLimit = 0xffffu;
 
 MultiShape::~MultiShape()
@@ -111,10 +111,4 @@ MultiShape &MultiShape::takeOwnership()
   }
 
   return *this;
-}
-
-
-unsigned MultiShape::blockCountLimit() const
-{
-  return (doublePrecision()) ? BlockCountLimit / 2 : BlockCountLimit;
 }

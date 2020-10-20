@@ -31,7 +31,7 @@ class _3es_coreAPI MultiShape : public Shape
 public:
   /// Maximum number of shapes in a multi shape packet using single precision. Halve for double precision. Packet is too
   /// large otherwise.
-  static const unsigned BlockCountLimit;  // = 1024u;
+  static const unsigned BlockCountLimitSingle;  // = 1024u;
   /// Maximum number of shapes in a multi shape.
   static const unsigned ShapeCountLimit;  // = 0xffffu;
 
@@ -93,6 +93,12 @@ inline MultiShape::MultiShape(MultiShape &&other)
   , _itemCount(std::exchange(other._itemCount, 0))
   , _ownShapes(std::exchange(other._ownShapes, false))
 {}
+
+
+inline unsigned MultiShape::blockCountLimit() const
+{
+  return (doublePrecision()) ? BlockCountLimitSingle / 2 : BlockCountLimitSingle;
+}
 }  // namespace tes
 
 #endif  // _3ESMULTISHAPE_H_
