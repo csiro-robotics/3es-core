@@ -223,7 +223,7 @@ int main(int argc, char **argvNonConst)
     const auto sendStart = TimingClock::now();
 
     // Send triangle data in chunks.
-    MeshShape shape(DtTriangles, tes::ShapeId(), tes::DataBuffer(triangles));   // Transient triangles.
+    MeshShape shape(DtTriangles, tes::Id(), tes::DataBuffer(triangles));  // Transient triangles.
     server->create(shape);
 
     server->updateFrame(0.0f);

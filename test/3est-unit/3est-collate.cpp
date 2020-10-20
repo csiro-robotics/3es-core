@@ -52,7 +52,7 @@ void collationTest(bool compress, CollatedPacketDecoder *decoderOverride = nullp
   // I> Test each constructor.
   // 1. drawType, verts, vcount, vstrideBytes, pos, rot, scale
   MeshShape referenceMesh(
-    DtTriangles, ShapeId(42u, 1), DataBuffer(vertices), DataBuffer(indices),
+    DtTriangles, Id(42u, 1), DataBuffer(vertices), DataBuffer(indices),
     Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
               Vector3f(1.0f, 1.2f, 0.8f)));
   referenceMesh.setNormals(DataBuffer(normals));

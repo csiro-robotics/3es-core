@@ -50,7 +50,7 @@ void onSignal(int arg)
 
 MeshShape *createPointsMesh(unsigned id, const std::vector<Vector3f> &vertices)
 {
-  MeshShape *shape = new MeshShape(DtPoints, tes::ShapeId(id), tes::DataBuffer(vertices));
+  MeshShape *shape = new MeshShape(DtPoints, tes::Id(id), tes::DataBuffer(vertices));
   return shape;
 }
 
@@ -70,14 +70,14 @@ MeshShape *createLinesMesh(unsigned id, const std::vector<Vector3f> &vertices, c
     lineIndices.push_back(indices[i + 0]);
   }
 
-  MeshShape *shape = new MeshShape(DtLines, ShapeId(id), DataBuffer(vertices), DataBuffer(lineIndices));
+  MeshShape *shape = new MeshShape(DtLines, Id(id), DataBuffer(vertices), DataBuffer(lineIndices));
   return shape;
 }
 
 
 MeshShape *createTrianglesMesh(unsigned id, const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices)
 {
-  MeshShape *shape = new MeshShape(DtTriangles, ShapeId(id), DataBuffer(vertices), DataBuffer(indices));
+  MeshShape *shape = new MeshShape(DtTriangles, Id(id), DataBuffer(vertices), DataBuffer(indices));
   return shape;
 }
 
@@ -102,7 +102,7 @@ MeshShape *createVoxelsMesh(unsigned id)
     }
   }
 
-  MeshShape *shape = new MeshShape(DtVoxels, ShapeId(id), DataBuffer(vertices));
+  MeshShape *shape = new MeshShape(DtVoxels, Id(id), DataBuffer(vertices));
   shape->setUniformNormal(Vector3f(voxelScale));
   return shape;
 }

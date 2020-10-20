@@ -19,7 +19,7 @@
 #define SPHERE_ID 2u
 
 // Example to view a sphere tessellation. This code duplicates tessellate/3essphere code and adds 3ES commands.
-typedef tes::Vector3f Vector3f;
+using Vector3f = tes::Vector3f;
 
 namespace
 {
@@ -93,7 +93,7 @@ unsigned tesUnrollDisplay(const std::vector<Vector3f> &vertices, const std::vect
     }
 
     cursor += count;
-    TES_TRIANGLES(tesServer, TES_RGB(200, 200, 200), TES_ID(SPHERE_ID + shapeCount), tes::DataBuffer(localVertices));
+    TES_TRIANGLES(tesServer, TES_RGB(200, 200, 200), tes::Id(SPHERE_ID) + shapeCount, tes::DataBuffer(localVertices));
     ++shapeCount;
   }
 
@@ -203,7 +203,7 @@ void sphereInitialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &in
   // Send the initial sphere. We know it has less than 65k vertices.
   if (!vertices.empty() && !indices.empty())
   {
-    TES_TRIANGLES(tesServer, TES_RGB(200, 200, 200), TES_ID(SPHERE_ID), tes::DataBuffer(vertices),
+    TES_TRIANGLES(tesServer, TES_RGB(200, 200, 200), tes::Id(SPHERE_ID), tes::DataBuffer(vertices),
                   tes::DataBuffer(indices));
   }
 }
@@ -230,7 +230,7 @@ void subdivideUnitSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> 
     verts[2] = vertices[triangle[2]];
 
     // Highlight the working triangle: extrude it a bit to make it pop.
-    TES_TRIANGLE(tesServer, TES_COLOUR(FireBrick), TES_ID(0u), verts[0] * 1.01f, verts[1] * 1.01f, verts[2] * 1.01f,
+    TES_TRIANGLE(tesServer, TES_COLOUR(FireBrick), tes::Id(), verts[0] * 1.01f, verts[1] * 1.01f, verts[2] * 1.01f,
                  tes::Transform::identity());
 
     // Calculate the new vertex at the centre of the existing triangle.
@@ -254,9 +254,9 @@ void subdivideUnitSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> 
     def[1] = insertVertex(newVertices[1], vertices, vertexMap);
     def[2] = insertVertex(newVertices[2], vertices, vertexMap);
 
-    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), TES_ID(0), vertices[def[0]], vertices[def[1]], vertices[def[2]],
+    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[def[0]], vertices[def[1]], vertices[def[2]],
                  tes::Transform::identity());
-    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), TES_ID(0), vertices[def[0]], vertices[def[1]], vertices[def[2]],
+    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[def[0]], vertices[def[1]], vertices[def[2]],
                    tes::Transform::identity());
 
     // Replace the original triangle ABC with DEF
@@ -269,27 +269,27 @@ void subdivideUnitSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> 
     indices.push_back(def[0]);
     indices.push_back(def[2]);
 
-    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), TES_ID(0), vertices[abc[0]], vertices[def[0]], vertices[def[2]],
+    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[abc[0]], vertices[def[0]], vertices[def[2]],
                  tes::Transform::identity());
-    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), TES_ID(0), vertices[abc[0]], vertices[def[0]], vertices[def[2]],
+    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[abc[0]], vertices[def[0]], vertices[def[2]],
                    tes::Transform::identity());
 
     indices.push_back(abc[1]);
     indices.push_back(def[1]);
     indices.push_back(def[0]);
 
-    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), TES_ID(0), vertices[abc[1]], vertices[def[1]], vertices[def[2]],
+    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[abc[1]], vertices[def[1]], vertices[def[2]],
                  tes::Transform::identity());
-    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), TES_ID(0), vertices[abc[1]], vertices[def[1]], vertices[def[2]],
+    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[abc[1]], vertices[def[1]], vertices[def[2]],
                    tes::Transform::identity());
 
     indices.push_back(abc[2]);
     indices.push_back(def[2]);
     indices.push_back(def[1]);
 
-    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), TES_ID(0), vertices[abc[2]], vertices[def[2]], vertices[def[1]],
+    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[abc[2]], vertices[def[2]], vertices[def[1]],
                  tes::Transform::identity());
-    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), TES_ID(0), vertices[abc[2]], vertices[def[2]], vertices[def[1]],
+    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[abc[2]], vertices[def[2]], vertices[def[1]],
                    tes::Transform::identity());
 
     TES_SERVER_UPDATE(tesServer, 0, true);  // Flush.
@@ -367,7 +367,7 @@ int main(int argc, char **argvNonConst)
 #ifdef TES_ENABLE
     for (unsigned i = 0; i < shapeCount; ++i)
     {
-      TES_TRIANGLES_END(tesServer, TES_ID(SPHERE_ID + i));
+      TES_TRIANGLES_END(tesServer, tes::Id(SPHERE_ID) + i);
     }
     // Send the updated sphere. We must unroll into sets of triangles of less than 65K vertices.
     shapeCount = tesUnrollDisplay(vertices, indices);
