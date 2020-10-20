@@ -11,6 +11,8 @@
 #include "3esexception.h"
 #include "3esthrow.h"
 
+#include <limits>
+
 namespace tes
 {
 /// A utility function for moving a pointer by a given byte stride.
