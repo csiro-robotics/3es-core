@@ -564,6 +564,7 @@ bool SimpleMesh::processCreate(const MeshCreateMessage &msg, const ObjectAttribu
 
 bool SimpleMesh::processVertices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
+  TES_UNUSED(msg);
   copyOnWrite();
   for (unsigned i = 0; i < stream.count() && i + offset < vertexCount(); ++i)
   {
@@ -578,18 +579,21 @@ bool SimpleMesh::processVertices(const MeshComponentMessage &msg, unsigned offse
 
 bool SimpleMesh::processIndices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
+  TES_UNUSED(msg);
   return setIndices(offset, stream.ptr<uint32_t>(), stream.count()) == stream.count();
 }
 
 
 bool SimpleMesh::processColours(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
+  TES_UNUSED(msg);
   return setColours(offset, stream.ptr<uint32_t>(), stream.count()) == stream.count();
 }
 
 
 bool SimpleMesh::processNormals(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
+  TES_UNUSED(msg);
   copyOnWrite();
   if (!(_imp->components & Normal) && vertexCount())
   {
@@ -609,6 +613,7 @@ bool SimpleMesh::processNormals(const MeshComponentMessage &msg, unsigned offset
 
 bool SimpleMesh::processUVs(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
+  TES_UNUSED(msg);
   copyOnWrite();
   if (!(_imp->components & Normal) && vertexCount())
   {

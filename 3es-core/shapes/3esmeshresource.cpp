@@ -106,7 +106,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferPro
     }
   }
 
-  packet.reset(typeId(), progress.phase);
+  packet.reset(typeId(), uint16_t(progress.phase));
   MeshComponentMessage msg;
   msg.meshId = id();
   msg.write(packet);

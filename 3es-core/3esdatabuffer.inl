@@ -523,7 +523,7 @@ uint32_t DataBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr
                 static_cast<const T *>(*stream_ptr) + (*stream_size) * componentCount, new_ptr);
       if (*has_ownership)
       {
-        delete[] * stream_ptr;
+        delete[] static_cast<const T *>(*stream_ptr);
       }
     }
     *stream_ptr = new_ptr;
