@@ -225,7 +225,7 @@ public:
   /// @param radius The radius scaling, mapped to X and Y of @c scale()
   /// @param length The length scaling, mapped to Z of @c scale .
   /// @param preferDouble Optional override for precision selection.
-  inline Directional(const Vector3f &pos, float radius = 1.0f, float length = 1.0f, bool preferDouble = false)
+  inline Directional(const Vector3f &pos, float radius, float length = 1.0f, bool preferDouble = false)
     : Transform(pos, directionToRotation(DefaultDirection), Vector3f(radius, radius, length), preferDouble)
   {}
 
@@ -234,7 +234,7 @@ public:
   /// @param radius The radius scaling, mapped to X and Y of @c scale()
   /// @param length The length scaling, mapped to Z of @c scale .
   /// @param preferDouble Optional override for precision selection.
-  inline Directional(const Vector3d &pos, double radius = 1.0, double length = 1.0, bool preferDouble = false)
+  inline Directional(const Vector3d &pos, double radius, double length = 1.0, bool preferDouble = false)
     : Transform(pos, directionToRotation(DefaultDirection), Vector3d(radius, radius, length), preferDouble)
   {}
 

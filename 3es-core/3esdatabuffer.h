@@ -15,6 +15,7 @@
 #include "3esvector3.h"
 
 #include <algorithm>
+#include <array>
 #include <cinttypes>
 #include <memory>
 #include <utility>
@@ -191,12 +192,32 @@ public:
 
   DataBuffer(const Vector3f *v, size_t count);
 
+  template <size_t Count>
+  inline DataBuffer(const std::array<Vector3f, Count> &v)
+    : DataBuffer(v.data(), Count)
+  {}
+
   DataBuffer(const Vector3d *v, size_t count);
+
+  template <size_t Count>
+  inline DataBuffer(const std::array<Vector3d, Count> &v)
+    : DataBuffer(v.data(), Count)
+  {}
 
   DataBuffer(const Colour *c, size_t count);
 
+  template <size_t Count>
+  inline DataBuffer(const std::array<Colour, Count> &c)
+    : DataBuffer(c.data(), Count)
+  {}
+
   template <typename T>
   DataBuffer(const std::vector<T> &v, size_t componentCount = 1, size_t componentStride = 0);
+
+  template <typename T, size_t Count>
+  inline DataBuffer(const std::array<T, Count> &v)
+    : DataBuffer(v.data(), Count)
+  {}
 
   DataBuffer(const std::vector<Vector3f> &v);
 
