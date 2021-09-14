@@ -244,3 +244,7 @@ void releaseTes()
 ```
 
 Additional documentation can be found at [https://data61.github.io/3rdEyeScene/](https://data61.github.io/3rdEyeScene/)
+
+## Known issues
+
+- `MultiShape` objects do not support individual flags for transparency or wireframe as these are creation flags.
