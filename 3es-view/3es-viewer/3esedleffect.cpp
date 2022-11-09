@@ -18,7 +18,7 @@ struct EdlEffectDetail
   {
     float radius = 1.0f;
     float linear_scale = 1.0f;
-    float exponential_scale = 1.0f;
+    float exponential_scale = 3.0f;
     Magnum::Vector3 light_direction{ 0, 0, 1 };  ///< Light direction in camera space.
     Magnum::Range2Di viewport{ Magnum::Vector2i{ 0 }, Magnum::Vector2i{ 1 } };
   };
@@ -70,7 +70,7 @@ void EdlEffect::setRadius(float radius)
 }
 
 
-float EdlEffect::getRadius() const
+float EdlEffect::radius() const
 {
   return _imp->settings.radius;
 }
@@ -82,7 +82,7 @@ void EdlEffect::setLinearScale(float linear_scale)
 }
 
 
-float EdlEffect::getLinearScale() const
+float EdlEffect::linearScale() const
 {
   return _imp->settings.linear_scale;
 }
@@ -94,7 +94,7 @@ void EdlEffect::setExponentialScale(float exponential_scale)
 }
 
 
-float EdlEffect::getExponentialScale() const
+float EdlEffect::exponentialScale() const
 {
   return _imp->settings.exponential_scale;
 }
@@ -106,7 +106,7 @@ void EdlEffect::setLightDirection(const Magnum::Vector3 &light_direction)
 }
 
 
-const Magnum::Vector3 &EdlEffect::getLightDirection() const
+const Magnum::Vector3 &EdlEffect::lightDirection() const
 {
   return _imp->settings.light_direction;
 }

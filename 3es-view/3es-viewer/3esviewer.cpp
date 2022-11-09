@@ -15,24 +15,15 @@
 #include <Magnum/Trade/MeshData.h>
 
 // Things to learn about:
-// - render to texture / frame buffer object (for EDL)
-// - mesh building
 // - text rendering
 // - UI
 
 // Things to implement:
-// - primitive instance rendering
-// - shaders:
-//  - simple primitives
-//  - transparent
-//  - wireframe
 // - mesh renderer
 // - point cloud rendering
 //  - simple from vertex buffer
 //  - with point shader
-// - EDL shader
-//  - render to texture
-//  - blit with EDL shader
+//  - voxel shader
 
 namespace tes::viewer
 {
@@ -66,7 +57,7 @@ Viewer::Viewer(const Arguments &arguments)
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::Blending);
 
-  const float scale = 20.0f;
+  const float scale = 10.0f;
   _instances[0] = { Magnum::Matrix4::translation({ scale, 0.0f, 0.0f }), 0xff0000_rgbf };
   _instances[1] = { Magnum::Matrix4::translation({ -scale, 0.0f, 0.0f }), 0x00ffff_rgbf };
   _instances[2] = { Magnum::Matrix4::translation({ 0.0f, scale, 0.0f }), 0x00ff00_rgbf };
@@ -97,7 +88,8 @@ Viewer::Viewer(const Arguments &arguments)
   // _cylinders->add(Magnum::Matrix4(), Magnum::Color3(1, 1, 0));
 
   _spheres = std::make_unique<painter::Sphere>(_culler);
-  _spheres->add(Id(1), painter::ShapePainter::Type::Solid, Magnum::Matrix4{}, Magnum::Color4{ 1, 1, 0 });
+  _spheres->add(Id(1), painter::ShapePainter::Type::Wireframe, Magnum::Matrix4::translation({ 0, 8, 0 }),
+                Magnum::Color4{ 1, 1, 0, 0.4f });
 }
 
 void Viewer::setContinuousSim(bool continuous)
@@ -244,21 +236,7 @@ void Viewer::keyPressEvent(KeyEvent &event)
     event.setAccepted();
   }
 
-  if (event.key() == KeyEvent::Key::Tab)
-  {
-    bool edl_on = false;
-    if (!_active_fbo_effect)
-    {
-      _active_fbo_effect = _edl_effect;
-      edl_on = true;
-    }
-    else
-    {
-      _active_fbo_effect = nullptr;
-    }
-    dirty = true;
-    Magnum::Debug() << "EDL: " << (edl_on ? "on" : "off");
-  }
+  dirty = checkEdlKeys(event) || dirty;
 
   if (dirty)
   {
@@ -303,6 +281,77 @@ void Viewer::keyReleaseEvent(KeyEvent &event)
     checkContinuousSim();
     redraw();
   }
+}
+
+
+bool Viewer::checkEdlKeys(KeyEvent &event)
+{
+  bool dirty = false;
+  if (event.key() == KeyEvent::Key::Tab)
+  {
+    bool edl_on = false;
+    if (!_active_fbo_effect)
+    {
+      _active_fbo_effect = _edl_effect;
+      edl_on = true;
+    }
+    else
+    {
+      _active_fbo_effect = nullptr;
+    }
+    event.setAccepted(true);
+    dirty = true;
+    Magnum::Debug() << "EDL: " << (edl_on ? "on" : "off");
+  }
+  else if (event.key() == KeyEvent::Key::Space)
+  {
+    _edl_tweak = EdlParam((int(_edl_tweak) + 1) % 3);
+    switch (_edl_tweak)
+    {
+    case EdlParam::LinearScale:
+      Magnum::Debug() << "EDL linear scale mode";
+      break;
+    case EdlParam::ExponentialScale:
+      Magnum::Debug() << "EDL exponential scale mode";
+      break;
+    case EdlParam::Radius:
+      Magnum::Debug() << "EDL radius scale mode";
+      break;
+    default:
+      break;
+    }
+    event.setAccepted(true);
+    dirty = true;
+  }
+  else if (event.key() == KeyEvent::Key::Equal || event.key() == KeyEvent::Key::Minus)
+  {
+    float delta = (event.key() == KeyEvent::Key::Equal) ? 0.5f : -0.5f;
+    switch (_edl_tweak)
+    {
+    case EdlParam::LinearScale:
+      _edl_effect->setLinearScale(_edl_effect->linearScale() + delta);
+      Magnum::Debug() << "EDL linear scale: " << _edl_effect->linearScale();
+      event.setAccepted(true);
+      dirty = true;
+      break;
+    case EdlParam::ExponentialScale:
+      _edl_effect->setExponentialScale(_edl_effect->exponentialScale() + delta);
+      Magnum::Debug() << "EDL exponential scale: " << _edl_effect->exponentialScale();
+      event.setAccepted(true);
+      dirty = true;
+      break;
+    case EdlParam::Radius:
+      _edl_effect->setRadius(_edl_effect->radius() + delta);
+      Magnum::Debug() << "EDL radius scale: " << _edl_effect->radius();
+      event.setAccepted(true);
+      dirty = true;
+      break;
+    default:
+      break;
+    }
+  }
+
+  return dirty;
 }
 
 

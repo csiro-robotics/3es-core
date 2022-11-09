@@ -22,13 +22,13 @@ public:
   ~EdlEffect();
 
   void setRadius(float radius);
-  float getRadius() const;
+  float radius() const;
   void setLinearScale(float linear_scale);
-  float getLinearScale() const;
+  float linearScale() const;
   void setExponentialScale(float exponential_scale);
-  float getExponentialScale() const;
+  float exponentialScale() const;
   void setLightDirection(const Magnum::Vector3 &light_direction);
-  const Magnum::Vector3 &getLightDirection() const;
+  const Magnum::Vector3 &lightDirection() const;
 
   /// Prepare for rendering the frame buffer effect.
   /// @param projection_matrix The projection matrix.

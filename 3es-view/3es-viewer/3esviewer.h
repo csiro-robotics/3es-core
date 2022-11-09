@@ -30,6 +30,7 @@ namespace shaders
 class Edl;
 }  // namespace shaders
 
+class EdlEffect;
 class FboEffect;
 
 class Viewer : public Magnum::Platform::Application
@@ -43,6 +44,13 @@ public:
   void checkContinuousSim();
 
 private:
+  enum EdlParam
+  {
+    LinearScale,
+    ExponentialScale,
+    Radius
+  };
+
   void drawEvent() override;
   void viewportEvent(ViewportEvent &event) override;
   void mousePressEvent(MouseEvent &event) override;
@@ -50,6 +58,8 @@ private:
   void mouseMoveEvent(MouseMoveEvent &event) override;
   void keyPressEvent(KeyEvent &event) override;
   void keyReleaseEvent(KeyEvent &event) override;
+
+  bool checkEdlKeys(KeyEvent &event);
 
   void updateCamera(float dt);
   void drawShapes(float dt, const Magnum::Matrix4 &projection_matrix);
@@ -69,7 +79,8 @@ private:
   };
 
   std::shared_ptr<FboEffect> _active_fbo_effect;
-  std::shared_ptr<FboEffect> _edl_effect;
+  std::shared_ptr<EdlEffect> _edl_effect;
+  EdlParam _edl_tweak = EdlParam::LinearScale;
 
   Clock::time_point _last_sim_time = Clock::now();
 

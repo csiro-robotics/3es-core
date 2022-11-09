@@ -33,6 +33,9 @@ float obscurance(float depth)
   vec4 lightPlane = vec4(lightDir, -dot(lightDir, vec3(0, 0, depth)));
   vec2 uvRadius = radius / screenParams;
   float sum = 0.0;
+  // Count how many "deep" transition neighbours we have. We'll mitigate these as they can cause lines to blacken.
+  // and loose all colour.
+  int deep_transitions = 0;
 
   for (int y = -1; y <= 1; ++y)
   {
@@ -49,9 +52,18 @@ float obscurance(float depth)
       float neighbourDepth = texture(depthTexture, neighbourUv).x;
       neighbourDepth = linearEyeDepth(neighbourDepth, projectionParams.z, projectionParams.w);
       float inPlaneNeighbourDepth = dot(vec4(neighbourRelativeUv, neighbourDepth, 1.0), lightPlane);
-      sum += max(0.0, inPlaneNeighbourDepth) / linearScale;
-    } 
+      deep_transitions += (neighbourDepth - depth >= 0.2) ? 1 : 0;
+      // We modifiy EDL to darken pixels with shallower neighbours, rather than darkening pixels with deeper neighbours.
+      // This allows us to render lines nicely. Unmodified EDL will darken all lines. The modified version keeps the
+      // lines in full colour, and effectively adds an outline effect around the lines.
+      // Normal EDL:
+      // sum += max(0.0, inPlaneNeighbourDepth) / linearScale;
+      // Modified EDL:
+      sum += max(0.0, -inPlaneNeighbourDepth) / linearScale;
+    }
   }
+
+  // sum = (deep_transitions < 6) ? sum : 0;
 
   return sum;
 }
