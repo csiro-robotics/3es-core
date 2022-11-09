@@ -32,11 +32,11 @@ void ShapePainter::add(const Id &id, Type type, const Magnum::Matrix4 &transform
       case Type::Solid:
         _solid_transients.emplace_back(index);
         break;
-      case Type::Transparent:
-        _transparent_transients.emplace_back(index);
-        break;
       case Type::Wireframe:
         _wireframe_transients.emplace_back(index);
+        break;
+      case Type::Transparent:
+        _transparent_transients.emplace_back(index);
         break;
       }
     }
@@ -80,10 +80,15 @@ bool ShapePainter::remove(const Id &id)
 }
 
 
-void ShapePainter::draw(unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
+void ShapePainter::drawOpaque(unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
 {
   _solid_cache->draw(render_mark, projection_matrix);
   _wireframe_cache->draw(render_mark, projection_matrix);
+}
+
+
+void ShapePainter::drawTransparent(unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
+{
   Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::SourceAlpha,
                                          Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
   _transparent_cache->draw(render_mark, projection_matrix);

@@ -11,21 +11,38 @@
 
 namespace tes::viewer::painter
 {
+/// A @c ShapePainter renders a single primitive shape type in either solid, wireframe or transparent forms. The
+/// painter also associated 3rd Eye Scene shape @c Id objects with renderable objects. The painter effects the @c Id
+/// semantics, with zero value ids representing transient shapes, removed when @c endFrame() is called.
+///
+/// The painter is supported by the @c ShapeCache class, one instance for each drawing @c Type . As such it has similar
+/// supporting requirements; a @c BoundsCuller , @c Mesh objects for solid, wireframe and transparent rendering and a
+/// bounds calculation function.
 class ShapePainter
 {
 public:
+  /// Bounds calculation function signature.
   using BoundsCalculator = ShapeCache::BoundsCalculator;
 
+  /// Shape rendering type.
   enum class Type
   {
-    Solid,
-    Wireframe,
-    Transparent,
+    Solid,        ///< Solid shape rendering.
+    Wireframe,    ///< Wireframe or line based rendering.
+    Transparent,  ///< Transparent shape rendering (triangles).
   };
 
+  /// Construct a shape painter.
+  /// @param culler The @c BoundsCuller used for visibility checking.
+  /// @param solid Mesh used for solid rendering.
+  /// @param wireframe Mesh used for wireframe rendering (line based).
+  /// @param transparent Mesh used for transparent rendering.
+  /// @param mesh_transform Additional transformation applied to a mesh after instance transforms.
+  /// @param bounds_calculator Bounds calculation function.
   ShapePainter(std::shared_ptr<BoundsCuller> culler, Magnum::GL::Mesh &&solid, Magnum::GL::Mesh &&wireframe,
                Magnum::GL::Mesh &&transparent, const Magnum::Matrix4 &mesh_transform,
                BoundsCalculator bounds_calculator);
+  /// Destructor.
   ~ShapePainter();
 
   /// Add a shape with the given @p id to paint.
@@ -53,10 +70,15 @@ public:
   /// @return True if the @p id can be resolved and the shape removed.
   bool remove(const Id &id);
 
-  /// Render the current shapes set.
+  /// Render the current opaque (solid & wireframe) shapes set.
   /// @param render_mark
   /// @param projection_matrix The view projection matrix.
-  void draw(unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
+  void drawOpaque(unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
+
+  /// Render the current transparent shapes set.
+  /// @param render_mark
+  /// @param projection_matrix The view projection matrix.
+  void drawTransparent(unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
 
   /// Remove all the current transient objects.
   void endFrame();
@@ -75,8 +97,11 @@ protected:
 
   ShapeCache *cacheForType(Type type);
 
+  /// Solid shape rendering cache.
   std::unique_ptr<ShapeCache> _solid_cache;
+  /// Wireframe shape rendering cache.
   std::unique_ptr<ShapeCache> _wireframe_cache;
+  /// Transparent shape rendering cache.
   std::unique_ptr<ShapeCache> _transparent_cache;
   /// Set of current transient shapes to remove on the next @c endFrame() call.
   std::vector<unsigned> _solid_transients;
@@ -84,6 +109,7 @@ protected:
   std::vector<unsigned> _wireframe_transients;
   /// Set of current transient shapes to remove on the next @c endFrame() call.
   std::vector<unsigned> _transparent_transients;
+  /// Maps 3es @p Id to a draw type and index in the associated @c ShapeCache .
   IdIndexMap _id_index_map;
 };
 }  // namespace tes::viewer::painter

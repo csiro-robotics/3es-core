@@ -389,7 +389,8 @@ void Viewer::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix)
   _shader.draw(_box);
 
   _cylinders->draw(_mark, projection_matrix);
-  _spheres->draw(_mark, projection_matrix);
+  _spheres->drawOpaque(_mark, projection_matrix);
+  _spheres->drawTransparent(_mark, projection_matrix);
 }
 }  // namespace tes::viewer
 
