@@ -17,11 +17,11 @@ public:
 
   /// Solid mesh creation function.
   /// @return A solid (or transparent) mesh representation.
-  static Magnum::GL::Mesh solidMesh();
+  static std::vector<Part> solidMesh();
 
   /// Wireframe mesh creation function.
   /// @return A wireframe mesh representation.
-  static Magnum::GL::Mesh wireframeMesh();
+  static std::vector<Part> wireframeMesh();
 
 private:
 };

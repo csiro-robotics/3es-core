@@ -79,11 +79,12 @@ Viewer::Viewer(const Arguments &arguments)
   using Matrix4 = Magnum::Matrix4;
   Matrix4 shape_transform = {};
   shape_transform = Matrix4::rotationX(Magnum::Deg(90)) * Matrix4::scaling({ 0.5f, 0.5f, 0.5f });
-  _cylinders =
-    std::make_unique<painter::ShapeCache>(_culler,
-                                          Magnum::MeshTools::compile(Magnum::Primitives::cylinderSolid(
-                                            1, 32, 1, { Magnum::Primitives::CylinderFlag::CapEnds })),
-                                          shape_transform, std::make_unique<painter::ShapeCacheShaderFlat>());
+  _cylinders = std::make_unique<painter::ShapeCache>(
+    _culler,
+    painter::ShapeCache::Part{ Magnum::MeshTools::compile(Magnum::Primitives::cylinderSolid(
+                                 1, 32, 1, { Magnum::Primitives::CylinderFlag::CapEnds })),
+                               shape_transform },
+    std::make_unique<painter::ShapeCacheShaderFlat>());
 
   // _cylinders->add(Magnum::Matrix4(), Magnum::Color3(1, 1, 0));
 

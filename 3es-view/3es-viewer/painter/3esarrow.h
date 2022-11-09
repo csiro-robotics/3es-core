@@ -14,7 +14,7 @@ class Arrow : public ShapePainter
 public:
   /// Constructor.
   /// @param culler Bounds culler
-  Sphere(std::shared_ptr<BoundsCuller> culler);
+  Arrow(std::shared_ptr<BoundsCuller> culler);
 
   /// Solid mesh creation function.
   /// @return A solid (or transparent) mesh representation.

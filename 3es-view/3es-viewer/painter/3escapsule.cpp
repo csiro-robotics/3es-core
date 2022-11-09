@@ -5,70 +5,88 @@
 #include <shapes/3essimplemesh.h>
 #include <tessellate/3escapsule.h>
 
-#include <Magnum/MeshTools/Compile.h>
-#include <Magnum/Trade/MeshData.h>
-
-#include <Corrade/Containers/Array.h>
-#include <Corrade/Containers/ArrayViewStl.h>
-
 #include <cassert>
 #include <mutex>
 
 namespace tes::viewer::painter
 {
 Capsule::Capsule(std::shared_ptr<BoundsCuller> culler)
-  : ShapePainter(std::exchange(culler, nullptr), solidMesh(), wireframeMesh(), solidMesh(), Magnum::Matrix4{},
+  : ShapePainter(std::exchange(culler, nullptr), solidMesh(), wireframeMesh(), solidMesh(), ,
                  ShapeCache::defaultCalcBounds)
 {}
 
-Magnum::GL::Mesh Capsule::solidMesh()
+std::vector<Capsule::Part> Capsule::solidMesh()
 {
-  static SimpleMesh build_mesh(0, 0, 0, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index);
+  static std::array<SimpleMesh, 3> build_mesh = {
+    SimpleMesh(0, 0, 0, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index),
+    SimpleMesh(0, 0, 0, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index),
+    SimpleMesh(0, 0, 0, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index)
+  };
   static std::mutex guard;
 
   std::unique_lock<std::mutex> lock(guard);
 
   // Build with the tes tesselator.
-  if (build_mesh.vertexCount() == 0)
+  if (build_mesh[0].vertexCount() == 0)
   {
     std::vector<tes::Vector3f> vertices;
     std::vector<tes::Vector3f> normals;
     std::vector<unsigned> indices;
-    tes::capsule::solid(vertices, indices, normals, 1.0f, Vector3f(0.0f), 3);
+    std::array<capsule::PartIndexOffset, 4> index_offsets;
+    tes::capsule::solid(vertices, indices, normals, 1.0f, 1.0f, 24, Vector3f(0, 0, 1), &index_offsets, true);
 
-    build_mesh.setVertexCount(vertices.size());
-    build_mesh.setIndexCount(indices.size());
+    for (int i = 0; i < 3; ++0)
+    {
+      build_mesh[i].setVertexCount(index_offsets[i + 1].vertices - index_offsets[i].vertices);
+      build_mesh[i].setIndexCount(index_offsets[i + 1].indices - index_offsets[i].indices);
 
-    build_mesh.setVertices(0, vertices.data(), vertices.size());
-    build_mesh.setNormals(0, normals.data(), normals.size());
-    build_mesh.setIndices(0, indices.data(), indices.size());
+      build_mesh[i].setVertices(0, vertices.data() + index_offsets[0].vertices, build_mesh[i].vertexCount());
+      build_mesh[i].setNormals(0, normals.data(), build_mesh[i].vertexCount());
+      build_mesh[i].setIndices(0, indices.data(), build_mesh[i].indexCount());
+    }
   }
 
-  return mesh::convert(build_mesh);
+  const Magnum::Vector3 half_axis(0, 0, 0.5f);
+  return { Capsule::Part(mesh::convert(build_mesh[0]), Magnum::Matrix4::translation(half_axis)),
+           Capsule::Part(mesh::convert(build_mesh[1])),
+           Capsule::Part(mesh::convert(build_mesh[2]), Magnum::Matrix4::translation(-half_axis)) };
 }
 
 
-Magnum::GL::Mesh Capsule::wireframeMesh()
+std::vector<Capsule::Part> Capsule::wireframeMesh()
 {
-  static SimpleMesh build_mesh(0, 0, 0, DtLines, SimpleMesh::Vertex | SimpleMesh::Index);
+  static std::array<SimpleMesh, 3> build_mesh = {
+    SimpleMesh(0, 0, 0, DtLines, SimpleMesh::Vertex | SimpleMesh::Index),
+    SimpleMesh(0, 0, 0, DtLines, SimpleMesh::Vertex | SimpleMesh::Index),
+    SimpleMesh(0, 0, 0, DtLines, SimpleMesh::Vertex | SimpleMesh::Index),
+  };
   static std::mutex guard;
 
   std::unique_lock<std::mutex> lock(guard);
 
   // Build with the tes tesselator.
-  if (build_mesh.vertexCount() == 0)
+  if (build_mesh[0].vertexCount() == 0)
   {
     std::vector<tes::Vector3f> vertices;
+    std::vector<tes::Vector3f> normals;
     std::vector<unsigned> indices;
-    tes::capsule::wireframe(vertices, indices, 1.0f);
+    std::array<capsule::PartIndexOffset, 4> index_offsets;
+    tes::capsule::wireframe(vertices, indices, 1.0f, 1.0f, 24, Vector3f(0, 0, 1), &index_offsets, true);
 
-    build_mesh.setVertexCount(vertices.size());
-    build_mesh.setIndexCount(indices.size());
+    for (int i = 0; i < 3; ++0)
+    {
+      build_mesh[i].setVertexCount(index_offsets[i + 1].vertices - index_offsets[i].vertices);
+      build_mesh[i].setIndexCount(index_offsets[i + 1].indices - index_offsets[i].indices);
 
-    build_mesh.setVertices(0, vertices.data(), vertices.size());
-    build_mesh.setIndices(0, indices.data(), indices.size());
+      build_mesh[i].setVertices(0, vertices.data() + index_offsets[0].vertices, build_mesh[i].vertexCount());
+      build_mesh[i].setNormals(0, normals.data(), build_mesh[i].vertexCount());
+      build_mesh[i].setIndices(0, indices.data(), build_mesh[i].indexCount());
+    }
   }
 
-  return mesh::convert(build_mesh);
+  const Magnum::Vector3 half_axis(0, 0, 0.5f);
+  return { Capsule::Part(mesh::convert(build_mesh[0]), Magnum::Matrix4::translation(half_axis)),
+           Capsule::Part(mesh::convert(build_mesh[1])),
+           Capsule::Part(mesh::convert(build_mesh[2]), Magnum::Matrix4::translation(-half_axis)) };
 }
 }  // namespace tes::viewer::painter

@@ -24,6 +24,8 @@ namespace tes::viewer::painter
 class ShapePainter
 {
 public:
+  /// Part alias from @c ShapeCache .
+  using Part = ShapeCache::Part;
   /// Bounds calculation function signature.
   using BoundsCalculator = ShapeCache::BoundsCalculator;
 
@@ -40,10 +42,9 @@ public:
   /// @param solid Mesh used for solid rendering.
   /// @param wireframe Mesh used for wireframe rendering (line based).
   /// @param transparent Mesh used for transparent rendering.
-  /// @param mesh_transform Additional transformation applied to a mesh after instance transforms.
   /// @param bounds_calculator Bounds calculation function.
-  ShapePainter(std::shared_ptr<BoundsCuller> culler, Magnum::GL::Mesh &&solid, Magnum::GL::Mesh &&wireframe,
-               Magnum::GL::Mesh &&transparent, const Magnum::Matrix4 &mesh_transform,
+  ShapePainter(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> solid,
+               std::initializer_list<Part> wireframe, std::initializer_list<Part> transparent,
                BoundsCalculator bounds_calculator);
   /// Destructor.
   ~ShapePainter();

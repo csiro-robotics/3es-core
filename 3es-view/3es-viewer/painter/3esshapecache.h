@@ -102,6 +102,43 @@ public:
   using BoundsCalculator =
     std::function<void(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &half_extents)>;
 
+  /// A mesh and transform part for use with the @c ShapeCache .
+  ///
+  /// A @c ShapeCache can have one or more @c Part objects to render. Each mesh is rendered by first applying an
+  /// instance transform, then the @c Part::transform then the projection matrix thusly;
+  ///
+  /// @code{.unparsed}
+  ///   transform = projection_matrix * part.transform * instance_transform;
+  /// @endcode
+  struct Part
+  {
+    /// Mesh shared pointer; must not be null.
+    std::shared_ptr<Magnum::GL::Mesh> mesh;
+    /// Transform to apply to @c mesh before rendering.
+    Magnum::Matrix4 transform = {};
+
+    inline Part() = default;
+    inline Part(const Part &other) = default;
+    inline Part(Part &&other) = default;
+    explicit inline Part(std::shared_ptr<Magnum::GL::Mesh> mesh)
+      : Part(std::move(mesh), Magnum::Matrix4())
+    {}
+    inline Part(std::shared_ptr<Magnum::GL::Mesh> mesh, const Magnum::Matrix4 &transform)
+      : mesh(std::exchange(mesh, nullptr))
+      , transform(transform)
+    {}
+    explicit inline Part(Magnum::GL::Mesh &&mesh)
+      : Part(std::make_shared<Magnum::GL::Mesh>(std::move(mesh)), Magnum::Matrix4())
+    {}
+    inline Part(Magnum::GL::Mesh &&mesh, const Magnum::Matrix4 &transform)
+      : Part(std::make_shared<Magnum::GL::Mesh>(std::move(mesh)), transform)
+    {}
+
+    inline Part &operator=(const Part &other) = default;
+    inline Part &operator=(Part &&other) = default;
+  };
+
+
   /// The default implementation of a @c BoundsCalculator , which is a cube with 2m sides scaled by the @p transform.
   /// @param transform The shape transformation matrix.
   /// @param[out] centre Set to the bounds centre.
@@ -112,13 +149,22 @@ public:
   /// Internal free list terminator value.
   static constexpr unsigned kFreeListEnd = ~0u;
 
+  /// @overload
+  ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
+             std::unique_ptr<ShapeCacheShaderFlat> &&shader = std::make_unique<ShapeCacheShaderFlat>(),
+             BoundsCalculator bounds_calculator = ShapeCache::defaultCalcBounds);
+
   /// Construct a shape cache.
   /// @param culler The bounds culler used to create bounds and manage bounds.
-  /// @param mesh The shape mesh to render.
-  /// @param mesh_transform Transform to apply before rendering the shape. Allows mesh wide corrections.
+  /// @param parts The mesh parts to render. An overload accepts a single @c Part .
   /// @param shader The shader used to draw the mesh.
   /// @param bounds_calculator Bounds calculation function.
-  ShapeCache(std::shared_ptr<BoundsCuller> culler, Magnum::GL::Mesh &&mesh, const Magnum::Matrix4 &mesh_transform,
+  ShapeCache(std::shared_ptr<BoundsCuller> culler, const std::vector<Part> &parts,
+             std::unique_ptr<ShapeCacheShaderFlat> &&shader = std::make_unique<ShapeCacheShaderFlat>(),
+             BoundsCalculator bounds_calculator = ShapeCache::defaultCalcBounds);
+
+  /// @overload
+  ShapeCache(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> parts,
              std::unique_ptr<ShapeCacheShaderFlat> &&shader = std::make_unique<ShapeCacheShaderFlat>(),
              BoundsCalculator bounds_calculator = ShapeCache::defaultCalcBounds);
 
@@ -214,10 +260,8 @@ private:
   std::vector<Shape> _shapes;
   /// Free list head terminated by a value of @c kFreeListEnd .
   unsigned _free_list = kFreeListEnd;
-  /// Mesh to render.
-  Magnum::GL::Mesh _mesh;
-  /// Transformation applied to all shapes before rendering (after the instance transform).
-  Magnum::Matrix4 _mesh_transform = {};
+  /// Mesh parts to render.
+  std::vector<Part> _parts;
   /// Transformation matrix applied to the shape before rendering. This allows the Magnum primitives to be transformed
   /// to suit the 3rd Eye Scene rendering.
   std::vector<InstanceBuffer> _instance_buffers;

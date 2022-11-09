@@ -5,20 +5,13 @@
 #include <shapes/3essimplemesh.h>
 #include <tessellate/3esarrow.h>
 
-#include <Magnum/MeshTools/Compile.h>
-#include <Magnum/Trade/MeshData.h>
-
-#include <Corrade/Containers/Array.h>
-#include <Corrade/Containers/ArrayViewStl.h>
-
-#include <cassert>
 #include <mutex>
 
 namespace tes::viewer::painter
 {
 Arrow::Arrow(std::shared_ptr<BoundsCuller> culler)
-  : ShapePainter(std::exchange(culler, nullptr), solidMesh(), wireframeMesh(), solidMesh(), Magnum::Matrix4{},
-                 ShapeCache::defaultCalcBounds)
+  : ShapePainter(std::exchange(culler, nullptr), { Part{ solidMesh() } }, { Part{ wireframeMesh() } },
+                 { Part{ solidMesh() } }, ShapeCache::defaultCalcBounds)
 {}
 
 Magnum::GL::Mesh Arrow::solidMesh()

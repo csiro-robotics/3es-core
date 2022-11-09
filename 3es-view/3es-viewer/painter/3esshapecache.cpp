@@ -40,12 +40,25 @@ void ShapeCache::defaultCalcBounds(const Magnum::Matrix4 &transform, Magnum::Vec
 }
 
 
-ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, Magnum::GL::Mesh &&mesh,
-                       const Magnum::Matrix4 &mesh_transform, std::unique_ptr<ShapeCacheShaderFlat> &&shader,
-                       BoundsCalculator bounds_calculator)
+ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
+                       std::unique_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
+  : ShapeCache(std::move(culler), { part }, std::move(shader), std::move(bounds_calculator))
+{}
+
+ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, const std::vector<Part> &parts,
+                       std::unique_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
-  , _mesh(std::move(mesh))
-  , _mesh_transform(mesh_transform)
+  , _parts(parts)
+  , _shader(std::move(shader))
+  , _bounds_calculator(std::move(bounds_calculator))
+{
+  _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
+}
+
+ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> parts,
+                       std::unique_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
+  : _culler(std::move(culler))
+  , _parts(parts)
   , _shader(std::move(shader))
   , _bounds_calculator(std::move(bounds_calculator))
 {
@@ -152,16 +165,20 @@ void ShapeCache::clear()
 void ShapeCache::draw(unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
 {
   buildInstanceBuffers(render_mark);
-  const Magnum::Matrix4 projection = projection_matrix * _mesh_transform;
-  _shader->setProjectionMatrix(projection);
   for (auto &buffer : _instance_buffers)
   {
     if (buffer.count)
     {
-      _shader->draw(_mesh, buffer.buffer, buffer.count);
+      for (const auto &part : _parts)
+      {
+        const Magnum::Matrix4 projection = projection_matrix * part.transform;
+        _shader->setProjectionMatrix(projection);
+        _shader->draw(*part.mesh, buffer.buffer, buffer.count);
+      }
     }
   }
 }
+
 
 void ShapeCache::buildInstanceBuffers(unsigned render_mark)
 {
@@ -210,5 +227,5 @@ void ShapeCache::buildInstanceBuffers(unsigned render_mark)
   {
     upload_buffer();
   }
-}  // namespace tes
+}
 }  // namespace tes::viewer::painter
