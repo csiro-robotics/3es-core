@@ -3,12 +3,14 @@
 //
 #include "3esarrow.h"
 
+#include "3escone.h"
+#include "3escylinder.h"
 #include "3esquaternion.h"
 
 #include <algorithm>
 
-using namespace tes;
-
+namespace tes::arrow
+{
 namespace
 {
 bool buildArrow(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> *normals,
@@ -198,17 +200,56 @@ bool buildArrow(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
 }
 }  // namespace
 
-bool tes::arrow::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
-                       unsigned facets, float headRadius, float cylinderRadius, float cylinderLength, float arrowLength,
-                       const Vector3f axis)
+bool solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
+           unsigned facets, float headRadius, float cylinderRadius, float cylinderLength, float arrowLength,
+           const Vector3f axis)
 {
   return buildArrow(vertices, indices, &normals, facets, headRadius, cylinderRadius, cylinderLength, arrowLength, axis);
 }
 
-bool tes::arrow::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, unsigned facets,
-                       float headRadius, float cylinderRadius, float cylinderLength, float arrowLength,
-                       const Vector3f axis)
+bool solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, unsigned facets, float headRadius,
+           float cylinderRadius, float cylinderLength, float arrowLength, const Vector3f axis)
 
 {
   return buildArrow(vertices, indices, nullptr, facets, headRadius, cylinderRadius, cylinderLength, arrowLength, axis);
 }
+
+bool wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, unsigned segments, float headRadius,
+               float cylinderRadius, float cylinderLength, float arrowLength, const Vector3f axis)
+{
+  if (segments < 3 || cylinderLength <= 0 || arrowLength < 0 || arrowLength <= cylinderLength || headRadius <= 0 ||
+      cylinderRadius <= 0 || headRadius <= cylinderRadius)
+  {
+    return false;
+  }
+
+  // Start with a cone.
+  // Calculate the cone angle from the head radius.
+  //        /|
+  //       /a|
+  //      /  |
+  //     /   | h
+  //    /    |
+  //   /     |
+  //    -----
+  //      b
+  // a = atan(b/h)
+  const float headLength = arrowLength - cylinderLength;
+  const float headAngle = std::atan(headRadius / headLength);
+  cone::wireframe(vertices, indices, axis * arrowLength, axis, headLength, headAngle, segments);
+
+  // Add a cylinder.
+  const unsigned cylinderBaseIndex = unsigned(indices.size());
+  cylinder::wireframe(vertices, indices, axis, cylinderLength, cylinderRadius, segments);
+
+  // We need to move the cylinder up so it connects to the head. It's currently centred on the origin.
+  for (unsigned i = cylinderBaseIndex; i < vertices.size(); ++i)
+  {
+    vertices[i] += axis * 0.5f * cylinderLength;
+  }
+
+  // We could also connect the cylinder top ring to the cone ring.
+
+  return true;
+}
+}  // namespace tes::arrow

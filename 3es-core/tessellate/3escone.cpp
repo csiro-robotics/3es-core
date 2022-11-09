@@ -3,10 +3,11 @@
 //
 #include "3escone.h"
 
+#include <array>
 #include <algorithm>
 
-using namespace tes;
-
+namespace tes::cone
+{
 namespace
 {
 void makeCone(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> *normals,
@@ -87,15 +88,75 @@ void makeCone(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, s
 }  // namespace
 
 
-void tes::cone::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
-                      const Vector3f &apex, const Vector3f &axis, float height, float angle, unsigned facets)
+void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
+           const Vector3f &apex, const Vector3f &axis, float height, float angle, unsigned facets)
 {
   return makeCone(vertices, indices, &normals, apex, axis, height, angle, facets);
 }
 
 
-void tes::cone::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &apex,
-                      const Vector3f &axis, float height, float angle, unsigned facets)
+void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &apex, const Vector3f &axis,
+           float height, float angle, unsigned facets)
 {
   return makeCone(vertices, indices, nullptr, apex, axis, height, angle, facets);
 }
+
+
+void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &apex,
+               const Vector3f &axis, float height, float angle, unsigned segments)
+{
+  // Build a ring.
+  // Build the lines for the cylinder.
+  std::array<Vector3f, 2> radials;
+
+  // Calculate base vectors perpendicular to the axis.
+  if (axis.cross(Vector3f(1, 0, 0)).magnitudeSquared() > 1e-6f)
+  {
+    radials[0] = axis.cross(Vector3f(1, 0, 0)).normalised();
+  }
+  else
+  {
+    radials[0] = axis.cross(Vector3f(0, 1, 0)).normalised();
+  }
+  radials[1] = axis.cross(radials[0]).normalised();
+
+  // Calculate the base width
+  //      b
+  //    ______
+  //   |     /
+  //   |    /
+  // h |   /
+  //   |  /
+  //   |a/
+  //   |/
+  //
+  // b = h * tan(a)
+  const float baseRadius = height * std::tan(angle);
+
+  // Add the apex.
+  const unsigned apex_index = 0;
+  vertices.emplace_back(apex);
+
+  // Build a circle around the axis.
+  for (unsigned i = 0; i < segments; ++i)
+  {
+    const float circleAngle = i * 2.0f * float(M_PI) / (float)segments;
+    vertices.emplace_back(baseRadius * std::cos(circleAngle) * radials[0] +
+                          baseRadius * std::sin(circleAngle) * radials[1] + axis * height);
+  }
+
+  // Connect the base ring.
+  for (unsigned i = 0; i <= segments; ++i)
+  {
+    indices.emplace_back(apex_index + i);
+    indices.emplace_back(apex_index + (i + 1) % segments);
+  }
+
+  // Connect the apex to the ring.
+  for (unsigned i = 0; i < segments; ++i)
+  {
+    indices.emplace_back(apex_index);
+    indices.emplace_back(apex_index + i);
+  }
+}
+}  // namespace tes::cone

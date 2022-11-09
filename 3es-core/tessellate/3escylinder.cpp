@@ -3,9 +3,11 @@
 //
 #include "3escylinder.h"
 
+#include <array>
 #include <algorithm>
 
-using namespace tes;
+namespace tes::cylinder
+{
 
 namespace
 {
@@ -101,16 +103,72 @@ void makeCylinder(std::vector<Vector3f> &vertices, std::vector<unsigned> &indice
 }  // namespace
 
 
-void tes::cylinder::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &axis,
-                          float height, float angle, unsigned facets, bool open)
+void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &axis, float height,
+           float angle, unsigned facets, bool open)
 {
   return makeCylinder(vertices, indices, nullptr, axis, height, angle, facets, open);
 }
 
 
-void tes::cylinder::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
-                          std::vector<Vector3f> &normals, const Vector3f &axis, float height, float angle,
-                          unsigned facets, bool open)
+void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
+           const Vector3f &axis, float height, float angle, unsigned facets, bool open)
 {
   return makeCylinder(vertices, indices, &normals, axis, height, angle, facets, open);
 }
+
+void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &axis, float height,
+               float radius, unsigned segments)
+{
+  // Build a rings.
+  // Build the lines for the cylinder.
+  std::array<Vector3f, 2> radials;
+
+  // Calculate base vectors perpendicular to the axis.
+  if (axis.cross(Vector3f(1, 0, 0)).magnitudeSquared() > 1e-6f)
+  {
+    radials[0] = axis.cross(Vector3f(1, 0, 0)).normalised();
+  }
+  else
+  {
+    radials[0] = axis.cross(Vector3f(0, 1, 0)).normalised();
+  }
+  radials[1] = axis.cross(radials[0]).normalised();
+
+  // Build a circle around the axis.
+  std::array<unsigned, 2> ringsStart;
+  ringsStart[0] = unsigned(vertices.size());
+  for (unsigned i = 0; i < segments; ++i)
+  {
+    const float circleAngle = i * 2.0f * float(M_PI) / (float)segments;
+    vertices.emplace_back(radius * std::cos(circleAngle) * radials[0] +  //
+                          radius * std::sin(circleAngle) * radials[1]);
+  }
+
+  // Duplicate the ring.
+  ringsStart[1] = unsigned(vertices.size());
+  for (unsigned i = 0; i < segments; ++i)
+  {
+    vertices.emplace_back(vertices[ringsStart[0] + segments]);
+    // Also fix up the ring vertices, offsetting them with the axis.
+    vertices[ringsStart[0] + segments] += axis * height;
+    vertices.back() -= axis * height;
+  }
+
+  // Build the ring vertices.
+  for (int r = 0; r < 2; ++r)
+  {
+    for (unsigned i = 0; i <= segments; ++i)
+    {
+      indices.emplace_back(ringsStart[r] + i);
+      indices.emplace_back(ringsStart[r] + (i + 1) % segments);
+    }
+  }
+
+  // Connec the rings.
+  for (unsigned i = 0; i < segments; ++i)
+  {
+    indices.emplace_back(ringsStart[0] + i);
+    indices.emplace_back(ringsStart[1] + i);
+  }
+}
+}  // namespace tes::cylinder

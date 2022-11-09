@@ -38,6 +38,18 @@ void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
 /// Does not calculate normals.
 void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &axis,
                         float height, float radius, unsigned facets, bool open = false);
+
+/// Build a wireframe cylinder. This is two rings connected by lines.
+/// @param[out] vertices Populated with the mesh vertices.
+/// @param[out] indices Populated with the mesh indices.
+/// @param[out] normals Populated with per vertex normals.
+/// @param apex The location of the apex vertex. The @p axis points towards this vertex.
+/// @param axis The cylinder axis.
+/// @param height The height of the cylinder.
+/// @param radius The cylinder radius.
+/// @param segments Number of segments in the cylinder rings.
+void _3es_coreAPI wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &axis,
+                            float height, float radius, unsigned segments);
 }  // namespace cylinder
 }  // namespace tes
 

@@ -35,6 +35,21 @@ void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
 /// Does not calculate normals.
 void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &apex,
                         const Vector3f &axis, float height, float angle, unsigned facets);
+
+/// Build a wireframe cone. This builds a ring around the base and connects them to the apex. The apex is the first
+/// vertex added.
+///
+/// @param[out] vertices Populated with the mesh vertices.
+/// @param[out] indices Populated with the mesh indices.
+/// @param[out] normals Populated with per vertex normals.
+/// @param apex The location of the apex vertex. The @p axis points towards this vertex.
+/// @param axis The cone axis. The base is at <tt>apex - height * axis</tt>
+/// @param height The height of the cone.
+/// @param angle The angle between the cone axis vector and the walls.
+/// @param segments Number of segments to the base ring.
+/// @return
+void _3es_coreAPI wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &apex,
+                            const Vector3f &axis, float height, float angle, unsigned segments);
 }  // namespace cone
 }  // namespace tes
 

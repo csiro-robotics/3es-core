@@ -31,6 +31,14 @@ void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
 /// Does not calculate normals.
 void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
                         const Vector3f &scale = Vector3f(1.0f));
+
+/// Build a line drawn/wireframe box mesh.
+///
+/// @param[out] vertices Populated with the mesh vertices.
+/// @param[out] indices Populated with the mesh indices.
+/// @param scale The scale of the box along each axis.
+void _3es_coreAPI wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+                            const Vector3f &scale = Vector3f(1.0f));
 }  // namespace box
 }  // namespace tes
 
