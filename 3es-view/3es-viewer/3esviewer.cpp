@@ -37,15 +37,16 @@ namespace tes
 {
 void Viewer::Edl::init(const Magnum::Range2Di &viewport)
 {
-  colour_buffer.setStorage(1, Magnum::GL::TextureFormat::RGBA8, viewport.size());
-  depth_buffer.setStorage(1, Magnum::GL::TextureFormat::DepthComponent32F, viewport.size());
+  colour_texture.setStorage(1, Magnum::GL::TextureFormat::RGBA8, viewport.size());
+  depth_texture.setStorage(1, Magnum::GL::TextureFormat::DepthComponent32F, viewport.size());
+  // depth_texture.setCompareFunction(Magnum::GL::SamplerCompareFunction::Always);
 
-  colour_buffer.setWrapping(Magnum::GL::SamplerWrapping::ClampToEdge);
-  depth_buffer.setWrapping(Magnum::GL::SamplerWrapping::ClampToEdge);
+  colour_texture.setWrapping(Magnum::GL::SamplerWrapping::ClampToEdge);
+  depth_texture.setWrapping(Magnum::GL::SamplerWrapping::ClampToEdge);
 
   frame_buffer = Magnum::GL::Framebuffer(viewport);
-  frame_buffer.attachTexture(Magnum::GL::Framebuffer::ColorAttachment{ 0 }, colour_buffer, 0);
-  frame_buffer.attachTexture(Magnum::GL::Framebuffer::BufferAttachment::Depth, depth_buffer, 0);
+  frame_buffer.attachTexture(Magnum::GL::Framebuffer::ColorAttachment{ 0 }, colour_texture, 0);
+  frame_buffer.attachTexture(Magnum::GL::Framebuffer::BufferAttachment::Depth, depth_texture, 0);
 
   if (!shader)
   {
@@ -53,8 +54,8 @@ void Viewer::Edl::init(const Magnum::Range2Di &viewport)
   }
 
   shader
-    ->bindColourTexture(colour_buffer)  //
-    .bindDepthBuffer(depth_buffer)      //
+    ->bindColourTexture(colour_texture)  //
+    .bindDepthBuffer(depth_texture)      //
     .setScreenParams(viewport.size());
 
   struct QuadVertex
@@ -90,17 +91,21 @@ void Viewer::Edl::resize(const Magnum::Vector2i &size)
 void Viewer::Edl::blit(float near_clip, float far_clip)
 {
   Magnum::Matrix4 projection;
+  Magnum::GL::Renderer::setDepthMask(false);
+  Magnum::GL::Renderer::setStencilMask(false);
   shader->setProjectionMatrix(projection)
     .setClipParams(near_clip, far_clip)
     .setRadius(settings.radius)
     .setLinearScale(settings.linear_scale)
-    .setExponentialScale(settings.exponential_scale);
+    .setExponentialScale(settings.exponential_scale)
+    .setLightDirection(settings.light_direction);
   shader->draw(mesh);
+  Magnum::GL::Renderer::setDepthMask(true);
 }
 
 
 Viewer::Viewer(const Arguments &arguments)
-  : Magnum::Platform::Application{ arguments, Configuration{}.setTitle("3es Viewer") }
+  : Magnum::Platform::Application{ arguments, Configuration{}.setTitle("3rd Eye Scene Viewer") }
   , _move_keys({
       { KeyEvent::Key::A, 0, true },         //
       { KeyEvent::Key::Left, 0, true },      //
@@ -137,7 +142,7 @@ Viewer::Viewer(const Arguments &arguments)
 
   _instance_buffer = Magnum::GL::Buffer{};
 
-  _mesh = Magnum::MeshTools::compile(Magnum::Primitives::cubeSolid());
+  _box = Magnum::MeshTools::compile(Magnum::Primitives::cubeSolid());
 
   _shader = Magnum::Shaders::Flat3D{ Magnum::Shaders::Flat3D::Flag::VertexColor |
                                      Magnum::Shaders::Flat3D::Flag::InstancedTransformation };
@@ -202,13 +207,12 @@ void Viewer::drawEvent()
 
   if (_edl.enabled)
   {
-    // _edl.frame_buffer.clearColor(0, Magnum::Color3{ 0, 1, 0 }).clearColor(1, Magnum::Vector4ui{}).clearDepth(1.0f);
-    _edl.frame_buffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth);
-    _edl.frame_buffer.bind();
+    _edl.frame_buffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth).bind();
   }
   else
   {
-    Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth);
+    Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth)
+      .bind();
   }
 
   auto projection_matrix = camera::viewProjection(_camera, Magnum::Vector2(windowSize()));
@@ -218,15 +222,15 @@ void Viewer::drawEvent()
     .setTransformationProjectionMatrix(projection_matrix);
 
   _instance_buffer.setData(_instances, Magnum::GL::BufferUsage::DynamicDraw);
-  _mesh.setInstanceCount(_instances.size())
+  _box.setInstanceCount(_instances.size())
     .addVertexBufferInstanced(_instance_buffer, 1, 0, Magnum::Shaders::Flat3D::TransformationMatrix{},
                               Magnum::Shaders::Flat3D::Color3{});
-  _shader.draw(_mesh);
+  _shader.draw(_box);
 
   if (_edl.enabled)
   {
-    Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth)
-      .bind();
+    Magnum::GL::defaultFramebuffer.bind();
+    Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth);
     _edl.blit(_camera.clip_near, _camera.clip_far);
   }
 

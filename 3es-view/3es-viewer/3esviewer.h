@@ -63,16 +63,15 @@ private:
   {
     struct Settings
     {
-      float radius = 4.0f;
-      float linear_scale = 4.0f;
-      float exponential_scale = 4.0f;
-      float near_clip = 1.0f;
-      float far_clip = 100.0f;
+      float radius = 1.0f;
+      float linear_scale = 1.0f;
+      float exponential_scale = 1.0f;
+      Magnum::Vector3 light_direction{ 0, 0, 1 };  ///< Light direction in camera space.
       Magnum::Vector2i view_size{ 1 };
     };
 
-    Magnum::GL::Texture2D colour_buffer;
-    Magnum::GL::Texture2D depth_buffer;
+    Magnum::GL::Texture2D colour_texture;
+    Magnum::GL::Texture2D depth_texture;
     Magnum::GL::Framebuffer frame_buffer{ Magnum::NoCreate };
     std::unique_ptr<shaders::Edl> shader;
     Settings settings;
@@ -88,7 +87,7 @@ private:
 
   std::array<InstanceData, 6> _instances;
   Magnum::GL::Buffer _instance_buffer{ Magnum::NoCreate };
-  Magnum::GL::Mesh _mesh;
+  Magnum::GL::Mesh _box;
 
   Magnum::Shaders::Flat3D _shader{ Magnum::NoCreate };
 

@@ -49,6 +49,11 @@ public:
     return *this;
   }
 
+  /// Set the simulated light direction in camera space.
+  /// @param direction The direction of the light in camera space (Z forward).
+  /// @return @c *this
+  Edl &setLightDirection(const Magnum::Vector3 &direction);
+
 private:
   enum : Magnum::Int
   {
@@ -56,12 +61,13 @@ private:
     DepthUnit = 1
   };
 
-  Magnum::Int _projectionMatrixUniform = 0;
-  Magnum::Int _projectionParamsUniform = 0;
-  Magnum::Int _screenParamsUniform = 0;
-  Magnum::Int _radiusUniform = 0;
-  Magnum::Int _linearScaleUniform = 0;
-  Magnum::Int _exponentialScaleUniform = 0;
+  Magnum::Int _projectionMatrixUniform = -1;
+  Magnum::Int _projectionParamsUniform = -1;
+  Magnum::Int _screenParamsUniform = -1;
+  Magnum::Int _radiusUniform = -1;
+  Magnum::Int _linearScaleUniform = -1;
+  Magnum::Int _exponentialScaleUniform = -1;
+  Magnum::Int _lightDirUniform = -1;
 };
 }  // namespace tes::shaders
 
