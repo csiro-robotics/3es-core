@@ -7,6 +7,7 @@
 #include "3es-core.h"
 
 #include <cinttypes>
+#include <functional>
 
 /// A helper macro for defining various explicit constructors for @c Id .
 /// This is to deal with an ambituity with casting 0 to an integer or a null pointer.
@@ -67,8 +68,30 @@ public:
 #endif  // TES_64
   }
 
-  inline uint16_t category() const { return _category; }
-  inline void setCategory(uint16_t category) { _category = category; }
+  inline uint16_t category() const
+  {
+    return _category;
+  }
+  inline void setCategory(uint16_t category)
+  {
+    _category = category;
+  }
+
+  /// Test for equality.
+  /// @param other Object to compare to.
+  /// @return True if the id values are identical.
+  inline bool operator==(const Id &other) const
+  {
+    return _id == other._id && _category == other._category;
+  }
+
+  /// Test for in equality.
+  /// @param other Object to compare to.
+  /// @return True if the id values are not identical.
+  inline bool operator!=(const Id &other) const
+  {
+    return !operator==(other);
+  }
 
 private:
   uint32_t _id;
@@ -84,5 +107,14 @@ inline Id operator+(const Id &id, size_t inc)
   return Id(id.id() + inc, id.category());
 }
 }  // namespace tes
+
+namespace std
+{
+template <>
+struct hash<tes::Id>
+{
+  inline size_t operator()(const tes::Id &id) const { return size_t(id.id()) | size_t(id.category()) << 32u; }
+};
+}  // namespace std
 
 #endif  // _3ESID_H

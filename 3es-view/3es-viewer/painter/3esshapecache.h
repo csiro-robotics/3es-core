@@ -17,9 +17,13 @@
 #include <memory>
 #include <vector>
 
-namespace tes
+namespace tes::viewer
 {
 class BoundsCuller;
+}  // namespace tes::viewer
+
+namespace tes::viewer::painter
+{
 
 class ShapeCacheShader
 {
@@ -34,7 +38,7 @@ public:
 class ShapeCacheShaderFlat : public ShapeCacheShader
 {
 public:
-  ShapeCacheShaderFlat();
+  ShapeCacheShaderFlat(bool transparent = false);
   ~ShapeCacheShaderFlat();
 
   void setProjectionMatrix(const Magnum::Matrix4 &projection) override;
@@ -43,6 +47,7 @@ public:
 
 private:
   Magnum::Shaders::Flat3D _shader;
+  bool _transparent = false;
 };
 
 class ShapeCacheShaderWireframe : public ShapeCacheShader
@@ -80,7 +85,7 @@ public:
   using BoundsCalculator =
     std::function<void(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &half_extents)>;
 
-  /// The default implementation of a @c BoundsCalculator .
+  /// The default implementation of a @c BoundsCalculator , which is a cube with 2m sides scaled by the @p transform.
   /// @param transform The shape transformation matrix.
   /// @param[out] centre Set to the bounds centre.
   /// @param[out] half_extents Set to the bounds half extents vector.
@@ -90,8 +95,7 @@ public:
   static constexpr unsigned kFreeListEnd = ~0u;
 
   ShapeCache(Type type, std::shared_ptr<BoundsCuller> culler, Magnum::GL::Mesh &&mesh,
-             const Magnum::Matrix4 &mesh_transform, const Magnum::Vector3 &half_extents,
-             std::unique_ptr<ShapeCacheShaderFlat> &&shader,
+             const Magnum::Matrix4 &mesh_transform, std::unique_ptr<ShapeCacheShaderFlat> &&shader,
              BoundsCalculator bounds_calculator = ShapeCache::defaultCalcBounds);
 
   void calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &half_extents);
@@ -100,9 +104,9 @@ public:
     _bounds_calculator = std::move(bounds_calculator);
   }
 
-  unsigned add(const Magnum::Matrix4 &transform, const Magnum::Color3 &colour);
+  unsigned add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
   void remove(unsigned id);
-  void update(unsigned id, const Magnum::Matrix4 &transform, const Magnum::Color3 &colour);
+  void update(unsigned id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
 
   void draw(unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
 
@@ -110,7 +114,7 @@ private:
   struct ShapeInstance
   {
     Magnum::Matrix4 transform;
-    Magnum::Color3 colour;
+    Magnum::Color4 colour;
   };
 
   struct Shape
@@ -136,7 +140,6 @@ private:
   unsigned _free_list = kFreeListEnd;
   Magnum::GL::Mesh _mesh;
   Magnum::Matrix4 _mesh_transform = {};
-  Magnum::Vector3 _half_extents;
   /// Transformation matrix applied to the shape before rendering. This allows the Magnum primitives to be transformed
   /// to suit the 3rd Eye Scene rendering.
   std::vector<InstanceBuffer> _instance_buffers;
@@ -145,6 +148,6 @@ private:
   BoundsCalculator _bounds_calculator = ShapeCache::defaultCalcBounds;
   Type _type;
 };
-}  // namespace tes
+}  // namespace tes::viewer::painter
 
 #endif  // TES_VIEWER_SHAPE_CACHE_H

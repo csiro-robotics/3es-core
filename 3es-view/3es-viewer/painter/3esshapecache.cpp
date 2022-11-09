@@ -2,14 +2,15 @@
 
 #include "3esbounds.h"
 
-namespace tes
+namespace tes::viewer::painter
 {
 constexpr unsigned ShapeCache::kFreeListEnd;
 
 ShapeCacheShader::~ShapeCacheShader() = default;
 
-ShapeCacheShaderFlat::ShapeCacheShaderFlat()
+ShapeCacheShaderFlat::ShapeCacheShaderFlat(bool transparent)
   : _shader(Magnum::Shaders::Flat3D::Flag::VertexColor | Magnum::Shaders::Flat3D::Flag::InstancedTransformation)
+  , _transparent(transparent)
 {}
 
 
@@ -25,7 +26,7 @@ void ShapeCacheShaderFlat::draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buff
 {
   mesh.setInstanceCount(instance_count)
     .addVertexBufferInstanced(buffer, 1, 0, Magnum::Shaders::Flat3D::TransformationMatrix{},
-                              Magnum::Shaders::Flat3D::Color3{});
+                              Magnum::Shaders::Flat3D::Color4{});
   _shader.draw(mesh);
 }
 
@@ -47,7 +48,7 @@ void ShapeCacheShaderWireframe::draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer 
 {
   mesh.setInstanceCount(instance_count)
     .addVertexBufferInstanced(buffer, 1, 0, Magnum::Shaders::Flat3D::TransformationMatrix{},
-                              Magnum::Shaders::Flat3D::Color3{});
+                              Magnum::Shaders::Flat3D::Color4{});
   _shader.draw(mesh);
 }
 
@@ -63,12 +64,11 @@ void ShapeCache::defaultCalcBounds(const Magnum::Matrix4 &transform, Magnum::Vec
 
 
 ShapeCache::ShapeCache(Type type, std::shared_ptr<BoundsCuller> culler, Magnum::GL::Mesh &&mesh,
-                       const Magnum::Matrix4 &mesh_transform, const Magnum::Vector3 &half_extents,
-                       std::unique_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
+                       const Magnum::Matrix4 &mesh_transform, std::unique_ptr<ShapeCacheShaderFlat> &&shader,
+                       BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
   , _mesh(std::move(mesh))
   , _mesh_transform(mesh_transform)
-  , _half_extents(half_extents)
   , _shader(std::move(shader))
   , _bounds_calculator(std::move(bounds_calculator))
   , _type(type)
@@ -81,7 +81,7 @@ void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &c
   _bounds_calculator(transform, centre, half_extents);
 }
 
-unsigned ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color3 &colour)
+unsigned ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
 {
   unsigned id;
   Shape *shape = {};
@@ -117,7 +117,7 @@ void ShapeCache::remove(unsigned id)
   _free_list = id;
 }
 
-void ShapeCache::update(unsigned id, const Magnum::Matrix4 &transform, const Magnum::Color3 &colour)
+void ShapeCache::update(unsigned id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
 {
   Shape &shape = _shapes.at(id);
   shape.instance.transform = transform;
@@ -191,4 +191,4 @@ void ShapeCache::buildInstanceBuffers(unsigned render_mark)
     upload_buffer();
   }
 }  // namespace tes
-}  // namespace tes
+}  // namespace tes::viewer::painter

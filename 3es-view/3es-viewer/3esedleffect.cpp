@@ -10,7 +10,7 @@
 #include <Magnum/Math/Vector2.h>
 #include <Magnum/Math/Matrix4.h>
 
-namespace tes
+namespace tes::viewer
 {
 struct EdlEffectDetail
 {
@@ -167,4 +167,4 @@ void EdlEffect::makeBuffers(const Magnum::Range2Di &viewport)
     .bindDepthBuffer(_imp->depth_texture)     //
     .setScreenParams(size);
 }
-}  // namespace tes
+}  // namespace tes::viewer

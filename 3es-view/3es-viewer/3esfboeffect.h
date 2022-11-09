@@ -13,7 +13,7 @@ class Framebuffer;
 }
 }  // namespace Magnum
 
-namespace tes
+namespace tes::viewer
 {
 /// Base class for any full screen, frame buffer object rendering effect.
 class FboEffect
@@ -43,6 +43,6 @@ public:
   /// @param viewport The new viewport dimensions.
   virtual void viewportChange(const Magnum::Range2Di &viewport) = 0;
 };
-}  // namespace tes
+}  // namespace tes::viewer
 
 #endif  // TES_VIEWER_FBO_EFFECT_H

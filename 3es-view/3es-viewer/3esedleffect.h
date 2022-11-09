@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace tes
+namespace tes::viewer
 {
 struct EdlEffectDetail;
 
@@ -51,6 +51,6 @@ private:
 
   std::unique_ptr<EdlEffectDetail> _imp;
 };
-}  // namespace tes
+}  // namespace tes::viewer
 
 #endif  // TES_VIEWER_EDL_EFFECT_H

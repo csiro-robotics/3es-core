@@ -2,7 +2,7 @@
 
 #include <Magnum/Math/Intersection.h>
 
-namespace tes
+namespace tes::viewer
 {
 
 BoundsId BoundsCuller::allocate(const Magnum::Vector3 &centre, const Magnum::Vector3 &half_extents)
@@ -62,4 +62,4 @@ void BoundsCuller::cull(unsigned mark, const Magnum::Math::Frustum<Magnum::Float
   _last_mark = mark;
 }
 
-}  // namespace tes
+}  // namespace tes::viewer

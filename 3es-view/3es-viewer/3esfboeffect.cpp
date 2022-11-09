@@ -1,6 +1,6 @@
 #include "3esfboeffect.h"
 
-namespace tes
+namespace tes::viewer
 {
 FboEffect::~FboEffect() = default;
-}  // namespace tes
+}  // namespace tes::viewer

@@ -6,7 +6,7 @@
 #include "camera/3esfly.h"
 
 #include "3esbounds.h"
-#include "3esshapecache.h"
+#include "painter/3esshapecache.h"
 
 #include <Magnum/GL/FrameBuffer.h>
 #include <Magnum/GL/Mesh.h>
@@ -22,7 +22,7 @@
 #include <memory>
 
 // TODO(KS): abstract away Magnum so it's not in any public headers.
-namespace tes
+namespace tes::viewer
 {
 namespace shaders
 {
@@ -80,7 +80,7 @@ private:
   camera::Fly _fly;
 
   std::shared_ptr<BoundsCuller> _culler;
-  std::unique_ptr<ShapeCache> _cylinders;
+  std::unique_ptr<painter::ShapeCache> _cylinders;
 
   unsigned _mark = 0;
 
@@ -90,6 +90,6 @@ private:
   std::vector<KeyAxis> _move_keys;
   std::vector<KeyAxis> _rotate_keys;
 };
-}  // namespace tes
+}  // namespace tes::viewer
 
 #endif  // TES_VIEWER_VIEWER_H

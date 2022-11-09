@@ -34,7 +34,7 @@
 //  - render to texture
 //  - blit with EDL shader
 
-namespace tes
+namespace tes::viewer
 {
 
 Viewer::Viewer(const Arguments &arguments)
@@ -64,6 +64,7 @@ Viewer::Viewer(const Arguments &arguments)
 
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::DepthTest);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
+  Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::Blending);
 
   const float scale = 20.0f;
   _instances[0] = { Magnum::Matrix4::translation({ scale, 0.0f, 0.0f }), 0xff0000_rgbf };
@@ -88,10 +89,10 @@ Viewer::Viewer(const Arguments &arguments)
   Matrix4 shape_transform = {};
   shape_transform = Matrix4::rotationX(Magnum::Deg(90)) * Matrix4::scaling({ 0.5f, 0.5f, 0.5f });
   _cylinders =
-    std::make_unique<ShapeCache>(ShapeCache::Type::Solid, _culler,
-                                 Magnum::MeshTools::compile(Magnum::Primitives::cylinderSolid(
-                                   1, 32, 1, { Magnum::Primitives::CylinderFlag::CapEnds })),
-                                 shape_transform, Magnum::Vector3(1), std::make_unique<ShapeCacheShaderFlat>());
+    std::make_unique<painter::ShapeCache>(painter::ShapeCache::Type::Solid, _culler,
+                                          Magnum::MeshTools::compile(Magnum::Primitives::cylinderSolid(
+                                            1, 32, 1, { Magnum::Primitives::CylinderFlag::CapEnds })),
+                                          shape_transform, std::make_unique<painter::ShapeCacheShaderFlat>());
 
   _cylinders->add(Magnum::Matrix4(), Magnum::Color3(1, 1, 0));
 }
@@ -326,6 +327,6 @@ void Viewer::keyReleaseEvent(KeyEvent &event)
     redraw();
   }
 }
-}  // namespace tes
+}  // namespace tes::viewer
 
-MAGNUM_APPLICATION_MAIN(tes::Viewer)
+MAGNUM_APPLICATION_MAIN(tes::viewer::Viewer)

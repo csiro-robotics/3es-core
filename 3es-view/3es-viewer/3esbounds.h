@@ -9,7 +9,7 @@
 
 #include <vector>
 
-namespace tes
+namespace tes::viewer
 {
 using BoundsId = unsigned;
 
@@ -52,6 +52,6 @@ private:
   unsigned _free_list_head = invalidBoundsId();
   unsigned _last_mark = 0;
 };
-}  // namespace tes
+}  // namespace tes::viewer
 
 #endif  // TES_VIEWER_BOUNDS_H
