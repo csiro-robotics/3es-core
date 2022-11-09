@@ -35,15 +35,15 @@
 
 namespace tes
 {
-void Viewer::Edl::init(const Magnum::Vector2i &size)
+void Viewer::Edl::init(const Magnum::Range2Di &viewport)
 {
-  colour_buffer.setStorage(1, Magnum::GL::TextureFormat::RGBA8, size);
-  depth_buffer.setStorage(1, Magnum::GL::TextureFormat::Depth24Stencil8, size);
+  colour_buffer.setStorage(1, Magnum::GL::TextureFormat::RGBA8, viewport.size());
+  depth_buffer.setStorage(1, Magnum::GL::TextureFormat::Depth24Stencil8, viewport.size());
   // depth_buffer.setStorage(1, Magnum::GL::TextureFormat::DepthComponent32F, size);
 
-  frame_buffer = Magnum::GL::Framebuffer({ {}, size });
-  frame_buffer.attachTexture(Magnum::GL::Framebuffer::ColorAttachment{ 0 }, colour_buffer, 0);
-  frame_buffer.attachTexture(Magnum::GL::Framebuffer::BufferAttachment::DepthStencil, depth_buffer, 0);
+  frame_buffer = Magnum::GL::Framebuffer(viewport);
+  frame_buffer.attachTexture(Magnum::GL::Framebuffer::ColorAttachment{ 0 }, colour_buffer, 0)
+    .attachTexture(Magnum::GL::Framebuffer::BufferAttachment::DepthStencil, depth_buffer, 0);
   // frame_buffer.attachTexture(Magnum::GL::Framebuffer::BufferAttachment::Depth, depth_buffer, 0);
 
   if (!shader)
@@ -51,7 +51,7 @@ void Viewer::Edl::init(const Magnum::Vector2i &size)
     shader = std::make_unique<shaders::Edl>();
   }
 
-  shader->bindColourTexture(colour_buffer).bindDepthBuffer(depth_buffer).setScreenParams(size);
+  shader->bindColourTexture(colour_buffer).bindDepthBuffer(depth_buffer).setScreenParams(viewport.size());
 
   struct QuadVertex
   {
@@ -59,16 +59,16 @@ void Viewer::Edl::init(const Magnum::Vector2i &size)
     Magnum::Vector2 textureCoordinates;
   };
   const QuadVertex vertices[]{
-    { { 0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f } },  /* Bottom right */
-    { { 0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f } },   /* Top right */
-    { { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f } }, /* Bottom left */
-    { { -0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f } }   /* Top left */
+    { { 1.0f, -1.0f, 0.0f }, { 1.0f, 0.0f } },  /* Bottom right */
+    { { 1.0f, 1.0f, 0.0f }, { 1.0f, 1.0f } },   /* Top right */
+    { { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } }, /* Bottom left */
+    { { -1.0f, 1.0f, 0.0f }, { 0.0f, 1.0f } }   /* Top left */
   };
   const Magnum::UnsignedInt indices[]{
-    /* 3--1 1 */
-    0, 1, 2, /* | / /| */
-    2, 1, 3  /* |/ / | */
-  };         /* 2 2--0 */
+    // 3--1 1
+    0, 1, 2,  // | / /|
+    2, 1, 3   // |/ / |
+  };          // 2 2--0
 
   mesh.setCount(Magnum::Containers::arraySize(indices))
     .addVertexBuffer(Magnum::GL::Buffer{ vertices }, 0, shaders::Edl::Position{}, shaders::Edl::TextureCoordinates{})
@@ -79,13 +79,14 @@ void Viewer::Edl::init(const Magnum::Vector2i &size)
 void Viewer::Edl::resize(const Magnum::Vector2i &size)
 {
   // For now just try recreating everything.
-  init(size);
+  init(Magnum::GL::defaultFramebuffer.viewport());
 }
 
 
-void Viewer::Edl::blit(const Magnum::Matrix4 &projection_matrix, float near_clip, float far_clip)
+void Viewer::Edl::blit(float near_clip, float far_clip)
 {
-  shader->setProjectionMatrix(projection_matrix)
+  Magnum::Matrix4 projection;
+  shader->setProjectionMatrix(projection)
     .setClipParams(near_clip, far_clip)
     .setRadius(settings.radius)
     .setLinearScale(settings.linear_scale)
@@ -143,6 +144,8 @@ Viewer::Viewer(const Arguments &arguments)
 
   _shader = Magnum::Shaders::Phong{ Magnum::Shaders::Phong::Flag::VertexColor |
                                     Magnum::Shaders::Phong::Flag::InstancedTransformation };
+
+  _edl.init(Magnum::GL::defaultFramebuffer.viewport());
 }
 
 void Viewer::setContinuousSim(bool continuous)
@@ -202,6 +205,7 @@ void Viewer::drawEvent()
 
   if (_edl.enabled)
   {
+    // _edl.frame_buffer.clearColor(0, Magnum::Color3{ 0, 1, 0 }).clearColor(1, Magnum::Vector4ui{}).clearDepth(1.0f);
     _edl.frame_buffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth).bind();
   }
   else
@@ -224,7 +228,7 @@ void Viewer::drawEvent()
   {
     Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth)
       .bind();
-    _edl.blit(projection_matrix, _camera.clip_near, _camera.clip_far);
+    _edl.blit(_camera.clip_near, _camera.clip_far);
   }
 
   swapBuffers();
@@ -308,6 +312,12 @@ void Viewer::keyPressEvent(KeyEvent &event)
     _camera.position.y() -= 0.1f;
     dirty = true;
     event.setAccepted();
+  }
+
+  if (event.key() == KeyEvent::Key::Tab)
+  {
+    _edl.enabled = !_edl.enabled;
+    dirty = true;
   }
 
   if (dirty)

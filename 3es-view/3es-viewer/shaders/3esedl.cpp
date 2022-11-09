@@ -46,7 +46,7 @@ Edl::Edl()
   CORRADE_INTERNAL_ASSERT_OUTPUT(link());
 
 #ifndef MAGNUM_TARGET_GLES
-  if (!GL::Context::current().isExtensionSupported<GL::Extensions::ARB::explicit_uniform_location>(version))
+  // if (!GL::Context::current().isExtensionSupported<GL::Extensions::ARB::explicit_uniform_location>(version))
 #endif  // MAGNUM_TARGET_GLES
   {
     _projectionMatrixUniform = uniformLocation("projectionMatrix");

@@ -1,6 +1,5 @@
 R""(
-#version 330
-
+// Verion directive added by Magnum.
 in vec4 vertex;
 in vec2 uv0;
 

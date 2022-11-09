@@ -1,8 +1,7 @@
 R""(
-#version 330
-
-uniform texture2D colourTexture;
-uniform texture2D depthTexture;
+// Verion directive added by Magnum.
+uniform sampler2D colourTexture;
+uniform sampler2D depthTexture;
 
 in block
 {
@@ -54,7 +53,7 @@ float obscurance(float depth, vec2 uv)
 
       neighbourRelativeUv.x = uvRadius.x * x;
       neighbourUv = uv + neighbourRelativeUv;
-      float neighbourDepth = texture(vkSampler2D(depthTexture, samplerState), neighbourUv).x;
+      float neighbourDepth = texture(depthTexture, neighbourUv).x;
       neighbourDepth = linearEyeDepth(neighbourDepth);
       // sum += (neighbourDepth > depth) ? 0.1 : 0.0;
 
@@ -70,8 +69,8 @@ float obscurance(float depth, vec2 uv)
 
 void main()
 {
-  vec3 colour = texture( vkSampler2D( colourTexture, samplerState ), inPs.uv0 ).xyz;
-  float depth = texture( vkSampler2D( depthTexture, samplerState ), inPs.uv0 ).x;
+  vec3 colour = texture(colourTexture, inPs.uv0).xyz;
+  float depth = texture(depthTexture, inPs.uv0).x;
   depth = linearEyeDepth(depth);
 
   float edlFactor = obscurance(depth, inPs.uv0);

@@ -80,9 +80,9 @@ private:
     Magnum::GL::Mesh mesh;
     bool enabled = false;
 
-    void init(const Magnum::Vector2i &size);
+    void init(const Magnum::Range2Di &viewport);
     void resize(const Magnum::Vector2i &size);
-    void blit(const Magnum::Matrix4 &projection_matrix, float near_clip, float far_clip);
+    void blit(float near_clip, float far_clip);
   } _edl;
 
   Clock::time_point _last_sim_time = Clock::now();
