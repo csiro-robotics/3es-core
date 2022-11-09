@@ -72,11 +72,11 @@ public:
     camera.pitch = std::max(-float(0.5 * M_PI), std::min(camera.pitch, float(0.5 * M_PI)));
     while (camera.yaw >= float(2.0 * M_PI))
     {
-      camera.yaw -= float(M_PI);
+      camera.yaw -= float(2.0 * M_PI);
     }
     while (camera.yaw < 0.0f)
     {
-      camera.yaw += float(M_PI);
+      camera.yaw += float(2.0 * M_PI);
     }
   }
 
