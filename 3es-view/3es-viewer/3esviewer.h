@@ -26,6 +26,8 @@ namespace shaders
 class Edl;
 }  // namespace shaders
 
+class FboEffect;
+
 class Viewer : public Magnum::Platform::Application
 {
 public:
@@ -59,29 +61,8 @@ private:
     Magnum::Color3 colour;
   };
 
-  struct Edl
-  {
-    struct Settings
-    {
-      float radius = 1.0f;
-      float linear_scale = 1.0f;
-      float exponential_scale = 1.0f;
-      Magnum::Vector3 light_direction{ 0, 0, 1 };  ///< Light direction in camera space.
-      Magnum::Vector2i view_size{ 1 };
-    };
-
-    Magnum::GL::Texture2D colour_texture;
-    Magnum::GL::Texture2D depth_texture;
-    Magnum::GL::Framebuffer frame_buffer{ Magnum::NoCreate };
-    std::unique_ptr<shaders::Edl> shader;
-    Settings settings;
-    Magnum::GL::Mesh mesh;
-    bool enabled = false;
-
-    void init(const Magnum::Range2Di &viewport);
-    void resize(const Magnum::Vector2i &size);
-    void blit(float near_clip, float far_clip);
-  } _edl;
+  std::shared_ptr<FboEffect> _active_fbo_effect;
+  std::shared_ptr<FboEffect> _edl_effect;
 
   Clock::time_point _last_sim_time = Clock::now();
 

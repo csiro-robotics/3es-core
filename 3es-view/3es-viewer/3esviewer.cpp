@@ -1,6 +1,6 @@
 #include "3esviewer.h"
 
-#include "shaders/3esedl.h"
+#include "3esedleffect.h"
 
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
@@ -35,74 +35,6 @@
 
 namespace tes
 {
-void Viewer::Edl::init(const Magnum::Range2Di &viewport)
-{
-  colour_texture.setStorage(1, Magnum::GL::TextureFormat::RGBA8, viewport.size());
-  depth_texture.setStorage(1, Magnum::GL::TextureFormat::DepthComponent32F, viewport.size());
-  // depth_texture.setCompareFunction(Magnum::GL::SamplerCompareFunction::Always);
-
-  colour_texture.setWrapping(Magnum::GL::SamplerWrapping::ClampToEdge);
-  depth_texture.setWrapping(Magnum::GL::SamplerWrapping::ClampToEdge);
-
-  frame_buffer = Magnum::GL::Framebuffer(viewport);
-  frame_buffer.attachTexture(Magnum::GL::Framebuffer::ColorAttachment{ 0 }, colour_texture, 0);
-  frame_buffer.attachTexture(Magnum::GL::Framebuffer::BufferAttachment::Depth, depth_texture, 0);
-
-  if (!shader)
-  {
-    shader = std::make_unique<shaders::Edl>();
-  }
-
-  shader
-    ->bindColourTexture(colour_texture)  //
-    .bindDepthBuffer(depth_texture)      //
-    .setScreenParams(viewport.size());
-
-  struct QuadVertex
-  {
-    Magnum::Vector3 position;
-    Magnum::Vector2 textureCoordinates;
-  };
-  const QuadVertex vertices[]{
-    { { 1.0f, -1.0f, 0.0f }, { 1.0f, 0.0f } },  /* Bottom right */
-    { { 1.0f, 1.0f, 0.0f }, { 1.0f, 1.0f } },   /* Top right */
-    { { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } }, /* Bottom left */
-    { { -1.0f, 1.0f, 0.0f }, { 0.0f, 1.0f } }   /* Top left */
-  };
-  const Magnum::UnsignedInt indices[]{
-    // 3--1 1
-    0, 1, 2,  // | / /|
-    2, 1, 3   // |/ / |
-  };          // 2 2--0
-
-  mesh.setCount(Magnum::Containers::arraySize(indices))
-    .addVertexBuffer(Magnum::GL::Buffer{ vertices }, 0, shaders::Edl::Position{}, shaders::Edl::TextureCoordinates{})
-    .setIndexBuffer(Magnum::GL::Buffer{ indices }, 0, Magnum::GL::MeshIndexType::UnsignedInt);
-}
-
-
-void Viewer::Edl::resize(const Magnum::Vector2i &size)
-{
-  // For now just try recreating everything.
-  init(Magnum::GL::defaultFramebuffer.viewport());
-}
-
-
-void Viewer::Edl::blit(float near_clip, float far_clip)
-{
-  Magnum::Matrix4 projection;
-  Magnum::GL::Renderer::setDepthMask(false);
-  Magnum::GL::Renderer::setStencilMask(false);
-  shader->setProjectionMatrix(projection)
-    .setClipParams(near_clip, far_clip)
-    .setRadius(settings.radius)
-    .setLinearScale(settings.linear_scale)
-    .setExponentialScale(settings.exponential_scale)
-    .setLightDirection(settings.light_direction);
-  shader->draw(mesh);
-  Magnum::GL::Renderer::setDepthMask(true);
-}
-
 
 Viewer::Viewer(const Arguments &arguments)
   : Magnum::Platform::Application{ arguments, Configuration{}.setTitle("3rd Eye Scene Viewer") }
@@ -147,7 +79,7 @@ Viewer::Viewer(const Arguments &arguments)
   _shader = Magnum::Shaders::Flat3D{ Magnum::Shaders::Flat3D::Flag::VertexColor |
                                      Magnum::Shaders::Flat3D::Flag::InstancedTransformation };
 
-  _edl.init(Magnum::GL::defaultFramebuffer.viewport());
+  _edl_effect = std::make_shared<EdlEffect>(Magnum::GL::defaultFramebuffer.viewport());
 }
 
 void Viewer::setContinuousSim(bool continuous)
@@ -205,9 +137,12 @@ void Viewer::drawEvent()
 
   _fly.updateKeys(dt, key_translation, key_rotation, _camera);
 
-  if (_edl.enabled)
+  auto projection_matrix = camera::viewProjection(_camera, Magnum::Vector2(windowSize()));
+
+  if (_active_fbo_effect)
   {
-    _edl.frame_buffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth).bind();
+    _active_fbo_effect->prepareFrame(projection_matrix, FboEffect::ProjectionType::Perspective, _camera.clip_near,
+                                     _camera.clip_far);
   }
   else
   {
@@ -215,11 +150,7 @@ void Viewer::drawEvent()
       .bind();
   }
 
-  auto projection_matrix = camera::viewProjection(_camera, Magnum::Vector2(windowSize()));
-
-  _shader
-    // .setAmbientColor(0x7f7f7f_rgbf)                //
-    .setTransformationProjectionMatrix(projection_matrix);
+  _shader.setTransformationProjectionMatrix(projection_matrix);
 
   _instance_buffer.setData(_instances, Magnum::GL::BufferUsage::DynamicDraw);
   _box.setInstanceCount(_instances.size())
@@ -227,11 +158,11 @@ void Viewer::drawEvent()
                               Magnum::Shaders::Flat3D::Color3{});
   _shader.draw(_box);
 
-  if (_edl.enabled)
+  if (_active_fbo_effect)
   {
     Magnum::GL::defaultFramebuffer.bind();
     Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth);
-    _edl.blit(_camera.clip_near, _camera.clip_far);
+    _active_fbo_effect->completeFrame();
   }
 
   swapBuffers();
@@ -243,7 +174,7 @@ void Viewer::drawEvent()
 
 void Viewer::viewportEvent(ViewportEvent &event)
 {
-  _edl.resize(event.windowSize());
+  _edl_effect->viewportChange(Magnum::GL::defaultFramebuffer.viewport());
 }
 
 void Viewer::mousePressEvent(MouseEvent &event)
@@ -319,9 +250,18 @@ void Viewer::keyPressEvent(KeyEvent &event)
 
   if (event.key() == KeyEvent::Key::Tab)
   {
-    _edl.enabled = !_edl.enabled;
+    bool edl_on = false;
+    if (!_active_fbo_effect)
+    {
+      _active_fbo_effect = _edl_effect;
+      edl_on = true;
+    }
+    else
+    {
+      _active_fbo_effect = nullptr;
+    }
     dirty = true;
-    Magnum::Debug() << "EDL: " << (_edl.enabled ? "on" : "off");
+    Magnum::Debug() << "EDL: " << (edl_on ? "on" : "off");
   }
 
   if (dirty)
