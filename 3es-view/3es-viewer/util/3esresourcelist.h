@@ -1,7 +1,7 @@
 #ifndef TES_VIEWER_UTIL_RESOURCE_LIST_H
 #define TES_VIEWER_UTIL_RESOURCE_LIST_H
 
-#include "3es-view.h"
+#include "3es-viewer.h"
 
 #include <mutex>
 #include <utility>
@@ -9,6 +9,8 @@
 
 namespace tes::viewer::util
 {
+using ResourceListId = size_t;
+
 /// A resource list is a container which assigns items from it's internal buffer - resources - for external usage.
 ///
 /// Such resource items may be released back to the @c ResourceList where they are added to a free item list and may
@@ -28,7 +30,7 @@ class ResourceList
 {
 public:
   /// The type used to identify resources. This maps to indices in the items list.
-  using Id = size_t;
+  using Id = ResourceListId;
 
   /// A null item marker. Internally used to identify the end of the free list or other linked list structures.
   static constexpr Id kNull = ~Id(0u);
@@ -77,16 +79,16 @@ public:
       }
     }
 
-    inline ResourceList &operator=(const ResourceList &) = delete;
+    inline ResourceRef &operator=(const ResourceRef &) = delete;
     /// Move assignment.
     /// @param other Object to move; can match @c this .
     /// @return @c *this
-    inline ResourceList &operator=(ResourceList &&other)
+    inline ResourceRef &operator=(ResourceRef &&other)
     {
       if (this != &other)
       {
-        _id = std::exchange(other._id, kNull);
-        _resource_list = std::exchange(other._resource_list, nullptr);
+        _id = std::exchange(other._id, _id);
+        _resource_list = std::exchange(other._resource_list, _resource_list);
       }
       return *this;
     }
@@ -97,14 +99,14 @@ public:
 
     /// Dereference the resource.
     /// @return The references resource entry.
-    inline T &operator*() { return _resource_list->_items[_id]; }
+    inline T &operator*() { return _resource_list->_items[_id].resource; }
     /// @overload
-    inline const T &operator*() const { return _resource_list->_items[_id]; }
+    inline const T &operator*() const { return _resource_list->_items[_id].resource; }
     /// Dereference the resource.
     /// @return The references resource entry.
-    inline T &operator->() { return _resource_list->_items[_id]; }
+    inline T *operator->() { return &_resource_list->_items[_id].resource; }
     /// @overload
-    inline const T &operator->() const { return _resource_list->_items[_id]; }
+    inline const T *operator->() const { return &_resource_list->_items[_id].resource; }
 
     /// Get the resource entry @c Id . This can be stored in order to later access the resource via @c ResourceList
     /// indexing functions.
@@ -120,7 +122,7 @@ public:
   /// @param capacity The initial resource capacity.
   ResourceList(size_t capacity = 0);
   /// Destructor
-  ~ResourceList();
+  ~ResourceList() noexcept(false);
 
   /// Allocate a new resource.
   ///
@@ -145,6 +147,10 @@ public:
   /// @param id The @c Id of the item to reference.
   /// @return The reference item.
   ResourceRef operator[](Id id);
+
+  /// Return the number of allocated items.
+  /// @return
+  size_t size() const { return _item_count; }
 
   /// Release all resources. Raises a @c std::runtime_error if there are outstanding references.
   void clear();
@@ -171,6 +177,7 @@ private:
 
   std::vector<Item> _items;
   std::recursive_mutex _lock;
+  std::atomic_size_t _item_count = {};
   std::atomic_uint32_t _lock_count = {};
   Id _free_head = kNull;
   Id _free_tail = kNull;
@@ -188,18 +195,18 @@ ResourceList<T>::ResourceList(size_t capacity)
 
 
 template <typename T>
-ResourceList<T>::~ResourceList()
+ResourceList<T>::~ResourceList() noexcept(false)
 {
   std::unique_lock<decltype(_lock)> guard(_lock);
   if (_lock_count > 0)
   {
-    throw std::runtime_error("Deleting resource list with outstanding resource references").
+    throw std::runtime_error("Deleting resource list with outstanding resource references");
   }
 }
 
 
 template <typename T>
-ResourceList<T>::ResourceRef ResourceList<T>::allocate()
+typename ResourceList<T>::ResourceRef ResourceList<T>::allocate()
 {
   std::unique_lock<decltype(_lock)> guard(_lock);
   // Try free list first.
@@ -215,6 +222,7 @@ ResourceList<T>::ResourceRef ResourceList<T>::allocate()
       _free_tail = _free_head = kNull;
     }
     _items[resource.id()].next_free = kAllocated;
+    ++_item_count;
     return resource;
   }
 
@@ -224,13 +232,14 @@ ResourceList<T>::ResourceRef ResourceList<T>::allocate()
   }
 
   // Grow the container.
-  _items.emplace_back();
+  _items.emplace_back(Item{ T{}, kAllocated });
+  ++_item_count;
   return ResourceRef(_items.size() - 1u, this);
 }
 
 
 template <typename T>
-ResourceList<T>::ResourceRef ResourceList<T>::at(Id id)
+typename ResourceList<T>::ResourceRef ResourceList<T>::at(Id id)
 {
   if (id < _items.size() && _items[id].next_free == kAllocated)
   {
@@ -255,12 +264,13 @@ void ResourceList<T>::release(Id id)
     // First free item.
     _free_head = _free_tail = id;
   }
+  --_item_count;
   _items[id].next_free = kNull;
 }
 
 
 template <typename T>
-ResourceList<T>::ResourceRef ResourceList<T>::operator[](Id id)
+typename ResourceList<T>::ResourceRef ResourceList<T>::operator[](Id id)
 {
   return ResourceRef(id, this);
 }

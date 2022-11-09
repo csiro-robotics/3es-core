@@ -44,10 +44,7 @@ include(sourcelist.cmake)
 # Library setup.
 #-------------------------------------------------------------------------------
 # Define the 3es-viewer library.
-# add_library(3es-viewer ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
-# add_executable(3es-viewer ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
 add_library(3es-viewer ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
-set_target_properties(3es-viewer PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
 # Disable some warnings.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -87,6 +84,8 @@ target_include_directories(3es-viewer
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
+    $<INSTALL_INTERFACE:include>
     $<INSTALL_INTERFACE:include/3es-viewer>
 )
 

@@ -45,6 +45,7 @@ include(sourcelist.cmake)
 #-------------------------------------------------------------------------------
 # Define the 3rdEyeScene library.
 add_executable(3rdEyeScene ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
+set_target_properties(3rdEyeScene PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
 # Disable some warnings.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
