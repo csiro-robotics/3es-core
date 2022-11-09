@@ -1,36 +1,21 @@
-#include "3es-viewer.h"
-
-#include "camera/3esfly.h"
-
-#include <3escoordinateframe.h>
+#include "3esviewer.h"
 
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
-#include <Magnum/GL/Mesh.h>
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/GL/Version.h>
-#include <Magnum/Math/Color.h>
-#include <Magnum/Math/Matrix4.h>
 #include <Magnum/MeshTools/Compile.h>
-#include <Magnum/Platform/GlfwApplication.h>
 #include <Magnum/Primitives/Cube.h>
-#include <Magnum/Shaders/Phong.h>
 #include <Magnum/Shaders/VertexColor.h>
 #include <Magnum/Trade/MeshData.h>
 
-#include <array>
-#include <chrono>
-
 // Things to learn about:
-// - primitives example
-// - shaders example
-// - instancing
+// - render to texture / frame buffer object (for EDL)
 // - mesh building
 // - text rendering
 // - UI
 
 // Things to implement:
-// - camera control
 // - primitive instance rendering
 // - shaders:
 //  - simple primitives
@@ -46,56 +31,6 @@
 
 namespace tes
 {
-class Viewer : public Magnum::Platform::Application
-{
-public:
-  using Clock = std::chrono::steady_clock;
-
-  explicit Viewer(const Arguments &arguments);
-
-  void setContinuousSim(bool continuous);
-  void checkContinuousSim();
-
-private:
-  void drawEvent() override;
-  void mousePressEvent(MouseEvent &event) override;
-  void mouseReleaseEvent(MouseEvent &event) override;
-  void mouseMoveEvent(MouseMoveEvent &event) override;
-  void keyPressEvent(KeyEvent &event) override;
-  void keyReleaseEvent(KeyEvent &event) override;
-
-  struct KeyAxis
-  {
-    KeyEvent::Key key;
-    int axis = 0;
-    bool negate = false;
-    bool active = false;
-  };
-
-  struct MeshAttributes
-  {
-    Magnum::Matrix4 transform;
-    Magnum::Color3 colour;
-  };
-
-  Clock::time_point _last_sim_time = Clock::now();
-
-  Magnum::GL::Mesh _mesh;
-
-  MeshAttributes _mesh_attrs[6];
-  Magnum::Shaders::Phong _shader;
-
-  Magnum::Matrix4 _projection;
-  camera::Camera _camera;
-  camera::Fly _fly;
-
-  bool _mouse_rotation_active = false;
-  bool _continuous_sim = false;
-
-  std::vector<KeyAxis> _move_keys;
-  std::vector<KeyAxis> _rotate_keys;
-};
-
 Viewer::Viewer(const Arguments &arguments)
   : Magnum::Platform::Application{ arguments, Configuration{}.setTitle("3es Viewer") }
   , _move_keys({
@@ -124,19 +59,27 @@ Viewer::Viewer(const Arguments &arguments)
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::DepthTest);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
 
-  _mesh = Magnum::MeshTools::compile(Magnum::Primitives::cubeSolid());
-
   const float scale = 20.0f;
-  _mesh_attrs[0] = { Magnum::Matrix4::translation({ scale, 0.0f, 0.0f }), 0xff0000_rgbf };
-  _mesh_attrs[1] = { Magnum::Matrix4::translation({ -scale, 0.0f, 0.0f }), 0x00ffff_rgbf };
-  _mesh_attrs[2] = { Magnum::Matrix4::translation({ 0.0f, scale, 0.0f }), 0x00ff00_rgbf };
-  _mesh_attrs[3] = { Magnum::Matrix4::translation({ 0.0f, -scale, 0.0f }), 0xff00ff_rgbf };
-  _mesh_attrs[4] = { Magnum::Matrix4::translation({ 0.0f, 0.0f, scale }), 0x0000ff_rgbf };
-  _mesh_attrs[5] = { Magnum::Matrix4::translation({ 0.0f, 0.0f, -scale }), 0xffff00_rgbf };
+  _instances[0] = { Magnum::Matrix4::translation({ scale, 0.0f, 0.0f }), Magnum::Matrix3x3(), 0xff0000_rgbf };
+  _instances[1] = { Magnum::Matrix4::translation({ -scale, 0.0f, 0.0f }), Magnum::Matrix3x3(), 0x00ffff_rgbf };
+  _instances[2] = { Magnum::Matrix4::translation({ 0.0f, scale, 0.0f }), Magnum::Matrix3x3(), 0x00ff00_rgbf };
+  _instances[3] = { Magnum::Matrix4::translation({ 0.0f, -scale, 0.0f }), Magnum::Matrix3x3(), 0xff00ff_rgbf };
+  _instances[4] = { Magnum::Matrix4::translation({ 0.0f, 0.0f, scale }), Magnum::Matrix3x3(), 0x0000ff_rgbf };
+  _instances[5] = { Magnum::Matrix4::translation({ 0.0f, 0.0f, -scale }), Magnum::Matrix3x3(), 0xffff00_rgbf };
 
-  _projection =
-    Magnum::Matrix4::perspectiveProjection(35.0_degf, Magnum::Vector2{ windowSize() }.aspectRatio(), 0.01f, 1000.0f) *
-    Magnum::Matrix4::translation(Magnum::Vector3::zAxis(-10.0f));
+  for (auto &instance : _instances)
+  {
+    instance.normal_matrix = instance.transform.normalMatrix();
+  }
+
+  _instance_buffer = Magnum::GL::Buffer{};
+
+  _mesh = Magnum::MeshTools::compile(Magnum::Primitives::cubeSolid());
+  _mesh.addVertexBufferInstanced(_instance_buffer, 1, 0, Magnum::Shaders::Phong::TransformationMatrix{},
+                                 Magnum::Shaders::Phong::NormalMatrix{}, Magnum::Shaders::Phong::Color3{});
+
+  _shader = Magnum::Shaders::Phong{ Magnum::Shaders::Phong::Flag::VertexColor |
+                                    Magnum::Shaders::Phong::Flag::InstancedTransformation };
 }
 
 void Viewer::setContinuousSim(bool continuous)
@@ -204,16 +147,11 @@ void Viewer::drawEvent()
   _shader
     .setLightPositions({ { 1.4f, 1.0f, 0.75f } })  //
     // .setAmbientColor(0x7f7f7f_rgbf)                //
-    // .setProjectionMatrix(_projection);
     .setProjectionMatrix(projection_matrix);
 
-  for (int i = 0; i < 6; ++i)
-  {
-    _shader.setNormalMatrix(_mesh_attrs[i].transform.normalMatrix())
-      .setTransformationMatrix(_mesh_attrs[i].transform)
-      .setDiffuseColor(_mesh_attrs[i].colour)
-      .draw(_mesh);
-  }
+  _instance_buffer.setData(_instances, Magnum::GL::BufferUsage::DynamicDraw);
+  _mesh.setInstanceCount(_instances.size());
+  _shader.draw(_mesh);
 
   swapBuffers();
   if (_continuous_sim)

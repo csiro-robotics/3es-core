@@ -1,6 +1,7 @@
 
 list(APPEND PUBLIC_HEADERS
-  # General headers
+# General headers
+  3esviewer.h
   camera/3escamera.h
   camera/3escontroller.h
   camera/3esfly.h
