@@ -106,23 +106,10 @@ void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &c
   _bounds_calculator(transform, centre, halfExtents);
 }
 
-unsigned ShapeCache::add(const ViewableWindow &window, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
-                         unsigned parent_index)
+util::ResourceListId ShapeCache::add(const ViewableWindow &window, const Magnum::Matrix4 &transform,
+                                     const Magnum::Color4 &colour, util::ResourceListId parent_index)
 {
-  unsigned id;
-  Shape *shape = {};
-  if (_free_list != kListEnd)
-  {
-    id = _free_list;
-    shape = &_shapes[id];
-    _free_list = shape->next;
-  }
-  else
-  {
-    id = unsigned(_shapes.size());
-    _shapes.emplace_back();
-    shape = &_shapes.back();
-  }
+  auto shape = _shapes.allocate();
 
   Magnum::Vector3 centre;
   Magnum::Vector3 halfExtents;
@@ -135,43 +122,47 @@ unsigned ShapeCache::add(const ViewableWindow &window, const Magnum::Matrix4 &tr
   shape->window = window;
 
   shape->bounds_id = bounds_id;
-  shape->flags = unsigned(ShapeFlag::Valid) + !!(parent_index != ~0u) * unsigned(ShapeFlag::Parented);
   shape->parent_index = parent_index;
   shape->next = kListEnd;
 
   if (parent_index != kListEnd)
   {
     // Add to a shape chain.
-    assert(parent_index < _shapes.size());
-    Shape &chain_head = _shapes[parent_index];
-    shape->next = chain_head.next;
-    chain_head.next = id;
+    auto chain_head = _shapes.at(parent_index);
+    assert(chain_head.isValid());
+    shape->next = chain_head.id();
+    chain_head->next = shape.id();
   }
 
-  return id;
+  return shape.id();
 }
 
-bool ShapeCache::endShape(unsigned id, FrameNumber frame_number)
+bool ShapeCache::endShape(util::ResourceListId id, FrameNumber frame_number)
 {
   if (id < _shapes.size())
   {
     // End shapes while valid to the end of the chain.
     // The first item, specified by @p id, must not be part of a chain.
-    unsigned remove_next = id;
-    if ((_shapes[remove_next].flags & (unsigned(ShapeFlag::Valid) | unsigned(ShapeFlag::Parented))) == 0u)
+    util::ResourceListId remove_next = id;
+    auto shape = _shapes.at(id);
+    // Only remove valid shapes which are not parented (we can only remove parent shapes).
+    if (shape.isValid() && shape->parent_index == kListEnd)
     {
       bool removed = false;
-      while (remove_next != kListEnd && (_shapes[remove_next].flags & unsigned(ShapeFlag::Valid)) == 0)
+      auto next_shape = _shapes.at(shape->next);
+      while (remove_next != kListEnd && next_shape.isValid())
       {
-        Shape &shape = _shapes[remove_next];
+        const auto next_id = next_shape.id();
         // Set to disable on the next frame, while keeping the same current frame.
-        shape.window = ViewableWindow(shape.window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
+        next_shape->window =
+          ViewableWindow(next_shape->window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
         // Update the tail viewable window.
-        auto last_viewable_window = _viewables[shape.viewable_tail].window;
+        auto last_viewable_window = _viewables[next_shape->viewable_tail].window;
         last_viewable_window =
           ViewableWindow(last_viewable_window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
-        _viewables[shape.viewable_tail].window = last_viewable_window;
+        _viewables[next_shape->viewable_tail].window = last_viewable_window;
         removed = true;
+        next_shape = _shapes.at(next_id);
       }
       return removed;
     }
@@ -179,13 +170,13 @@ bool ShapeCache::endShape(unsigned id, FrameNumber frame_number)
   return false;
 }
 
-bool ShapeCache::update(unsigned id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
+bool ShapeCache::update(util::ResourceListId id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
                         const Magnum::Color4 &colour)
 {
   if (id < _shapes.size())
   {
-    Shape &shape = _shapes[id];
-    if (shape.flags & unsigned(ShapeFlag::Valid))
+    auto shape = _shapes.at(id);
+    if (shape.isValid())
     {
       // Notes on updating shapes.
       // When we update a shape, we add a new ShapeViewable to the shape, referenced via Shape::viewable_tail. This
@@ -202,7 +193,7 @@ bool ShapeCache::update(unsigned id, FrameNumber frame_number, const Magnum::Mat
       //
       // Finally, even if the update() is redundant, we do update the shape bounds.
 
-      auto last_viewable_window = _viewables[shape.viewable_tail].window;
+      auto last_viewable_window = _viewables[shape->viewable_tail].window;
       bool redundant_update = false;
       if (frame_number < last_viewable_window.startFrame())
       {
@@ -211,8 +202,8 @@ bool ShapeCache::update(unsigned id, FrameNumber frame_number, const Magnum::Mat
       else if (frame_number == last_viewable_window.startFrame())
       {
         // Potentially rendundant update. Need to check the contents.
-        redundant_update = _viewables[shape.viewable_tail].instance.transform == transform &&
-                           _viewables[shape.viewable_tail].instance.colour == colour;
+        redundant_update = _viewables[shape->viewable_tail].instance.transform == transform &&
+                           _viewables[shape->viewable_tail].instance.colour == colour;
       }
 
       if (!redundant_update)
@@ -220,7 +211,7 @@ bool ShapeCache::update(unsigned id, FrameNumber frame_number, const Magnum::Mat
         // Not a redundant update. Add a viewable state.
         ShapeViewable &viewable = _viewables.emplace_back();
         // Must fetch the last viewable state after adding to the list in case of reallocation.
-        ShapeViewable &last_viewable = _viewables[shape.viewable_tail];
+        ShapeViewable &last_viewable = _viewables[shape->viewable_tail];
         // Duplicate the last viewable state.
         viewable = last_viewable;
         // Set updated values.
@@ -228,7 +219,7 @@ bool ShapeCache::update(unsigned id, FrameNumber frame_number, const Magnum::Mat
         viewable.instance.colour = colour;
         viewable.next = kListEnd;
         // Update the list tail.
-        shape.viewable_tail = last_viewable.next = _viewables.size() - 1u;
+        shape->viewable_tail = last_viewable.next = _viewables.size() - 1u;
         // Update the viewable windows.
         last_viewable.window =
           ViewableWindow(last_viewable.window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
@@ -239,7 +230,7 @@ bool ShapeCache::update(unsigned id, FrameNumber frame_number, const Magnum::Mat
       Magnum::Vector3 centre;
       Magnum::Vector3 halfExtents;
       _bounds_calculator(transform, centre, halfExtents);
-      _culler->update(shape.bounds_id, centre, halfExtents);
+      _culler->update(shape->bounds_id, centre, halfExtents);
       return true;
     }
   }
@@ -248,28 +239,28 @@ bool ShapeCache::update(unsigned id, FrameNumber frame_number, const Magnum::Mat
 }
 
 
-bool ShapeCache::get(unsigned id, FrameNumber frame_number, bool apply_parent_transform, Magnum::Matrix4 &transform,
-                     Magnum::Color4 &colour) const
+bool ShapeCache::get(util::ResourceListId id, FrameNumber frame_number, bool apply_parent_transform,
+                     Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
 {
   bool found = false;
   transform = Magnum::Matrix4();
   while (id < _shapes.size())
   {
-    const Shape &shape = _shapes[id];
-    if (shape.flags & unsigned(ShapeFlag::Valid))
+    const auto shape = _shapes.at(id);
+    if (shape.isValid())
     {
       found = true;
       // Start with checking the lastest viewable state.
-      if (_viewables[shape.viewable_tail].window.overlaps(frame_number))
+      if (_viewables[shape->viewable_tail].window.overlaps(frame_number))
       {
         // Latest item is the relevant one.
-        transform = _viewables[shape.viewable_tail].instance.transform;
-        colour = _viewables[shape.viewable_tail].instance.colour;
+        transform = _viewables[shape->viewable_tail].instance.transform;
+        colour = _viewables[shape->viewable_tail].instance.colour;
       }
       else
       {
         // Need to traverse the list.
-        size_t next = shape.viewable_head;
+        size_t next = shape->viewable_head;
         while (next != kListEnd)
         {
           if (_viewables[next].window.overlaps(frame_number))
@@ -282,7 +273,7 @@ bool ShapeCache::get(unsigned id, FrameNumber frame_number, bool apply_parent_tr
           next = _viewables[next].next;
         }
       }
-      id = (apply_parent_transform && shape.flags & unsigned(ShapeFlag::Parented)) ? shape.parent_index : kListEnd;
+      id = (apply_parent_transform) ? shape->parent_index : kListEnd;
     }
   }
   return found;
@@ -296,7 +287,6 @@ void ShapeCache::clear()
     _culler->release(shape.bounds_id);
   }
   _shapes.clear();
-  _free_list = kListEnd;
 }
 
 
@@ -320,42 +310,45 @@ void ShapeCache::draw(const FrameStamp &stamp, const Magnum::Matrix4 &projection
 
 void ShapeCache::expireShapes(FrameNumber before_frame)
 {
-  for (size_t i = 0; i < _shapes.size(); ++i)
+  for (auto iter = _shapes.begin(); iter != _shapes.end(); ++iter)
   {
-    Shape &shape = _shapes[i];
-    if ((shape.flags & unsigned(ShapeFlag::Valid)) && (shape.flags & unsigned(ShapeFlag::Parented)) == 0)
+    auto &shape = *iter;
+    if (shape.parent_index == kListEnd)
     {
       const FrameNumber last_frame = shape.window.endFrame();
       if (last_frame < before_frame)
       {
-        release(i);
+        // Note: it's actually ok to remove items from the resource list during iteration since it just adds things to
+        // a free list.
+        // Could be considered flakey though.
+        release(iter.id());
       }
     }
   }
 }
 
 
-bool ShapeCache::release(size_t index)
+bool ShapeCache::release(util::ResourceListId id)
 {
   // Remove shapes while valid to the end of the chain.
   // The first item, specified by @p index, must not be part of a chain.
-  size_t remove_next = index;
-  if ((_shapes[remove_next].flags & (unsigned(ShapeFlag::Valid) | unsigned(ShapeFlag::Parented))) == 0u)
+  util::ResourceListId remove_next = id;
+  auto shape_ref = _shapes.at(id);
+  if (shape_ref.isValid() && shape_ref->parent_index == kListEnd)
   {
     bool removed = false;
-    while (remove_next != kListEnd && (_shapes[remove_next].flags & unsigned(ShapeFlag::Valid)) == 0)
+    do
     {
-      Shape &shape = _shapes[remove_next];
-      if (shape.flags & (unsigned(ShapeFlag::Valid)) == 0u)
-      {
-        _culler->release(shape.bounds_id);
-        shape.flags = 0u;
-        remove_next = shape.next;
-        shape.next = _free_list;
-        _free_list = remove_next;
-        removed = true;
-      }
-    }
+      _culler->release(shape_ref->bounds_id);
+      const auto remove_current = remove_next;
+      remove_next = shape_ref->next;
+      shape_ref->parent_index = 0u;
+      shape_ref->next = kListEnd;
+      shape_ref = _shapes.at(remove_next);
+      _shapes.release(remove_current);
+      removed = true;
+    } while (shape_ref.isValid() && remove_next != _shapes.kNull);
+
     return removed;
   }
   return false;

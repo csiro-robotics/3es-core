@@ -16,7 +16,7 @@ namespace tes::viewer
 {
 struct Resource
 {
-  int value;
+  int value = 0;
 };
 
 TEST(Util, ResourceList_Allocate)

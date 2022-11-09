@@ -5,6 +5,7 @@
 
 #include "3esboundsculler.h"
 #include "3esviewablewindow.h"
+#include "util/3esresourcelist.h"
 
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/Magnum.h>
@@ -167,7 +168,7 @@ public:
                                     Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents);
 
   /// Internal free list terminator value.
-  static constexpr size_t kListEnd = ~0u;
+  static constexpr size_t kListEnd = util::ResourceList<int>::kNull;
 
   /// @overload
   ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
@@ -213,8 +214,8 @@ public:
   ///   Must be valid when specified - i.e., the parent must be added first and removed last. Specifying the parent
   ///   index also forms a shape chain.
   /// @return The shape ID/index. Must be used to @c remove() or @c update() the shape.
-  unsigned add(const ViewableWindow &window, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
-               unsigned parent_index = ~0u);
+  util::ResourceListId add(const ViewableWindow &window, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
+                           util::ResourceListId parent_index = kListEnd);
   /// Set the end of the viewable window for a shape.
   ///
   /// The shape will no longer be visible once the @c activeWindow() is beyond the @p frame_number .
@@ -225,14 +226,15 @@ public:
   /// @param id Id of the shape to remove.
   /// @param frame_number Last frame on which the shape is visible.
   /// @return True if the @p id is valid.
-  bool endShape(unsigned id, FrameNumber frame_number);
+  bool endShape(util::ResourceListId id, FrameNumber frame_number);
   /// Update an existing shape instance.
   /// @param id Id of the shape to update.
   /// @param frame_number The frame on which the shape changes.
   /// @param transform The shape instance transformation.
   /// @param colour The shape instance colour.
   /// @return True if the @p id was valid and an instance updated.
-  bool update(unsigned id, FrameNumber frame_number, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
+  bool update(util::ResourceListId id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
+              const Magnum::Color4 &colour);
 
   /// Get the details of an existing shape instance at the @c activeWindow().startFrame() .
   /// @param id Id of the shape to update.
@@ -241,10 +243,10 @@ public:
   /// @param[out] colour Set to the shape instance colour.
   /// @return True if the @p id was valid and an instance data retrieved. The out values are undefined when @p id is
   /// invalid.
-  bool get(unsigned id, FrameNumber frame_number, bool apply_parent_transform, Magnum::Matrix4 &transform,
+  bool get(util::ResourceListId id, FrameNumber frame_number, bool apply_parent_transform, Magnum::Matrix4 &transform,
            Magnum::Color4 &colour) const;
   /// @overload
-  bool get(unsigned id, FrameNumber frame_number, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
+  bool get(util::ResourceListId id, FrameNumber frame_number, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
   {
     return get(id, frame_number, false, transform, colour);
   }
@@ -268,13 +270,6 @@ public:
   void expireShapes(FrameNumber before_frame);
 
 private:
-  /// Flags for @c Shape items
-  enum class ShapeFlag : unsigned
-  {
-    Valid = (1u << 0u),     ///< Indicates the shape is valid, and not part of the free list.
-    Parented = (1u << 1u),  ///< Shape has a parent.
-  };
-
   /// Shape instance data.
   struct ShapeInstance
   {
@@ -318,14 +313,12 @@ private:
     ViewableWindow window = {};
     /// The shape entry @c BoundsCuller entry ID.
     BoundsId bounds_id = ~0u;
-    /// See @c ShapeFlag .
-    unsigned flags = 0u;
     /// Index of the "parent" shape. The parent shape transform also affects this shape's final transformation.
-    size_t parent_index = ~0u;
+    util::ResourceListId parent_index = kListEnd;
     /// Shape list (linked list) next item ID. Used to link the free list when a shape is not in used. Used to specify
-    /// a multi-shape chain dependency for valid shapes. This value is @c kListEnd for the end of the list.
-    /// Otherwise it is set to the index of the next entry in the free list.
-    size_t next = kListEnd;
+    /// a multi-shape chain dependency for valid shapes. This value is @c kListEnd for the end of the
+    /// list.
+    util::ResourceListId next = kListEnd;
   };
 
   /// Instance buffer used to render shapes. Only valid during the @c draw() call.
@@ -341,9 +334,9 @@ private:
   ///
   /// Must only be called for the head of a shape chain, not the links.
   ///
-  /// @param index The shape index to release
+  /// @param id The shape resource id to release
   /// @return True if the shape was valid for release and successfully released.
-  bool release(size_t index);
+  bool release(util::ResourceListId id);
 
   /// Fill the @p InstanceBuffer objects in @c _instance_buffers .
   /// @param frame_number The frame number to draw shapes for.
@@ -353,11 +346,9 @@ private:
   /// The bounds culler used to determine visibility.
   std::shared_ptr<BoundsCuller> _culler;
   /// Instantiated shape array. These represent active shapes in the array.
-  std::vector<Shape> _shapes;
+  util::ResourceList<Shape> _shapes;
   /// Array of viewable items. Traversed when building the renderable instance buffers.
   std::vector<ShapeViewable> _viewables;
-  /// Free list head terminated by a value of @c kListEnd . This indexes _shapes.
-  size_t _free_list = kListEnd;
   /// Mesh parts to render.
   std::vector<Part> _parts;
   /// Transformation matrix applied to the shape before rendering. This allows the Magnum primitives to be transformed

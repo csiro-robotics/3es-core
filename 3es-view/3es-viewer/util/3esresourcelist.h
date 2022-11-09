@@ -170,9 +170,9 @@ public:
 
     ~BaseIterator()
     {
-      if (owner)
+      if (_owner)
       {
-        owner->unlock();
+        _owner->unlock();
       }
     }
 
@@ -181,6 +181,9 @@ public:
 
     BaseIterator &operator=(const BaseIterator &other) = default;
     BaseIterator &operator=(BaseIterator &&other) = default;
+
+    ResourceListT *owner() const { return _owner; }
+    inline Id id() const { return _id; }
 
   protected:
     void next()
@@ -200,14 +203,14 @@ public:
     }
 
     ResourceListT *_owner = nullptr;
-    ResourceListId _id = kNull;
+    Id _id = kNull;
   };
 
   class iterator : public BaseIterator<ResourceList<T>>
   {
   public:
     iterator() {}
-    iterator(ResourceList<T> *owner, ResourceListId id)
+    iterator(ResourceList<T> *owner, Id id)
       : BaseIterator<ResourceList<T>>(owner, id)
     {}
     iterator(const iterator &other) = default;
@@ -230,7 +233,7 @@ public:
     template <typename R>
     bool operator==(const BaseIterator<R> &other) const
     {
-      return _owner == other._owner && _id == other._id;
+      return _owner == other.owner() && _id == other.id();
     }
 
     template <typename R>
@@ -272,7 +275,7 @@ public:
   {
   public:
     const_iterator() {}
-    const_iterator(const ResourceList<T> *owner, ResourceListId id)
+    const_iterator(const ResourceList<T> *owner, Id id)
       : BaseIterator<const ResourceList<T>>(owner, id)
     {}
     const_iterator(const iterator &other)
@@ -300,7 +303,7 @@ public:
     template <typename R>
     bool operator==(const BaseIterator<R> &other) const
     {
-      return _owner == other._owner && _id == other._id;
+      return _owner == other.owner() && _id == other.id();
     }
 
     template <typename R>
@@ -542,7 +545,7 @@ void ResourceList<T>::clear()
   std::unique_lock<decltype(_lock)> guard(_lock);
   if (_lock_count > 0)
   {
-    throw std::runtime_error("Deleting resource list with outstanding resource references").
+    throw std::runtime_error("Deleting resource list with outstanding resource references");
   }
   _items.clear();
   _free_head = _free_tail = kNull;
