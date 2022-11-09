@@ -104,9 +104,7 @@ target_link_libraries(3rdEyeScene PRIVATE
   Magnum::Application
   Magnum::Magnum
   Magnum::Primitives
-  Magnum::Shaders
-  Magnum::Vk
-)
+  Magnum::Shaders)
 
 #-------------------------------------------------------------------------------
 # Doxygen configuration.

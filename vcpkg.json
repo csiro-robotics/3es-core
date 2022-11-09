@@ -29,9 +29,7 @@
             "shaders",
             "shadertools",
             "tgaimporter",
-            "text",
-            "vk",
-            "vk-info"
+            "text"
           ]
         },
         {

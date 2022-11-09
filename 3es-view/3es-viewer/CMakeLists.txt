@@ -101,7 +101,6 @@ target_link_libraries(3es-viewer PRIVATE
   $<BUILD_INTERFACE:Magnum::Magnum>
   $<BUILD_INTERFACE:Magnum::Primitives>
   $<BUILD_INTERFACE:Magnum::Shaders>
-  $<BUILD_INTERFACE:Magnum::Vk>
 )
 
 #-------------------------------------------------------------------------------
