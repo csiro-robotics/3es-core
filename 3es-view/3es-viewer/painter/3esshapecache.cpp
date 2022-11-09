@@ -2,9 +2,11 @@
 
 #include "3esboundsculler.h"
 
+#include <cassert>
+
 namespace tes::viewer::painter
 {
-constexpr unsigned ShapeCache::kFreeListEnd;
+constexpr unsigned ShapeCache::kListEnd;
 
 ShapeCacheShader::~ShapeCacheShader() = default;
 
@@ -104,15 +106,16 @@ void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &c
   _bounds_calculator(transform, centre, halfExtents);
 }
 
-unsigned ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
+unsigned ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour, unsigned parent_index,
+                         unsigned chain_index)
 {
   unsigned id;
   Shape *shape = {};
-  if (_free_list != kFreeListEnd)
+  if (_free_list != kListEnd)
   {
     id = _free_list;
     shape = &_shapes[id];
-    _free_list = shape->free_next;
+    _free_list = shape->next;
   }
   else
   {
@@ -128,7 +131,20 @@ unsigned ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color4 
   Magnum::Vector3 halfExtents;
   _bounds_calculator(transform, centre, halfExtents);
   shape->bounds_id = _culler->allocate(centre, halfExtents);
-  shape->free_next = kFreeListEnd;
+  shape->flags = unsigned(ShapeFlag::Valid) + !!(parent_index != ~0u) * unsigned(ShapeFlag::Parented);
+  shape->parent_index = parent_index;
+  shape->next = kListEnd;
+
+  if (chain_index != kListEnd)
+  {
+    // Add to a shape chain.
+    assert(chain_index < _shapes.size());
+    Shape &chain_head = _shapes[chain_index];
+    shape->next = chain_head.next;
+    chain_head.next = id;
+    shape->flags |= unsigned(ShapeFlag::ChainSegment);
+  }
+
   return id;
 }
 
@@ -136,13 +152,26 @@ bool ShapeCache::remove(unsigned id)
 {
   if (id < _shapes.size())
   {
-    Shape &shape = _shapes[id];
-    if (shape.free_next == kFreeListEnd)
+    // Remove shapes while valid to the end of the chain.
+    // The first item, specified by @p id, must not be part of a chain.
+    unsigned remove_next = id;
+    if ((_shapes[remove_next].flags & (unsigned(ShapeFlag::Valid) | unsigned(ShapeFlag::ChainSegment))) == 0u)
     {
-      _culler->release(shape.bounds_id);
-      shape.bounds_id = _free_list;
-      _free_list = id;
-      return true;
+      bool removed = false;
+      while (remove_next != kListEnd && (_shapes[remove_next].flags & unsigned(ShapeFlag::Valid)) == 0)
+      {
+        Shape &shape = _shapes[remove_next];
+        if (shape.flags & (unsigned(ShapeFlag::Valid)) == 0u)
+        {
+          _culler->release(shape.bounds_id);
+          shape.flags = 0u;
+          remove_next = shape.next;
+          shape.next = _free_list;
+          _free_list = remove_next;
+          removed = true;
+        }
+      }
+      return removed;
     }
   }
   return false;
@@ -153,7 +182,7 @@ bool ShapeCache::update(unsigned id, const Magnum::Matrix4 &transform, const Mag
   if (id < _shapes.size())
   {
     Shape &shape = _shapes[id];
-    if (shape.free_next == kFreeListEnd)
+    if (shape.flags & unsigned(ShapeFlag::Valid))
     {
       shape.instance.transform = transform;
       shape.instance.colour = colour;
@@ -175,7 +204,7 @@ bool ShapeCache::get(unsigned id, Magnum::Matrix4 &transform, Magnum::Color4 &co
   if (id < _shapes.size())
   {
     const Shape &shape = _shapes[id];
-    if (shape.free_next == kFreeListEnd)
+    if (shape.flags & unsigned(ShapeFlag::Valid))
     {
       transform = shape.instance.transform;
       colour = shape.instance.colour;
@@ -192,7 +221,7 @@ void ShapeCache::clear()
     _culler->release(shape.bounds_id);
   }
   _shapes.clear();
-  _free_list = kFreeListEnd;
+  _free_list = kListEnd;
 }
 
 
@@ -231,6 +260,7 @@ void ShapeCache::buildInstanceBuffers(unsigned render_mark)
   auto &culler = *_culler;
   unsigned cur_instance_buffer_idx = 0;
 
+  // Function to upload the contents of the marshalling buffer to the GPU.
   const auto upload_buffer = [this, &cur_instance_buffer_idx]() {
     // Upload current data.
     _instance_buffers[cur_instance_buffer_idx].buffer.setData(_marshal_buffer, Magnum::GL::BufferUsage::DynamicDraw);
@@ -242,11 +272,22 @@ void ShapeCache::buildInstanceBuffers(unsigned render_mark)
     ++cur_instance_buffer_idx;
   };
 
+  // Iterate shapes and marshal/upload.
   for (auto &shape : _shapes)
   {
-    if (shape.free_next == kFreeListEnd && culler.isVisible(shape.bounds_id))
+    if ((shape.flags & unsigned(ShapeFlag::Valid)) && culler.isVisible(shape.bounds_id))
     {
-      _marshal_buffer[_instance_buffers[cur_instance_buffer_idx].count++] = shape.instance;
+      const unsigned marshal_index = _instance_buffers[cur_instance_buffer_idx].count;
+      ++_instance_buffers[cur_instance_buffer_idx].count;
+      _marshal_buffer[marshal_index] = shape.instance;
+      unsigned parent_index = shape.parent_index;
+      // Include the parent transform(s).
+      while (parent_index != ~0u)
+      {
+        _marshal_buffer[marshal_index].transform =
+          _shapes[parent_index].instance.transform * _marshal_buffer[marshal_index].transform;
+        parent_index = _shapes[parent_index].parent_index;
+      }
 
       // Upload if at limit.
       if (_instance_buffers[cur_instance_buffer_idx].count == _marshal_buffer.size())

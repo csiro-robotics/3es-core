@@ -6,7 +6,9 @@
 #include "painter/3escapsule.h"
 #include "painter/3escylinder.h"
 #include "painter/3esplane.h"
+#include "painter/3espose.h"
 #include "painter/3essphere.h"
+#include "painter/3esstar.h"
 
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
@@ -98,12 +100,9 @@ void Viewer::initialisePainters()
   _painters.emplace(SIdCylinder, std::make_shared<painter::Cylinder>(_culler));
   _painters.emplace(SIdCapsule, std::make_shared<painter::Capsule>(_culler));
   _painters.emplace(SIdPlane, std::make_shared<painter::Plane>(_culler));
+  _painters.emplace(SIdStar, std::make_shared<painter::Star>(_culler));
   _painters.emplace(SIdArrow, std::make_shared<painter::Arrow>(_culler));
-
-  // SIdCapsule,
-  // SIdPlane,
-  // SIdStar,
-  // SIdPose,  ///< A set of axes representing a pose. Coloured XYZ => RGB.
+  _painters.emplace(SIdPose, std::make_shared<painter::Pose>(_culler));
 
   Magnum::Matrix4 shape_transform = {};
 
@@ -172,6 +171,15 @@ void Viewer::initialisePainters()
                            Magnum::Color4{ 1, 0, 1, 0.4f });
 
   x = -7.5f;
+  shape_transform = Magnum::Matrix4::scaling({ 1.0f, 1.0f, 1.0f });
+  _painters[SIdStar]->add(Id(1), painter::ShapePainter::Type::Solid,
+                          Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+  _painters[SIdStar]->add(Id(1), painter::ShapePainter::Type::Wireframe,
+                          Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+  _painters[SIdStar]->add(Id(1), painter::ShapePainter::Type::Transparent,
+                          Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1, 0.4f });
+
+  x = 10.0f;
   shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 0.1f, 0.1f, 1.0f });
   _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Solid,
                            Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
@@ -180,6 +188,15 @@ void Viewer::initialisePainters()
   _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Transparent,
                            Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
                            Magnum::Color4{ 1, 0, 1, 0.4f });
+
+  x = -10.0f;
+  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 1.0f, 1.0f, 1.0f });
+  _painters[SIdPose]->add(Id(1), painter::ShapePainter::Type::Solid,
+                          Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 1 });
+  _painters[SIdPose]->add(Id(1), painter::ShapePainter::Type::Wireframe,
+                          Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 1 });
+  _painters[SIdPose]->add(Id(1), painter::ShapePainter::Type::Transparent,
+                          Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1, 0.4f });
 }
 
 

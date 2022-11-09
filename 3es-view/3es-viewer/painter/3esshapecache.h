@@ -87,6 +87,16 @@ private:
 /// back to the @c BoundsCuller .
 ///
 /// Internally the cache maintains a free list which recycles IDs/indices in a LIFO order.
+///
+/// On adding shapes may be chained together and/or parented. Shapes with a parent, use the parent transform in
+/// calculating the final transform. Chains primarily support multi-shape specifications allowing shapes to be addressed
+/// collectively. Shape chains are built by first adding the primary shape, often also the parent shape, and noting
+/// its index. Other shapes in the chain are then added, passing this index to the @c add() function. The primary
+/// shape remains at the head of the chain, with additional shapes inserted just after the primary shape.
+///
+/// Shapes in a chain are updated individually, with the exception that parent shape transforms affect other shapes.
+/// Shape chains are removed collectively by specifying the shape chain head - the primary chain shape index.
+/// Removing any other shape in the chain fails.
 class ShapeCache
 {
 public:
@@ -156,7 +166,7 @@ public:
                                     Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents);
 
   /// Internal free list terminator value.
-  static constexpr unsigned kFreeListEnd = ~0u;
+  static constexpr unsigned kListEnd = ~0u;
 
   /// @overload
   ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
@@ -195,8 +205,12 @@ public:
   /// Add a shape instance.
   /// @param transform The shape instance transformation.
   /// @param colour The shape instance colour.
+  /// @param parent_index Index of the parent shape whose transform also affects this shape. Use ~0u for no parent.
+  ///   Must be valid when specified - i.e., the parent must be added first and removed last.
+  /// @param chain_head Index to the first item in a shape chain. See shape chaining in the class documentation.
   /// @return The shape ID/index. Must be used to @c remove() or @c update() the shape.
-  unsigned add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
+  unsigned add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour, unsigned parent_index = ~0u,
+               unsigned chain_head = kListEnd);
   /// Remove the shape with the given @p id .
   /// @param id Id of the shape to remove.
   /// @return True if the @p id was valid and an instance removed.
@@ -231,25 +245,38 @@ public:
   void draw(unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
 
 private:
+  /// Flags for @c Shape items
+  enum class ShapeFlag : unsigned
+  {
+    Valid = (1u << 0u),         ///< Indicates the shape is valid, and not part of the free list.
+    Parented = (1u << 1u),      ///< Shape has a parent.
+    ChainSegment = (1u << 2u),  ///< Shape is part of a chain (and should not be removed).
+  };
+
   /// Shape instance data.
   struct ShapeInstance
   {
     /// The instance transformation matrix.
-    Magnum::Matrix4 transform;
+    Magnum::Matrix4 transform = {};
     /// The instance colour.
-    Magnum::Color4 colour;
+    Magnum::Color4 colour = {};
   };
 
   /// An entry in the shape cache.
   struct Shape
   {
     /// Shape entry instance data.
-    ShapeInstance instance;
+    ShapeInstance instance = {};
     /// The shape entry @c BoundsCuller entry ID.
-    BoundsId bounds_id;
-    /// Free list (linked list) next item ID. This value is @c kFreeListEnd when not on the free list. Otherwise it
-    /// is set to the index of the next entry in the free list.
-    unsigned free_next = kFreeListEnd;
+    BoundsId bounds_id = ~0u;
+    /// See @c ShapeFlag .
+    unsigned flags = 0u;
+    /// Index of the "parent" shape. The parent shape transform also affects this shape's final transformation.
+    unsigned parent_index = ~0u;
+    /// Shape list (linked list) next item ID. Used to link the free list when a shape is not in used. Used to specify
+    /// a multi-shape chain dependency for valid shapes. This value is @c kListEnd for the end of the list.
+    /// Otherwise it is set to the index of the next entry in the free list.
+    unsigned next = kListEnd;
   };
 
   /// Instance buffer used to render shapes. Only valid during the @c draw() call.
@@ -269,8 +296,8 @@ private:
   std::shared_ptr<BoundsCuller> _culler;
   /// Shape instance array.
   std::vector<Shape> _shapes;
-  /// Free list head terminated by a value of @c kFreeListEnd .
-  unsigned _free_list = kFreeListEnd;
+  /// Free list head terminated by a value of @c kListEnd .
+  unsigned _free_list = kListEnd;
   /// Mesh parts to render.
   std::vector<Part> _parts;
   /// Transformation matrix applied to the shape before rendering. This allows the Magnum primitives to be transformed

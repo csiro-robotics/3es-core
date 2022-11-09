@@ -183,7 +183,7 @@ struct VertexMapper<VertexPNC>
     const auto ny = src_normals.get<float>(src_index, 1);
     const auto nz = src_normals.get<float>(src_index, 2);
     vertex.normal = Magnum::Vector3(nx, ny, nz);
-    const auto c = src_colours.get<Colour>(src_index);
+    const auto c = Colour(src_colours.get<uint32_t>(src_index));
     vertex.colour = Magnum::Color4(Magnum::Color4ub(c.r, c.g, c.b, c.a));
   }
 
