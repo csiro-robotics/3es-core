@@ -224,11 +224,17 @@ public:
 
   /// Get the details of an existing shape instance.
   /// @param id Id of the shape to update.
+  //// @param apply_parent_transform Apply parentage when retreving the transform?
   /// @param[out] transform Set to the shape instance transformation.
   /// @param[out] colour Set to the shape instance colour.
   /// @return True if the @p id was valid and an instance data retrieved. The out values are undefined when @p id is
   /// invalid.
-  bool get(unsigned id, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const;
+  bool get(unsigned id, bool apply_parent_transform, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const;
+  /// @overload
+  bool get(unsigned id, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
+  {
+    return get(id, false, transform, colour);
+  }
 
   /// Clear the shape cache, removing all shapes.
   ///

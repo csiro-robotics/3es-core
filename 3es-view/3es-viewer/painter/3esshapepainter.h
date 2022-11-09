@@ -37,6 +37,25 @@ public:
     Transparent,  ///< Transparent shape rendering (triangles).
   };
 
+  /// An id returned from @p add() which can be passed to @c addSubShape() to create child shapes.
+  class ParentId
+  {
+  public:
+    inline explicit ParentId(const unsigned id)
+      : _id(id)
+    {}
+    ParentId() = default;
+    ParentId(const ParentId &other) = default;
+    ParentId(ParentId &&other) = default;
+
+    /// Internal ID value.
+    /// @return Internal value.
+    inline unsigned id() const { return _id; }
+
+  private:
+    unsigned _id = ~0u;
+  };
+
   /// Construct a shape painter.
   /// @param culler The @c BoundsCuller used for visibility checking.
   /// @param solid Mesh used for solid rendering.
@@ -52,12 +71,33 @@ public:
   /// Destructor.
   ~ShapePainter();
 
+  /// Clear the painter, removing all shapes.
+  virtual void reset();
+
   /// Add a shape with the given @p id to paint.
   /// @param id The object @c Id for the shape. A zero @c Id is a transient shape and is removed between draw calls.
   /// @param type The draw type for the shape.
   /// @param transform The shape transformation.
   /// @param colour The shape colour.
-  virtual void add(const Id &id, Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
+  /// @return An id value which can be passed to @c addSubShape() to add child shapes. This is transient and should
+  /// only be used immediately after calling @c add() to call @c addSubShape() .
+  virtual ParentId add(const Id &id, Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
+
+  /// Add a sub shape part.
+  ///
+  /// This supports multi-shape messages where multiple shapes are part of the same @p id . Shapes added with
+  /// @c addSubShape() are essentially children of the first shape in a scene hierarchy sense, and the primary shape
+  /// transform also affects children. Removing a shape also removes its sub shapes.
+  ///
+  /// To add a sub shape, first call @p add() with a new @p id , then call @c addSubShape() for each sub/child shape.
+  /// Remember passing an identity @p transform for a sub shape co-locates the sub shape with the first shape.
+  ///
+  /// @param parent_id The parent id obtained from @c add() .
+  /// @param type The draw type for the shape.
+  /// @param transform The shape transformation.
+  /// @param colour The shape colour.
+  virtual void addSubShape(const ParentId &parent_id, Type type, const Magnum::Matrix4 &transform,
+                           const Magnum::Color4 &colour);
 
   /// Update an existing shape (non transient).
   ///
@@ -68,6 +108,20 @@ public:
   /// @param colour The new shape colour.
   /// @return True if the @p id can be resolved and the shape updated.
   virtual bool update(const Id &id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
+
+  /// Read the current proeprties for a shape instance.
+  /// @param id Shape id of interest.
+  /// @param include_parent_transform True to have @p transform include the parent's transform.
+  /// @param[out] transform Transform output. Does not include any parent transform.
+  /// @param[out] colour Colour output.
+  /// @return True if @p id is valid.
+  virtual bool readProperties(const Id &id, bool include_parent_transform, Magnum::Matrix4 &transform,
+                              Magnum::Color4 &colour) const;
+  /// overload
+  inline bool readProperties(const Id &id, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
+  {
+    return readProperties(id, false, transform, colour);
+  }
 
   /// Remove a shape by @c Id .
   ///
@@ -102,7 +156,11 @@ protected:
   /// @todo Use a different map; MSVC @c std::unordered_map performance is terrible.
   using IdIndexMap = std::unordered_map<Id, CacheIndex>;
 
+  virtual unsigned addShape(Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
+                            const ParentId &parent_id = ParentId());
+
   ShapeCache *cacheForType(Type type);
+  const ShapeCache *cacheForType(Type type) const;
 
   /// Solid shape rendering cache.
   std::unique_ptr<ShapeCache> _solid_cache;

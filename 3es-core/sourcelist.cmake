@@ -17,6 +17,7 @@ list(APPEND PUBLIC_HEADERS
   3esexception.h
   3esfeature.h
   3esintarg.h
+  3eslog.h
   3esmaths.h
   3esmathsmanip.h
   3esmathsstream.h
@@ -108,6 +109,7 @@ list(APPEND SOURCES
   3esendian.cpp
   3esexception.cpp
   3esfeature.cpp
+  3eslog.cpp
   3esmathsmanip.cpp
   3esmatrix3.cpp
   3esmatrix4.cpp

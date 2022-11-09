@@ -22,7 +22,8 @@ public:
   /// @param culler Bounds culler
   Capsule(std::shared_ptr<BoundsCuller> culler);
 
-  void add(const Id &id, Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour) override;
+  void reset() override;
+
   bool update(const Id &id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour) override;
   bool remove(const Id &id) override;
 
@@ -54,6 +55,10 @@ public:
   /// Wireframe mesh creation function to generate the top end cap part.
   /// @return A wireframe mesh representation.
   static Magnum::GL::Mesh wireframeMeshCap();
+
+protected:
+  unsigned Capsule::addShape(Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
+                             const ParentId &parent_id) override;
 
 private:
   static void buildEndCapSolid(SimpleMesh &mesh, bool bottomCap);

@@ -8,6 +8,8 @@ list(APPEND PUBLIC_HEADERS
   camera/3escamera.h
   camera/3escontroller.h
   camera/3esfly.h
+  handler/3esmessage.h
+  handler/3esshape.h
   painter/3esshapecache.h
   painter/3esshapepainter.h
   painter/3esarrow.h
@@ -30,6 +32,8 @@ list(APPEND SOURCES
   camera/3escamera.cpp
   camera/3escontroller.cpp
   camera/3esfly.cpp
+  handler/3esmessage.cpp
+  handler/3esshape.cpp
   painter/3esshapecache.cpp
   painter/3esshapepainter.cpp
   painter/3esarrow.cpp

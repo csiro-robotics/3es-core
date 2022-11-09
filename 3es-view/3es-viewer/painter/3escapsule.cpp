@@ -41,26 +41,15 @@ Capsule::Capsule(std::shared_ptr<BoundsCuller> culler)
     std::make_unique<ShapeCache>(culler, Part{ solidMeshCapBottom() }, _transparent_cache->shader(), calculateBounds);
 }
 
-void Capsule::add(const Id &id, Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
+
+void Capsule::reset()
 {
-  // Add as is for the cylinder part.
-  ShapePainter::add(id, type, transform, colour);
-  std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(type);
-  if (!end_caches)
+  ShapePainter::reset();
+  for (size_t i = 0; i < _solid_end_caps.size(); ++i)
   {
-    return;
-  }
-  // Find what we just added to add to the end cap caches.
-  const auto search = _id_index_map.find(id);
-  if (search != _id_index_map.end())
-  {
-    // Modify the transform for the end caps. We change the Z scale to Z translation, then match Z scale to X/Y.
-    // This makes the spherical end caps position and scale correctly.
-    const auto end_transforms = calcEndCapTransforms(transform);
-    for (size_t i = 0; i < end_transforms.size(); ++i)
-    {
-      (*end_caches)[i]->add(end_transforms[i], colour);
-    }
+    _solid_end_caps[i]->clear();
+    _wireframe_end_caps[i]->clear();
+    _transparent_end_caps[i]->clear();
   }
 }
 
@@ -257,6 +246,28 @@ Magnum::GL::Mesh Capsule::solidMeshCapBottom()
 Magnum::GL::Mesh Capsule::wireframeMeshCap()
 {
   return Sphere::wireframeMesh();
+}
+
+
+unsigned Capsule::addShape(Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
+                           const ParentId &parent_id)
+{
+  // Add as is for the cylinder part.
+  unsigned index = ShapePainter::addShape(type, transform, colour, parent_id);
+  std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(type);
+  if (index == ~0u || !end_caches)
+  {
+    return index;
+  }
+
+  // Modify the transform for the end caps. We change the Z scale to Z translation, then match Z scale to X/Y.
+  // This makes the spherical end caps position and scale correctly.
+  const auto end_transforms = calcEndCapTransforms(transform);
+  for (size_t i = 0; i < end_transforms.size(); ++i)
+  {
+    (*end_caches)[i]->add(end_transforms[i], colour, parent_id.id(), parent_id.id());
+  }
+  return index;
 }
 
 

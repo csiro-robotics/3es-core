@@ -25,34 +25,65 @@ ShapePainter::ShapePainter(std::shared_ptr<BoundsCuller> culler, const std::vect
   _transparent_cache->setBoundsCalculator(bounds_calculator);
 }
 
+
 ShapePainter::~ShapePainter() = default;
 
-void ShapePainter::add(const Id &id, Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
+
+void ShapePainter::reset()
+{
+  _solid_cache->clear();
+  _wireframe_cache->clear();
+  _transparent_cache->clear();
+  _solid_transients.clear();
+  _wireframe_transients.clear();
+  _transparent_transients.clear();
+  _id_index_map.clear();
+}
+
+
+ShapePainter::ParentId ShapePainter::add(const Id &id, Type type, const Magnum::Matrix4 &transform,
+                                         const Magnum::Color4 &colour)
+{
+  unsigned index = addShape(type, transform, colour);
+  if (id == Id())
+  {
+    // Transient object.
+    switch (type)
+    {
+    case Type::Solid:
+      _solid_transients.emplace_back(index);
+      break;
+    case Type::Wireframe:
+      _wireframe_transients.emplace_back(index);
+      break;
+    case Type::Transparent:
+      _transparent_transients.emplace_back(index);
+      break;
+    }
+  }
+  else
+  {
+    _id_index_map.emplace(id, CacheIndex{ type, index });
+  }
+  return ParentId(index);
+}
+
+
+void ShapePainter::addSubShape(const ParentId &parent_id, Type type, const Magnum::Matrix4 &transform,
+                               const Magnum::Color4 &colour)
+{
+  addShape(type, transform, colour, parent_id);
+}
+
+
+unsigned ShapePainter::addShape(Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
+                                const ParentId &parent_id)
 {
   if (ShapeCache *cache = cacheForType(type))
   {
-    unsigned index = cache->add(transform, colour);
-    if (id == Id())
-    {
-      // Transient object.
-      switch (type)
-      {
-      case Type::Solid:
-        _solid_transients.emplace_back(index);
-        break;
-      case Type::Wireframe:
-        _wireframe_transients.emplace_back(index);
-        break;
-      case Type::Transparent:
-        _transparent_transients.emplace_back(index);
-        break;
-      }
-    }
-    else
-    {
-      _id_index_map.emplace(id, CacheIndex{ type, index });
-    }
+    return cache->add(transform, colour, parent_id.id(), parent_id.id());
   }
+  return ~0u;
 }
 
 
@@ -68,6 +99,21 @@ bool ShapePainter::update(const Id &id, const Magnum::Matrix4 &transform, const 
     return true;
   }
 
+  return false;
+}
+
+
+bool ShapePainter::readProperties(const Id &id, bool include_parent_transform, Magnum::Matrix4 &transform,
+                                  Magnum::Color4 &colour) const
+{
+  const auto search = _id_index_map.find(id);
+  if (search != _id_index_map.end())
+  {
+    if (const ShapeCache *cache = cacheForType(search->second.type))
+    {
+      return cache->get(search->second.index, include_parent_transform, transform, colour);
+    }
+  }
   return false;
 }
 
@@ -126,6 +172,23 @@ void ShapePainter::endFrame()
 
 
 ShapeCache *ShapePainter::cacheForType(Type type)
+{
+  switch (type)
+  {
+  case Type::Solid:
+    return _solid_cache.get();
+  case Type::Transparent:
+    return _transparent_cache.get();
+  case Type::Wireframe:
+    return _wireframe_cache.get();
+  default:
+    break;
+  }
+  return nullptr;
+}
+
+
+const ShapeCache *ShapePainter::cacheForType(Type type) const
 {
   switch (type)
   {

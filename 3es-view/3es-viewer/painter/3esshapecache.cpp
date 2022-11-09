@@ -199,18 +199,22 @@ bool ShapeCache::update(unsigned id, const Magnum::Matrix4 &transform, const Mag
 }
 
 
-bool ShapeCache::get(unsigned id, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
+bool ShapeCache::get(unsigned id, bool apply_parent_transform, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
 {
-  if (id < _shapes.size())
+  bool found = false;
+  transform = Magnum::Matrix4();
+  while (id < _shapes.size())
   {
     const Shape &shape = _shapes[id];
     if (shape.flags & unsigned(ShapeFlag::Valid))
     {
-      transform = shape.instance.transform;
+      found = true;
+      transform = shape.instance.transform * transform;
       colour = shape.instance.colour;
+      id = (shape.flags & unsigned(ShapeFlag::Parented)) ? shape.parent_index : kListEnd;
     }
   }
-  return false;
+  return found;
 }
 
 

@@ -18,7 +18,7 @@ namespace tes
 /// The @c MultiShape allows groups of shapes of the same type to be created and managed using a single shape ID.
 ///
 /// The @c MultiShape is tailored to primitive shapes only. All the shapes provided @c MultiShape must be of the same
-///  type and must not be complex shapes (see @c Shape::isComplex() ). The @c MultiShape supports a maximum of
+/// type and must not be complex shapes (see @c Shape::isComplex() ). The @c MultiShape supports a maximum of
 /// @c ShapeCountLimit items.
 ///
 /// It is up to the user to respect the constraints above or undefine behaviour will occur.
