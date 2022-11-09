@@ -129,7 +129,7 @@ Edl &Edl::setClipParams(Magnum::Float near, Magnum::Float far, bool perspective,
 
 Edl &Edl::setScreenParams(const Magnum::Vector2i &view_size)
 {
-  setUniform(_projectionParamsUniform, view_size);
+  setUniform(_screenParamsUniform, view_size);
   return *this;
 }
 

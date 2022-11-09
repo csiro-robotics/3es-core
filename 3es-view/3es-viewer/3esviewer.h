@@ -11,7 +11,7 @@
 #include <Magnum/GL/Texture.h>
 #include <Magnum/Math/Color.h>
 #include <Magnum/Platform/GlfwApplication.h>
-#include <Magnum/Shaders/Phong.h>
+#include <Magnum/Shaders/Flat.h>
 
 #include <array>
 #include <chrono>
@@ -56,7 +56,6 @@ private:
   struct InstanceData
   {
     Magnum::Matrix4 transform;
-    Magnum::Matrix3x3 normal_matrix;
     Magnum::Color3 colour;
   };
 
@@ -64,9 +63,9 @@ private:
   {
     struct Settings
     {
-      float radius = 1.0f;
-      float linear_scale = 1.0f;
-      float exponential_scale = 1.0f;
+      float radius = 4.0f;
+      float linear_scale = 4.0f;
+      float exponential_scale = 4.0f;
       float near_clip = 1.0f;
       float far_clip = 100.0f;
       Magnum::Vector2i view_size{ 1 };
@@ -91,7 +90,7 @@ private:
   Magnum::GL::Buffer _instance_buffer{ Magnum::NoCreate };
   Magnum::GL::Mesh _mesh;
 
-  Magnum::Shaders::Phong _shader{ Magnum::NoCreate };
+  Magnum::Shaders::Flat3D _shader{ Magnum::NoCreate };
 
   Magnum::Matrix4 _projection;
   camera::Camera _camera;

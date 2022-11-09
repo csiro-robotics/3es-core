@@ -17,17 +17,12 @@ uniform float exponentialScale;
 
 out vec3 fragColour;
 
-float linearDepth(float depth)
-{
-  return projectionParams.y / (depth - projectionParams.x);
-}
-
 float linearEyeDepth(float depth)
 {
-  return linearDepth(depth) * (projectionParams.w - projectionParams.z) + projectionParams.z;
+  return projectionParams.z * projectionParams.w / (projectionParams.w + depth * (projectionParams.z - projectionParams.w));
 }
 
-float obscurance(float depth, vec2 uv)
+float obscurance(float depth)
 {
   // Simulated light direction. I noted that I got much better edge outlining by
   // making it (0, 0, -1). Using (0, 0, 1) tends to eat away the colour of lines and
@@ -36,7 +31,7 @@ float obscurance(float depth, vec2 uv)
   // then see if I can remove the outline altogether where we have such edge transition.
   vec3 lightDir = vec3(0, 0, 1);
   vec4 lightPlane = vec4(lightDir, -dot(lightDir, vec3(0, 0, depth)));
-  vec2 uvRadius = radius / vec2(screenParams.x, screenParams.y);
+  vec2 uvRadius = radius / screenParams;
   vec2 neighbourRelativeUv, neighbourUv;
   float neighbourDepth, inPlaneNeighbourDepth;
   float sum = 0.0;
@@ -52,7 +47,7 @@ float obscurance(float depth, vec2 uv)
       }
 
       neighbourRelativeUv.x = uvRadius.x * x;
-      neighbourUv = uv + neighbourRelativeUv;
+      neighbourUv = inPs.uv0 + neighbourRelativeUv;
       float neighbourDepth = texture(depthTexture, neighbourUv).x;
       neighbourDepth = linearEyeDepth(neighbourDepth);
       // sum += (neighbourDepth > depth) ? 0.1 : 0.0;
@@ -73,7 +68,7 @@ void main()
   float depth = texture(depthTexture, inPs.uv0).x;
   depth = linearEyeDepth(depth);
 
-  float edlFactor = obscurance(depth, inPs.uv0);
+  float edlFactor = obscurance(depth);
   edlFactor = exp(-exponentialScale * edlFactor);
 
   fragColour = edlFactor * colour;
