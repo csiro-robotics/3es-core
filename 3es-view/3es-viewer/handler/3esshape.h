@@ -44,30 +44,31 @@ public:
 
   void initialise() override;
   void reset() override;
-  void beginFrame(unsigned frame_number, unsigned render_mark, bool maintain_transient) override;
-  void endFrame(unsigned frame_number, unsigned render_mark) override;
+  void beginFrame(const FrameStamp &stamp) override;
+  void endFrame(const FrameStamp &stamp) override;
 
-  void draw(DrawPass pass, unsigned frame_number, unsigned render_mark,
-            const Magnum::Matrix4 &projection_matrix) override;
+  void draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
 
-  void readMessage(PacketReader &reader) override;
-  void serialise(Connection &out, ServerInfoMessage &info) override;
+  void readMessage(PacketReader &reader, FrameNumber frame_number) override;
+  void serialise(Connection &out, FrameNumber frame_number, ServerInfoMessage &info) override;
 
-  /// Compose the object transform from the given object attributs.
+  /// Compose the object transform from the given object attributes.
   /// @param attrs Object attributes as read from the message payload.
   /// @return The matrix transformation for the shape.
   virtual Magnum::Matrix4 composeTransform(const ObjectAttributes &attrs) const;
-  /// Decompose the object transform to the given object attributs.
-  /// @param transform The transormation matrix to decompose.
+  /// Decompose the object transform to the given object attributes.
+  /// @param transform The transformation matrix to decompose.
   /// @param attrs Object attributes to write to.
   /// @return The matrix transformation for the shape.
   virtual void decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttributes &attrs) const;
 
 protected:
-  virtual bool handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader);
-  virtual bool handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader);
-  virtual bool handleDestroy(const DestroyMessage &msg, PacketReader &reader);
-  virtual bool handleData(const DataMessage &msg, PacketReader &reader);
+  virtual bool handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader,
+                            FrameNumber frame_number);
+  virtual bool handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader,
+                            FrameNumber frame_number);
+  virtual bool handleDestroy(const DestroyMessage &msg, PacketReader &reader, FrameNumber frame_number);
+  virtual bool handleData(const DataMessage &msg, PacketReader &reader, FrameNumber frame_number);
 
 private:
   std::shared_ptr<painter::ShapePainter> _painter;

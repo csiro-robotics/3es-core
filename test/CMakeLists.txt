@@ -17,3 +17,7 @@ if(GTEST_FOUND)
 else(GTEST_FOUND)
   message("Missing GTest. Unit tests will not be built.")
 endif(GTEST_FOUND)
+
+if(TES_BUILD_VIEWER)
+  add_subdirectory(3est-viewer)
+endif(TES_BUILD_VIEWER)

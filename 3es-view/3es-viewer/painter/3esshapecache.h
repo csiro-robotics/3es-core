@@ -225,14 +225,14 @@ public:
   /// @param id Id of the shape to remove.
   /// @param frame_number Last frame on which the shape is visible.
   /// @return True if the @p id is valid.
-  bool endShape(unsigned id, unsigned frame_number);
+  bool endShape(unsigned id, FrameNumber frame_number);
   /// Update an existing shape instance.
   /// @param id Id of the shape to update.
   /// @param frame_number The frame on which the shape changes.
   /// @param transform The shape instance transformation.
   /// @param colour The shape instance colour.
   /// @return True if the @p id was valid and an instance updated.
-  bool update(unsigned id, unsigned frame_number, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
+  bool update(unsigned id, FrameNumber frame_number, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
 
   /// Get the details of an existing shape instance at the @c activeWindow().startFrame() .
   /// @param id Id of the shape to update.
@@ -241,12 +241,12 @@ public:
   /// @param[out] colour Set to the shape instance colour.
   /// @return True if the @p id was valid and an instance data retrieved. The out values are undefined when @p id is
   /// invalid.
-  bool get(unsigned id, bool apply_parent_transform, Magnum::Matrix4 &transform, Magnum::Color4 &colour,
-           unsigned frame_number) const;
+  bool get(unsigned id, FrameNumber frame_number, bool apply_parent_transform, Magnum::Matrix4 &transform,
+           Magnum::Color4 &colour) const;
   /// @overload
-  bool get(unsigned id, Magnum::Matrix4 &transform, Magnum::Color4 &colour, unsigned frame_number) const
+  bool get(unsigned id, FrameNumber frame_number, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
   {
-    return get(id, false, transform, colour, frame_number);
+    return get(id, frame_number, false, transform, colour);
   }
 
   /// Clear the shape cache, removing all shapes.
@@ -259,14 +259,13 @@ public:
   /// Before calling this function, the @c BoundsCuller::cull() should be called with the same @p render_mark , which
   /// ensure the bounds entries are marked as visibly for the @p render_mark .
   ///
-  /// @param frame_number The frame number to draw shapes for.
-  /// @param render_mark The render visibility mark.
+  /// @param stamp The frame stamp to draw shapes for.
   /// @param projection_matrix World to projection matrix.
-  void draw(unsigned frame_number, unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
+  void draw(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix);
 
   /// Expire all shapes which were viewable before, but not at @p before_frame .
   /// @param before_frame The frame before which to expire shapes.
-  void expireShapes(unsigned before_frame);
+  void expireShapes(FrameNumber before_frame);
 
 private:
   /// Flags for @c Shape items
@@ -349,7 +348,7 @@ private:
   /// Fill the @p InstanceBuffer objects in @c _instance_buffers .
   /// @param frame_number The frame number to draw shapes for.
   /// @param render_mark Visibility render mark used to determine shape instance visibility in the @c BoundsCuller .
-  void buildInstanceBuffers(unsigned frame_number, unsigned render_mark);
+  void buildInstanceBuffers(const FrameStamp &stamp);
 
   /// The bounds culler used to determine visibility.
   std::shared_ptr<BoundsCuller> _culler;

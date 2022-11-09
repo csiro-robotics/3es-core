@@ -30,28 +30,25 @@ void Shape::reset()
 }
 
 
-void Shape::beginFrame(unsigned frame_number, unsigned render_mark, bool maintain_transient)
+void Shape::beginFrame(const FrameStamp &stamp)
 {}
 
 
-void Shape::endFrame(unsigned frame_number, unsigned render_mark)
+void Shape::endFrame(const FrameStamp &stamp)
 {
-  (void)frame_number;
-  (void)render_mark;
-  _painter->endFrame();
+  _painter->endFrame(stamp.frame_number);
 }
 
 
-void Shape::draw(DrawPass pass, unsigned frame_number, unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
+void Shape::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
 {
-  (void)frame_number;
   switch (pass)
   {
   case DrawPass::Opaque:
-    _painter->drawOpaque(render_mark, projection_matrix);
+    _painter->drawOpaque(stamp, projection_matrix);
     break;
   case DrawPass::Transparent:
-    _painter->drawTransparent(render_mark, projection_matrix);
+    _painter->drawTransparent(stamp, projection_matrix);
     break;
   default:
     break;
@@ -59,7 +56,7 @@ void Shape::draw(DrawPass pass, unsigned frame_number, unsigned render_mark, con
 }
 
 
-void Shape::readMessage(PacketReader &reader)
+void Shape::readMessage(PacketReader &reader, FrameNumber frame_number)
 {
   assert(reader.routingId() == routingId());
   ObjectAttributes attrs = {};
@@ -69,17 +66,17 @@ void Shape::readMessage(PacketReader &reader)
   {
   case OIdCreate: {
     CreateMessage msg;
-    ok = msg.read(reader, attrs) && handleCreate(msg, attrs, reader);
+    ok = msg.read(reader, attrs) && handleCreate(msg, attrs, reader, frame_number);
     break;
   }
   case OIdDestroy: {
     DestroyMessage msg;
-    ok = msg.read(reader) && handleDestroy(msg, reader);
+    ok = msg.read(reader) && handleDestroy(msg, reader, frame_number);
     break;
   }
   case OIdUpdate: {
     UpdateMessage msg;
-    ok = msg.read(reader, attrs) && handleUpdate(msg, attrs, reader);
+    ok = msg.read(reader, attrs) && handleUpdate(msg, attrs, reader, frame_number);
     break;
   }
   default:
@@ -95,7 +92,7 @@ void Shape::readMessage(PacketReader &reader)
 }
 
 
-void Shape::serialise(Connection &out, ServerInfoMessage &info)
+void Shape::serialise(Connection &out, FrameNumber frame_number, ServerInfoMessage &info)
 {
   info = _server_info;
   std::array<uint8_t, (1u << 16u) - 1> buffer;
@@ -163,7 +160,8 @@ void Shape::decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttribute
 }
 
 
-bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader)
+bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader,
+                         FrameNumber frame_number)
 {
   painter::ShapePainter::Type draw_type = painter::ShapePainter::Type::Solid;
 
@@ -180,12 +178,13 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
 
   if (msg.flags & OFReplace)
   {
-    _painter->remove(id);
+    _painter->remove(id, frame_number);
   }
 
   auto transform = composeTransform(attrs);
   auto c = Colour(attrs.colour);
-  const auto parent_id = _painter->add(id, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
+  const auto parent_id =
+    _painter->add(id, frame_number, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
 
   if (msg.flags & OFMultiShape)
   {
@@ -201,7 +200,8 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
       }
       transform = composeTransform(attrs);
       c = Colour(attrs.colour);
-      _painter->addSubShape(parent_id, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
+      _painter->addSubShape(parent_id, frame_number, draw_type, transform,
+                            Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
     }
   }
 
@@ -209,7 +209,8 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
 }
 
 
-bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader)
+bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader,
+                         FrameNumber frame_number)
 {
   const Id id(msg.id);
   Magnum::Matrix4 transform = {};
@@ -255,19 +256,19 @@ bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs
     transform = composeTransform(attrs);
     colour = Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af());
   }
-  _painter->update(id, transform, colour);
+  _painter->update(id, frame_number, transform, colour);
   return true;
 }
 
 
-bool Shape::handleDestroy(const DestroyMessage &msg, PacketReader &reader)
+bool Shape::handleDestroy(const DestroyMessage &msg, PacketReader &reader, FrameNumber frame_number)
 {
   const Id id(msg.id);
-  return _painter->remove(id);
+  return _painter->remove(id, frame_number);
 }
 
 
-bool Shape::handleData(const DataMessage &msg, PacketReader &reader)
+bool Shape::handleData(const DataMessage &msg, PacketReader &reader, FrameNumber frame_number)
 {
   // Not expecting data messages.
   return false;

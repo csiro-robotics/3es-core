@@ -24,8 +24,9 @@ public:
 
   void reset() override;
 
-  bool update(const Id &id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour) override;
-  bool remove(const Id &id) override;
+  bool update(const Id &id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
+              const Magnum::Color4 &colour) override;
+  bool remove(const Id &id, FrameNumber frame_number) override;
 
   /// Calculate bounds for a capsule shape.
   /// @param transform The shape transform to calculate with.
@@ -33,8 +34,8 @@ public:
   /// @param[out] half_extents Bounds half extents output.
   static void calculateBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &half_extents);
 
-  void drawOpaque(unsigned render_mark, const Magnum::Matrix4 &projection_matrix) override;
-  void drawTransparent(unsigned render_mark, const Magnum::Matrix4 &projection_matrix) override;
+  void drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
+  void drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
 
   /// Solid mesh creation function to generate the cyliindrical part.
   /// @return A solid (or transparent) mesh representation.
@@ -57,8 +58,8 @@ public:
   static Magnum::GL::Mesh wireframeMeshCap();
 
 protected:
-  unsigned Capsule::addShape(Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
-                             const ParentId &parent_id) override;
+  unsigned Capsule::addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
+                             const Magnum::Color4 &colour, const ParentId &parent_id) override;
 
 private:
   static void buildEndCapSolid(SimpleMesh &mesh, bool bottomCap);

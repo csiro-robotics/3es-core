@@ -11,7 +11,7 @@
 #-------------------------------------------------------------------------------
 # 3es-viewer configuration options.
 #-------------------------------------------------------------------------------
-find_package(Corrade CONFIG REQUIRED Containers Main)
+find_package(Corrade CONFIG REQUIRED Containers)
 find_package(Magnum CONFIG REQUIRED
   GlfwApplication
   DebugTools
@@ -32,6 +32,7 @@ configure_file(3es-viewer.in.h "${CMAKE_CURRENT_BINARY_DIR}/3es-viewer.h")
 set(PUBLIC_HEADERS
   # Generated files.
   "${CMAKE_CURRENT_BINARY_DIR}/3es-viewer.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/3es-viewer-export.h"
 )
 
 #-------------------------------------------------------------------------------
@@ -44,7 +45,8 @@ include(sourcelist.cmake)
 #-------------------------------------------------------------------------------
 # Define the 3es-viewer library.
 # add_library(3es-viewer ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
-add_executable(3es-viewer ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
+# add_executable(3es-viewer ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
+add_library(3es-viewer ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
 set_target_properties(3es-viewer PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
 # Disable some warnings.
@@ -55,6 +57,15 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   # Now we don't need excessive brackets (parentheses for the Americans)
   target_compile_options(3es-viewer PRIVATE "-Wno-logical-op-parentheses")
 endif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+
+# Define DLL export header (primarily for MSVC).
+include(GenerateExportHeader)
+generate_export_header(3es-viewer
+      EXPORT_MACRO_NAME _3es_viewerAPI
+      NO_EXPORT_MACRO_NAME _3es_viewerHIDDEN
+      EXPORT_FILE_NAME 3es-viewer-export.h
+      STATIC_DEFINE TES_STATIC
+      )
 
 # set_target_properties(3es-viewer PROPERTIES FOLDER view)
 
@@ -86,13 +97,12 @@ endif(CMAKE_THREAD_LIBS_INIT)
 target_link_libraries(3es-viewer PUBLIC 3es-core)
 
 target_link_libraries(3es-viewer PRIVATE
-  Corrade::Containers
-  Corrade::Main
-  Magnum::Application
-  Magnum::Magnum
-  Magnum::Primitives
-  Magnum::Shaders
-  Magnum::Vk
+  $<BUILD_INTERFACE:Corrade::Containers>
+  $<BUILD_INTERFACE:Magnum::Application>
+  $<BUILD_INTERFACE:Magnum::Magnum>
+  $<BUILD_INTERFACE:Magnum::Primitives>
+  $<BUILD_INTERFACE:Magnum::Shaders>
+  $<BUILD_INTERFACE:Magnum::Vk>
 )
 
 #-------------------------------------------------------------------------------

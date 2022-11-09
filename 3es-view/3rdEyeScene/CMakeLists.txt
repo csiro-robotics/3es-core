@@ -9,10 +9,20 @@
 # include(cmake/3es-version.cmake)
 
 #-------------------------------------------------------------------------------
-# 3es-client configuration options.
+# 3rdEyeScene configuration options.
 #-------------------------------------------------------------------------------
-find_package(Magnum CONFIG REQUIRED)
-find_package(MagnumExtras CONFIG REQUIRED)
+find_package(Corrade CONFIG REQUIRED Containers Main)
+find_package(Magnum CONFIG REQUIRED
+  GlfwApplication
+  DebugTools
+  # MagnumFont
+  Primitives
+  Shaders
+  Text
+  # TgaImporter
+  Vk
+)
+# find_package(MagnumExtras CONFIG REQUIRED)
 find_package(Threads)
 
 #-------------------------------------------------------------------------------
@@ -23,20 +33,18 @@ configure_file(3es-client.in.h "${CMAKE_CURRENT_BINARY_DIR}/3es-client.h")
 set(PUBLIC_HEADERS
   # Generated files.
   "${CMAKE_CURRENT_BINARY_DIR}/3es-client.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/3es-client-export.h"
 )
 
 #-------------------------------------------------------------------------------
-# Define the source files for the 3es-client library.
+# Define the source files for the 3rdEyeScene executable.
 #-------------------------------------------------------------------------------
 include(sourcelist.cmake)
 
 #-------------------------------------------------------------------------------
 # Library setup.
 #-------------------------------------------------------------------------------
-# Define the 3es-client library.
-# add_library(3es-client ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
-add_executable(3es-client ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
+# Define the 3rdEyeScene library.
+add_executable(3rdEyeScene ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
 
 # Disable some warnings.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -44,22 +52,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   # - and is equivalent to multiplication
   # - or is equilvanet to addition
   # Now we don't need excessive brackets (parentheses for the Americans)
-  target_compile_options(3es-client PRIVATE "-Wno-logical-op-parentheses")
+  target_compile_options(3rdEyeScene PRIVATE "-Wno-logical-op-parentheses")
 endif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 
-# Define DLL export header (primarily for MSVC).
-include(GenerateExportHeader)
-generate_export_header(3es-client
-      EXPORT_MACRO_NAME _3es_clientAPI
-      NO_EXPORT_MACRO_NAME _3es_clientHIDDEN
-      EXPORT_FILE_NAME 3es-client-export.h
-      STATIC_DEFINE TES_STATIC
-      )
-
-# set_target_properties(3es-client PROPERTIES FOLDER view)
+# set_target_properties(3rdEyeScene PROPERTIES FOLDER view)
 
 # Setup target versioning.
-set_target_properties(3es-client PROPERTIES
+set_target_properties(3rdEyeScene PROPERTIES
   # Build version.
   VERSION ${TES_VERSION}
   # API version.
@@ -69,39 +68,44 @@ set_target_properties(3es-client PROPERTIES
 )
 
 # Help enforce version compability by ensuring all link dependencies expect the same INTERFACE_3esclient_MAJOR_VERSION
-set_property(TARGET 3es-client APPEND PROPERTY COMPATIBLE_INTERFACE_STRING INTERFACE_3esclient_MAJOR_VERSION)
+set_property(TARGET 3rdEyeScene APPEND PROPERTY COMPATIBLE_INTERFACE_STRING INTERFACE_3esclient_MAJOR_VERSION)
 
 # Include directories
-target_include_directories(3es-client
+target_include_directories(3rdEyeScene
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
-    $<INSTALL_INTERFACE:include/3es-client>
+    $<INSTALL_INTERFACE:include/3rdEyeScene>
 )
 
 if(CMAKE_THREAD_LIBS_INIT)
-  target_link_libraries(3es-client ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(3rdEyeScene ${CMAKE_THREAD_LIBS_INIT})
 endif(CMAKE_THREAD_LIBS_INIT)
 
 # Need to explicitly define some compile flags because the target name starts with a number.
 if(BUILD_SHARED_LIBS)
-  target_compile_definitions(3es-client PRIVATE -D_3es_client_EXPORTS)
+  target_compile_definitions(3rdEyeScene PRIVATE -D_3es_client_EXPORTS)
 else(BUILD_SHARED_LIBS)
-  target_compile_definitions(3es-client PUBLIC -DTES_STATIC)
+  target_compile_definitions(3rdEyeScene PUBLIC -DTES_STATIC)
 endif(BUILD_SHARED_LIBS)
 
 # Link dependencies
 # if(ZLIB_FOUND AND NOT TES_ZLIB_OFF)
-#   target_include_directories(3es-client PRIVATE "${ZLIB_INCLUDE_DIRS}")
-#   target_link_libraries(3es-client ${ZLIB_LIBRARIES})
+#   target_include_directories(3rdEyeScene PRIVATE "${ZLIB_INCLUDE_DIRS}")
+#   target_link_libraries(3rdEyeScene ${ZLIB_LIBRARIES})
 # endif(ZLIB_FOUND AND NOT TES_ZLIB_OFF)
 
-target_link_libraries(3es-client PUBLIC 3es-core)
+target_link_libraries(3rdEyeScene PUBLIC 3es-core)
 
-target_link_libraries(3es-client PRIVATE
+target_link_libraries(3rdEyeScene PRIVATE
+  3es-viewer
+  Corrade::Containers
+  Magnum::Application
   Magnum::Magnum
-  Magnum::GLContext
-  Magnum::Application)
+  Magnum::Primitives
+  Magnum::Shaders
+  Magnum::Vk
+)
 
 #-------------------------------------------------------------------------------
 # Doxygen configuration.
@@ -155,7 +159,7 @@ target_link_libraries(3es-client PRIVATE
 # Installation.
 #-------------------------------------------------------------------------------
 # Binary installation
-install(TARGETS 3es-client EXPORT 3es-config-targets
+install(TARGETS 3rdEyeScene EXPORT 3es-config-targets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
@@ -164,47 +168,12 @@ install(TARGETS 3es-client EXPORT 3es-config-targets
 
 # Install PDB files (MSVC) in part to avoid unsupressable linker warnings.
 if(BUILD_SHARED_LIBS)
-  install(FILES $<TARGET_PDB_FILE:3es-client> DESTINATION bin OPTIONAL)
+  install(FILES $<TARGET_PDB_FILE:3rdEyeScene> DESTINATION bin OPTIONAL)
 endif(BUILD_SHARED_LIBS)
 
 # Header installation
-install(FILES ${PUBLIC_HEADERS} DESTINATION include/3es-client COMPONENT Devel)
-# install(FILES ${PUBLIC_SHAPE_HEADERS} DESTINATION include/3es-client/shapes COMPONENT Devel)
-
-# Setup import scripts.
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/3es-config-version.cmake"
-  VERSION ${TES_VERSION}
-  COMPATIBILITY AnyNewerVersion
-)
-
-export(EXPORT 3es-config-targets
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/3es-config-targets.cmake"
-  NAMESPACE 3es::
-)
-
-configure_file(cmake/3es-config.in.cmake
-  "${CMAKE_CURRENT_BINARY_DIR}/3es-config.cmake"
-  COPYONLY
-)
-
-install(EXPORT 3es-config-targets
-  FILE 3es-config-targets.cmake
-  NAMESPACE 3es::
-  DESTINATION ${ConfigPackageLocation}
-)
-
-install(
-  FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/3es-config.cmake"
-    # "${CMAKE_CURRENT_BINARY_DIR}/3es-config-targets.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/3es-config-version.cmake"
-  DESTINATION ${ConfigPackageLocation}
-  COMPONENT Devel)
-
-  # Install MSVC runtime libraries. This will also affect the CPack installation.
-include(InstallRequiredSystemLibraries)
+# install(FILES ${PUBLIC_HEADERS} DESTINATION include/3rdEyeScene COMPONENT Devel)
+# install(FILES ${PUBLIC_SHAPE_HEADERS} DESTINATION include/3rdEyeScene/shapes COMPONENT Devel)
 
 #-------------------------------------------------------------------------------
 # IDE source sorting

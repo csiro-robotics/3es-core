@@ -3,6 +3,8 @@
 
 #include "3es-viewer.h"
 
+#include "3esframestamp.h"
+
 #include <Magnum/Magnum.h>
 
 #include <3esmessages.h>
@@ -17,6 +19,17 @@ class Connection;
 namespace tes::viewer::handler
 {
 /// The base class for a 3es message handler.
+///
+/// @par Thread safety
+/// A @c Message handler will typically have functions called from at least two different threads. In particular the
+/// @c readMessage() function is called from the data processing thread, while @c beginFrame(), @c endFrame(),
+/// and @c draw() are called from the render thread - likely the main thread. Other functions are called from the main
+/// thread.
+///
+/// As such, the @c readMessage() function must be thread safe with respect to @c beginFrame(), @c endFrame() and
+/// @c draw().
+///
+/// @todo Document the @c frameWindow() data management requirements.
 class Message
 {
 public:
@@ -38,6 +51,9 @@ public:
     Overlay
   };
 
+  /// The default number of frames message data should be retained for.
+  static constexpr FrameNumber kDefaultFrameWindow = 200u;
+
   Message(uint16_t routing_id, const std::string &name);
   virtual ~Message();
 
@@ -51,6 +67,10 @@ public:
   /// Set the @c ModeFlag values.
   /// @param flags New values.
   inline void setModeFlags(unsigned flags) { _mode_flags = flags; }
+
+  /// The number of frame for which message data should be retained.
+  /// @return The number of frames to retain data for.
+  inline FrameNumber frameWindow() const { return _frame_window; }
 
   /// Get the handler name.
   /// @return The handler name.
@@ -70,46 +90,45 @@ public:
   /// In practice, this method is called when the @c ControlId::CIdEnd message arrives, just prior to processing all
   /// messages for the completed frame.
   ///
-  /// @param frame_number A monotonic frame counter.
+  /// @param frame_stamp The frame render stamp to begin.
   /// @param render_mark The rendering mark which was used to cull the current frame.
-  /// @param maintain_transient True to prevent flushing of transient objects.
-  virtual void beginFrame(unsigned frame_number, unsigned render_mark, bool maintain_transient) = 0;
+  virtual void beginFrame(const FrameStamp &stamp) = 0;
 
   /// Called at the end of a frame. In practice, this is likely to be called
   /// at the same time as @c beginFrame() .
   ///
-  /// @param frame_number A monotonic frame counter.
-  virtual void endFrame(unsigned frame_number, unsigned render_mark) = 0;
+  /// @param frame_stamp The frame render stamp to end.
+  virtual void endFrame(const FrameStamp &stamp) = 0;
 
   /// Render the current objects.
-  virtual void draw(DrawPass pass, unsigned frame_number, unsigned render_mark,
-                    const Magnum::Matrix4 &projection_matrix) = 0;
+  virtual void draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) = 0;
 
   /// Read a message which has been predetermined to be belong to this handler.
   ///
-  /// Any changes described by the message must not be effected until the next call to @c beginFrame() . Additionally,
-  /// this function must be thread safe as it will generally be called from a different thread that the draw call.
-  /// However, because of the way messages are processed, it it guaranteed that at the next frame boundary, the next
-  /// call to @c beginFrame() , all the messages should be effected.
+  /// Any changes described by the message must not be effected until the next call to @c beginFrame() with matching
+  /// @p frame_number. Additionally, see thread safety requirements described in the class documentation.
   ///
   /// @param reader The message data reader.
-  virtual void readMessage(PacketReader &reader) = 0;
+  virtual void readMessage(PacketReader &reader, FrameNumber frame_number) = 0;
 
-  virtual inline void serialise(Connection &out)
+  virtual inline void serialise(Connection &out, FrameNumber frame_number)
   {
     ServerInfoMessage info = {};
-    serialise(out, info);
+    serialise(out, frame_number, info);
   }
-  /// Serialise a snapshop of the renderable objects for the current frame. Serialisation is performed using the
+  /// Serialise a snapshot of the renderable objects for the specified frame. Serialisation is performed using the
   /// messages required to restore the current state.
   /// @param out Stream to write to.
+  /// @param frame_number The frame number the frame number to serialise.
   /// @param[out] info Provides information about about the serialisation.
-  virtual void serialise(Connection &out, ServerInfoMessage &info) = 0;
+  virtual void serialise(Connection &out, FrameNumber frame_number, ServerInfoMessage &info) = 0;
 
 protected:
   uint16_t _routing_id = 0u;
   unsigned _mode_flags = 0u;
+  FrameStamp _frame_stamp;
   ServerInfoMessage _server_info = {};
+  FrameNumber _frame_window = kDefaultFrameWindow;
   std::string _name;
 };
 }  // namespace tes::viewer::handler

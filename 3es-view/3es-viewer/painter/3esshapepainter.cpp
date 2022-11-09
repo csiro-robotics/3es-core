@@ -34,34 +34,17 @@ void ShapePainter::reset()
   _solid_cache->clear();
   _wireframe_cache->clear();
   _transparent_cache->clear();
-  _solid_transients.clear();
-  _wireframe_transients.clear();
-  _transparent_transients.clear();
   _id_index_map.clear();
 }
 
 
-ShapePainter::ParentId ShapePainter::add(const Id &id, Type type, const Magnum::Matrix4 &transform,
-                                         const Magnum::Color4 &colour)
+ShapePainter::ParentId ShapePainter::add(const Id &id, FrameNumber frame_number, Type type,
+                                         const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
 {
-  unsigned index = addShape(type, transform, colour);
-  if (id == Id())
-  {
-    // Transient object.
-    switch (type)
-    {
-    case Type::Solid:
-      _solid_transients.emplace_back(index);
-      break;
-    case Type::Wireframe:
-      _wireframe_transients.emplace_back(index);
-      break;
-    case Type::Transparent:
-      _transparent_transients.emplace_back(index);
-      break;
-    }
-  }
-  else
+  const bool transient = id.id() == 0;
+  const ViewableWindow view_window(frame_number, (transient) ? 1 : 0, ViewableWindow::Interval::Relative);
+  unsigned index = addShape(view_window, type, transform, colour);
+  if (!transient)
   {
     _id_index_map.emplace(id, CacheIndex{ type, index });
   }
@@ -69,32 +52,35 @@ ShapePainter::ParentId ShapePainter::add(const Id &id, Type type, const Magnum::
 }
 
 
-void ShapePainter::addSubShape(const ParentId &parent_id, Type type, const Magnum::Matrix4 &transform,
-                               const Magnum::Color4 &colour)
+void ShapePainter::addSubShape(const ParentId &parent_id, FrameNumber frame_number, Type type,
+                               const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
 {
-  addShape(type, transform, colour, parent_id);
+  const bool transient = _id_index_map.find(parent_id.id()) == _id_index_map.end();
+  const ViewableWindow view_window(frame_number, (transient) ? 1 : 0, ViewableWindow::Interval::Relative);
+  addShape(view_window, type, transform, colour, parent_id);
 }
 
 
-unsigned ShapePainter::addShape(Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
-                                const ParentId &parent_id)
+unsigned ShapePainter::addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
+                                const Magnum::Color4 &colour, const ParentId &parent_id)
 {
   if (ShapeCache *cache = cacheForType(type))
   {
-    return cache->add(transform, colour, parent_id.id(), parent_id.id());
+    return cache->add(view_window, transform, colour, parent_id.id());
   }
   return ~0u;
 }
 
 
-bool ShapePainter::update(const Id &id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
+bool ShapePainter::update(const Id &id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
+                          const Magnum::Color4 &colour)
 {
   const auto search = _id_index_map.find(id);
   if (search != _id_index_map.end())
   {
     if (ShapeCache *cache = cacheForType(search->second.type))
     {
-      cache->update(search->second.index, transform, colour);
+      cache->update(frame_number, search->second.index, transform, colour);
     }
     return true;
   }
@@ -103,29 +89,29 @@ bool ShapePainter::update(const Id &id, const Magnum::Matrix4 &transform, const 
 }
 
 
-bool ShapePainter::readProperties(const Id &id, bool include_parent_transform, Magnum::Matrix4 &transform,
-                                  Magnum::Color4 &colour) const
+bool ShapePainter::readProperties(const Id &id, FrameNumber frame_number, bool include_parent_transform,
+                                  Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
 {
   const auto search = _id_index_map.find(id);
   if (search != _id_index_map.end())
   {
     if (const ShapeCache *cache = cacheForType(search->second.type))
     {
-      return cache->get(search->second.index, include_parent_transform, transform, colour);
+      return cache->get(search->second.index, frame_number, include_parent_transform, transform, colour);
     }
   }
   return false;
 }
 
 
-bool ShapePainter::remove(const Id &id)
+bool ShapePainter::remove(const Id &id, FrameNumber frame_number)
 {
   const auto search = _id_index_map.find(id);
   if (search != _id_index_map.end())
   {
     if (ShapeCache *cache = cacheForType(search->second.type))
     {
-      cache->remove(search->second.index);
+      cache->endShape(search->second.index, (frame_number > 0) ? frame_number - 1u : 0u);
       return true;
     }
   }
@@ -134,40 +120,30 @@ bool ShapePainter::remove(const Id &id)
 }
 
 
-void ShapePainter::drawOpaque(unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
+void ShapePainter::drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
 {
-  _solid_cache->draw(render_mark, projection_matrix);
-  _wireframe_cache->draw(render_mark, projection_matrix);
+  _solid_cache->draw(stamp, projection_matrix);
+  _wireframe_cache->draw(stamp, projection_matrix);
 }
 
 
-void ShapePainter::drawTransparent(unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
+void ShapePainter::drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
 {
   Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::SourceAlpha,
                                          Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
-  _transparent_cache->draw(render_mark, projection_matrix);
+  _transparent_cache->draw(stamp, projection_matrix);
   Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::One,
                                          Magnum::GL::Renderer::BlendFunction::Zero);
 }
 
 
-void ShapePainter::endFrame()
+void ShapePainter::endFrame(FrameNumber frame_number)
 {
-  for (const auto index : _solid_transients)
-  {
-    _solid_cache->remove(index);
-  }
-  _solid_transients.clear();
-  for (const auto index : _wireframe_transients)
-  {
-    _wireframe_cache->remove(index);
-  }
-  _wireframe_transients.clear();
-  for (const auto index : _transparent_transients)
-  {
-    _transparent_cache->remove(index);
-  }
-  _transparent_transients.clear();
+  const FrameNumber kCacheWindow = 200u;
+  const FrameNumber expire_before = (frame_number >= kCacheWindow) ? frame_number - kCacheWindow : 0u;
+  _solid_cache->expireShapes(expire_before);
+  _wireframe_cache->expireShapes(expire_before);
+  _transparent_cache->expireShapes(expire_before);
 }
 
 

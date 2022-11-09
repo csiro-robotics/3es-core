@@ -2,6 +2,8 @@
 
 namespace tes::viewer::handler
 {
+constexpr FrameNumber Message::kDefaultFrameWindow;
+
 Message::Message(uint16_t routing_id, const std::string &name)
   : _routing_id(routing_id)
   , _name(name)

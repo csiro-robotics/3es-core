@@ -54,14 +54,15 @@ void Capsule::reset()
 }
 
 
-bool Capsule::update(const Id &id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
+bool Capsule::update(const Id &id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
+                     const Magnum::Color4 &colour)
 {
   const auto search = _id_index_map.find(id);
   if (search != _id_index_map.end())
   {
     if (ShapeCache *cache = cacheForType(search->second.type))
     {
-      cache->update(search->second.index, transform, colour);
+      cache->update(search->second.index, frame_number, transform, colour);
     }
 
     if (std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(search->second.type))
@@ -69,7 +70,7 @@ bool Capsule::update(const Id &id, const Magnum::Matrix4 &transform, const Magnu
       const auto end_transforms = calcEndCapTransforms(transform);
       for (size_t i = 0; i < end_transforms.size(); ++i)
       {
-        (*end_caches)[i]->add(end_transforms[i], colour);
+        (*end_caches)[i]->update(search->second.index, frame_number, end_transforms[i], colour);
       }
     }
 
@@ -80,20 +81,21 @@ bool Capsule::update(const Id &id, const Magnum::Matrix4 &transform, const Magnu
 }
 
 
-bool Capsule::remove(const Id &id)
+bool Capsule::remove(const Id &id, FrameNumber frame_number)
 {
   const auto search = _id_index_map.find(id);
   if (search != _id_index_map.end())
   {
+    const FrameNumber end_frame = (frame_number > 0) ? frame_number - 1u : 0u;
     if (ShapeCache *cache = cacheForType(search->second.type))
     {
-      cache->remove(search->second.index);
+      cache->endShape(search->second.index, end_frame);
     }
     if (std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(search->second.type))
     {
       for (auto &cache : *end_caches)
       {
-        cache->remove(search->second.index);
+        cache->endShape(search->second.index, end_frame);
       }
     }
     return true;
@@ -103,25 +105,25 @@ bool Capsule::remove(const Id &id)
 }
 
 
-void Capsule::drawOpaque(unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
+void Capsule::drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
 {
-  _solid_cache->draw(render_mark, projection_matrix);
-  _solid_end_caps[0]->draw(render_mark, projection_matrix);
-  _solid_end_caps[1]->draw(render_mark, projection_matrix);
+  _solid_cache->draw(stamp, projection_matrix);
+  _solid_end_caps[0]->draw(stamp, projection_matrix);
+  _solid_end_caps[1]->draw(stamp, projection_matrix);
 
-  _wireframe_cache->draw(render_mark, projection_matrix);
-  _wireframe_end_caps[0]->draw(render_mark, projection_matrix);
-  _wireframe_end_caps[1]->draw(render_mark, projection_matrix);
+  _wireframe_cache->draw(stamp, projection_matrix);
+  _wireframe_end_caps[0]->draw(stamp, projection_matrix);
+  _wireframe_end_caps[1]->draw(stamp, projection_matrix);
 }
 
 
-void Capsule::drawTransparent(unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
+void Capsule::drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
 {
   Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::SourceAlpha,
                                          Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
-  _transparent_cache->draw(render_mark, projection_matrix);
-  _transparent_end_caps[0]->draw(render_mark, projection_matrix);
-  _transparent_end_caps[1]->draw(render_mark, projection_matrix);
+  _transparent_cache->draw(stamp, projection_matrix);
+  _transparent_end_caps[0]->draw(stamp, projection_matrix);
+  _transparent_end_caps[1]->draw(stamp, projection_matrix);
   Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::One,
                                          Magnum::GL::Renderer::BlendFunction::Zero);
 }
@@ -249,11 +251,11 @@ Magnum::GL::Mesh Capsule::wireframeMeshCap()
 }
 
 
-unsigned Capsule::addShape(Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
-                           const ParentId &parent_id)
+unsigned Capsule::addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
+                           const Magnum::Color4 &colour, const ParentId &parent_id)
 {
   // Add as is for the cylinder part.
-  unsigned index = ShapePainter::addShape(type, transform, colour, parent_id);
+  unsigned index = ShapePainter::addShape(view_window, type, transform, colour, parent_id);
   std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(type);
   if (index == ~0u || !end_caches)
   {
@@ -265,7 +267,7 @@ unsigned Capsule::addShape(Type type, const Magnum::Matrix4 &transform, const Ma
   const auto end_transforms = calcEndCapTransforms(transform);
   for (size_t i = 0; i < end_transforms.size(); ++i)
   {
-    (*end_caches)[i]->add(end_transforms[i], colour, parent_id.id(), parent_id.id());
+    (*end_caches)[i]->add(view_window, end_transforms[i], colour, parent_id.id());
   }
   return index;
 }

@@ -2,9 +2,9 @@
 list(APPEND PUBLIC_HEADERS
   # General headers
   3esboundsculler.h
-  3esviewer.h
   3esedleffect.h
   3esfboeffect.h
+  3esframestamp.h
   3esviewablewindow.h
   camera/3escamera.h
   camera/3escontroller.h
@@ -28,7 +28,6 @@ list(APPEND PUBLIC_HEADERS
 
 list(APPEND SOURCES
   3esboundsculler.cpp
-  3esviewer.cpp
   3esedleffect.cpp
   3esfboeffect.cpp
   camera/3escamera.cpp

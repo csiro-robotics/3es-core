@@ -6,7 +6,7 @@
 
 namespace tes::viewer::painter
 {
-constexpr unsigned ShapeCache::kListEnd;
+constexpr size_t ShapeCache::kListEnd;
 
 ShapeCacheShader::~ShapeCacheShader() = default;
 
@@ -151,7 +151,7 @@ unsigned ShapeCache::add(const ViewableWindow &window, const Magnum::Matrix4 &tr
   return id;
 }
 
-bool ShapeCache::endShape(unsigned id, unsigned frame_number)
+bool ShapeCache::endShape(unsigned id, FrameNumber frame_number)
 {
   if (id < _shapes.size())
   {
@@ -165,11 +165,11 @@ bool ShapeCache::endShape(unsigned id, unsigned frame_number)
       {
         Shape &shape = _shapes[remove_next];
         // Set to disable on the next frame, while keeping the same current frame.
-        shape.window = ViewableWindow(shape.window.startFrame(), frame_number - shape.window.startFrame());
+        shape.window = ViewableWindow(shape.window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
         // Update the tail viewable window.
         auto last_viewable_window = _viewables[shape.viewable_tail].window;
         last_viewable_window =
-          ViewableWindow(last_viewable_window.startFrame(), frame_number - last_viewable_window.startFrame());
+          ViewableWindow(last_viewable_window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
         _viewables[shape.viewable_tail].window = last_viewable_window;
         removed = true;
       }
@@ -179,7 +179,7 @@ bool ShapeCache::endShape(unsigned id, unsigned frame_number)
   return false;
 }
 
-bool ShapeCache::update(unsigned id, unsigned frame_number, const Magnum::Matrix4 &transform,
+bool ShapeCache::update(unsigned id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
                         const Magnum::Color4 &colour)
 {
   if (id < _shapes.size())
@@ -231,7 +231,7 @@ bool ShapeCache::update(unsigned id, unsigned frame_number, const Magnum::Matrix
         shape.viewable_tail = last_viewable.next = _viewables.size() - 1u;
         // Update the viewable windows.
         last_viewable.window =
-          ViewableWindow(last_viewable.window.startFrame(), frame_number - last_viewable.window.startFrame());
+          ViewableWindow(last_viewable.window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
         viewable.window = ViewableWindow(frame_number);
       }
       // else redundant update. Just continue to bounds update.
@@ -248,8 +248,8 @@ bool ShapeCache::update(unsigned id, unsigned frame_number, const Magnum::Matrix
 }
 
 
-bool ShapeCache::get(unsigned id, bool apply_parent_transform, Magnum::Matrix4 &transform, Magnum::Color4 &colour,
-                     unsigned frame_number) const
+bool ShapeCache::get(unsigned id, FrameNumber frame_number, bool apply_parent_transform, Magnum::Matrix4 &transform,
+                     Magnum::Color4 &colour) const
 {
   bool found = false;
   transform = Magnum::Matrix4();
@@ -300,9 +300,9 @@ void ShapeCache::clear()
 }
 
 
-void ShapeCache::draw(unsigned frame_number, unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
+void ShapeCache::draw(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
 {
-  buildInstanceBuffers(frame_number, render_mark);
+  buildInstanceBuffers(stamp);
   for (auto &buffer : _instance_buffers)
   {
     if (buffer.count)
@@ -318,14 +318,14 @@ void ShapeCache::draw(unsigned frame_number, unsigned render_mark, const Magnum:
 }
 
 
-void ShapeCache::expireShapes(unsigned before_frame)
+void ShapeCache::expireShapes(FrameNumber before_frame)
 {
   for (size_t i = 0; i < _shapes.size(); ++i)
   {
     Shape &shape = _shapes[i];
     if ((shape.flags & unsigned(ShapeFlag::Valid)) && (shape.flags & unsigned(ShapeFlag::Parented)) == 0)
     {
-      const unsigned last_frame = shape.window.lastFrame();
+      const FrameNumber last_frame = shape.window.endFrame();
       if (last_frame < before_frame)
       {
         release(i);
@@ -362,7 +362,7 @@ bool ShapeCache::release(size_t index)
 }
 
 
-void ShapeCache::buildInstanceBuffers(unsigned frame_number, unsigned render_mark)
+void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
 {
   // Clear previous results.
   for (auto &buffer : _instance_buffers)
@@ -394,12 +394,12 @@ void ShapeCache::buildInstanceBuffers(unsigned frame_number, unsigned render_mar
   // Iterate shapes and marshal/upload.
   for (auto &viewable : _viewables)
   {
-    if (viewable.window.overlaps(frame_number) && culler.isVisible(viewable.bounds_id))
+    if (viewable.window.overlaps(stamp.frame_number) && culler.isVisible(viewable.bounds_id))
     {
       const unsigned marshal_index = _instance_buffers[cur_instance_buffer_idx].count;
       ++_instance_buffers[cur_instance_buffer_idx].count;
       _marshal_buffer[marshal_index] = viewable.instance;
-      unsigned parent_index = shape.parent_index;
+      // unsigned parent_index = shape.parent_index;
       // TODO(KS): Include the parent transform(s).
       // while (parent_index != ~0u)
       // {

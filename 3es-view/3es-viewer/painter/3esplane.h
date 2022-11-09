@@ -24,8 +24,8 @@ public:
   /// @return A wireframe mesh representation.
   static Magnum::GL::Mesh wireframeMesh();
 
-  void drawOpaque(unsigned render_mark, const Magnum::Matrix4 &projection_matrix) override;
-  void drawTransparent(unsigned render_mark, const Magnum::Matrix4 &projection_matrix) override;
+  void drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
+  void drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
 
 private:
 };

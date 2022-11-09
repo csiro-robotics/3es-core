@@ -5,6 +5,8 @@
 #ifndef TES_VIEWER_CONFIG_H
 #define TES_VIEWER_CONFIG_H
 
+#include "3es-viewer-export.h"
+
 #include "3es-core.h"
 
 #endif  // TES_VIEWER_CONFIG_H

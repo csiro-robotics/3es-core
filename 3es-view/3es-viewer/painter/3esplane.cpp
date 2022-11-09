@@ -82,18 +82,18 @@ Magnum::GL::Mesh Plane::wireframeMesh()
 }
 
 
-void Plane::drawOpaque(unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
+void Plane::drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
 {
   Magnum::GL::Renderer::disable(Magnum::GL::Renderer::Feature::FaceCulling);
-  ShapePainter::drawOpaque(render_mark, projection_matrix);
+  ShapePainter::drawOpaque(stamp, projection_matrix);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
 }
 
 
-void Plane::drawTransparent(unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
+void Plane::drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
 {
   Magnum::GL::Renderer::disable(Magnum::GL::Renderer::Feature::FaceCulling);
-  ShapePainter::drawTransparent(render_mark, projection_matrix);
+  ShapePainter::drawTransparent(stamp, projection_matrix);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
 }
 }  // namespace tes::viewer::painter
