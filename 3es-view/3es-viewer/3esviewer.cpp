@@ -10,6 +10,7 @@
 #include <Magnum/GL/Version.h>
 #include <Magnum/MeshTools/Compile.h>
 #include <Magnum/Primitives/Cube.h>
+#include <Magnum/Primitives/Cylinder.h>
 #include <Magnum/Shaders/VertexColor.h>
 #include <Magnum/Trade/MeshData.h>
 
@@ -80,6 +81,19 @@ Viewer::Viewer(const Arguments &arguments)
                                      Magnum::Shaders::Flat3D::Flag::InstancedTransformation };
 
   _edl_effect = std::make_shared<EdlEffect>(Magnum::GL::defaultFramebuffer.viewport());
+  _active_fbo_effect = _edl_effect;
+
+  _culler = std::make_shared<BoundsCuller>();
+  using Matrix4 = Magnum::Matrix4;
+  Matrix4 shape_transform = {};
+  shape_transform = Matrix4::rotationX(Magnum::Deg(90)) * Matrix4::scaling({ 0.5f, 0.5f, 0.5f });
+  _cylinders =
+    std::make_unique<ShapeCache>(ShapeCache::Type::Solid, _culler,
+                                 Magnum::MeshTools::compile(Magnum::Primitives::cylinderSolid(
+                                   1, 32, 1, { Magnum::Primitives::CylinderFlag::CapEnds })),
+                                 shape_transform, Magnum::Vector3(1), std::make_unique<ShapeCacheShaderFlat>());
+
+  _cylinders->add(Magnum::Matrix4(), Magnum::Color3(1, 1, 0));
 }
 
 void Viewer::setContinuousSim(bool continuous)
@@ -138,6 +152,8 @@ void Viewer::drawEvent()
   _fly.updateKeys(dt, key_translation, key_rotation, _camera);
 
   auto projection_matrix = camera::viewProjection(_camera, Magnum::Vector2(windowSize()));
+  ++_mark;
+  _culler->cull(_mark, Magnum::Frustum::fromMatrix(projection_matrix));
 
   if (_active_fbo_effect)
   {
@@ -157,6 +173,8 @@ void Viewer::drawEvent()
     .addVertexBufferInstanced(_instance_buffer, 1, 0, Magnum::Shaders::Flat3D::TransformationMatrix{},
                               Magnum::Shaders::Flat3D::Color3{});
   _shader.draw(_box);
+
+  _cylinders->draw(_mark, projection_matrix);
 
   if (_active_fbo_effect)
   {

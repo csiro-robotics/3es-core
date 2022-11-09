@@ -5,6 +5,9 @@
 
 #include "camera/3esfly.h"
 
+#include "3esbounds.h"
+#include "3esshapecache.h"
+
 #include <Magnum/GL/FrameBuffer.h>
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/GL/Renderbuffer.h>
@@ -75,6 +78,11 @@ private:
   Magnum::Matrix4 _projection;
   camera::Camera _camera;
   camera::Fly _fly;
+
+  std::shared_ptr<BoundsCuller> _culler;
+  std::unique_ptr<ShapeCache> _cylinders;
+
+  unsigned _mark = 0;
 
   bool _mouse_rotation_active = false;
   bool _continuous_sim = false;
