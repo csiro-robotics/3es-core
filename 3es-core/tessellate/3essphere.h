@@ -56,6 +56,15 @@ void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
 /// Does not calculate normals.
 void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius = 1.0f,
                         const Vector3f &origin = Vector3f(0.0f), int depth = 2);
+
+/// Generate a line drawn sphere representation, made of three perpendicular rings.
+/// @param[out] vertices Populated with the mesh vertices.
+/// @param[out] indices Populated with the mesh indices.
+/// @param radius The radius of the sphere to build.
+/// @param origin The centre of the sphere.
+/// @param ring_vertex_count Number of vertices per rings.
+void _3es_coreAPI wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius = 1.0f,
+                            const Vector3f &origin = Vector3f(0.0f), int ring_vertex_count = 36);
 }  // namespace sphere
 }  // namespace tes
 

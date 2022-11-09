@@ -193,3 +193,73 @@ void tes::sphere::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
     vert = vert * radius + origin;
   }
 }
+
+void tes::sphere::wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius,
+                            const Vector3f &origin, int ring_vertex_count)
+{
+  ring_vertex_count = std::min(3, ring_vertex_count);
+  if (ring_vertex_count < 0)
+  {
+    ring_vertex_count = 3;
+  }
+
+  vertices.clear();
+  indices.clear();
+  vertices.reserve(ring_vertex_count * 3);
+  indices.reserve(ring_vertex_count * 3);
+
+  // Build a circle around the Z axis.
+  for (int i = 0; i < ring_vertex_count; ++i)
+  {
+    float angle = i * 2.0f * float(M_PI) / (float)ring_vertex_count;
+    vertices.emplace_back(Vector3f(std::cos(angle), std::sin(angle), 0));
+  }
+
+  // Build a circle around the Y axis.
+  for (int i = 0; i < ring_vertex_count; ++i)
+  {
+    float angle = i * 2.0f * float(M_PI) / (float)ring_vertex_count;
+    vertices.emplace_back(Vector3f(std::cos(angle), 0, std::sin(angle)));
+  }
+
+  // Build a circle around the X axis.
+  for (int i = 0; i < ring_vertex_count; ++i)
+  {
+    float angle = i * 2.0f * float(M_PI) / (float)ring_vertex_count;
+    vertices.emplace_back(Vector3f(0, std::cos(angle), std::sin(angle)));
+  }
+
+  // Build indices.
+  // Z circle.
+  int voffset = 0;
+  for (int i = 0; i < ring_vertex_count - 1; ++i)
+  {
+    indices.emplace_back(voffset + i);
+    indices.emplace_back(voffset + i + 1);
+  }
+  // Complete the circle.
+  indices.emplace_back(voffset + ring_vertex_count - 1);
+  indices.emplace_back(voffset);
+
+  // Y circle.
+  voffset += ring_vertex_count;
+  for (int i = 0; i < ring_vertex_count - 1; ++i)
+  {
+    indices.emplace_back(voffset + i);
+    indices.emplace_back(voffset + i + 1);
+  }
+  // Complete the circle.
+  indices.emplace_back(voffset + ring_vertex_count - 1);
+  indices.emplace_back(voffset);
+
+  // Y circle.
+  voffset += ring_vertex_count;
+  for (int i = 0; i < ring_vertex_count - 1; ++i)
+  {
+    indices.emplace_back(voffset + i);
+    indices.emplace_back(voffset + i + 1);
+  }
+  // Complete the circle.
+  indices.emplace_back(voffset + ring_vertex_count - 1);
+  indices.emplace_back(voffset);
+}

@@ -11,6 +11,7 @@ list(APPEND PUBLIC_HEADERS
   painter/3esshapecache.h
   painter/3esshapepainter.h
   painter/3essphere.h
+  mesh/3esconverter.h
   shaders/3esedl.h
 )
 
@@ -25,6 +26,7 @@ list(APPEND SOURCES
   painter/3esshapecache.cpp
   painter/3esshapepainter.cpp
   painter/3essphere.cpp
+  mesh/3esconverter.cpp
   shaders/3esedl.cpp
   shaders/3esedl.frag
   shaders/3esedl.vert
