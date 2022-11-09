@@ -118,4 +118,46 @@ TEST(Util, ResourceList_OutOfRange)
   res1 = resources.at(resources.size());
   EXPECT_FALSE(res1.isValid());
 }
+
+
+TEST(Util, ResourceList_Iteration)
+{
+  // To test interation, we'll allocate a number of resource, then free every second one. On iteration, we'll validate
+  // we hit every second item.
+  const unsigned target_resource_count = 10000u;
+  util::ResourceList<Resource> resources;
+
+  for (unsigned i = 0; i < target_resource_count; ++i)
+  {
+    resources.allocate()->value = i;
+  }
+
+  // Now free every second item. Just for fun. Make sure we release the first item though, so we can test begin()
+  // skipping invalid items correctly.
+  const unsigned stride = 2;
+  for (util::ResourceListId id = 0; id < target_resource_count; id += stride)
+  {
+    resources.release(id);
+  }
+
+  // Now iterate and check.
+  unsigned expected_value = 1;
+  for (const auto &resource : const_cast<const util::ResourceList<Resource> &>(resources))
+  {
+    EXPECT_EQ(resource.value, expected_value);
+    expected_value += stride;
+  }
+
+  // And again, non-const this time.
+  expected_value = 1;
+  for (auto &resource : resources)
+  {
+    EXPECT_EQ(resource.value, expected_value);
+    expected_value += stride;
+  }
+}
+
+
+TEST(Util, ResourceList_Threads)
+{}
 }  // namespace tes::viewer

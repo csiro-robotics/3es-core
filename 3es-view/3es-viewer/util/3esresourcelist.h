@@ -37,6 +37,8 @@ public:
   /// Marker value used for items which are currently allocated.
   static constexpr Id kAllocated = ~Id(0u) - 1u;
 
+  class iterator;
+  class const_iterator;
 
   /// Represents a transient reference to an item in the @c ResourceList .
   ///
@@ -188,23 +190,88 @@ public:
   protected:
     void next()
     {
-      while (_owner && _id < _owner->_items.size() && _owner->_items[_id].next_free != kNull)
+      // Not happy with how clunky the next/prev implementations are. The compiler will probably sort it out, but it
+      // should be nicer.
+      if (_owner && _id != kNull && _id + 1 < _owner->_items.size())
       {
-        ++_id;
+        do
+        {
+          ++_id;
+        } while (_id < _owner->_items.size() && _id != kNull && _owner->_items[_id].next_free != kAllocated);
+        _id = (_id < _owner->_items.size()) ? _id : kNull;
+      }
+      else
+      {
+        _id = kNull;
       }
     }
 
     void prev()
     {
-      while (_owner && _id < _owner->_items.size() && _id != kNull && _owner->_items[_id].next_free != kNull)
+      if (_owner && _id > 0 && _id != kNull)
       {
-        _id = (_id > 0) ? --_id : kNull;
+        do
+        {
+          --_id;
+        } while (_id < _owner->_items.size() && _id != kNull && _owner->_items[_id].next_free != kAllocated);
+        // Note: we let underflow deal with setting id to kNull as we reach the end of iteration. Let's assert that's
+        // valid though.
+        static_assert(decltype(_id)(0) - decltype(_id)(1) == kNull);
+      }
+      else
+      {
+        _id = kNull;
       }
     }
 
     ResourceListT *_owner = nullptr;
     Id _id = kNull;
   };
+
+  /// Construct a resource list optionally specifying the initial capacity.
+  /// @param capacity The initial resource capacity.
+  ResourceList(size_t capacity = 0);
+  /// Destructor
+  ~ResourceList() noexcept(false);
+
+  inline iterator begin() { return iterator(this, firstValid()); }
+  inline iterator end() { return iterator(this, kNull); }
+  inline const_iterator begin() const { return const_iterator(this, firstValid()); }
+  inline const_iterator end() const { return const_iterator(this, kNull); }
+
+  /// Allocate a new resource.
+  ///
+  /// The @c Id from the @c ResourceRef return value should be stored for later release.
+  ///
+  /// @return A resource reference to the allocated item.
+  ResourceRef allocate();
+
+  /// Access the item at the given @p id .
+  ///
+  /// Raises a @c std::runtime_error if @p id does not reference a valid item.
+  ///
+  /// @param id The @c Id of the item to reference.
+  /// @return The reference item.
+  ResourceRef at(Id id);
+  ResourceConstRef at(Id id) const;
+
+  /// Release the item at the given @p id .
+  /// @param id The @c Id of the item to release.
+  void release(Id id);
+
+  /// Access the item at the given @p id with undefined behaviour if @p id is invalid.
+  /// @param id The @c Id of the item to reference.
+  /// @return The reference item.
+  ResourceRef operator[](Id id);
+  /// @overload
+  ResourceConstRef operator[](Id id) const;
+
+  /// Return the number of allocated items.
+  /// @return
+  size_t size() const { return _item_count; }
+
+  /// Release all resources. Raises a @c std::runtime_error if there are outstanding references.
+  void clear();
 
   class iterator : public BaseIterator<ResourceList<T>>
   {
@@ -338,51 +405,6 @@ public:
       return current;
     }
   };
-
-  /// Construct a resource list optionally specifying the initial capacity.
-  /// @param capacity The initial resource capacity.
-  ResourceList(size_t capacity = 0);
-  /// Destructor
-  ~ResourceList() noexcept(false);
-
-  inline iterator begin() { return iterator(this, firstValid()); }
-  inline iterator end() { return iterator(this, kNull); }
-  inline const_iterator begin() const { return const_iterator(this, firstValid()); }
-  inline const_iterator end() const { return const_iterator(this, kNull); }
-
-  /// Allocate a new resource.
-  ///
-  /// The @c Id from the @c ResourceRef return value should be stored for later release.
-  ///
-  /// @return A resource reference to the allocated item.
-  ResourceRef allocate();
-
-  /// Access the item at the given @p id .
-  ///
-  /// Raises a @c std::runtime_error if @p id does not reference a valid item.
-  ///
-  /// @param id The @c Id of the item to reference.
-  /// @return The reference item.
-  ResourceRef at(Id id);
-  ResourceConstRef at(Id id) const;
-
-  /// Release the item at the given @p id .
-  /// @param id The @c Id of the item to release.
-  void release(Id id);
-
-  /// Access the item at the given @p id with undefined behaviour if @p id is invalid.
-  /// @param id The @c Id of the item to reference.
-  /// @return The reference item.
-  ResourceRef operator[](Id id);
-  /// @overload
-  ResourceConstRef operator[](Id id) const;
-
-  /// Return the number of allocated items.
-  /// @return
-  size_t size() const { return _item_count; }
-
-  /// Release all resources. Raises a @c std::runtime_error if there are outstanding references.
-  void clear();
 
 private:
   friend ResourceRef;
