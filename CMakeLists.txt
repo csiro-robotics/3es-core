@@ -1,4 +1,17 @@
 # Project setup and minimum cmake version.
+cmake_minimum_required(VERSION 3.16)
+
+# Add project level options here.
+option(TES_BUILD_EXAMPLES "Build examples?" OFF)
+option(TES_BUILD_TESTS "Build unit tests?" OFF)
+
+# Skip stale example
+# if(TES_BUILD_EXAMPLES)
+#   list(APPEND VCPKG_MANIFEST_FEATURES "occupancy")
+# endif(TES_BUILD_EXAMPLES)
+if(TES_BUILD_TESTS)
+  list(APPEND VCPKG_MANIFEST_FEATURES "tests")
+endif(TES_BUILD_TESTS)
 cmake_minimum_required(VERSION 3.5)
 
 # Setup project details.
@@ -25,10 +38,6 @@ set(CMAKE_DEBUG_POSTFIX "d")
 # this project with shared libraries. Otherwise those shared libraries aren't on the path. Note that other package
 # binaries should be on the path already.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-
-# Add project level options here.
-option(TES_BUILD_EXAMPLES "Build examples?" OFF)
-option(TES_BUILD_TESTS "Build unit tests?" OFF)
 
 # Allow the use of folders to group targets in supporting environments.
 # For example Visual Studio solution folders.
