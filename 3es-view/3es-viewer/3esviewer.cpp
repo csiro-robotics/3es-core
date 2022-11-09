@@ -1,8 +1,12 @@
 #include "3esviewer.h"
 
+#include "shaders/3esedl.h"
+
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
+#include <Magnum/GL/RenderbufferFormat.h>
 #include <Magnum/GL/Renderer.h>
+#include <Magnum/GL/TextureFormat.h>
 #include <Magnum/GL/Version.h>
 #include <Magnum/MeshTools/Compile.h>
 #include <Magnum/Primitives/Cube.h>
@@ -31,6 +35,65 @@
 
 namespace tes
 {
+void Viewer::Edl::init(const Magnum::Vector2i &size)
+{
+  colour_buffer.setStorage(1, Magnum::GL::TextureFormat::RGBA8, size);
+  depth_buffer.setStorage(1, Magnum::GL::TextureFormat::Depth24Stencil8, size);
+  // depth_buffer.setStorage(1, Magnum::GL::TextureFormat::DepthComponent32F, size);
+
+  frame_buffer = Magnum::GL::Framebuffer({ {}, size });
+  frame_buffer.attachTexture(Magnum::GL::Framebuffer::ColorAttachment{ 0 }, colour_buffer, 0);
+  frame_buffer.attachTexture(Magnum::GL::Framebuffer::BufferAttachment::DepthStencil, depth_buffer, 0);
+  // frame_buffer.attachTexture(Magnum::GL::Framebuffer::BufferAttachment::Depth, depth_buffer, 0);
+
+  if (!shader)
+  {
+    shader = std::make_unique<shaders::Edl>();
+  }
+
+  shader->bindColourTexture(colour_buffer).bindDepthBuffer(depth_buffer).setScreenParams(size);
+
+  struct QuadVertex
+  {
+    Magnum::Vector3 position;
+    Magnum::Vector2 textureCoordinates;
+  };
+  const QuadVertex vertices[]{
+    { { 0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f } },  /* Bottom right */
+    { { 0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f } },   /* Top right */
+    { { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f } }, /* Bottom left */
+    { { -0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f } }   /* Top left */
+  };
+  const Magnum::UnsignedInt indices[]{
+    /* 3--1 1 */
+    0, 1, 2, /* | / /| */
+    2, 1, 3  /* |/ / | */
+  };         /* 2 2--0 */
+
+  mesh.setCount(Magnum::Containers::arraySize(indices))
+    .addVertexBuffer(Magnum::GL::Buffer{ vertices }, 0, shaders::Edl::Position{}, shaders::Edl::TextureCoordinates{})
+    .setIndexBuffer(Magnum::GL::Buffer{ indices }, 0, Magnum::GL::MeshIndexType::UnsignedInt);
+}
+
+
+void Viewer::Edl::resize(const Magnum::Vector2i &size)
+{
+  // For now just try recreating everything.
+  init(size);
+}
+
+
+void Viewer::Edl::blit(const Magnum::Matrix4 &projection_matrix, float near_clip, float far_clip)
+{
+  shader->setProjectionMatrix(projection_matrix)
+    .setClipParams(near_clip, far_clip)
+    .setRadius(settings.radius)
+    .setLinearScale(settings.linear_scale)
+    .setExponentialScale(settings.exponential_scale);
+  shader->draw(mesh);
+}
+
+
 Viewer::Viewer(const Arguments &arguments)
   : Magnum::Platform::Application{ arguments, Configuration{}.setTitle("3es Viewer") }
   , _move_keys({
@@ -110,6 +173,8 @@ void Viewer::checkContinuousSim()
 
 void Viewer::drawEvent()
 {
+  using namespace Magnum::Math::Literals;
+
   const auto now = Clock::now();
   const auto delta_time = now - _last_sim_time;
   _last_sim_time = now;
@@ -135,14 +200,16 @@ void Viewer::drawEvent()
 
   _fly.updateKeys(dt, key_translation, key_rotation, _camera);
 
-  Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color);
-
-  // TODO: Add your drawing code here
-  using namespace Magnum::Math::Literals;
+  if (_edl.enabled)
+  {
+    _edl.frame_buffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth).bind();
+  }
+  else
+  {
+    Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth);
+  }
 
   auto projection_matrix = camera::viewProjection(_camera, Magnum::Vector2(windowSize()));
-
-  Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth);
 
   _shader
     .setLightPositions({ { 1.4f, 1.0f, 0.75f } })  //
@@ -153,11 +220,23 @@ void Viewer::drawEvent()
   _mesh.setInstanceCount(_instances.size());
   _shader.draw(_mesh);
 
+  if (_edl.enabled)
+  {
+    Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth)
+      .bind();
+    _edl.blit(projection_matrix, _camera.clip_near, _camera.clip_far);
+  }
+
   swapBuffers();
   if (_continuous_sim)
   {
     redraw();
   }
+}
+
+void Viewer::viewportEvent(ViewportEvent &event)
+{
+  _edl.resize(event.windowSize());
 }
 
 void Viewer::mousePressEvent(MouseEvent &event)

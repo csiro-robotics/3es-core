@@ -5,7 +5,10 @@
 
 #include "camera/3esfly.h"
 
+#include <Magnum/GL/FrameBuffer.h>
 #include <Magnum/GL/Mesh.h>
+#include <Magnum/GL/Renderbuffer.h>
+#include <Magnum/GL/Texture.h>
 #include <Magnum/Math/Color.h>
 #include <Magnum/Platform/GlfwApplication.h>
 #include <Magnum/Shaders/Phong.h>
@@ -13,10 +16,16 @@
 #include <array>
 #include <chrono>
 #include <vector>
+#include <memory>
 
 // TODO(KS): abstract away Magnum so it's not in any public headers.
 namespace tes
 {
+namespace shaders
+{
+class Edl;
+}  // namespace shaders
+
 class Viewer : public Magnum::Platform::Application
 {
 public:
@@ -29,6 +38,7 @@ public:
 
 private:
   void drawEvent() override;
+  void viewportEvent(ViewportEvent &event) override;
   void mousePressEvent(MouseEvent &event) override;
   void mouseReleaseEvent(MouseEvent &event) override;
   void mouseMoveEvent(MouseMoveEvent &event) override;
@@ -49,6 +59,31 @@ private:
     Magnum::Matrix3x3 normal_matrix;
     Magnum::Color3 colour;
   };
+
+  struct Edl
+  {
+    struct Settings
+    {
+      float radius = 1.0f;
+      float linear_scale = 1.0f;
+      float exponential_scale = 1.0f;
+      float near_clip = 1.0f;
+      float far_clip = 100.0f;
+      Magnum::Vector2i view_size{ 1 };
+    };
+
+    Magnum::GL::Texture2D colour_buffer;
+    Magnum::GL::Texture2D depth_buffer;
+    Magnum::GL::Framebuffer frame_buffer{ Magnum::NoCreate };
+    std::unique_ptr<shaders::Edl> shader;
+    Settings settings;
+    Magnum::GL::Mesh mesh;
+    bool enabled = false;
+
+    void init(const Magnum::Vector2i &size);
+    void resize(const Magnum::Vector2i &size);
+    void blit(const Magnum::Matrix4 &projection_matrix, float near_clip, float far_clip);
+  } _edl;
 
   Clock::time_point _last_sim_time = Clock::now();
 
