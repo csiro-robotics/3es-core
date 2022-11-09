@@ -197,7 +197,7 @@ void tes::sphere::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
 void tes::sphere::wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius,
                             const Vector3f &origin, int ring_vertex_count)
 {
-  ring_vertex_count = std::min(3, ring_vertex_count);
+  ring_vertex_count = std::max(3, ring_vertex_count);
   if (ring_vertex_count < 0)
   {
     ring_vertex_count = 3;
