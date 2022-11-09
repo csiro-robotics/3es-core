@@ -1,9 +1,12 @@
-#include "3esbounds.h"
+#include "3esboundsculler.h"
 
 #include <Magnum/Math/Intersection.h>
 
 namespace tes::viewer
 {
+BoundsCuller::BoundsCuller() = default;
+BoundsCuller::~BoundsCuller() = default;
+
 
 BoundsId BoundsCuller::allocate(const Magnum::Vector3 &centre, const Magnum::Vector3 &half_extents)
 {

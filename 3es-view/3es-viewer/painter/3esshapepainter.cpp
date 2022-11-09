@@ -8,14 +8,13 @@ ShapePainter::ShapePainter(std::shared_ptr<BoundsCuller> culler, Magnum::GL::Mes
                            Magnum::GL::Mesh &&wireframe_mesh, Magnum::GL::Mesh &&transparent_mesh,
                            const Magnum::Matrix4 &mesh_transform, BoundsCalculator bounds_calculator)
 {
-  _solid_cache = std::make_unique<ShapeCache>(ShapeCache::Type::Solid, culler, std::move(solid_mesh), mesh_transform,
-                                              std::make_unique<ShapeCacheShaderFlat>(), bounds_calculator);
-  _wireframe_cache =
-    std::make_unique<ShapeCache>(ShapeCache::Type::Solid, culler, std::move(wireframe_mesh), mesh_transform,
-                                 std::make_unique<ShapeCacheShaderFlat>(), bounds_calculator);
-  _transparent_cache =
-    std::make_unique<ShapeCache>(ShapeCache::Type::Transparent, culler, std::move(transparent_mesh), mesh_transform,
-                                 std::make_unique<ShapeCacheShaderFlat>(true), bounds_calculator);
+  _solid_cache = std::make_unique<ShapeCache>(culler, std::move(solid_mesh), mesh_transform);
+  _wireframe_cache = std::make_unique<ShapeCache>(culler, std::move(wireframe_mesh), mesh_transform);
+  _transparent_cache = std::make_unique<ShapeCache>(culler, std::move(transparent_mesh), mesh_transform);
+
+  _solid_cache->setBoundsCalculator(bounds_calculator);
+  _wireframe_cache->setBoundsCalculator(bounds_calculator);
+  _transparent_cache->setBoundsCalculator(bounds_calculator);
 }
 
 ShapePainter::~ShapePainter() = default;

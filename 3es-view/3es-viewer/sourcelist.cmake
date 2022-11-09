@@ -1,7 +1,7 @@
 
 list(APPEND PUBLIC_HEADERS
   # General headers
-  3esbounds.h
+  3esboundsculler.h
   3esviewer.h
   3esedleffect.h
   3esfboeffect.h
@@ -16,7 +16,7 @@ list(APPEND PUBLIC_HEADERS
 )
 
 list(APPEND SOURCES
-  3esbounds.cpp
+  3esboundsculler.cpp
   3esviewer.cpp
   3esedleffect.cpp
   3esfboeffect.cpp
