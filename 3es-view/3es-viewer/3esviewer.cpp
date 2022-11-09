@@ -94,7 +94,10 @@ Viewer::Viewer(const Arguments &arguments)
                                             1, 32, 1, { Magnum::Primitives::CylinderFlag::CapEnds })),
                                           shape_transform, std::make_unique<painter::ShapeCacheShaderFlat>());
 
-  _cylinders->add(Magnum::Matrix4(), Magnum::Color3(1, 1, 0));
+  // _cylinders->add(Magnum::Matrix4(), Magnum::Color3(1, 1, 0));
+
+  _spheres = std::make_unique<painter::Sphere>(_culler);
+  _spheres->add(Id(1), painter::ShapePainter::Type::Solid, Magnum::Matrix4{}, Magnum::Color4{ 1, 1, 0 });
 }
 
 void Viewer::setContinuousSim(bool continuous)
@@ -130,27 +133,9 @@ void Viewer::drawEvent()
   const auto now = Clock::now();
   const auto delta_time = now - _last_sim_time;
   _last_sim_time = now;
-
   const float dt = std::chrono::duration_cast<std::chrono::duration<float>>(delta_time).count();
 
-  Magnum::Vector3i key_translation(0);
-  Magnum::Vector3i key_rotation(0);
-  for (const auto &key : _move_keys)
-  {
-    if (key.active)
-    {
-      key_translation[key.axis] += (!key.negate) ? 1 : -1;
-    }
-  }
-  for (const auto &key : _rotate_keys)
-  {
-    if (key.active)
-    {
-      key_rotation[key.axis] += (!key.negate) ? 1 : -1;
-    }
-  }
-
-  _fly.updateKeys(dt, key_translation, key_rotation, _camera);
+  updateCamera(dt);
 
   auto projection_matrix = camera::viewProjection(_camera, Magnum::Vector2(windowSize()));
   ++_mark;
@@ -167,15 +152,7 @@ void Viewer::drawEvent()
       .bind();
   }
 
-  _shader.setTransformationProjectionMatrix(projection_matrix);
-
-  _instance_buffer.setData(_instances, Magnum::GL::BufferUsage::DynamicDraw);
-  _box.setInstanceCount(_instances.size())
-    .addVertexBufferInstanced(_instance_buffer, 1, 0, Magnum::Shaders::Flat3D::TransformationMatrix{},
-                              Magnum::Shaders::Flat3D::Color3{});
-  _shader.draw(_box);
-
-  _cylinders->draw(_mark, projection_matrix);
+  drawShapes(dt, projection_matrix);
 
   if (_active_fbo_effect)
   {
@@ -326,6 +303,44 @@ void Viewer::keyReleaseEvent(KeyEvent &event)
     checkContinuousSim();
     redraw();
   }
+}
+
+
+void Viewer::updateCamera(float dt)
+{
+  Magnum::Vector3i key_translation(0);
+  Magnum::Vector3i key_rotation(0);
+  for (const auto &key : _move_keys)
+  {
+    if (key.active)
+    {
+      key_translation[key.axis] += (!key.negate) ? 1 : -1;
+    }
+  }
+  for (const auto &key : _rotate_keys)
+  {
+    if (key.active)
+    {
+      key_rotation[key.axis] += (!key.negate) ? 1 : -1;
+    }
+  }
+
+  _fly.updateKeys(dt, key_translation, key_rotation, _camera);
+}
+
+
+void Viewer::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix)
+{
+  _shader.setTransformationProjectionMatrix(projection_matrix);
+
+  _instance_buffer.setData(_instances, Magnum::GL::BufferUsage::DynamicDraw);
+  _box.setInstanceCount(_instances.size())
+    .addVertexBufferInstanced(_instance_buffer, 1, 0, Magnum::Shaders::Flat3D::TransformationMatrix{},
+                              Magnum::Shaders::Flat3D::Color3{});
+  _shader.draw(_box);
+
+  _cylinders->draw(_mark, projection_matrix);
+  _spheres->draw(_mark, projection_matrix);
 }
 }  // namespace tes::viewer
 

@@ -7,6 +7,7 @@
 
 #include "3esbounds.h"
 #include "painter/3esshapecache.h"
+#include "painter/3essphere.h"
 
 #include <Magnum/GL/FrameBuffer.h>
 #include <Magnum/GL/Mesh.h>
@@ -50,6 +51,9 @@ private:
   void keyPressEvent(KeyEvent &event) override;
   void keyReleaseEvent(KeyEvent &event) override;
 
+  void updateCamera(float dt);
+  void drawShapes(float dt, const Magnum::Matrix4 &projection_matrix);
+
   struct KeyAxis
   {
     KeyEvent::Key key;
@@ -81,6 +85,7 @@ private:
 
   std::shared_ptr<BoundsCuller> _culler;
   std::unique_ptr<painter::ShapeCache> _cylinders;
+  std::unique_ptr<painter::Sphere> _spheres;
 
   unsigned _mark = 0;
 
