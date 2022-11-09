@@ -42,6 +42,23 @@ void _3es_coreAPI initialise(std::vector<Vector3f> &vertices, std::vector<unsign
 void _3es_coreAPI subdivide(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
                             SphereVertexMap &vertexMap);
 
+/// Build a sphere using lat long tesselation. This tesselates by creating a series of rings at various latitudes
+/// and connects them by a number of longitudal divisions. This can be used to create a hemisphere.
+/// @param[out] vertices Populated with the mesh vertices.
+/// @param[out] indices Populated with the mesh indices.
+/// @param[out] normals Populated with per vertex normals.
+/// @param radius The radius of the sphere to build.
+/// @param origin The centre of the sphere.
+/// @param hemisphereRingCount Number of rings latitudal rings in each hemisphere. Excludes the equatorial ring.
+/// @param segments Number of longitudal segments.
+/// @param axis Primary axis for the sphere, which determines the polar regions.
+/// @param hemisphereOnly True to tesselate a hemisphere only. The hemisphere is built in the direction of the @p axis .
+void _3es_coreAPI solidLatLong(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+                               std::vector<Vector3f> &normals, float radius = 1.0f,
+                               const Vector3f &origin = Vector3f(0.0f), unsigned hemisphereRingCount = 5,
+                               unsigned segments = 32, const Vector3f &axis = { 0.0f, 0.0f, 1.0f },
+                               bool hemisphereOnly = false);
+
 /// Tessellate a sphere using a subdivision technique starting from an icosahedron.
 /// @param[out] vertices Populated with the mesh vertices.
 /// @param[out] indices Populated with the mesh indices.

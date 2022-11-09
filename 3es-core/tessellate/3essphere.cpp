@@ -5,6 +5,8 @@
 
 #include "3esvector3.h"
 
+#include <array>
+#include <cmath>
 #include <unordered_map>
 
 using namespace tes;
@@ -156,6 +158,175 @@ void tes::sphere::subdivide(std::vector<Vector3f> &vertices, std::vector<unsigne
     indices.push_back(abc[2]);
     indices.push_back(def[2]);
     indices.push_back(def[1]);
+  }
+}
+
+
+void solidLatLong(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
+                  float radius, const Vector3f &origin, unsigned hemisphereRingCount, unsigned segments,
+                  const Vector3f &axis_in, bool hemisphereOnly)
+{
+  hemisphereRingCount = std::max(hemisphereRingCount, 1u);
+  segments = std::max(segments, 3u);
+  Vector3f axis = axis_in;
+  if (std::abs(axis.magnitudeSquared() - 1.0f) > 1e-2f)
+  {
+    axis = Vector3f(0, 0, 1);
+  }
+
+  std::array<Vector3f, 2> radials;
+  Vector3f v;
+  float segmentAngle = 2.0f * float(M_PI) / segments;
+  float ringStepAngle = 0.5f * float(M_PI) / hemisphereRingCount;
+
+  if (axis.dot(Vector3f(1, 0, 0)) < 1e-3f)
+  {
+    radials[0] = Vector3f(1, 0, 0);
+  }
+  else
+  {
+    radials[0] = Vector3f(0, 1, 0);
+  }
+
+  radials[1] = axis.cross(radials[0]).normalised();
+  radials[0] = radials[1].cross(axis).normalised();
+
+  // Two triangles (six indices) per segment per ring.
+  // Last ring has only one trinagle per segment, for which we make the adjustment.
+  // Will be doubled for full sphere.
+  unsigned indexCap = hemisphereRingCount * segments * 2 * 3 - 3 * segments;
+  if (hemisphereOnly)
+  {
+    vertices.reserve(hemisphereRingCount * segments + 1);
+  }
+  else
+  {
+    // Double the vertices excluding the shared, equatorial vertices.
+    vertices.reserve(2 * (hemisphereRingCount * segments + 1) - segments);
+    indexCap *= 2;
+  }
+  indices.reserve(indexCap);
+  normals.reserve(vertices.capacity());
+
+  // First build a unit sphere.
+  // Create vertices for the rings.
+  for (unsigned r = 0; r < hemisphereRingCount; ++r)
+  {
+    float ringHeight = std::sin(r * ringStepAngle);
+    float ringRadius = std::sqrt(1 - ringHeight * ringHeight);
+    for (unsigned i = 0; i < segments; ++i)
+    {
+      float angle = i * segmentAngle;
+      v = ringRadius * std::cos(angle) * radials[0] + ringRadius * std::sin(angle) * radials[1];
+      v += ringHeight * axis;
+      vertices.emplace_back(v);
+    }
+  }
+
+  // Add the polar vertex.
+  vertices.emplace_back(axis);
+
+  // We have vertices for a hemi-sphere. Mirror if we are building a full sphere.
+  if (!hemisphereOnly)
+  {
+    unsigned mirrorStart = segments;  // Skip the shared, equatorial ring.
+    unsigned mirrorCount = vertices.size() - 1;
+    for (unsigned i = mirrorStart; i < mirrorCount; ++i)
+    {
+      v = vertices[i];
+      v -= 2.0f * v.dot(axis) * axis;
+      vertices.emplace_back(v);
+    }
+
+    // Add the polar vertex.
+    vertices.emplace_back(-axis);
+  }
+
+  // We have a unit sphere. These can be used as normals as is.
+  for (auto &v : vertices)
+  {
+    normals.emplace_back(v);
+    // At the same time we can offset the vertices and apply the radius.
+    v = origin + radius * v;
+  }
+
+  // Finally build the indices for the triangles.
+  // Tessellate each ring up the hemispheres.
+  unsigned ringStartIndex, previousRingStartIndex, poleIndex;
+  previousRingStartIndex = 0;
+  for (unsigned r = 1; r < hemisphereRingCount; ++r)
+  {
+    ringStartIndex = r * segments;
+
+    for (unsigned i = 0; i < segments; ++i)
+    {
+      indices.emplace_back(previousRingStartIndex + i);
+      indices.emplace_back(previousRingStartIndex + (i + 1) % segments);
+      indices.emplace_back(ringStartIndex + (i + 1) % segments);
+
+      indices.emplace_back(previousRingStartIndex + i);
+      indices.emplace_back(ringStartIndex + (i + 1) % segments);
+      indices.emplace_back(ringStartIndex + i);
+    }
+
+    previousRingStartIndex = ringStartIndex;
+  }
+
+  // Connect the final ring to the polar vertex.
+  ringStartIndex = (hemisphereRingCount - 1) * segments;
+  poleIndex = ringStartIndex + segments;
+  for (unsigned i = 0; i < segments; ++i)
+  {
+    indices.emplace_back(ringStartIndex + i);
+    indices.emplace_back(ringStartIndex + (i + 1) % segments);
+    indices.emplace_back(poleIndex);  // Polar vertex
+  }
+
+  // Build lower hemi-sphere as required.
+  if (!hemisphereOnly)
+  {
+    unsigned hemisphereOffset = hemisphereRingCount * segments + 1;
+    // Stil use zero as the first previous ring. This is the shared equator.
+    previousRingStartIndex = 0;
+    for (unsigned r = 1; r < hemisphereRingCount; ++r)
+    {
+      // Take one off r for the shared equator.
+      ringStartIndex = (r - 1) * segments + hemisphereOffset;
+
+      for (unsigned i = 0; i < segments; ++i)
+      {
+        indices.emplace_back(previousRingStartIndex + i);
+        indices.emplace_back(ringStartIndex + (i + 1) % segments);
+        indices.emplace_back(previousRingStartIndex + (i + 1) % segments);
+
+        indices.emplace_back(previousRingStartIndex + i);
+        indices.emplace_back(ringStartIndex + i);
+        indices.emplace_back(ringStartIndex + (i + 1) % segments);
+      }
+
+      previousRingStartIndex = ringStartIndex;
+    }
+
+    // Connect the final ring to the polar vertex.
+    // Take two from hemisphereRingCount for the shared equator.
+    if (hemisphereRingCount > 1)
+    {
+      ringStartIndex = (hemisphereRingCount - 1 - 1) * segments + hemisphereOffset;
+      poleIndex = ringStartIndex + segments;
+    }
+    else
+    {
+      // Shared equator.
+      ringStartIndex = 0;
+      // Skip the other pole index.
+      poleIndex = ringStartIndex + segments + 1;
+    }
+    for (unsigned i = 0; i < segments; ++i)
+    {
+      indices.emplace_back(ringStartIndex + (i + 1) % segments);
+      indices.emplace_back(ringStartIndex + i);
+      indices.emplace_back(poleIndex);  // Polar vertex
+    }
   }
 }
 

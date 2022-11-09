@@ -91,6 +91,7 @@ list(APPEND PUBLIC_SHAPE_HEADERS
 list(APPEND PUBLIC_TESSELLATE_HEADERS
   tessellate/3esarrow.h
   tessellate/3esbox.h
+  tessellate/3escapsule.h
   tessellate/3escone.h
   tessellate/3escylinder.h
   tessellate/3essphere.h
@@ -150,6 +151,7 @@ list(APPEND SOURCES
 
   tessellate/3esarrow.cpp
   tessellate/3esbox.cpp
+  tessellate/3escapsule.cpp
   tessellate/3escone.cpp
   tessellate/3escylinder.cpp
   tessellate/3essphere.cpp
