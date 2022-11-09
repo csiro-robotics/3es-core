@@ -23,6 +23,7 @@ list(APPEND PUBLIC_HEADERS
   painter/3esstar.h
   mesh/3esconverter.h
   shaders/3esedl.h
+  util/3esresourcelist.h
 )
 
 list(APPEND SOURCES
