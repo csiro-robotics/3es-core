@@ -14,6 +14,7 @@ list(APPEND PUBLIC_HEADERS
   painter/3esbox.h
   painter/3escapsule.h
   painter/3escylinder.h
+  painter/3esplane.h
   painter/3essphere.h
   mesh/3esconverter.h
   shaders/3esedl.h
@@ -33,6 +34,7 @@ list(APPEND SOURCES
   painter/3esbox.cpp
   painter/3escapsule.cpp
   painter/3escylinder.cpp
+  painter/3esplane.cpp
   painter/3essphere.cpp
   mesh/3esconverter.cpp
   shaders/3esedl.cpp

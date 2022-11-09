@@ -5,6 +5,7 @@
 #include "painter/3esbox.h"
 #include "painter/3escapsule.h"
 #include "painter/3escylinder.h"
+#include "painter/3esplane.h"
 #include "painter/3essphere.h"
 
 #include <Magnum/GL/Context.h>
@@ -96,6 +97,7 @@ void Viewer::initialisePainters()
   _painters.emplace(SIdBox, std::make_shared<painter::Box>(_culler));
   _painters.emplace(SIdCylinder, std::make_shared<painter::Cylinder>(_culler));
   _painters.emplace(SIdCapsule, std::make_shared<painter::Capsule>(_culler));
+  _painters.emplace(SIdPlane, std::make_shared<painter::Plane>(_culler));
   _painters.emplace(SIdArrow, std::make_shared<painter::Arrow>(_culler));
 
   // SIdCapsule,
@@ -159,7 +161,17 @@ void Viewer::initialisePainters()
                              Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
                              Magnum::Color4{ 1, 0, 1, 0.4f });
 
-  x = 5.0f;
+  x = 7.5f;
+  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 1.0f, 1.0f, 1.0f });
+  _painters[SIdPlane]->add(Id(1), painter::ShapePainter::Type::Solid,
+                           Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+  _painters[SIdPlane]->add(Id(1), painter::ShapePainter::Type::Wireframe,
+                           Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+  _painters[SIdPlane]->add(Id(1), painter::ShapePainter::Type::Transparent,
+                           Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
+                           Magnum::Color4{ 1, 0, 1, 0.4f });
+
+  x = -7.5f;
   shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 0.1f, 0.1f, 1.0f });
   _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Solid,
                            Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });

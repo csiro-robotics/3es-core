@@ -75,12 +75,12 @@ void ShapeCache::calcCylindricalBounds(const Magnum::Matrix4 &transform, float r
 
 
 ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
-                       std::shared_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
+                       std::shared_ptr<ShapeCacheShader> &&shader, BoundsCalculator bounds_calculator)
   : ShapeCache(std::move(culler), { part }, std::move(shader), std::move(bounds_calculator))
 {}
 
 ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, const std::vector<Part> &parts,
-                       std::shared_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
+                       std::shared_ptr<ShapeCacheShader> &&shader, BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
   , _parts(parts)
   , _shader(std::move(shader))
@@ -90,7 +90,7 @@ ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, const std::vector<P
 }
 
 ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> parts,
-                       std::shared_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
+                       std::shared_ptr<ShapeCacheShader> &&shader, BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
   , _parts(parts)
   , _shader(std::move(shader))

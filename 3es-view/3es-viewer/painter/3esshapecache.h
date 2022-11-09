@@ -160,7 +160,7 @@ public:
 
   /// @overload
   ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
-             std::shared_ptr<ShapeCacheShaderFlat> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
+             std::shared_ptr<ShapeCacheShader> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
              BoundsCalculator bounds_calculator = ShapeCache::calcSphericalBounds);
 
   /// Construct a shape cache.
@@ -169,12 +169,12 @@ public:
   /// @param shader The shader used to draw the mesh.
   /// @param bounds_calculator Bounds calculation function.
   ShapeCache(std::shared_ptr<BoundsCuller> culler, const std::vector<Part> &parts,
-             std::shared_ptr<ShapeCacheShaderFlat> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
+             std::shared_ptr<ShapeCacheShader> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
              BoundsCalculator bounds_calculator = ShapeCache::calcSphericalBounds);
 
   /// @overload
   ShapeCache(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> parts,
-             std::shared_ptr<ShapeCacheShaderFlat> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
+             std::shared_ptr<ShapeCacheShader> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
              BoundsCalculator bounds_calculator = ShapeCache::calcSphericalBounds);
 
   /// Calculate the bounds for a shape instance with the given transform.
@@ -183,7 +183,7 @@ public:
   /// @param[out] halfExtents Calculated bounds half extents.
   void calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents);
 
-  inline std::shared_ptr<ShapeCacheShaderFlat> shader() const { return _shader; }
+  inline std::shared_ptr<ShapeCacheShader> shader() const { return _shader; }
 
   /// Set the bounds calculation function.
   /// @param bounds_calculator New bounds calculation function.
@@ -280,7 +280,7 @@ private:
   /// the number of instances per @p InstanceBuffer .
   std::array<ShapeInstance, 2048> _marshal_buffer;
   /// Shaper used to draw the shapes.
-  std::shared_ptr<ShapeCacheShaderFlat> _shader;
+  std::shared_ptr<ShapeCacheShader> _shader;
   /// Bounds calculation function.
   BoundsCalculator _bounds_calculator = ShapeCache::calcSphericalBounds;
 };
