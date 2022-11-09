@@ -63,7 +63,15 @@ public:
       : _id(id)
       , _resource_list(resource_list)
     {
-      _resource_list->lock();
+      // Only hold a resource list if the id is valid.
+      if (_id != kNull)
+      {
+        _resource_list->lock();
+      }
+      else
+      {
+        _resource_list = nullptr;
+      }
     }
     inline ResourceRefBase(const ResourceRefBase<Item, List> &) = delete;
     /// Move constructor.
@@ -74,14 +82,7 @@ public:
     {}
 
     /// Releases the resource reference, releasing a @c ResourceList lock.
-    inline ~ResourceRefBase()
-    {
-      if (_resource_list)
-      {
-        _id = kNull;
-        _resource_list->unlock();
-      }
-    }
+    inline ~ResourceRefBase() { release(); }
 
     inline ResourceRefBase &operator=(const ResourceRefBase<Item, List> &) = delete;
     /// Move assignment.
@@ -99,7 +100,7 @@ public:
 
     /// Check if this resource reference is valid. A valid reference has a valid @c Id and addresses a @c ResourceList .
     /// @return
-    inline bool isValid() const { return _id != kNull && _resource_list != nullptr; }
+    inline bool isValid() const { return _resource_list != nullptr; }
 
     /// Dereference the resource.
     /// @return The references resource entry.
@@ -112,6 +113,17 @@ public:
     /// indexing functions.
     /// @return The resource Id.
     inline Id id() const { return _id; }
+
+    /// Explicitly release the current resource (if any). Safe to call if not valid.
+    inline void release()
+    {
+      if (_resource_list)
+      {
+        _id = kNull;
+        _resource_list->unlock();
+        _resource_list = nullptr;
+      }
+    }
 
   protected:
     Id _id = kNull;
