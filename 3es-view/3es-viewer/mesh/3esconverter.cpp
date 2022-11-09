@@ -84,7 +84,7 @@ struct VertexMapper<VertexP>
       Corrade::Containers::InPlaceInit,
       { Magnum::Trade::MeshAttributeData{
         Magnum::Trade::MeshAttribute::Position,
-        Corrade::Containers::stridedArrayView(vertices, &vertices[0].position, vertices.size(), sizeof(VertexPN)) } }
+        Corrade::Containers::stridedArrayView(vertices, &vertices[0].position, vertices.size(), sizeof(VertexP)) } }
     };
   }
 };

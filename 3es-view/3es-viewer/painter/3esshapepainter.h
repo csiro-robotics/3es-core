@@ -23,8 +23,9 @@ public:
     Transparent,
   };
 
-  ShapePainter(std::shared_ptr<BoundsCuller> culler, Magnum::GL::Mesh &solid, Magnum::GL::Mesh &wireframe,
-               const Magnum::Matrix4 &mesh_transform, BoundsCalculator bounds_calculator);
+  ShapePainter(std::shared_ptr<BoundsCuller> culler, Magnum::GL::Mesh &&solid, Magnum::GL::Mesh &&wireframe,
+               Magnum::GL::Mesh &&transparent, const Magnum::Matrix4 &mesh_transform,
+               BoundsCalculator bounds_calculator);
   ~ShapePainter();
 
   /// Add a shape with the given @p id to paint.

@@ -4,17 +4,18 @@
 
 namespace tes::viewer::painter
 {
-ShapePainter::ShapePainter(std::shared_ptr<BoundsCuller> culler, Magnum::GL::Mesh &solid_mesh,
-                           Magnum::GL::Mesh &wireframe_mesh, const Magnum::Matrix4 &mesh_transform,
-                           BoundsCalculator bounds_calculator)
+ShapePainter::ShapePainter(std::shared_ptr<BoundsCuller> culler, Magnum::GL::Mesh &&solid_mesh,
+                           Magnum::GL::Mesh &&wireframe_mesh, Magnum::GL::Mesh &&transparent_mesh,
+                           const Magnum::Matrix4 &mesh_transform, BoundsCalculator bounds_calculator)
 {
-  // _solid_cache = std::make_unique<ShapeCache>(ShapeCache::Type::Solid, culler, solid_mesh, mesh_transform,
-  //                                             std::make_unique<ShapeCacheShaderFlat>(), bounds_calculator);
-  // _wireframe_cache = std::make_unique<ShapeCache>(ShapeCache::Type::Solid, culler, wireframe_mesh, mesh_transform,
-  //                                                 std::make_unique<ShapeCacheShaderFlat>(), bounds_calculator);
-  // _transparent_cache = std::make_unique<ShapeCache>(ShapeCache::Type::Transparent, culler, solid_mesh,
-  // mesh_transform,
-  //                                                   std::make_unique<ShapeCacheShaderFlat>(true), bounds_calculator);
+  _solid_cache = std::make_unique<ShapeCache>(ShapeCache::Type::Solid, culler, std::move(solid_mesh), mesh_transform,
+                                              std::make_unique<ShapeCacheShaderFlat>(), bounds_calculator);
+  _wireframe_cache =
+    std::make_unique<ShapeCache>(ShapeCache::Type::Solid, culler, std::move(wireframe_mesh), mesh_transform,
+                                 std::make_unique<ShapeCacheShaderFlat>(), bounds_calculator);
+  _transparent_cache =
+    std::make_unique<ShapeCache>(ShapeCache::Type::Transparent, culler, std::move(transparent_mesh), mesh_transform,
+                                 std::make_unique<ShapeCacheShaderFlat>(true), bounds_calculator);
 }
 
 ShapePainter::~ShapePainter() = default;
