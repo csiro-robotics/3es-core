@@ -74,8 +74,8 @@
 /// | Material  | uint32        | MeshResource ID                         |
 /// |           | uint32        | Material ID                             |
 ///
-/// The @c Component message above refers to of the data content messages. The offset specicifies the first index of the
-/// incomping data, which allows the data streams to be sent in blocks. The element type is given by
+/// The @c Component message above refers to of the data content messages. The offset specifies the first index of the
+/// incoming data, which allows the data streams to be sent in blocks. The element type is given by
 /// @c MeshComponentMessage::elementType , noting that @c McetPackedFloat16 and @c McetPackedFloat32 types are preceeded
 /// by a single precision ( @c McetPackedFloat16 ) or double precision ( @c McetPackedFloat32 ) floating point scale
 /// factor. The table below identifies data type for each component. The data type may be a specific, fixed type, or a
