@@ -64,8 +64,8 @@ bool ShapePainter::update(const Id &id, const Magnum::Matrix4 &transform, const 
     if (ShapeCache *cache = cacheForType(search->second.type))
     {
       cache->update(search->second.index, transform, colour);
-      return true;
     }
+    return true;
   }
 
   return false;
@@ -131,13 +131,10 @@ ShapeCache *ShapePainter::cacheForType(Type type)
   {
   case Type::Solid:
     return _solid_cache.get();
-    break;
   case Type::Transparent:
     return _transparent_cache.get();
-    break;
   case Type::Wireframe:
     return _wireframe_cache.get();
-    break;
   default:
     break;
   }

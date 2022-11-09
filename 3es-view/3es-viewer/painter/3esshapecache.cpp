@@ -30,23 +30,57 @@ void ShapeCacheShaderFlat::draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buff
 }
 
 
-void ShapeCache::defaultCalcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre,
-                                   Magnum::Vector3 &half_extents)
+void ShapeCache::calcSphericalBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre,
+                                     Magnum::Vector3 &halfExtents)
 {
-  half_extents[0] = transform[0].xyz().length();
-  half_extents[1] = transform[1].xyz().length();
-  half_extents[2] = transform[2].xyz().length();
+  halfExtents[0] = transform[0].xyz().length();
+  halfExtents[1] = transform[1].xyz().length();
+  halfExtents[2] = transform[2].xyz().length();
   centre = transform[3].xyz();
 }
 
 
+void ShapeCache::calcCylindricalBounds(const Magnum::Matrix4 &transform, float radius, float length,
+                                       Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents)
+{
+  // Scale and rotate an AABB then recalculate bounds from that.
+  // Note: assumes the axis.
+  const std::array<Magnum::Vector3, 8> boxVertices = {
+    (transform * Magnum::Vector4(-radius, -radius, 0.5f * length, 1)).xyz(),
+    (transform * Magnum::Vector4(radius, -radius, 0.5f * length, 1)).xyz(),
+    (transform * Magnum::Vector4(radius, radius, 0.5f * length, 1)).xyz(),
+    (transform * Magnum::Vector4(-radius, radius, 0.5f * length, 1)).xyz(),
+    (transform * Magnum::Vector4(-radius, -radius, -0.5f * length, 1)).xyz(),
+    (transform * Magnum::Vector4(radius, -radius, -0.5f * length, 1)).xyz(),
+    (transform * Magnum::Vector4(radius, radius, -0.5f * length, 1)).xyz(),
+    (transform * Magnum::Vector4(-radius, radius, -0.5f * length, 1)).xyz(),
+  };
+
+  Magnum::Vector3 minExt = boxVertices[0];
+  Magnum::Vector3 maxExt = boxVertices[0];
+  centre = {};
+  for (const auto &v : boxVertices)
+  {
+    centre += v;
+    minExt.x() = std::min(v.x(), minExt.x());
+    minExt.y() = std::min(v.y(), minExt.y());
+    minExt.z() = std::min(v.z(), minExt.z());
+    maxExt.x() = std::max(v.x(), maxExt.x());
+    maxExt.y() = std::max(v.y(), maxExt.y());
+    maxExt.z() = std::max(v.z(), maxExt.z());
+  }
+  centre /= float(boxVertices.size());
+  halfExtents = 0.5f * (maxExt - minExt);
+}
+
+
 ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
-                       std::unique_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
+                       std::shared_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
   : ShapeCache(std::move(culler), { part }, std::move(shader), std::move(bounds_calculator))
 {}
 
 ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, const std::vector<Part> &parts,
-                       std::unique_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
+                       std::shared_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
   , _parts(parts)
   , _shader(std::move(shader))
@@ -56,7 +90,7 @@ ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, const std::vector<P
 }
 
 ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> parts,
-                       std::unique_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
+                       std::shared_ptr<ShapeCacheShaderFlat> &&shader, BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
   , _parts(parts)
   , _shader(std::move(shader))
@@ -65,9 +99,9 @@ ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::initializer_li
   _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
 }
 
-void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &half_extents)
+void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents)
 {
-  _bounds_calculator(transform, centre, half_extents);
+  _bounds_calculator(transform, centre, halfExtents);
 }
 
 unsigned ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
@@ -91,9 +125,9 @@ unsigned ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color4 
   shape->instance.colour = colour;
 
   Magnum::Vector3 centre;
-  Magnum::Vector3 half_extents;
-  _bounds_calculator(transform, centre, half_extents);
-  shape->bounds_id = _culler->allocate(centre, half_extents);
+  Magnum::Vector3 halfExtents;
+  _bounds_calculator(transform, centre, halfExtents);
+  shape->bounds_id = _culler->allocate(centre, halfExtents);
   shape->free_next = kFreeListEnd;
   return id;
 }
@@ -125,9 +159,9 @@ bool ShapeCache::update(unsigned id, const Magnum::Matrix4 &transform, const Mag
       shape.instance.colour = colour;
 
       Magnum::Vector3 centre;
-      Magnum::Vector3 half_extents;
-      _bounds_calculator(transform, centre, half_extents);
-      _culler->update(shape.bounds_id, centre, half_extents);
+      Magnum::Vector3 halfExtents;
+      _bounds_calculator(transform, centre, halfExtents);
+      _culler->update(shape.bounds_id, centre, halfExtents);
       return true;
     }
   }

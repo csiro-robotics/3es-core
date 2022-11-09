@@ -57,7 +57,7 @@ public:
   /// @param type The draw type for the shape.
   /// @param transform The shape transformation.
   /// @param colour The shape colour.
-  void add(const Id &id, Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
+  virtual void add(const Id &id, Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
 
   /// Update an existing shape (non transient).
   ///
@@ -67,7 +67,7 @@ public:
   /// @param transform The new shape transformation.
   /// @param colour The new shape colour.
   /// @return True if the @p id can be resolved and the shape updated.
-  bool update(const Id &id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
+  virtual bool update(const Id &id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
 
   /// Remove a shape by @c Id .
   ///
@@ -75,17 +75,17 @@ public:
   ///
   /// @param id The @c Id of the shape to remove.
   /// @return True if the @p id can be resolved and the shape removed.
-  bool remove(const Id &id);
+  virtual bool remove(const Id &id);
 
   /// Render the current opaque (solid & wireframe) shapes set.
   /// @param render_mark
   /// @param projection_matrix The view projection matrix.
-  void drawOpaque(unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
+  virtual void drawOpaque(unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
 
   /// Render the current transparent shapes set.
   /// @param render_mark
   /// @param projection_matrix The view projection matrix.
-  void drawTransparent(unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
+  virtual void drawTransparent(unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
 
   /// Remove all the current transient objects.
   void endFrame();

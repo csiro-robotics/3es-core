@@ -93,14 +93,14 @@ public:
   /// Helper function used to implement @c calcBounds() for the cached shape type.
   ///
   /// The calculation must vary depending on the shape type. For spheres, for example, the bounds are constant and the
-  /// default implementation is used, where the @p transform scale is mapped to @p half_extents . Other shapes need
+  /// default implementation is used, where the @p transform scale is mapped to @p halfExtents . Other shapes need
   /// to consider the effects of rotation.
   ///
   /// @param transform The shape transformation matrix.
   /// @param[out] centre Set to the bounds centre.
-  /// @param[out] half_extents Set to the bounds half extents vector.
+  /// @param[out] halfExtents Set to the bounds half extents vector.
   using BoundsCalculator =
-    std::function<void(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &half_extents)>;
+    std::function<void(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents)>;
 
   /// A mesh and transform part for use with the @c ShapeCache .
   ///
@@ -139,20 +139,29 @@ public:
   };
 
 
-  /// The default implementation of a @c BoundsCalculator , which is a cube with 2m sides scaled by the @p transform.
+  /// The default implementation of a @c BoundsCalculator , calculating a spherical bounds, unaffected by rotation.
   /// @param transform The shape transformation matrix.
   /// @param[out] centre Set to the bounds centre.
-  /// @param[out] half_extents Set to the bounds half extents vector.
-  static void defaultCalcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre,
-                                Magnum::Vector3 &half_extents);
+  /// @param[out] halfExtents Set to the bounds half extents vector.
+  static void calcSphericalBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre,
+                                  Magnum::Vector3 &halfExtents);
+
+  /// Calculate bounds of a cylindrical object. Assumes cylinder major axis is (0, 0, 1).
+  /// @param transform The shape transformation matrix.
+  /// @param radius Cylindrical radius.
+  /// @param length Cylindrical length.
+  /// @param[out] centre Set to the bounds centre.
+  /// @param[out] halfExtents Set to the bounds half extents vector.
+  static void calcCylindricalBounds(const Magnum::Matrix4 &transform, float radius, float length,
+                                    Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents);
 
   /// Internal free list terminator value.
   static constexpr unsigned kFreeListEnd = ~0u;
 
   /// @overload
   ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
-             std::unique_ptr<ShapeCacheShaderFlat> &&shader = std::make_unique<ShapeCacheShaderFlat>(),
-             BoundsCalculator bounds_calculator = ShapeCache::defaultCalcBounds);
+             std::shared_ptr<ShapeCacheShaderFlat> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
+             BoundsCalculator bounds_calculator = ShapeCache::calcSphericalBounds);
 
   /// Construct a shape cache.
   /// @param culler The bounds culler used to create bounds and manage bounds.
@@ -160,19 +169,21 @@ public:
   /// @param shader The shader used to draw the mesh.
   /// @param bounds_calculator Bounds calculation function.
   ShapeCache(std::shared_ptr<BoundsCuller> culler, const std::vector<Part> &parts,
-             std::unique_ptr<ShapeCacheShaderFlat> &&shader = std::make_unique<ShapeCacheShaderFlat>(),
-             BoundsCalculator bounds_calculator = ShapeCache::defaultCalcBounds);
+             std::shared_ptr<ShapeCacheShaderFlat> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
+             BoundsCalculator bounds_calculator = ShapeCache::calcSphericalBounds);
 
   /// @overload
   ShapeCache(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> parts,
-             std::unique_ptr<ShapeCacheShaderFlat> &&shader = std::make_unique<ShapeCacheShaderFlat>(),
-             BoundsCalculator bounds_calculator = ShapeCache::defaultCalcBounds);
+             std::shared_ptr<ShapeCacheShaderFlat> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
+             BoundsCalculator bounds_calculator = ShapeCache::calcSphericalBounds);
 
   /// Calculate the bounds for a shape instance with the given transform.
   /// @param transform The shape instance transformation matrix.
   /// @param[out] centre Calculated bounds centre.
-  /// @param[out] half_extents Calculated bounds half extents.
-  void calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &half_extents);
+  /// @param[out] halfExtents Calculated bounds half extents.
+  void calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents);
+
+  inline std::shared_ptr<ShapeCacheShaderFlat> shader() const { return _shader; }
 
   /// Set the bounds calculation function.
   /// @param bounds_calculator New bounds calculation function.
@@ -269,9 +280,9 @@ private:
   /// the number of instances per @p InstanceBuffer .
   std::array<ShapeInstance, 2048> _marshal_buffer;
   /// Shaper used to draw the shapes.
-  std::unique_ptr<ShapeCacheShaderFlat> _shader;
+  std::shared_ptr<ShapeCacheShaderFlat> _shader;
   /// Bounds calculation function.
-  BoundsCalculator _bounds_calculator = ShapeCache::defaultCalcBounds;
+  BoundsCalculator _bounds_calculator = ShapeCache::calcSphericalBounds;
 };
 }  // namespace tes::viewer::painter
 

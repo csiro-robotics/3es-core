@@ -11,7 +11,7 @@ namespace tes::viewer::painter
 {
 Arrow::Arrow(std::shared_ptr<BoundsCuller> culler)
   : ShapePainter(std::exchange(culler, nullptr), { Part{ solidMesh() } }, { Part{ wireframeMesh() } },
-                 { Part{ solidMesh() } }, ShapeCache::defaultCalcBounds)
+                 { Part{ solidMesh() } }, ShapeCache::calcSphericalBounds)
 {}
 
 Magnum::GL::Mesh Arrow::solidMesh()

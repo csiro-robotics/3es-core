@@ -11,8 +11,15 @@ namespace tes::viewer::painter
 {
 Cylinder::Cylinder(std::shared_ptr<BoundsCuller> culler)
   : ShapePainter(std::exchange(culler, nullptr), { Part{ solidMesh() } }, { Part{ wireframeMesh() } },
-                 { Part{ solidMesh() } }, ShapeCache::defaultCalcBounds)
+                 { Part{ solidMesh() } }, calculateBounds)
 {}
+
+
+void Cylinder::calculateBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents)
+{
+  return ShapeCache::calcCylindricalBounds(transform, 1.0f, 1.0f, centre, halfExtents);
+}
+
 
 Magnum::GL::Mesh Cylinder::solidMesh()
 {
@@ -27,6 +34,7 @@ Magnum::GL::Mesh Cylinder::solidMesh()
     std::vector<tes::Vector3f> vertices;
     std::vector<tes::Vector3f> normals;
     std::vector<unsigned> indices;
+
     tes::cylinder::solid(vertices, indices, normals, Vector3f(0, 0, 1), 1.0f, 1.0f, 24);
 
     build_mesh.setVertexCount(vertices.size());
