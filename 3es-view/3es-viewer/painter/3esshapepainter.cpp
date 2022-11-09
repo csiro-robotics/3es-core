@@ -85,11 +85,11 @@ void ShapePainter::draw(unsigned render_mark, const Magnum::Matrix4 &projection_
 {
   _solid_cache->draw(render_mark, projection_matrix);
   _wireframe_cache->draw(render_mark, projection_matrix);
-  Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha,
-                                         Magnum::GL::Renderer::BlendFunction::SourceAlpha);
+  Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::SourceAlpha,
+                                         Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
   _transparent_cache->draw(render_mark, projection_matrix);
-  Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::Zero,
-                                         Magnum::GL::Renderer::BlendFunction::One);
+  Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::One,
+                                         Magnum::GL::Renderer::BlendFunction::Zero);
 }
 
 
