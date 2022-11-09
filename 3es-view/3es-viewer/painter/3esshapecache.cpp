@@ -106,8 +106,8 @@ void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &c
   _bounds_calculator(transform, centre, halfExtents);
 }
 
-unsigned ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour, unsigned parent_index,
-                         unsigned chain_index)
+unsigned ShapeCache::add(const ViewableWindow &window, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
+                         unsigned parent_index)
 {
   unsigned id;
   Shape *shape = {};
@@ -126,6 +126,7 @@ unsigned ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color4 
 
   shape->instance.transform = transform;
   shape->instance.colour = colour;
+  shape->window = window;
 
   Magnum::Vector3 centre;
   Magnum::Vector3 halfExtents;
@@ -135,41 +136,34 @@ unsigned ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color4 
   shape->parent_index = parent_index;
   shape->next = kListEnd;
 
-  if (chain_index != kListEnd)
+  if (parent_index != kListEnd)
   {
     // Add to a shape chain.
-    assert(chain_index < _shapes.size());
-    Shape &chain_head = _shapes[chain_index];
+    assert(parent_index < _shapes.size());
+    Shape &chain_head = _shapes[parent_index];
     shape->next = chain_head.next;
     chain_head.next = id;
-    shape->flags |= unsigned(ShapeFlag::ChainSegment);
   }
 
   return id;
 }
 
-bool ShapeCache::remove(unsigned id)
+bool ShapeCache::endShape(unsigned id, unsigned frame_number)
 {
   if (id < _shapes.size())
   {
     // Remove shapes while valid to the end of the chain.
     // The first item, specified by @p id, must not be part of a chain.
     unsigned remove_next = id;
-    if ((_shapes[remove_next].flags & (unsigned(ShapeFlag::Valid) | unsigned(ShapeFlag::ChainSegment))) == 0u)
+    if ((_shapes[remove_next].flags & (unsigned(ShapeFlag::Valid) | unsigned(ShapeFlag::Parented))) == 0u)
     {
       bool removed = false;
       while (remove_next != kListEnd && (_shapes[remove_next].flags & unsigned(ShapeFlag::Valid)) == 0)
       {
         Shape &shape = _shapes[remove_next];
-        if (shape.flags & (unsigned(ShapeFlag::Valid)) == 0u)
-        {
-          _culler->release(shape.bounds_id);
-          shape.flags = 0u;
-          remove_next = shape.next;
-          shape.next = _free_list;
-          _free_list = remove_next;
-          removed = true;
-        }
+        // Set to disable on the next frame, while keeping the same current frame.
+        shape.window = ViewableWindow(shape.window.startFrame(), frame_number - shape.window.startFrame());
+        removed = true;
       }
       return removed;
     }
@@ -177,13 +171,27 @@ bool ShapeCache::remove(unsigned id)
   return false;
 }
 
-bool ShapeCache::update(unsigned id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
+bool ShapeCache::update(unsigned id, unsigned frame_number, const Magnum::Matrix4 &transform,
+                        const Magnum::Color4 &colour)
 {
   if (id < _shapes.size())
   {
     Shape &shape = _shapes[id];
     if (shape.flags & unsigned(ShapeFlag::Valid))
     {
+      // We set the end frame for the current shape and add a new shape starting at the @c frame_number.
+      // @fixme(KS): this is a problem for a parent shape. Ostensibly, we have to do one of the following:
+      // - allow multiple heads to a shape chain (bad for removal)
+      // - duplicate the shape chain (not so great for memory)
+      // - disallow updating shape chains/ multi-shape updates (bad for the user)
+      // - effect transform/colour changes a different way
+      // Probably the last one especially as the ID is an index and duplication would mess with this. To fix later.
+      // Solution?
+      // - Create a new structure which associated ViewableWindow and ShapeInstance
+      //  - ShapeView
+      // - Remove ShapeInstance from Shape
+      // - Modify Shape to have a chain of ShapeView items, essentially one for each frame it changes.
+
       shape.instance.transform = transform;
       shape.instance.colour = colour;
 
@@ -229,9 +237,9 @@ void ShapeCache::clear()
 }
 
 
-void ShapeCache::draw(unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
+void ShapeCache::draw(unsigned frame_number, unsigned render_mark, const Magnum::Matrix4 &projection_matrix)
 {
-  buildInstanceBuffers(render_mark);
+  buildInstanceBuffers(frame_number, render_mark);
   for (auto &buffer : _instance_buffers)
   {
     if (buffer.count)
@@ -247,7 +255,51 @@ void ShapeCache::draw(unsigned render_mark, const Magnum::Matrix4 &projection_ma
 }
 
 
-void ShapeCache::buildInstanceBuffers(unsigned render_mark)
+void ShapeCache::expireShapes(unsigned before_frame)
+{
+  for (size_t i = 0; i < _shapes.size(); ++i)
+  {
+    Shape &shape = _shapes[i];
+    if ((shape.flags & unsigned(ShapeFlag::Valid)) && (shape.flags & unsigned(ShapeFlag::Parented)) == 0)
+    {
+      const unsigned last_frame = shape.window.lastFrame();
+      if (last_frame < before_frame)
+      {
+        release(i);
+      }
+    }
+  }
+}
+
+
+bool ShapeCache::release(size_t index)
+{
+  // Remove shapes while valid to the end of the chain.
+  // The first item, specified by @p index, must not be part of a chain.
+  size_t remove_next = index;
+  if ((_shapes[remove_next].flags & (unsigned(ShapeFlag::Valid) | unsigned(ShapeFlag::Parented))) == 0u)
+  {
+    bool removed = false;
+    while (remove_next != kListEnd && (_shapes[remove_next].flags & unsigned(ShapeFlag::Valid)) == 0)
+    {
+      Shape &shape = _shapes[remove_next];
+      if (shape.flags & (unsigned(ShapeFlag::Valid)) == 0u)
+      {
+        _culler->release(shape.bounds_id);
+        shape.flags = 0u;
+        remove_next = shape.next;
+        shape.next = _free_list;
+        _free_list = remove_next;
+        removed = true;
+      }
+    }
+    return removed;
+  }
+  return false;
+}
+
+
+void ShapeCache::buildInstanceBuffers(unsigned frame_number, unsigned render_mark)
 {
   // Clear previous results.
   for (auto &buffer : _instance_buffers)
@@ -279,7 +331,8 @@ void ShapeCache::buildInstanceBuffers(unsigned render_mark)
   // Iterate shapes and marshal/upload.
   for (auto &shape : _shapes)
   {
-    if ((shape.flags & unsigned(ShapeFlag::Valid)) && culler.isVisible(shape.bounds_id))
+    if ((shape.flags & unsigned(ShapeFlag::Valid)) && shape.window.overlaps(frame_number) &&
+        culler.isVisible(shape.bounds_id))
     {
       const unsigned marshal_index = _instance_buffers[cur_instance_buffer_idx].count;
       ++_instance_buffers[cur_instance_buffer_idx].count;

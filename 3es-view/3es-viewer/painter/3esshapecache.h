@@ -4,6 +4,7 @@
 #include "3es-viewer.h"
 
 #include "3esboundsculler.h"
+#include "3esviewablewindow.h"
 
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/Magnum.h>
@@ -88,15 +89,15 @@ private:
 ///
 /// Internally the cache maintains a free list which recycles IDs/indices in a LIFO order.
 ///
-/// On adding shapes may be chained together and/or parented. Shapes with a parent, use the parent transform in
-/// calculating the final transform. Chains primarily support multi-shape specifications allowing shapes to be addressed
-/// collectively. Shape chains are built by first adding the primary shape, often also the parent shape, and noting
-/// its index. Other shapes in the chain are then added, passing this index to the @c add() function. The primary
-/// shape remains at the head of the chain, with additional shapes inserted just after the primary shape.
+/// Shapes may be added with a parent specified. Shapes with a parent use the parent transform in calculating their
+/// final transform and are visible so long as the parent is visible. @c endShape() should only be called for the parent
+/// shape and not for child shapes. Shape parenting primarily supports multi-shape specifications allowing shapes to be
+/// addressed collectively. The are added by first adding the parent shape and noting its index. Other shapes in the are
+/// added passing this index to the @c add() function. The parent shape forms the head of a linked list, with additional
+/// shapes inserted just after the parent shape.
 ///
-/// Shapes in a chain are updated individually, with the exception that parent shape transforms affect other shapes.
-/// Shape chains are removed collectively by specifying the shape chain head - the primary chain shape index.
-/// Removing any other shape in the chain fails.
+/// Child shapes may have @c update() called, although the parent transform always affects the child transfork.
+/// Shape chains are removed collectively by specifying the parent shape.
 class ShapeCache
 {
 public:
@@ -202,27 +203,38 @@ public:
     _bounds_calculator = std::move(bounds_calculator);
   }
 
-  /// Add a shape instance.
+  /// Add a shape instance which persists over the specified @p window . Use an open window if the end frame is not yet
+  /// known.
+  ///
+  /// @param window The window for which the shape is viewable. Use an open window if the end frame is not yet known.
   /// @param transform The shape instance transformation.
   /// @param colour The shape instance colour.
   /// @param parent_index Index of the parent shape whose transform also affects this shape. Use ~0u for no parent.
-  ///   Must be valid when specified - i.e., the parent must be added first and removed last.
-  /// @param chain_head Index to the first item in a shape chain. See shape chaining in the class documentation.
+  ///   Must be valid when specified - i.e., the parent must be added first and removed last. Specifying the parent
+  ///   index also forms a shape chain.
   /// @return The shape ID/index. Must be used to @c remove() or @c update() the shape.
-  unsigned add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour, unsigned parent_index = ~0u,
-               unsigned chain_head = kListEnd);
-  /// Remove the shape with the given @p id .
+  unsigned add(const ViewableWindow &window, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
+               unsigned parent_index = ~0u);
+  /// Set the end of the viewable window for a shape.
+  ///
+  /// The shape will no longer be visible once the @c activeWindow() is beyond the @p frame_number .
+  /// Calling for the head of a shape chain disables all items in the shape.
+  ///
+  /// Behaviour is undefined if the @p frame_number is before the first frame on which the shape was visible.
+  ///
   /// @param id Id of the shape to remove.
-  /// @return True if the @p id was valid and an instance removed.
-  bool remove(unsigned id);
+  /// @param frame_number Last frame on which the shape is visible.
+  /// @return True if the @p id is valid.
+  bool endShape(unsigned id, unsigned frame_number);
   /// Update an existing shape instance.
   /// @param id Id of the shape to update.
+  /// @param frame_number The frame on which the shape changes.
   /// @param transform The shape instance transformation.
   /// @param colour The shape instance colour.
   /// @return True if the @p id was valid and an instance updated.
-  bool update(unsigned id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
+  bool update(unsigned id, unsigned frame_number, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
 
-  /// Get the details of an existing shape instance.
+  /// Get the details of an existing shape instance at the @c activeWindow().startFrame() .
   /// @param id Id of the shape to update.
   //// @param apply_parent_transform Apply parentage when retreving the transform?
   /// @param[out] transform Set to the shape instance transformation.
@@ -246,17 +258,21 @@ public:
   /// Before calling this function, the @c BoundsCuller::cull() should be called with the same @p render_mark , which
   /// ensure the bounds entries are marked as visibly for the @p render_mark .
   ///
+  /// @param frame_number The frame number to draw shapes for.
   /// @param render_mark The render visibility mark.
   /// @param projection_matrix World to projection matrix.
-  void draw(unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
+  void draw(unsigned frame_number, unsigned render_mark, const Magnum::Matrix4 &projection_matrix);
+
+  /// Expire all shapes which were viewable before, but not at @p before_frame .
+  /// @param before_frame The frame before which to expire shapes.
+  void expireShapes(unsigned before_frame);
 
 private:
   /// Flags for @c Shape items
   enum class ShapeFlag : unsigned
   {
-    Valid = (1u << 0u),         ///< Indicates the shape is valid, and not part of the free list.
-    Parented = (1u << 1u),      ///< Shape has a parent.
-    ChainSegment = (1u << 2u),  ///< Shape is part of a chain (and should not be removed).
+    Valid = (1u << 0u),     ///< Indicates the shape is valid, and not part of the free list.
+    Parented = (1u << 1u),  ///< Shape has a parent.
   };
 
   /// Shape instance data.
@@ -273,6 +289,8 @@ private:
   {
     /// Shape entry instance data.
     ShapeInstance instance = {};
+    /// The window for which the shape is shown.
+    ViewableWindow window = {};
     /// The shape entry @c BoundsCuller entry ID.
     BoundsId bounds_id = ~0u;
     /// See @c ShapeFlag .
@@ -294,9 +312,18 @@ private:
     unsigned count = 0;
   };
 
+  /// Release a shape to the free list. This also releases the shape chain if this is the head of a chain.
+  ///
+  /// Must only be called for the head of a shape chain, not the links.
+  ///
+  /// @param index The shape index to release
+  /// @return True if the shape was valid for release and successfully released.
+  bool release(size_t index);
+
   /// Fill the @p InstanceBuffer objects in @c _instance_buffers .
+  /// @param frame_number The frame number to draw shapes for.
   /// @param render_mark Visibility render mark used to determine shape instance visibility in the @c BoundsCuller .
-  void buildInstanceBuffers(unsigned render_mark);
+  void buildInstanceBuffers(unsigned frame_number, unsigned render_mark);
 
   /// The bounds culler used to determine visibility.
   std::shared_ptr<BoundsCuller> _culler;

@@ -5,6 +5,7 @@ list(APPEND PUBLIC_HEADERS
   3esviewer.h
   3esedleffect.h
   3esfboeffect.h
+  3esviewablewindow.h
   camera/3escamera.h
   camera/3escontroller.h
   camera/3esfly.h
