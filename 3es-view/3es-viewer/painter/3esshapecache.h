@@ -96,7 +96,7 @@ private:
 /// added passing this index to the @c add() function. The parent shape forms the head of a linked list, with additional
 /// shapes inserted just after the parent shape.
 ///
-/// Child shapes may have @c update() called, although the parent transform always affects the child transfork.
+/// Child shapes may have @c update() called, although the parent transform always affects the child transform.
 /// Shape chains are removed collectively by specifying the parent shape.
 class ShapeCache
 {
@@ -167,7 +167,7 @@ public:
                                     Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents);
 
   /// Internal free list terminator value.
-  static constexpr unsigned kListEnd = ~0u;
+  static constexpr size_t kListEnd = ~0u;
 
   /// @overload
   ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
@@ -236,16 +236,17 @@ public:
 
   /// Get the details of an existing shape instance at the @c activeWindow().startFrame() .
   /// @param id Id of the shape to update.
-  //// @param apply_parent_transform Apply parentage when retreving the transform?
+  //// @param apply_parent_transform Apply parentage when retrieving the transform?
   /// @param[out] transform Set to the shape instance transformation.
   /// @param[out] colour Set to the shape instance colour.
   /// @return True if the @p id was valid and an instance data retrieved. The out values are undefined when @p id is
   /// invalid.
-  bool get(unsigned id, bool apply_parent_transform, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const;
+  bool get(unsigned id, bool apply_parent_transform, Magnum::Matrix4 &transform, Magnum::Color4 &colour,
+           unsigned frame_number) const;
   /// @overload
-  bool get(unsigned id, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
+  bool get(unsigned id, Magnum::Matrix4 &transform, Magnum::Color4 &colour, unsigned frame_number) const
   {
-    return get(id, false, transform, colour);
+    return get(id, false, transform, colour, frame_number);
   }
 
   /// Clear the shape cache, removing all shapes.
@@ -284,23 +285,48 @@ private:
     Magnum::Color4 colour = {};
   };
 
+  /// Defines a viewable item consisting of a ShapeInstance and the window for
+  /// which it is visible. This can also form a linked list to the next viewable
+  /// item.
+  struct ShapeViewable
+  {
+    /// The renderable instance data for this viewable item.
+    ShapeInstance instance = {};
+    /// The window for which this viewable should be rendered.
+    ViewableWindow window = {};
+    /// Bounds for this item. All items in the @c ShapeViewable list (following @c next )
+    /// replicate the same ID. This replication allows the rendering to immediately resolve bounds_id
+    /// without needing to traverse any linked lists.
+    BoundsId bounds_id = ~0u;
+    /// Index of the next viewable item for this shape. Viewable items in the same list
+    /// represent a @c Shape at different moments in time, thus the @c instance should vary, while the @c window
+    /// must vary, without overlapping.
+    size_t next = kListEnd;
+    // TODO(KS): we need a parent index here to, indexing the _viewables, not the shapes.
+  };
+
   /// An entry in the shape cache.
+  ///
+  /// The entry is fairly intricate, consisting of;
+  /// - a @c view_index into the viewables array.
   struct Shape
   {
-    /// Shape entry instance data.
-    ShapeInstance instance = {};
-    /// The window for which the shape is shown.
+    /// The index of the viewable list head item for the shape. This must reference a valid index.
+    size_t viewable_head = kListEnd;
+    /// The index of the viewable list tail item for the shape. Represents the last/latest viewable state of the shape.
+    size_t viewable_tail = kListEnd;
+    /// The window spanning the lifetime of this shape, regardless of which viewable is actually active.
     ViewableWindow window = {};
     /// The shape entry @c BoundsCuller entry ID.
     BoundsId bounds_id = ~0u;
     /// See @c ShapeFlag .
     unsigned flags = 0u;
     /// Index of the "parent" shape. The parent shape transform also affects this shape's final transformation.
-    unsigned parent_index = ~0u;
+    size_t parent_index = ~0u;
     /// Shape list (linked list) next item ID. Used to link the free list when a shape is not in used. Used to specify
     /// a multi-shape chain dependency for valid shapes. This value is @c kListEnd for the end of the list.
     /// Otherwise it is set to the index of the next entry in the free list.
-    unsigned next = kListEnd;
+    size_t next = kListEnd;
   };
 
   /// Instance buffer used to render shapes. Only valid during the @c draw() call.
@@ -327,10 +353,12 @@ private:
 
   /// The bounds culler used to determine visibility.
   std::shared_ptr<BoundsCuller> _culler;
-  /// Shape instance array.
+  /// Instantiated shape array. These represent active shapes in the array.
   std::vector<Shape> _shapes;
-  /// Free list head terminated by a value of @c kListEnd .
-  unsigned _free_list = kListEnd;
+  /// Array of viewable items. Traversed when building the renderable instance buffers.
+  std::vector<ShapeViewable> _viewables;
+  /// Free list head terminated by a value of @c kListEnd . This indexes _shapes.
+  size_t _free_list = kListEnd;
   /// Mesh parts to render.
   std::vector<Part> _parts;
   /// Transformation matrix applied to the shape before rendering. This allows the Magnum primitives to be transformed

@@ -103,36 +103,36 @@ void Shape::serialise(Connection &out, ServerInfoMessage &info)
   CreateMessage create = {};
   ObjectAttributes attrs = {};
 
-  for (auto &&shape : *_painter)
-  {
-    const auto transform = shape.transform();
-    const auto colour = shape.colour();
+  // for (auto &&shape : *_painter)
+  // {
+  //   const auto transform = shape.transform();
+  //   const auto colour = shape.colour();
 
-    create.id = shape.id();
-    // @todo create.category = shape.category()
-    create.flags = 0;
-    if (shape.type() == painter::ShapePainter::Type::Transparent)
-    {
-      create.flags |= OFTransparent;
-    }
-    if (shape.type() == painter::ShapePainter::Type::Wireframe)
-    {
-      create.flags |= OFWire;
-    }
+  //   create.id = shape.id();
+  //   // @todo create.category = shape.category()
+  //   create.flags = 0;
+  //   if (shape.type() == painter::ShapePainter::Type::Transparent)
+  //   {
+  //     create.flags |= OFTransparent;
+  //   }
+  //   if (shape.type() == painter::ShapePainter::Type::Wireframe)
+  //   {
+  //     create.flags |= OFWire;
+  //   }
 
-    decomposeTransform(transform, attrs);
-    attrs.colour = Colour(colour.x(), colour.y(), colour.z(), colour.w()).c;
+  //   decomposeTransform(transform, attrs);
+  //   attrs.colour = Colour(colour.x(), colour.y(), colour.z(), colour.w()).c;
 
-    // Handle multi shape
-    // if (shape.isChain())
-    // {
-    // }
+  //   // Handle multi shape
+  //   // if (shape.isChain())
+  //   // {
+  //   // }
 
-    writer.reset(routingId(), OIdCreate);
-    create.write(writer, attrs);
-    writer.finalise();
-    out.send(writer.data(), writer.packetSize());
-  }
+  //   writer.reset(routingId(), OIdCreate);
+  //   create.write(writer, attrs);
+  //   writer.finalise();
+  //   out.send(writer.data(), writer.packetSize());
+  // }
 }
 
 
