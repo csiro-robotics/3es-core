@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.16)
 # Add project level options here.
 option(TES_BUILD_EXAMPLES "Build examples?" OFF)
 option(TES_BUILD_TESTS "Build unit tests?" OFF)
+option(TES_BUILD_VIEWER "Build viewer client?" OFF)
 
 # Skip stale example
 # if(TES_BUILD_EXAMPLES)
@@ -12,7 +13,9 @@ option(TES_BUILD_TESTS "Build unit tests?" OFF)
 if(TES_BUILD_TESTS)
   list(APPEND VCPKG_MANIFEST_FEATURES "tests")
 endif(TES_BUILD_TESTS)
-cmake_minimum_required(VERSION 3.5)
+if(TES_BUILD_VIEWER)
+  list(APPEND VCPKG_MANIFEST_FEATURES "viewer")
+endif(TES_BUILD_VIEWER)
 
 # Setup project details.
 project(3es)
@@ -51,6 +54,9 @@ add_subdirectory(3es-core)
 if(TES_BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif(TES_BUILD_EXAMPLES)
+if(TES_BUILD_VIEWER)
+  add_subdirectory(3es-view)
+endif(TES_BUILD_VIEWER)
 
 add_subdirectory(utils)
 
