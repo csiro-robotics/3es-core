@@ -37,40 +37,42 @@ public:
   /// Marker value used for items which are currently allocated.
   static constexpr Id kAllocated = ~Id(0u) - 1u;
 
+
   /// Represents a transient reference to an item in the @c ResourceList .
   ///
-  /// @c ResourceRef objects are obtained via @c allocate() and @c Id indexing functions ensures that the resource
-  /// remains valid for the lifespan on the @c ResourceRef object. This includes locking the @c ResourceList for the
-  /// current thread, thus only one thread at a time can hold any @c ResourceRef objects at a time.
+  /// @c ResourceRefBase objects are obtained via @c allocate() and @c Id indexing functions ensures that the resource
+  /// remains valid for the lifespan on the @c ResourceRefBase object. This includes locking the @c ResourceList for the
+  /// current thread, thus only one thread at a time can hold any @c ResourceRefBase objects at a time.
   ///
   /// The resource should only be accessed using @c * and @c -> operators as these accessors remain valid even if
   /// @c allocate() causes the resource list to reallocate.
   ///
-  /// @note A @c ResourceList must outlive all its @c ResourceRef objects.
-  class ResourceRef
+  /// @note A @c ResourceList must outlive all its @c ResourceRefBase objects.
+  template <typename Item, typename List>
+  class ResourceRefBase
   {
   public:
     /// Default constructor: the resulting object is not valid.
-    inline ResourceRef() = default;
+    inline ResourceRefBase() = default;
     /// Construct a resource for the given @p id and @p resource_list .
     /// @param id The resource Id.
     /// @param resource_list The resource list which we are referencing into.
-    inline ResourceRef(Id id, ResourceList<T> *resource_list)
+    inline ResourceRefBase(Id id, List *resource_list)
       : _id(id)
       , _resource_list(resource_list)
     {
       _resource_list->lock();
     }
-    inline ResourceRef(const ResourceRef &) = delete;
+    inline ResourceRefBase(const ResourceRefBase<Item, List> &) = delete;
     /// Move constructor.
     /// @param other Object to move.
-    inline ResourceRef(ResourceRef &&other)
+    inline ResourceRefBase(ResourceRefBase<Item, List> &&other)
       : _id(std::exchange(other._id, kNull))
       , _resource_list(std::exchange(other._resource_list, nullptr))
     {}
 
     /// Releases the resource reference, releasing a @c ResourceList lock.
-    inline ~ResourceRef()
+    inline ~ResourceRefBase()
     {
       if (_resource_list)
       {
@@ -79,16 +81,16 @@ public:
       }
     }
 
-    inline ResourceRef &operator=(const ResourceRef &) = delete;
+    inline ResourceRefBase &operator=(const ResourceRefBase<Item, List> &) = delete;
     /// Move assignment.
     /// @param other Object to move; can match @c this .
     /// @return @c *this
-    inline ResourceRef &operator=(ResourceRef &&other)
+    inline ResourceRefBase &operator=(ResourceRefBase<Item, List> &&other)
     {
       if (this != &other)
       {
-        _id = std::exchange(other._id, _id);
-        _resource_list = std::exchange(other._resource_list, _resource_list);
+        std::swap(other._id, _id);
+        std::swap(other._resource_list, _resource_list);
       }
       return *this;
     }
@@ -99,23 +101,239 @@ public:
 
     /// Dereference the resource.
     /// @return The references resource entry.
-    inline T &operator*() { return _resource_list->_items[_id].resource; }
-    /// @overload
-    inline const T &operator*() const { return _resource_list->_items[_id].resource; }
+    inline const Item &operator*() const { return _resource_list->_items[_id].resource; }
     /// Dereference the resource.
     /// @return The references resource entry.
-    inline T *operator->() { return &_resource_list->_items[_id].resource; }
-    /// @overload
-    inline const T *operator->() const { return &_resource_list->_items[_id].resource; }
+    inline const Item *operator->() const { return &_resource_list->_items[_id].resource; }
 
     /// Get the resource entry @c Id . This can be stored in order to later access the resource via @c ResourceList
     /// indexing functions.
     /// @return The resource Id.
     inline Id id() const { return _id; }
 
-  private:
+  protected:
     Id _id = kNull;
-    ResourceList<T> *_resource_list = nullptr;
+    List *_resource_list = nullptr;
+  };
+
+  class ResourceRef : public ResourceRefBase<T, ResourceList<T>>
+  {
+  public:
+    using Super = ResourceRefBase<T, ResourceList<T>>;
+
+    /// Default constructor: the resulting object is not valid.
+    inline ResourceRef() = default;
+    /// Construct a resource for the given @p id and @p resource_list .
+    /// @param id The resource Id.
+    /// @param resource_list The resource list which we are referencing into.
+    inline ResourceRef(Id id, ResourceList<T> *resource_list)
+      : Super(id, resource_list)
+    {}
+
+    inline ResourceRef(const ResourceRef &) = delete;
+    /// Move constructor.
+    /// @param other Object to move.
+    inline ResourceRef(ResourceRef &&other)
+      : Super(std::move(other))
+    {}
+
+    inline ResourceRef &operator=(ResourceRef &&other)
+    {
+      if (this != &other)
+      {
+        std::swap(other._id, _id);
+        std::swap(other._resource_list, _resource_list);
+      }
+      return *this;
+    }
+
+    /// Dereference the resource.
+    /// @return The references resource entry.
+    inline T &operator*() { return _resource_list->_items[_id].resource; }
+    inline T *operator->() { return &_resource_list->_items[_id].resource; }
+  };
+
+  using ResourceConstRef = ResourceRefBase<const T, const ResourceList<T>>;
+
+  template <typename R>
+  class BaseIterator
+  {
+  public:
+    using ResourceListT = R;
+    BaseIterator() {}
+    BaseIterator(ResourceListT *owner, ResourceListId id)
+      : _owner(owner)
+      , _id(id)
+    {
+      owner->lock();
+    }
+
+    ~BaseIterator()
+    {
+      if (owner)
+      {
+        owner->unlock();
+      }
+    }
+
+    BaseIterator(const BaseIterator &other) = default;
+    BaseIterator(BaseIterator &&other) = default;
+
+    BaseIterator &operator=(const BaseIterator &other) = default;
+    BaseIterator &operator=(BaseIterator &&other) = default;
+
+  protected:
+    void next()
+    {
+      while (_owner && _id < _owner->_items.size() && _owner->_items[_id].next_free != kNull)
+      {
+        ++_id;
+      }
+    }
+
+    void prev()
+    {
+      while (_owner && _id < _owner->_items.size() && _id != kNull && _owner->_items[_id].next_free != kNull)
+      {
+        _id = (_id > 0) ? --_id : kNull;
+      }
+    }
+
+    ResourceListT *_owner = nullptr;
+    ResourceListId _id = kNull;
+  };
+
+  class iterator : public BaseIterator<ResourceList<T>>
+  {
+  public:
+    iterator() {}
+    iterator(ResourceList<T> *owner, ResourceListId id)
+      : BaseIterator<ResourceList<T>>(owner, id)
+    {}
+    iterator(const iterator &other) = default;
+    iterator(iterator &&other) = default;
+
+    /// Dereference the resource.
+    /// @return The references resource entry.
+    inline T &operator*() { return _owner->_items[_id].resource; }
+    /// @overload
+    inline const T &operator*() const { return _owner->_items[_id].resource; }
+    /// Dereference the resource.
+    /// @return The references resource entry.
+    inline T *operator->() { return &_owner->_items[_id].resource; }
+    /// @overload
+    inline const T *operator->() const { return &_owner->_items[_id].resource; }
+
+    iterator &operator=(const iterator &other) = default;
+    iterator &operator=(iterator &&other) = default;
+
+    template <typename R>
+    bool operator==(const BaseIterator<R> &other) const
+    {
+      return _owner == other._owner && _id == other._id;
+    }
+
+    template <typename R>
+    bool operator!=(const BaseIterator<R> &other) const
+    {
+      return !operator==(other);
+    }
+
+    iterator &operator++()
+    {
+      next();
+      return *this;
+    }
+
+    iterator operator++(int)
+    {
+      iterator current = *this;
+      next();
+      return current;
+    }
+
+    iterator &operator--()
+    {
+      prev();
+      return *this;
+    }
+
+    iterator operator--(int)
+    {
+      iterator current = *this;
+      prev();
+      return current;
+    }
+
+    friend class const_iterator;
+  };
+
+  class const_iterator : public BaseIterator<const ResourceList<T>>
+  {
+  public:
+    const_iterator() {}
+    const_iterator(const ResourceList<T> *owner, ResourceListId id)
+      : BaseIterator<const ResourceList<T>>(owner, id)
+    {}
+    const_iterator(const iterator &other)
+      : BaseIterator<const ResourceList<T>>(other._owner, other._id)
+    {}
+    const_iterator(const const_iterator &other) = default;
+    const_iterator(const_iterator &&other) = default;
+
+    /// Dereference the resource.
+    /// @return The references resource entry.
+    inline const T &operator*() const { return _owner->_items[_id].resource; }
+    /// Dereference the resource.
+    /// @return The references resource entry.
+    inline const T *operator->() const { return &_owner->_items[_id].resource; }
+
+    const_iterator &operator=(const iterator &other)
+    {
+      _owner = other._owner;
+      _id = other._id;
+      return *this;
+    }
+    const_iterator &operator=(const const_iterator &other) = default;
+    const_iterator &operator=(const_iterator &&other) = default;
+
+    template <typename R>
+    bool operator==(const BaseIterator<R> &other) const
+    {
+      return _owner == other._owner && _id == other._id;
+    }
+
+    template <typename R>
+    bool operator!=(const BaseIterator<R> &other) const
+    {
+      return !operator==(other);
+    }
+
+    const_iterator &operator++()
+    {
+      next();
+      return *this;
+    }
+
+    const_iterator operator++(int)
+    {
+      const_iterator current = *this;
+      next();
+      return current;
+    }
+
+    const_iterator &operator--()
+    {
+      prev();
+      return *this;
+    }
+
+    const_iterator operator--(int)
+    {
+      const_iterator current = *this;
+      prev();
+      return current;
+    }
   };
 
   /// Construct a resource list optionally specifying the initial capacity.
@@ -123,6 +341,11 @@ public:
   ResourceList(size_t capacity = 0);
   /// Destructor
   ~ResourceList() noexcept(false);
+
+  inline iterator begin() { return iterator(this, firstValid()); }
+  inline iterator end() { return iterator(this, kNull); }
+  inline const_iterator begin() const { return const_iterator(this, firstValid()); }
+  inline const_iterator end() const { return const_iterator(this, kNull); }
 
   /// Allocate a new resource.
   ///
@@ -138,6 +361,7 @@ public:
   /// @param id The @c Id of the item to reference.
   /// @return The reference item.
   ResourceRef at(Id id);
+  ResourceConstRef at(Id id) const;
 
   /// Release the item at the given @p id .
   /// @param id The @c Id of the item to release.
@@ -147,6 +371,8 @@ public:
   /// @param id The @c Id of the item to reference.
   /// @return The reference item.
   ResourceRef operator[](Id id);
+  /// @overload
+  ResourceConstRef operator[](Id id) const;
 
   /// Return the number of allocated items.
   /// @return
@@ -157,13 +383,29 @@ public:
 
 private:
   friend ResourceRef;
+  friend iterator;
+  friend const_iterator;
 
-  inline void lock()
+  inline Id firstValid() const
+  {
+    for (Id id = 0; id < _items.size(); ++id)
+    {
+      const auto &item = _items[id];
+      if (item.next_free == kAllocated)
+      {
+        return id;
+      }
+    }
+
+    return kNull;
+  }
+
+  inline void lock() const
   {
     _lock.lock();
     ++_lock_count;
   }
-  inline void unlock()
+  inline void unlock() const
   {
     --_lock_count;
     _lock.unlock();
@@ -176,9 +418,9 @@ private:
   };
 
   std::vector<Item> _items;
-  std::recursive_mutex _lock;
+  mutable std::recursive_mutex _lock;
+  mutable std::atomic_uint32_t _lock_count = {};
   std::atomic_size_t _item_count = {};
-  std::atomic_uint32_t _lock_count = {};
   Id _free_head = kNull;
   Id _free_tail = kNull;
 };
@@ -250,6 +492,17 @@ typename ResourceList<T>::ResourceRef ResourceList<T>::at(Id id)
 
 
 template <typename T>
+typename ResourceList<T>::ResourceConstRef ResourceList<T>::at(Id id) const
+{
+  if (id < _items.size() && _items[id].next_free == kAllocated)
+  {
+    return ResourceConstRef(id, this);
+  }
+  return ResourceConstRef(kNull, this);
+}
+
+
+template <typename T>
 void ResourceList<T>::release(Id id)
 {
   std::unique_lock<decltype(_lock)> guard(_lock);
@@ -273,6 +526,13 @@ template <typename T>
 typename ResourceList<T>::ResourceRef ResourceList<T>::operator[](Id id)
 {
   return ResourceRef(id, this);
+}
+
+
+template <typename T>
+typename ResourceList<T>::ResourceConstRef ResourceList<T>::operator[](Id id) const
+{
+  return ResourceConstRef(id, this);
 }
 
 
