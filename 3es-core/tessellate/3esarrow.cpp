@@ -239,9 +239,8 @@ bool wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
   cone::wireframe(vertices, indices, axis * arrowLength, axis, headLength, headAngle, segments);
 
   // Add a cylinder.
-  const unsigned cylinderBaseIndex = unsigned(indices.size());
+  const unsigned cylinderBaseIndex = unsigned(vertices.size());
   cylinder::wireframe(vertices, indices, axis, cylinderLength, cylinderRadius, segments);
-
   // We need to move the cylinder up so it connects to the head. It's currently centred on the origin.
   for (unsigned i = cylinderBaseIndex; i < vertices.size(); ++i)
   {

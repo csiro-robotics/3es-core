@@ -142,7 +142,7 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
   {
     const float circleAngle = i * 2.0f * float(M_PI) / (float)segments;
     vertices.emplace_back(baseRadius * std::cos(circleAngle) * radials[0] +
-                          baseRadius * std::sin(circleAngle) * radials[1] + axis * height);
+                          baseRadius * std::sin(circleAngle) * radials[1] + apex - axis * height);
   }
 
   // Connect the base ring.

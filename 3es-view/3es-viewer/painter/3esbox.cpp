@@ -1,20 +1,20 @@
-#include "3esarrow.h"
+#include "3esbox.h"
 
 #include "mesh/3esconverter.h"
 
 #include <shapes/3essimplemesh.h>
-#include <tessellate/3esarrow.h>
+#include <tessellate/3esbox.h>
 
 #include <mutex>
 
 namespace tes::viewer::painter
 {
-Arrow::Arrow(std::shared_ptr<BoundsCuller> culler)
+Box::Box(std::shared_ptr<BoundsCuller> culler)
   : ShapePainter(std::exchange(culler, nullptr), { Part{ solidMesh() } }, { Part{ wireframeMesh() } },
                  { Part{ solidMesh() } }, ShapeCache::defaultCalcBounds)
 {}
 
-Magnum::GL::Mesh Arrow::solidMesh()
+Magnum::GL::Mesh Box::solidMesh()
 {
   static SimpleMesh build_mesh(0, 0, 0, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index);
   static std::mutex guard;
@@ -27,7 +27,7 @@ Magnum::GL::Mesh Arrow::solidMesh()
     std::vector<tes::Vector3f> vertices;
     std::vector<tes::Vector3f> normals;
     std::vector<unsigned> indices;
-    tes::arrow::solid(vertices, indices, normals, 24, 1.5f, 1.0f, 0.81f, 1.0f);
+    tes::box::solid(vertices, indices, normals, Vector3f(1.0f));
 
     build_mesh.setVertexCount(vertices.size());
     build_mesh.setIndexCount(indices.size());
@@ -41,7 +41,7 @@ Magnum::GL::Mesh Arrow::solidMesh()
 }
 
 
-Magnum::GL::Mesh Arrow::wireframeMesh()
+Magnum::GL::Mesh Box::wireframeMesh()
 {
   static SimpleMesh build_mesh(0, 0, 0, DtLines, SimpleMesh::Vertex | SimpleMesh::Index);
   static std::mutex guard;
@@ -53,7 +53,7 @@ Magnum::GL::Mesh Arrow::wireframeMesh()
   {
     std::vector<tes::Vector3f> vertices;
     std::vector<unsigned> indices;
-    tes::arrow::wireframe(vertices, indices, 8, 1.5f, 1.0f, 0.81f, 1.0f);
+    tes::box::wireframe(vertices, indices, Vector3f(1.0f));
 
     build_mesh.setVertexCount(vertices.size());
     build_mesh.setIndexCount(indices.size());

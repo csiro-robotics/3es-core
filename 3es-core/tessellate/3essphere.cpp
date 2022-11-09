@@ -9,9 +9,8 @@
 #include <cmath>
 #include <unordered_map>
 
-using namespace tes;
-using namespace tes::sphere;
-
+namespace tes::sphere
+{
 namespace
 {
 /// Add a vertex to @p points, reusing an existing vertex is a matching one is found.
@@ -39,8 +38,7 @@ unsigned insertVertex(const Vector3f &vertex, std::vector<Vector3f> &vertices, S
 }  // namespace
 
 
-void tes::sphere::initialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
-                             SphereVertexMap *vertexMap)
+void initialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, SphereVertexMap *vertexMap)
 {
   // We start with two hexagonal rings to approximate the sphere.
   // All subdivision occurs on a unit radius sphere, at the origin. We translate and
@@ -105,7 +103,7 @@ void tes::sphere::initialise(std::vector<Vector3f> &vertices, std::vector<unsign
 }
 
 
-void tes::sphere::subdivide(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, SphereVertexMap &vertexMap)
+void subdivide(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, SphereVertexMap &vertexMap)
 {
   const unsigned triangleCount = unsigned(indices.size() / 3);
   unsigned triangle[3];
@@ -331,8 +329,8 @@ void solidLatLong(std::vector<Vector3f> &vertices, std::vector<unsigned> &indice
 }
 
 
-void tes::sphere::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
-                        float radius, const Vector3f &origin, int depth)
+void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
+           float radius, const Vector3f &origin, int depth)
 {
   solid(vertices, indices, radius, origin, depth);
 
@@ -345,8 +343,8 @@ void tes::sphere::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
 }
 
 
-void tes::sphere::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius,
-                        const Vector3f &origin, int depth)
+void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius, const Vector3f &origin,
+           int depth)
 {
   SphereVertexMap vertexMap;
   initialise(vertices, indices, &vertexMap);
@@ -365,8 +363,8 @@ void tes::sphere::solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
   }
 }
 
-void tes::sphere::wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius,
-                            const Vector3f &origin, int ring_vertex_count)
+void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius, const Vector3f &origin,
+               int ring_vertex_count)
 {
   ring_vertex_count = std::max(3, ring_vertex_count);
   if (ring_vertex_count < 0)
@@ -434,3 +432,4 @@ void tes::sphere::wireframe(std::vector<Vector3f> &vertices, std::vector<unsigne
   indices.emplace_back(voffset + ring_vertex_count - 1);
   indices.emplace_back(voffset);
 }
+}  // namespace tes::sphere

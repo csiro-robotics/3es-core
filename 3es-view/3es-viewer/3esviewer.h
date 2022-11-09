@@ -7,7 +7,9 @@
 
 #include "3esboundsculler.h"
 #include "painter/3esshapecache.h"
-#include "painter/3essphere.h"
+#include "painter/3esshapepainter.h"
+
+#include <3esmessages.h>
 
 #include <Magnum/GL/FrameBuffer.h>
 #include <Magnum/GL/Mesh.h>
@@ -20,6 +22,7 @@
 #include <array>
 #include <chrono>
 #include <vector>
+#include <unordered_map>
 #include <memory>
 
 // TODO(KS): abstract away Magnum so it's not in any public headers.
@@ -50,6 +53,8 @@ private:
     ExponentialScale,
     Radius
   };
+
+  void initialisePainters();
 
   void drawEvent() override;
   void viewportEvent(ViewportEvent &event) override;
@@ -84,19 +89,13 @@ private:
 
   Clock::time_point _last_sim_time = Clock::now();
 
-  std::array<InstanceData, 6> _instances;
-  Magnum::GL::Buffer _instance_buffer{ Magnum::NoCreate };
-  Magnum::GL::Mesh _box;
-
-  Magnum::Shaders::Flat3D _shader{ Magnum::NoCreate };
-
   Magnum::Matrix4 _projection;
   camera::Camera _camera;
   camera::Fly _fly;
 
   std::shared_ptr<BoundsCuller> _culler;
-  std::unique_ptr<painter::ShapeCache> _cylinders;
-  std::unique_ptr<painter::Sphere> _spheres;
+
+  std::unordered_map<ShapeHandlerIDs, std::shared_ptr<painter::ShapePainter>> _painters;
 
   unsigned _mark = 0;
 

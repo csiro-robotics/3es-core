@@ -11,7 +11,7 @@
 namespace tes::viewer::painter
 {
 Capsule::Capsule(std::shared_ptr<BoundsCuller> culler)
-  : ShapePainter(std::exchange(culler, nullptr), solidMesh(), wireframeMesh(), solidMesh(), ,
+  : ShapePainter(std::exchange(culler, nullptr), solidMesh(), wireframeMesh(), solidMesh(),
                  ShapeCache::defaultCalcBounds)
 {}
 
@@ -35,7 +35,7 @@ std::vector<Capsule::Part> Capsule::solidMesh()
     std::array<capsule::PartIndexOffset, 4> index_offsets;
     tes::capsule::solid(vertices, indices, normals, 1.0f, 1.0f, 24, Vector3f(0, 0, 1), &index_offsets, true);
 
-    for (int i = 0; i < 3; ++0)
+    for (int i = 0; i < 3; ++i)
     {
       build_mesh[i].setVertexCount(index_offsets[i + 1].vertices - index_offsets[i].vertices);
       build_mesh[i].setIndexCount(index_offsets[i + 1].indices - index_offsets[i].indices);
@@ -73,7 +73,7 @@ std::vector<Capsule::Part> Capsule::wireframeMesh()
     std::array<capsule::PartIndexOffset, 4> index_offsets;
     tes::capsule::wireframe(vertices, indices, 1.0f, 1.0f, 24, Vector3f(0, 0, 1), &index_offsets, true);
 
-    for (int i = 0; i < 3; ++0)
+    for (int i = 0; i < 3; ++i)
     {
       build_mesh[i].setVertexCount(index_offsets[i + 1].vertices - index_offsets[i].vertices);
       build_mesh[i].setIndexCount(index_offsets[i + 1].indices - index_offsets[i].indices);

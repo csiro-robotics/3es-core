@@ -1,6 +1,10 @@
 #include "3esviewer.h"
 
 #include "3esedleffect.h"
+#include "painter/3esarrow.h"
+#include "painter/3esbox.h"
+#include "painter/3escylinder.h"
+#include "painter/3essphere.h"
 
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
@@ -27,7 +31,6 @@
 
 namespace tes::viewer
 {
-
 Viewer::Viewer(const Arguments &arguments)
   : Magnum::Platform::Application{ arguments, Configuration{}.setTitle("3rd Eye Scene Viewer") }
   , _move_keys({
@@ -57,40 +60,11 @@ Viewer::Viewer(const Arguments &arguments)
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::Blending);
 
-  const float scale = 10.0f;
-  _instances[0] = { Magnum::Matrix4::translation({ scale, 0.0f, 0.0f }), 0xff0000_rgbf };
-  _instances[1] = { Magnum::Matrix4::translation({ -scale, 0.0f, 0.0f }), 0x00ffff_rgbf };
-  _instances[2] = { Magnum::Matrix4::translation({ 0.0f, scale, 0.0f }), 0x00ff00_rgbf };
-  _instances[3] = { Magnum::Matrix4::translation({ 0.0f, -scale, 0.0f }), 0xff00ff_rgbf };
-  _instances[4] = { Magnum::Matrix4::translation({ 0.0f, 0.0f, scale }), 0x0000ff_rgbf };
-  _instances[5] = { Magnum::Matrix4::translation({ 0.0f, 0.0f, -scale }), 0xffff00_rgbf };
-
-  _instance_buffer = Magnum::GL::Buffer{};
-
-  _box = Magnum::MeshTools::compile(Magnum::Primitives::cubeSolid());
-
-  _shader = Magnum::Shaders::Flat3D{ Magnum::Shaders::Flat3D::Flag::VertexColor |
-                                     Magnum::Shaders::Flat3D::Flag::InstancedTransformation };
-
   _edl_effect = std::make_shared<EdlEffect>(Magnum::GL::defaultFramebuffer.viewport());
   _active_fbo_effect = _edl_effect;
 
   _culler = std::make_shared<BoundsCuller>();
-  using Matrix4 = Magnum::Matrix4;
-  Matrix4 shape_transform = {};
-  shape_transform = Matrix4::rotationX(Magnum::Deg(90)) * Matrix4::scaling({ 0.5f, 0.5f, 0.5f });
-  _cylinders = std::make_unique<painter::ShapeCache>(
-    _culler,
-    painter::ShapeCache::Part{ Magnum::MeshTools::compile(Magnum::Primitives::cylinderSolid(
-                                 1, 32, 1, { Magnum::Primitives::CylinderFlag::CapEnds })),
-                               shape_transform },
-    std::make_unique<painter::ShapeCacheShaderFlat>());
-
-  // _cylinders->add(Magnum::Matrix4(), Magnum::Color3(1, 1, 0));
-
-  _spheres = std::make_unique<painter::Sphere>(_culler);
-  _spheres->add(Id(1), painter::ShapePainter::Type::Wireframe, Magnum::Matrix4::translation({ 0, 8, 0 }),
-                Magnum::Color4{ 1, 1, 0, 0.4f });
+  initialisePainters();
 }
 
 void Viewer::setContinuousSim(bool continuous)
@@ -118,6 +92,77 @@ void Viewer::checkContinuousSim()
   }
   setContinuousSim(continuous_sim);
 }
+
+
+void Viewer::initialisePainters()
+{
+  _painters.emplace(SIdSphere, std::make_shared<painter::Sphere>(_culler));
+  _painters.emplace(SIdBox, std::make_shared<painter::Box>(_culler));
+  _painters.emplace(SIdCylinder, std::make_shared<painter::Cylinder>(_culler));
+  _painters.emplace(SIdArrow, std::make_shared<painter::Arrow>(_culler));
+
+  // SIdCapsule,
+  // SIdPlane,
+  // SIdStar,
+  // SIdPose,  ///< A set of axes representing a pose. Coloured XYZ => RGB.
+
+  Magnum::Matrix4 shape_transform = {};
+
+  // Axis box markers
+  _painters[SIdBox]->add(Id(2), painter::ShapePainter::Type::Solid,
+                         Magnum::Matrix4::translation({ 10, 0, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 0 });
+  _painters[SIdBox]->add(Id(3), painter::ShapePainter::Type::Solid,
+                         Magnum::Matrix4::translation({ 0, 10, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 0 });
+  _painters[SIdBox]->add(Id(4), painter::ShapePainter::Type::Solid,
+                         Magnum::Matrix4::translation({ 0, 0, 10 }) * shape_transform, Magnum::Color4{ 0, 0, 1 });
+  _painters[SIdBox]->add(Id(5), painter::ShapePainter::Type::Solid,
+                         Magnum::Matrix4::translation({ -10, 0, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+  _painters[SIdBox]->add(Id(6), painter::ShapePainter::Type::Solid,
+                         Magnum::Matrix4::translation({ 0, -10, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1 });
+  _painters[SIdBox]->add(Id(7), painter::ShapePainter::Type::Solid,
+                         Magnum::Matrix4::translation({ 0, 0, -10 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+
+  // Add debug shapes.
+  float x = 0;
+  shape_transform = {};
+  _painters[SIdSphere]->add(Id(1), painter::ShapePainter::Type::Solid,
+                            Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+  _painters[SIdSphere]->add(Id(1), painter::ShapePainter::Type::Wireframe,
+                            Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+  _painters[SIdSphere]->add(Id(1), painter::ShapePainter::Type::Transparent,
+                            Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
+                            Magnum::Color4{ 1, 0, 1, 0.4f });
+
+  x = -2.5f;
+  shape_transform = {};
+  _painters[SIdBox]->add(Id(1), painter::ShapePainter::Type::Solid,
+                         Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 0 });
+  _painters[SIdBox]->add(Id(1), painter::ShapePainter::Type::Wireframe,
+                         Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+  _painters[SIdBox]->add(Id(1), painter::ShapePainter::Type::Transparent,
+                         Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1, 0.4f });
+
+  x = 2.5f;
+  shape_transform = Magnum::Matrix4::scaling({ 0.3f, 0.3f, 1.0f });
+  _painters[SIdCylinder]->add(Id(1), painter::ShapePainter::Type::Solid,
+                              Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+  _painters[SIdCylinder]->add(Id(1), painter::ShapePainter::Type::Wireframe,
+                              Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+  _painters[SIdCylinder]->add(Id(1), painter::ShapePainter::Type::Transparent,
+                              Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
+                              Magnum::Color4{ 1, 0, 1, 0.4f });
+
+  x = 5.0f;
+  shape_transform = Magnum::Matrix4::scaling({ 0.1f, 0.1f, 1.0f });
+  _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Solid,
+                           Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+  _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Wireframe,
+                           Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+  _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Transparent,
+                           Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
+                           Magnum::Color4{ 1, 0, 1, 0.4f });
+}
+
 
 void Viewer::drawEvent()
 {
@@ -381,17 +426,15 @@ void Viewer::updateCamera(float dt)
 
 void Viewer::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix)
 {
-  _shader.setTransformationProjectionMatrix(projection_matrix);
-
-  _instance_buffer.setData(_instances, Magnum::GL::BufferUsage::DynamicDraw);
-  _box.setInstanceCount(_instances.size())
-    .addVertexBufferInstanced(_instance_buffer, 1, 0, Magnum::Shaders::Flat3D::TransformationMatrix{},
-                              Magnum::Shaders::Flat3D::Color3{});
-  _shader.draw(_box);
-
-  _cylinders->draw(_mark, projection_matrix);
-  _spheres->drawOpaque(_mark, projection_matrix);
-  _spheres->drawTransparent(_mark, projection_matrix);
+  // Draw opaque then transparent for proper blending.
+  for (const auto &[id, painter] : _painters)
+  {
+    painter->drawOpaque(_mark, projection_matrix);
+  }
+  for (const auto &[id, painter] : _painters)
+  {
+    painter->drawTransparent(_mark, projection_matrix);
+  }
 }
 }  // namespace tes::viewer
 

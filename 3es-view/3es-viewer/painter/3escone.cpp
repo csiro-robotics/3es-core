@@ -1,20 +1,20 @@
-#include "3esarrow.h"
+#include "3escone.h"
 
 #include "mesh/3esconverter.h"
 
 #include <shapes/3essimplemesh.h>
-#include <tessellate/3esarrow.h>
+#include <tessellate/3escone.h>
 
 #include <mutex>
 
 namespace tes::viewer::painter
 {
-Arrow::Arrow(std::shared_ptr<BoundsCuller> culler)
+Cone::Cone(std::shared_ptr<BoundsCuller> culler)
   : ShapePainter(std::exchange(culler, nullptr), { Part{ solidMesh() } }, { Part{ wireframeMesh() } },
                  { Part{ solidMesh() } }, ShapeCache::defaultCalcBounds)
 {}
 
-Magnum::GL::Mesh Arrow::solidMesh()
+Magnum::GL::Mesh Cone::solidMesh()
 {
   static SimpleMesh build_mesh(0, 0, 0, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index);
   static std::mutex guard;
@@ -24,10 +24,26 @@ Magnum::GL::Mesh Arrow::solidMesh()
   // Build with the tes tesselator.
   if (build_mesh.vertexCount() == 0)
   {
+    // Calculate the cone radius from the cone angle.
+    //        /|
+    //       /a|
+    //      /  |
+    //     /   | h
+    //    /    |
+    //   /     |
+    //    -----
+    //      r
+    // a = atan(r/h)
+    // r = h * tan(a)
+    const float coneLength = 1.0f;
+    const float coneRadius = 1. 0f;
+    const float coneAngle = std::atan(coneRadius / coneLength);
+
     std::vector<tes::Vector3f> vertices;
     std::vector<tes::Vector3f> normals;
     std::vector<unsigned> indices;
-    tes::arrow::solid(vertices, indices, normals, 24, 1.5f, 1.0f, 0.81f, 1.0f);
+    tes::cone::solid(vertices, indices, normals, Vector3f(0, 0, coneLength), Vector3f(0, 0, coneLength), coneHeight,
+                     coneAngle, 24);
 
     build_mesh.setVertexCount(vertices.size());
     build_mesh.setIndexCount(indices.size());
@@ -41,7 +57,7 @@ Magnum::GL::Mesh Arrow::solidMesh()
 }
 
 
-Magnum::GL::Mesh Arrow::wireframeMesh()
+Magnum::GL::Mesh Cone::wireframeMesh()
 {
   static SimpleMesh build_mesh(0, 0, 0, DtLines, SimpleMesh::Vertex | SimpleMesh::Index);
   static std::mutex guard;
@@ -51,9 +67,24 @@ Magnum::GL::Mesh Arrow::wireframeMesh()
   // Build with the tes tesselator.
   if (build_mesh.vertexCount() == 0)
   {
+    // Calculate the cone radius from the cone angle.
+    //        /|
+    //       /a|
+    //      /  |
+    //     /   | h
+    //    /    |
+    //   /     |
+    //    -----
+    //      r
+    // a = atan(r/h)
+    // r = h * tan(a)
+    const float coneLength = 1.0f;
+    const float coneRadius = 1. 0f;
+    const float coneAngle = std::atan(coneRadius / coneLength);
     std::vector<tes::Vector3f> vertices;
     std::vector<unsigned> indices;
-    tes::arrow::wireframe(vertices, indices, 8, 1.5f, 1.0f, 0.81f, 1.0f);
+    tes::cone::wireframe(vertices, indices, Vector3f(0, 0, coneLength), Vector3f(0, 0, coneLength), coneHeight,
+                         coneAngle, 16);
 
     build_mesh.setVertexCount(vertices.size());
     build_mesh.setIndexCount(indices.size());

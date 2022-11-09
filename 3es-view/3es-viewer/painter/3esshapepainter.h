@@ -46,6 +46,9 @@ public:
   ShapePainter(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> solid,
                std::initializer_list<Part> wireframe, std::initializer_list<Part> transparent,
                BoundsCalculator bounds_calculator);
+  /// @overload
+  ShapePainter(std::shared_ptr<BoundsCuller> culler, const std::vector<Part> &solid, const std::vector<Part> &wireframe,
+               const std::vector<Part> &transparent, BoundsCalculator bounds_calculator);
   /// Destructor.
   ~ShapePainter();
 

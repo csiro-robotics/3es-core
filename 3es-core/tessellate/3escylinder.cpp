@@ -8,7 +8,6 @@
 
 namespace tes::cylinder
 {
-
 namespace
 {
 void makeCylinder(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> *normals,
@@ -148,16 +147,16 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
   ringsStart[1] = unsigned(vertices.size());
   for (unsigned i = 0; i < segments; ++i)
   {
-    vertices.emplace_back(vertices[ringsStart[0] + segments]);
+    vertices.emplace_back(vertices[ringsStart[0] + i]);
     // Also fix up the ring vertices, offsetting them with the axis.
-    vertices[ringsStart[0] + segments] += axis * height;
-    vertices.back() -= axis * height;
+    vertices[ringsStart[0] + i] += axis * 0.5f * height;
+    vertices.back() -= axis * 0.5f * height;
   }
 
   // Build the ring vertices.
   for (int r = 0; r < 2; ++r)
   {
-    for (unsigned i = 0; i <= segments; ++i)
+    for (unsigned i = 0; i < segments; ++i)
     {
       indices.emplace_back(ringsStart[r] + i);
       indices.emplace_back(ringsStart[r] + (i + 1) % segments);
