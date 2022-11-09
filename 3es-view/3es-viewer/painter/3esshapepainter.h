@@ -1,3 +1,6 @@
+#ifndef TES_VIEWER_PAINTER_SHAPE_PAINTER_H
+#define TES_VIEWER_PAINTER_SHAPE_PAINTER_H
+
 #include "3es-viewer.h"
 
 #include "3esshapecache.h"
@@ -113,3 +116,5 @@ protected:
   IdIndexMap _id_index_map;
 };
 }  // namespace tes::viewer::painter
+
+#endif  // TES_VIEWER_PAINTER_SHAPE_PAINTER_H
