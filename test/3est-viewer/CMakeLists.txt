@@ -1,5 +1,6 @@
 
 set(SOURCES
+  3est-shapes.cpp
   3est-util.cpp
 )
 

@@ -81,7 +81,7 @@ bool ShapePainter::update(const Id &id, FrameNumber frame_number, const Magnum::
   {
     if (ShapeCache *cache = cacheForType(search->second.type))
     {
-      cache->update(frame_number, search->second.index, transform, colour);
+      cache->update(search->second.index, frame_number, transform, colour);
     }
     return true;
   }
@@ -144,9 +144,9 @@ void ShapePainter::endFrame(FrameNumber frame_number)
   if (frame_number >= kCacheWindow)
   {
     const FrameNumber expire_before = frame_number - kCacheWindow;
-  _solid_cache->expireShapes(expire_before);
-  _wireframe_cache->expireShapes(expire_before);
-  _transparent_cache->expireShapes(expire_before);
+    _solid_cache->expireShapes(expire_before);
+    _wireframe_cache->expireShapes(expire_before);
+    _transparent_cache->expireShapes(expire_before);
   }
 }
 

@@ -100,7 +100,10 @@ public:
 
     /// Check if this resource reference is valid. A valid reference has a valid @c Id and addresses a @c ResourceList .
     /// @return
-    inline bool isValid() const { return _resource_list != nullptr; }
+    inline bool isValid() const
+    {
+      return _resource_list != nullptr && _resource_list->_items[_id].next_free == kAllocatedResource;
+    }
 
     /// Dereference the resource.
     /// @return The references resource entry.

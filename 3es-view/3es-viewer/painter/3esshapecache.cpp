@@ -226,7 +226,8 @@ bool ShapeCache::update(util::ResourceListId id, FrameNumber frame_number, const
         shape->viewable_tail = last_viewable->next = new_viewable.id();
         // Update the viewable windows.
         last_viewable->window =
-          ViewableWindow(last_viewable_window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
+          ViewableWindow(last_viewable_window.startFrame(), (frame_number > 0) ? frame_number - 1 : 0,
+                         ViewableWindow::Interval::Absolute);
         new_viewable->window = ViewableWindow(frame_number);
         // We can assume that the parent viewable index is the same for the new viewable as for the previous one.
         // But, when we update a parent do we need to update the children.
@@ -272,7 +273,6 @@ bool ShapeCache::get(util::ResourceListId id, FrameNumber frame_number, bool app
     const auto shape = _shapes.at(id);
     if (shape.isValid())
     {
-      found = true;
       // Start with checking the lastest viewable state.
       auto viewable = _viewables.at(shape->viewable_tail);
       TES_ASSERT(viewable.isValid());
@@ -282,6 +282,7 @@ bool ShapeCache::get(util::ResourceListId id, FrameNumber frame_number, bool app
         // Latest item is the relevant one.
         transform = viewable->instance.transform;
         colour = viewable->instance.colour;
+        found = true;
       }
       else
       {
@@ -297,6 +298,7 @@ bool ShapeCache::get(util::ResourceListId id, FrameNumber frame_number, bool app
               // Latest item is the relevant one.
               transform = viewable->instance.transform;
               colour = viewable->instance.colour;
+              found = true;
               break;
             }
             next = viewable->next;
@@ -349,13 +351,35 @@ void ShapeCache::expireShapes(FrameNumber before_frame)
     auto &shape = *iter;
     if (shape.parent_rid == kListEnd)
     {
-      const FrameNumber last_frame = shape.window.endFrame();
-      if (last_frame < before_frame)
+      if (shape.window <= before_frame)
       {
         // Note: it's actually ok to remove items from the resource list during iteration since it just adds things to
         // a free list.
         // Could be considered flakey though.
         release(iter.id());
+      }
+      else
+      {
+        // Can't expire the shape as a whole. Just expire it's viewable windows if possible.
+        auto viewable = _viewables.at(shape.viewable_head);
+        TES_ASSERT(viewable.isValid());
+        while (viewable.isValid() && viewable->window <= before_frame)
+        {
+          TES_ASSERT(shape.viewable_head != shape.viewable_tail);
+          shape.viewable_head = viewable->next;
+          // Expire the current item.
+          _viewables.release(viewable.id());
+          viewable = _viewables.at(shape.viewable_head);
+        }
+        // Update the shape's viewable window.
+        if (shape.window.isOpen())
+        {
+          shape.window = ViewableWindow(before_frame);
+        }
+        else
+        {
+          shape.window = ViewableWindow(before_frame, shape.window.endFrame(), ViewableWindow::Interval::Absolute);
+        }
       }
     }
   }
