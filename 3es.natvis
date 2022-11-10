@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <!-- GLM types -->
+  <Type Name="glm::vec&lt;2,char,*&gt;">
+    <AlternativeType Name="glm::vec&lt;2,unsigned char,*&gt;"/>
+    <AlternativeType Name="glm::u8vec2"/>
+    <AlternativeType Name="glm::i8vec2"/>
+    <DisplayString>x={(int)x} y={(int)y} z={(int)z}</DisplayString>
+    <Expand>
+      <Item Name="x">(int)x</Item>
+      <Item Name="y">(int)y</Item>
+      <Item Name="z">(int)z</Item>
+      <Item Name="len2">(int)x*(int)x + (int)y*(int)y + (int)z*(int)z</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="glm::vec&lt;3,char,*&gt;">
+    <AlternativeType Name="glm::vec&lt;3,unsigned char,*&gt;"/>
+    <AlternativeType Name="glm::u8vec3"/>
+    <AlternativeType Name="glm::i8vec3"/>
+    <DisplayString>x={(int)x} y={(int)y} z={(int)z}</DisplayString>
+    <Expand>
+      <Item Name="x">(int)x</Item>
+      <Item Name="y">(int)y</Item>
+      <Item Name="z">(int)z</Item>
+      <Item Name="len2">(int)x*(int)x + (int)y*(int)y + (int)z*(int)z</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="glm::vec&lt;4,char,*&gt;">
+    <AlternativeType Name="glm::vec&lt;4,unsigned char,*&gt;"/>
+    <AlternativeType Name="glm::u8vec4"/>
+    <AlternativeType Name="glm::i8vec4"/>
+    <DisplayString>x={(int)x} y={(int)y} z={(int)z}</DisplayString>
+    <Expand>
+      <Item Name="x">(int)x</Item>
+      <Item Name="y">(int)y</Item>
+      <Item Name="z">(int)z</Item>
+      <Item Name="len2">(int)x*(int)x + (int)y*(int)y + (int)z*(int)z</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="glm::vec&lt;2,*&gt;">
+    <AlternativeType Name="glm::vec2"/>
+    <AlternativeType Name="glm::dvec2"/>
+    <AlternativeType Name="glm::i16vec2"/>
+    <AlternativeType Name="glm::ivec2"/>
+    <AlternativeType Name="glm::u16vec2"/>
+    <AlternativeType Name="glm::uvec2"/>
+    <DisplayString>x={x} y={y} z={z}</DisplayString>
+    <Expand>
+      <Item Name="x">x</Item>
+      <Item Name="y">y</Item>
+      <Item Name="z">z</Item>
+      <Item Name="len2">x*x + y*y + z*z</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="glm::vec&lt;3,*&gt;">
+    <AlternativeType Name="glm::vec3"/>
+    <AlternativeType Name="glm::dvec3"/>
+    <AlternativeType Name="glm::i16vec3"/>
+    <AlternativeType Name="glm::ivec3"/>
+    <AlternativeType Name="glm::u16vec3"/>
+    <AlternativeType Name="glm::uvec3"/>
+    <DisplayString>x={x} y={y} z={z}</DisplayString>
+    <Expand>
+      <Item Name="x">x</Item>
+      <Item Name="y">y</Item>
+      <Item Name="z">z</Item>
+      <Item Name="len2">x*x + y*y + z*z</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="glm::vec&lt;4,*&gt;">
+    <AlternativeType Name="glm::vec4"/>
+    <AlternativeType Name="glm::dvec4"/>
+    <AlternativeType Name="glm::i16vec4"/>
+    <AlternativeType Name="glm::ivec4"/>
+    <AlternativeType Name="glm::u16vec4"/>
+    <AlternativeType Name="glm::uvec4"/>
+    <DisplayString>x={x} y={y} z={z}</DisplayString>
+    <Expand>
+      <Item Name="x">x</Item>
+      <Item Name="y">y</Item>
+      <Item Name="z">z</Item>
+      <Item Name="len2">x*x + y*y + z*z</Item>
+    </Expand>
+  </Type>
+
+  <!-- Magnum types -->
+  <Type Name="Magnum::Math::Vector&lt;2,*&gt;">
+    <DisplayString>x={_data[0]} y={_data[1]}</DisplayString>
+    <Expand>
+      <Item Name="x">_data[0]</Item>
+      <Item Name="y">_data[1]</Item>
+      <Item Name="len2">_data[0] * _data[0] + _data[1] * _data[1]</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="Magnum::Math::Vector&lt;3,*&gt;">
+    <DisplayString>x={_data[0]} y={_data[1]} z={_data[2]}</DisplayString>
+    <Expand>
+      <Item Name="x">_data[0]</Item>
+      <Item Name="y">_data[1]</Item>
+      <Item Name="z">_data[2]</Item>
+      <Item Name="len2">_data[0] * _data[0] + _data[1] * _data[1] + _data[2] * _data[2]</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="Magnum::Math::Vector&lt;4,*&gt;">
+    <DisplayString>x={_data[0]} y={_data[1]} z={_data[2]} w={_data[3]}</DisplayString>
+    <Expand>
+      <Item Name="x">_data[0]</Item>
+      <Item Name="y">_data[1]</Item>
+      <Item Name="z">_data[2]</Item>
+      <Item Name="w">_data[3]</Item>
+      <Item Name="len2">_data[0] * _data[0] + _data[1] * _data[1] + _data[2] * _data[2] + _data[3] * _data[3]</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="Magnum::Math::Matrix&lt;2,*&gt;">
+    <Expand>
+      <Item Name="[0]">_data[0]</Item>
+      <Item Name="[1]">_data[1]</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="Magnum::Math::Matrix&lt;3,*&gt;">
+    <Expand>
+      <Item Name="[0]">_data[0]</Item>
+      <Item Name="[1]">_data[1]</Item>
+      <Item Name="[2]">_data[2]</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="Magnum::Math::Matrix&lt;4,*&gt;">
+    <Expand>
+      <Item Name="[0]">_data[0]</Item>
+      <Item Name="[1]">_data[1]</Item>
+      <Item Name="[2]">_data[2]</Item>
+      <Item Name="[3]">_data[3]</Item>
+    </Expand>
+  </Type>
+
+
+  <!-- 3es types -->
+  <Type Name="tes::viewer::util::ResourceList&lt;*&gt;::ResourceRefBase&lt;*,*&gt;">
+    <AlternativeType Name="tes::viewer::util::ResourceList&lt;*&gt;::ResourceRef"/>
+    <AlternativeType Name="tes::viewer::util::ResourceList&lt;*&gt;::ResourceConstRef"/>
+    <DisplayString>id={_id} l={_resource_list}</DisplayString>
+    <Expand>
+      <Item Name="_id">_id</Item>
+      <Item Name="_resource_list">_resource_list</Item>
+      <Item Name="resource">_resource_list->_items[_id].resource</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="tes::viewer::util::ResourceList&lt;*&gt;::BaseIterator&lt;*,*&gt;">
+    <AlternativeType Name="tes::viewer::util::ResourceList&lt;*&gt;::iterator"/>
+    <AlternativeType Name="tes::viewer::util::ResourceList&lt;*&gt;::const_iterator"/>
+    <DisplayString>id={_id} l={_resource_list}</DisplayString>
+    <Expand>
+      <Item Name="_id">_id</Item>
+      <Item Name="_owner">_owner</Item>
+      <Item Name="resource">_owner->_items[_id].resource</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>
