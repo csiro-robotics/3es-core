@@ -59,7 +59,8 @@ public:
 
 protected:
   util::ResourceListId Capsule::addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
-                                         const Magnum::Color4 &colour, const ParentId &parent_id) override;
+                                         const Magnum::Color4 &colour, const ParentId &parent_id,
+                                         unsigned *child_index) override;
 
 private:
   static void buildEndCapSolid(SimpleMesh &mesh, bool bottomCap);

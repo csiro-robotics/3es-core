@@ -48,26 +48,28 @@ ShapePainter::ParentId ShapePainter::add(const Id &id, FrameNumber frame_number,
   {
     _id_index_map.emplace(id, CacheIndex{ type, index });
   }
-  return ParentId(index);
+  return ParentId(id, index);
 }
 
 
-void ShapePainter::addSubShape(const ParentId &parent_id, FrameNumber frame_number, Type type,
-                               const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
+ShapePainter::ChildId ShapePainter::addChild(const ParentId &parent_id, FrameNumber frame_number, Type type,
+                                             const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
 {
-  const bool transient = _id_index_map.find(parent_id.id()) == _id_index_map.end();
+  const bool transient = _id_index_map.find(parent_id.shapeId()) == _id_index_map.end();
   const ViewableWindow view_window(frame_number, (transient) ? 1 : 0, ViewableWindow::Interval::Relative);
-  addShape(view_window, type, transform, colour, parent_id);
+  unsigned child_index = 0;
+  addShape(view_window, type, transform, colour, parent_id, &child_index);
+  return ChildId(parent_id.shapeId(), child_index);
 }
 
 
 util::ResourceListId ShapePainter::addShape(const ViewableWindow &view_window, Type type,
                                             const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
-                                            const ParentId &parent_id)
+                                            const ParentId &parent_id, unsigned *child_index)
 {
   if (ShapeCache *cache = cacheForType(type))
   {
-    return cache->add(view_window, transform, colour, parent_id.id());
+    return cache->add(view_window, transform, colour, parent_id.resourceId(), child_index);
   }
   return ~0u;
 }
@@ -90,15 +92,57 @@ bool ShapePainter::update(const Id &id, FrameNumber frame_number, const Magnum::
 }
 
 
-bool ShapePainter::readProperties(const Id &id, FrameNumber frame_number, bool include_parent_transform,
-                                  Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
+bool ShapePainter::updateSubShape(const ChildId &child_id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
+                                  const Magnum::Color4 &colour)
+{
+  const auto search = _id_index_map.find(child_id.shapeId());
+  if (search != _id_index_map.end())
+  {
+    if (ShapeCache *cache = cacheForType(search->second.type))
+    {
+      // Lookup the child resource id.
+      auto child_rid = cache->getChildId(search->second.index, child_id.index());
+      if (child_rid != util::kNullResource)
+      {
+        cache->update(child_rid, frame_number, transform, colour);
+      }
+    }
+    return true;
+  }
+
+  return false;
+}
+
+
+bool ShapePainter::readShape(const Id &id, FrameNumber frame_number, Magnum::Matrix4 &transform,
+                             Magnum::Color4 &colour) const
 {
   const auto search = _id_index_map.find(id);
   if (search != _id_index_map.end())
   {
     if (const ShapeCache *cache = cacheForType(search->second.type))
     {
-      return cache->get(search->second.index, frame_number, include_parent_transform, transform, colour);
+      return cache->get(search->second.index, frame_number, false, transform, colour);
+    }
+  }
+  return false;
+}
+
+
+bool ShapePainter::readChildShape(const ChildId &child_id, FrameNumber frame_number, bool include_parent_transform,
+                                  Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
+{
+  const auto search = _id_index_map.find(child_id.shapeId());
+  if (search != _id_index_map.end())
+  {
+    if (const ShapeCache *cache = cacheForType(search->second.type))
+    {
+      // Lookup the child resource id.
+      auto child_rid = cache->getChildId(search->second.index, child_id.index());
+      if (child_rid != util::kNullResource)
+      {
+        return cache->get(child_rid, frame_number, include_parent_transform, transform, colour);
+      }
     }
   }
   return false;

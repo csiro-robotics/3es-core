@@ -213,9 +213,11 @@ public:
   /// @param parent_rid Index of the parent shape whose transform also affects this shape. Use ~0u for no parent.
   ///   Must be valid when specified - i.e., the parent must be added first and removed last. Specifying the parent
   ///   index also forms a shape chain.
+  /// @param child_index When adding a child shape, this will be set to the index of the child in the parent (if not
+  ///   null). Behaviour is undefined when @p parent_rid is invalid.
   /// @return The shape ID/index. Must be used to @c remove() or @c update() the shape.
   util::ResourceListId add(const ViewableWindow &window, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
-                           util::ResourceListId parent_rid = kListEnd);
+                           util::ResourceListId parent_rid = kListEnd, unsigned *child_index = nullptr);
   /// Set the end of the viewable window for a shape.
   ///
   /// The shape will no longer be visible once the @c activeWindow() is beyond the @p frame_number .
@@ -227,6 +229,7 @@ public:
   /// @param frame_number Last frame on which the shape is visible.
   /// @return True if the @p id is valid.
   bool endShape(util::ResourceListId id, FrameNumber frame_number);
+
   /// Update an existing shape instance.
   /// @param id Id of the shape to update.
   /// @param frame_number The frame on which the shape changes.
@@ -250,6 +253,15 @@ public:
   {
     return get(id, frame_number, false, transform, colour);
   }
+
+  /// Lookup the resource id for a child shape.
+  ///
+  /// @note This is a linked list lookup, O(n).
+  ///
+  /// @param parent_id The parent shape's resource Id.
+  /// @param child_index The index of the child.
+  /// @return The resource id of the child shape, or @c util::kNullResource if the id arguments are invalid.
+  util::ResourceListId getChildId(util::ResourceListId parent_id, unsigned child_index) const;
 
   /// Clear the shape cache, removing all shapes.
   ///
@@ -320,6 +332,8 @@ private:
     /// a multi-shape chain dependency for valid shapes. This value is @c kListEnd for the end of the
     /// list.
     util::ResourceListId next = kListEnd;
+    /// Number of children for a parent shape.
+    unsigned child_count = 0;
 
     /// Check if this is a parent shape.
     /// @return True for a parent shape.

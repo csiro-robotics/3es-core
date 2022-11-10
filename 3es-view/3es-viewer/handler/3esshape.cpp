@@ -199,8 +199,7 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
       }
       transform = composeTransform(attrs);
       c = Colour(attrs.colour);
-      _painter->addSubShape(parent_id, frame_number, draw_type, transform,
-                            Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
+      _painter->addChild(parent_id, frame_number, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
     }
   }
 
@@ -219,7 +218,7 @@ bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs
   if (msg.flags & UFUpdateMode)
   {
     ObjectAttributes cur_attrs = {};
-    _painter->readProperties(id, false, transform, colour);
+    _painter->readShape(id, false, transform, colour);
     if (msg.flags & (UFPosition | UFRotation | UFScale))
     {
       decomposeTransform(transform, cur_attrs);

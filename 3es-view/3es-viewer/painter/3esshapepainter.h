@@ -37,23 +37,50 @@ public:
     Transparent,  ///< Transparent shape rendering (triangles).
   };
 
-  /// An id returned from @p add() which can be passed to @c addSubShape() to create child shapes.
+  /// An id returned from @p add() which can be passed to @c addChild() to create child shapes.
   class ParentId
   {
   public:
-    inline explicit ParentId(const util::ResourceListId id)
-      : _id(id)
+    inline explicit ParentId(const Id &shape_id, const util::ResourceListId resource_id)
+      : _shape_id(shape_id)
+      , _resource_id(resource_id)
     {}
     ParentId() = default;
     ParentId(const ParentId &other) = default;
     ParentId(ParentId &&other) = default;
 
+    inline Id shapeId() const { return _shape_id; }
+
     /// Internal ID value.
     /// @return Internal value.
-    inline util::ResourceListId id() const { return _id; }
+    inline util::ResourceListId resourceId() const { return _resource_id; }
 
   private:
-    util::ResourceListId _id = util::kNullResource;
+    Id _shape_id;
+    util::ResourceListId _resource_id = util::kNullResource;
+  };
+
+  /// A child or sub-shape identifier.
+  class ChildId
+  {
+  public:
+    inline ChildId(const Id shape_id, unsigned child_index)
+      : _shape_id(shape_id)
+      , _index(child_index)
+    {}
+
+    ChildId() = default;
+    ChildId(const ChildId &other) = default;
+    ChildId(ChildId &&other) = default;
+
+    inline Id shapeId() const { return _shape_id; }
+    inline unsigned index() const { return _index; }
+
+  private:
+    /// The primary shape id.
+    Id _shape_id;
+    /// The child resource id (in some ways the true id).
+    unsigned _index = 0;
   };
 
   /// Construct a shape painter.
@@ -80,18 +107,18 @@ public:
   /// @param type The draw type for the shape.
   /// @param transform The shape transformation.
   /// @param colour The shape colour.
-  /// @return An id value which can be passed to @c addSubShape() to add child shapes. This is transient and should
-  /// only be used immediately after calling @c add() to call @c addSubShape() .
+  /// @return An id value which can be passed to @c addChild() to add child shapes. This is transient and should
+  /// only be used immediately after calling @c add() to call @c addChild() .
   virtual ParentId add(const Id &id, FrameNumber frame_number, Type type, const Magnum::Matrix4 &transform,
                        const Magnum::Color4 &colour);
 
   /// Add a sub shape part.
   ///
   /// This supports multi-shape messages where multiple shapes are part of the same @p id . Shapes added with
-  /// @c addSubShape() are essentially children of the first shape in a scene hierarchy sense, and the primary shape
+  /// @c addChild() are essentially children of the first shape in a scene hierarchy sense, and the primary shape
   /// transform also affects children. Removing a shape also removes its sub shapes.
   ///
-  /// To add a sub shape, first call @p add() with a new @p id , then call @c addSubShape() for each sub/child shape.
+  /// To add a sub shape, first call @p add() with a new @p id , then call @c addChild() for each sub/child shape.
   /// Remember passing an identity @p transform for a sub shape co-locates the sub shape with the first shape.
   ///
   /// @param parent_id The parent id obtained from @c add() .
@@ -99,7 +126,7 @@ public:
   /// @param type The draw type for the shape.
   /// @param transform The shape transformation.
   /// @param colour The shape colour.
-  virtual void addSubShape(const ParentId &parent_id, FrameNumber frame_number, Type type,
+  virtual ChildId addChild(const ParentId &parent_id, FrameNumber frame_number, Type type,
                            const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
 
   /// Update an existing shape (non transient).
@@ -114,21 +141,27 @@ public:
   virtual bool update(const Id &id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
                       const Magnum::Color4 &colour);
 
-  /// Read the current proeprties for a shape instance.
+  virtual bool updateSubShape(const ChildId &child_id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
+                              const Magnum::Color4 &colour);
+
+  /// Read the current properties for a shape instance.
+  /// @param id Shape id of interest.
+  /// @param frame_number The frame at which to get the properties.
+  /// @param[out] transform Transform output. Does not include any parent transform.
+  /// @param[out] colour Colour output.
+  /// @return True if @p id is valid.
+  virtual bool readShape(const Id &id, FrameNumber frame_number, Magnum::Matrix4 &transform,
+                         Magnum::Color4 &colour) const;
+
+  /// Read the current properties for a shape instance.
   /// @param id Shape id of interest.
   /// @param frame_number The frame at which to get the properties.
   /// @param include_parent_transform True to have @p transform include the parent's transform.
   /// @param[out] transform Transform output. Does not include any parent transform.
   /// @param[out] colour Colour output.
   /// @return True if @p id is valid.
-  virtual bool readProperties(const Id &id, FrameNumber frame_number, bool include_parent_transform,
+  virtual bool readChildShape(const ChildId &child_id, FrameNumber frame_number, bool include_parent_transform,
                               Magnum::Matrix4 &transform, Magnum::Color4 &colour) const;
-  /// overload
-  inline bool readProperties(const Id &id, FrameNumber frame_number, Magnum::Matrix4 &transform,
-                             Magnum::Color4 &colour) const
-  {
-    return readProperties(id, frame_number, false, transform, colour);
-  }
 
   /// Remove a shape by @c Id .
   ///
@@ -166,7 +199,8 @@ protected:
   using IdIndexMap = std::unordered_map<Id, CacheIndex>;
 
   virtual util::ResourceListId addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
-                                        const Magnum::Color4 &colour, const ParentId &parent_id = ParentId());
+                                        const Magnum::Color4 &colour, const ParentId &parent_id = ParentId(),
+                                        unsigned *child_index = nullptr);
 
   ShapeCache *cacheForType(Type type);
   const ShapeCache *cacheForType(Type type) const;

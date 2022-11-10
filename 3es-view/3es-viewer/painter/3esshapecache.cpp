@@ -107,7 +107,8 @@ void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &c
 }
 
 util::ResourceListId ShapeCache::add(const ViewableWindow &window, const Magnum::Matrix4 &transform,
-                                     const Magnum::Color4 &colour, util::ResourceListId parent_rid)
+                                     const Magnum::Color4 &colour, util::ResourceListId parent_rid,
+                                     unsigned *child_index)
 {
   auto shape = _shapes.allocate();
 
@@ -129,11 +130,19 @@ util::ResourceListId ShapeCache::add(const ViewableWindow &window, const Magnum:
   if (parent_rid != kListEnd)
   {
     // Add to a shape chain.
-    auto chain_head = _shapes.at(parent_rid);
-    TES_ASSERT(chain_head.isValid());
-    shape->next = chain_head.id();
-    chain_head->next = shape.id();
-    viewable->parent_viewable_index = chain_head->viewable_tail;
+    auto parent = _shapes.at(parent_rid);
+    TES_ASSERT(parent.isValid());
+    shape->next = parent.id();
+    parent->next = shape.id();
+    viewable->parent_viewable_index = parent->viewable_tail;
+    if (parent.isValid())
+    {
+      if (child_index)
+      {
+        *child_index = parent->child_count;
+      }
+      ++parent->child_count;
+    }
   }
 
   return shape.id();
@@ -202,8 +211,8 @@ bool ShapeCache::update(util::ResourceListId id, FrameNumber frame_number, const
       bool redundant_update = false;
       if (frame_number < last_viewable_window.startFrame())
       {
-        // FIXME(KS): I think I'm better off making the assumption that a rewind in the cached window will not send
-        // through the messages again. Will wait to see how other handlers pan out.
+        // FIXME(KS): I'm going to allow a repeated update to handle parents updating. A parent update will create new
+        // viewables for children. These could then be updated themselves on the same frame.
         redundant_update = true;
       }
       else if (frame_number == last_viewable_window.startFrame())
@@ -237,6 +246,7 @@ bool ShapeCache::update(util::ResourceListId id, FrameNumber frame_number, const
           auto next_child = _shapes.at(shape->next);
           while (next_child.isValid())
           {
+            // FIXME(KS): unbounded recursion with child updates.
             // Update the child with it's current transform to give it a new viewable.
             auto child_viewable = _viewables.at(next_child->viewable_tail);
             update(next_child.id(), frame_number, child_viewable->instance.transform, child_viewable->instance.colour);
@@ -313,6 +323,31 @@ bool ShapeCache::get(util::ResourceListId id, FrameNumber frame_number, bool app
     }
   }
   return found;
+}
+
+
+util::ResourceListId ShapeCache::getChildId(util::ResourceListId parent_id, unsigned child_index) const
+{
+  auto parent = _shapes.at(parent_id);
+
+  if (!parent.isValid() || parent->child_count <= child_index)
+  {
+    return util::kNullResource;
+  }
+
+  auto child = _shapes.at(parent->next);
+  parent.release();
+  for (unsigned i = 0; i < child_index && child.isValid(); ++i)
+  {
+    child = _shapes.at(child->next);
+  }
+
+  if (!child.isValid())
+  {
+    return util::kNullResource;
+  }
+
+  return child.id();
 }
 
 

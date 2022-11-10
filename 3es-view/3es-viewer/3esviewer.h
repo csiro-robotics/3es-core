@@ -44,6 +44,8 @@ public:
 
   explicit Viewer(const Arguments &arguments);
 
+  inline std::shared_ptr<BoundsCuller> culler() const { return _culler; }
+
   void setContinuousSim(bool continuous);
   void checkContinuousSim();
 

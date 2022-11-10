@@ -252,10 +252,10 @@ Magnum::GL::Mesh Capsule::wireframeMeshCap()
 
 
 util::ResourceListId Capsule::addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
-                                       const Magnum::Color4 &colour, const ParentId &parent_id)
+                                       const Magnum::Color4 &colour, const ParentId &parent_id, unsigned *child_index)
 {
   // Add as is for the cylinder part.
-  util::ResourceListId index = ShapePainter::addShape(view_window, type, transform, colour, parent_id);
+  util::ResourceListId index = ShapePainter::addShape(view_window, type, transform, colour, parent_id, child_index);
   std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(type);
   if (index == ~0u || !end_caches)
   {
@@ -267,7 +267,7 @@ util::ResourceListId Capsule::addShape(const ViewableWindow &view_window, Type t
   const auto end_transforms = calcEndCapTransforms(transform);
   for (size_t i = 0; i < end_transforms.size(); ++i)
   {
-    (*end_caches)[i]->add(view_window, end_transforms[i], colour, parent_id.id());
+    (*end_caches)[i]->add(view_window, end_transforms[i], colour, parent_id.resourceId(), nullptr);
   }
   return index;
 }
