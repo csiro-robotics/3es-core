@@ -5,6 +5,8 @@
 
 #include "3esframestamp.h"
 
+#include <3esdebug.h>
+
 #include <cassert>
 #include <limits>
 
@@ -31,7 +33,7 @@ public:
     : _start_frame(start_frame)
     , _frame_count((interval_type == Interval::Absolute) ? interval - start_frame + 1u : interval)
   {
-    assert(interval_type == Interval::Relative || interval >= start_frame);
+    TES_ASSERT(interval_type == Interval::Relative || interval >= start_frame);
   }
   /// Define an open window.
   /// @param start_frame

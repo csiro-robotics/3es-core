@@ -29,7 +29,8 @@
             "shaders",
             "shadertools",
             "tgaimporter",
-            "text"
+            "text",
+            "vk"
           ]
         },
         {
@@ -37,7 +38,8 @@
           "features": [
             "ui"
           ]
-        }
+        },
+        "vulkan"
       ]
     },
     "occupancy": {

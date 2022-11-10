@@ -4,13 +4,12 @@
 
 #include <3esconnection.h>
 #include <3escolour.h>
+#include <3esdebug.h>
 #include <3eslog.h>
 #include <3espacketreader.h>
 
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Quaternion.h>
-
-#include <cassert>
 
 namespace tes::viewer::handler
 {
@@ -58,7 +57,7 @@ void Shape::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &
 
 void Shape::readMessage(PacketReader &reader, FrameNumber frame_number)
 {
-  assert(reader.routingId() == routingId());
+  TES_ASSERT(reader.routingId() == routingId());
   ObjectAttributes attrs = {};
   bool ok = false;
   bool logged = false;

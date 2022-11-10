@@ -41,7 +41,7 @@ public:
   class ParentId
   {
   public:
-    inline explicit ParentId(const unsigned id)
+    inline explicit ParentId(const util::ResourceListId id)
       : _id(id)
     {}
     ParentId() = default;
@@ -50,10 +50,10 @@ public:
 
     /// Internal ID value.
     /// @return Internal value.
-    inline unsigned id() const { return _id; }
+    inline util::ResourceListId id() const { return _id; }
 
   private:
-    unsigned _id = ~0u;
+    util::ResourceListId _id = util::kNullResource;
   };
 
   /// Construct a shape painter.
@@ -158,15 +158,15 @@ protected:
   struct CacheIndex
   {
     Type type = {};
-    unsigned index = {};
+    util::ResourceListId index = {};
   };
 
   /// Mapping of shape @c Id to @c ShapeCache index.
   /// @todo Use a different map; MSVC @c std::unordered_map performance is terrible.
   using IdIndexMap = std::unordered_map<Id, CacheIndex>;
 
-  virtual unsigned addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
-                            const Magnum::Color4 &colour, const ParentId &parent_id = ParentId());
+  virtual util::ResourceListId addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
+                                        const Magnum::Color4 &colour, const ParentId &parent_id = ParentId());
 
   ShapeCache *cacheForType(Type type);
   const ShapeCache *cacheForType(Type type) const;

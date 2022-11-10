@@ -10,6 +10,11 @@
 namespace tes::viewer::util
 {
 using ResourceListId = size_t;
+/// A @c ResourceList marker value for null items. Internally used to identify the end of the free list or other linked
+/// list structures.
+inline constexpr ResourceListId kNullResource = ~ResourceListId(0u);
+/// A @c ResourceList marker value used for items which are currently allocated.
+inline constexpr ResourceListId kAllocatedResource = ~ResourceListId(0u) - 1;
 
 /// A resource list is a container which assigns items from it's internal buffer - resources - for external usage.
 ///
@@ -31,11 +36,6 @@ class ResourceList
 public:
   /// The type used to identify resources. This maps to indices in the items list.
   using Id = ResourceListId;
-
-  /// A null item marker. Internally used to identify the end of the free list or other linked list structures.
-  static constexpr Id kNull = ~Id(0u);
-  /// Marker value used for items which are currently allocated.
-  static constexpr Id kAllocated = ~Id(0u) - 1u;
 
   class iterator;
   class const_iterator;
@@ -64,7 +64,7 @@ public:
       , _resource_list(resource_list)
     {
       // Only hold a resource list if the id is valid.
-      if (_id != kNull)
+      if (_id != kNullResource)
       {
         _resource_list->lock();
       }
@@ -77,7 +77,7 @@ public:
     /// Move constructor.
     /// @param other Object to move.
     inline ResourceRefBase(ResourceRefBase<Item, List> &&other)
-      : _id(std::exchange(other._id, kNull))
+      : _id(std::exchange(other._id, kNullResource))
       , _resource_list(std::exchange(other._resource_list, nullptr))
     {}
 
@@ -119,14 +119,14 @@ public:
     {
       if (_resource_list)
       {
-        _id = kNull;
+        _id = kNullResource;
         _resource_list->unlock();
         _resource_list = nullptr;
       }
     }
 
   protected:
-    Id _id = kNull;
+    Id _id = kNullResource;
     List *_resource_list = nullptr;
   };
 
@@ -176,9 +176,9 @@ public:
   ~ResourceList() noexcept(false);
 
   inline iterator begin() { return iterator(this, firstValid()); }
-  inline iterator end() { return iterator(this, kNull); }
+  inline iterator end() { return iterator(this, kNullResource); }
   inline const_iterator begin() const { return const_iterator(this, firstValid()); }
-  inline const_iterator end() const { return const_iterator(this, kNull); }
+  inline const_iterator end() const { return const_iterator(this, kNullResource); }
 
   /// Allocate a new resource.
   ///
@@ -252,40 +252,42 @@ public:
     {
       // Not happy with how clunky the next/prev implementations are. The compiler will probably sort it out, but it
       // should be nicer.
-      if (_owner && _id != kNull && _id + 1 < _owner->_items.size())
+      if (_owner && _id != kNullResource && _id + 1 < _owner->_items.size())
       {
         do
         {
           ++_id;
-        } while (_id < _owner->_items.size() && _id != kNull && _owner->_items[_id].next_free != kAllocated);
-        _id = (_id < _owner->_items.size()) ? _id : kNull;
+        } while (_id < _owner->_items.size() && _id != kNullResource &&
+                 _owner->_items[_id].next_free != kAllocatedResource);
+        _id = (_id < _owner->_items.size()) ? _id : kNullResource;
       }
       else
       {
-        _id = kNull;
+        _id = kNullResource;
       }
     }
 
     void prev()
     {
-      if (_owner && _id > 0 && _id != kNull)
+      if (_owner && _id > 0 && _id != kNullResource)
       {
         do
         {
           --_id;
-        } while (_id < _owner->_items.size() && _id != kNull && _owner->_items[_id].next_free != kAllocated);
-        // Note: we let underflow deal with setting id to kNull as we reach the end of iteration. Let's assert that's
-        // valid though.
-        static_assert(decltype(_id)(0) - decltype(_id)(1) == kNull);
+        } while (_id < _owner->_items.size() && _id != kNullResource &&
+                 _owner->_items[_id].next_free != kAllocatedResource);
+        // Note: we let underflow deal with setting id to kNullResource as we reach the end of iteration. Let's assert
+        // that's valid though.
+        static_assert(decltype(_id)(0) - decltype(_id)(1) == kNullResource);
       }
       else
       {
-        _id = kNull;
+        _id = kNullResource;
       }
     }
 
     ResourceListT *_owner = nullptr;
-    Id _id = kNull;
+    Id _id = kNullResource;
   };
 
   class iterator : public BaseIterator<ResourceList<T>>
@@ -431,13 +433,13 @@ private:
     for (Id id = 0; id < _items.size(); ++id)
     {
       const auto &item = _items[id];
-      if (item.next_free == kAllocated)
+      if (item.next_free == kAllocatedResource)
       {
         return id;
       }
     }
 
-    return kNull;
+    return kNullResource;
   }
 
   inline void lock() const
@@ -461,8 +463,8 @@ private:
   mutable std::recursive_mutex _lock;
   mutable std::atomic_uint32_t _lock_count = {};
   std::atomic_size_t _item_count = {};
-  Id _free_head = kNull;
-  Id _free_tail = kNull;
+  Id _free_head = kNullResource;
+  Id _free_tail = kNullResource;
 };
 
 
@@ -492,7 +494,7 @@ typename ResourceList<T>::ResourceRef ResourceList<T>::allocate()
 {
   std::unique_lock<decltype(_lock)> guard(_lock);
   // Try free list first.
-  if (_free_head != kNull)
+  if (_free_head != kNullResource)
   {
     ResourceRef resource(_free_head, this);
     if (_free_head != _free_tail)
@@ -501,20 +503,20 @@ typename ResourceList<T>::ResourceRef ResourceList<T>::allocate()
     }
     else
     {
-      _free_tail = _free_head = kNull;
+      _free_tail = _free_head = kNullResource;
     }
-    _items[resource.id()].next_free = kAllocated;
+    _items[resource.id()].next_free = kAllocatedResource;
     ++_item_count;
     return resource;
   }
 
-  if (_items.size() == kAllocated)
+  if (_items.size() == kAllocatedResource)
   {
     throw std::runtime_error("Out of resources");
   }
 
   // Grow the container.
-  _items.emplace_back(Item{ T{}, kAllocated });
+  _items.emplace_back(Item{ T{}, kAllocatedResource });
   ++_item_count;
   return ResourceRef(_items.size() - 1u, this);
 }
@@ -523,22 +525,22 @@ typename ResourceList<T>::ResourceRef ResourceList<T>::allocate()
 template <typename T>
 typename ResourceList<T>::ResourceRef ResourceList<T>::at(Id id)
 {
-  if (id < _items.size() && _items[id].next_free == kAllocated)
+  if (id < _items.size() && _items[id].next_free == kAllocatedResource)
   {
     return ResourceRef(id, this);
   }
-  return ResourceRef(kNull, this);
+  return ResourceRef(kNullResource, this);
 }
 
 
 template <typename T>
 typename ResourceList<T>::ResourceConstRef ResourceList<T>::at(Id id) const
 {
-  if (id < _items.size() && _items[id].next_free == kAllocated)
+  if (id < _items.size() && _items[id].next_free == kAllocatedResource)
   {
     return ResourceConstRef(id, this);
   }
-  return ResourceConstRef(kNull, this);
+  return ResourceConstRef(kNullResource, this);
 }
 
 
@@ -546,7 +548,7 @@ template <typename T>
 void ResourceList<T>::release(Id id)
 {
   std::unique_lock<decltype(_lock)> guard(_lock);
-  if (_free_head != kNull)
+  if (_free_head != kNullResource)
   {
     // Append to the free list tail.
     _items[_free_tail].next_free = id;
@@ -558,7 +560,7 @@ void ResourceList<T>::release(Id id)
     _free_head = _free_tail = id;
   }
   --_item_count;
-  _items[id].next_free = kNull;
+  _items[id].next_free = kNullResource;
 }
 
 
@@ -585,7 +587,7 @@ void ResourceList<T>::clear()
     throw std::runtime_error("Deleting resource list with outstanding resource references");
   }
   _items.clear();
-  _free_head = _free_tail = kNull;
+  _free_head = _free_tail = kNullResource;
 }
 }  // namespace tes::viewer::util
 

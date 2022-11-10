@@ -2,7 +2,7 @@
 
 #include "3esboundsculler.h"
 
-#include <cassert>
+#include <3esdebug.h>
 
 namespace tes::viewer::painter
 {
@@ -107,7 +107,7 @@ void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &c
 }
 
 util::ResourceListId ShapeCache::add(const ViewableWindow &window, const Magnum::Matrix4 &transform,
-                                     const Magnum::Color4 &colour, util::ResourceListId parent_index)
+                                     const Magnum::Color4 &colour, util::ResourceListId parent_rid)
 {
   auto shape = _shapes.allocate();
 
@@ -116,22 +116,24 @@ util::ResourceListId ShapeCache::add(const ViewableWindow &window, const Magnum:
   _bounds_calculator(transform, centre, halfExtents);
 
   const auto bounds_id = _culler->allocate(centre, halfExtents);
-  _viewables.emplace_back(ShapeViewable{ { transform, colour }, window, bounds_id, kListEnd });
+  auto viewable = _viewables.allocate();
+  *viewable = ShapeViewable{ { transform, colour }, window, bounds_id, kListEnd };
 
-  shape->viewable_head = shape->viewable_tail = _viewables.size() - 1u;
+  shape->viewable_head = shape->viewable_tail = viewable.id();
   shape->window = window;
 
   shape->bounds_id = bounds_id;
-  shape->parent_index = parent_index;
+  shape->parent_rid = parent_rid;
   shape->next = kListEnd;
 
-  if (parent_index != kListEnd)
+  if (parent_rid != kListEnd)
   {
     // Add to a shape chain.
-    auto chain_head = _shapes.at(parent_index);
-    assert(chain_head.isValid());
+    auto chain_head = _shapes.at(parent_rid);
+    TES_ASSERT(chain_head.isValid());
     shape->next = chain_head.id();
     chain_head->next = shape.id();
+    viewable->parent_viewable_index = chain_head->viewable_tail;
   }
 
   return shape.id();
@@ -146,9 +148,9 @@ bool ShapeCache::endShape(util::ResourceListId id, FrameNumber frame_number)
     util::ResourceListId remove_next = id;
     auto shape = _shapes.at(id);
     // Only remove valid shapes which are not parented (we can only remove parent shapes).
-    if (shape.isValid() && shape->parent_index == kListEnd)
+    if (shape.isValid() && shape->parent_rid == kListEnd)
     {
-      bool removed = false;
+      bool ended = false;
       auto next_shape = _shapes.at(shape->next);
       while (remove_next != kListEnd && next_shape.isValid())
       {
@@ -157,14 +159,16 @@ bool ShapeCache::endShape(util::ResourceListId id, FrameNumber frame_number)
         next_shape->window =
           ViewableWindow(next_shape->window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
         // Update the tail viewable window.
-        auto last_viewable_window = _viewables[next_shape->viewable_tail].window;
+        auto last_viewable = _viewables.at(next_shape->viewable_tail);
+        TES_ASSERT(last_viewable.isValid());
+        auto last_viewable_window = last_viewable->window;
         last_viewable_window =
           ViewableWindow(last_viewable_window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
-        _viewables[next_shape->viewable_tail].window = last_viewable_window;
-        removed = true;
+        last_viewable->window = last_viewable_window;
+        ended = true;
         next_shape = _shapes.at(next_id);
       }
-      return removed;
+      return ended;
     }
   }
   return false;
@@ -193,37 +197,56 @@ bool ShapeCache::update(util::ResourceListId id, FrameNumber frame_number, const
       //
       // Finally, even if the update() is redundant, we do update the shape bounds.
 
-      auto last_viewable_window = _viewables[shape->viewable_tail].window;
+      auto last_viewable = _viewables.at(shape->viewable_tail);
+      const auto last_viewable_window = last_viewable->window;
       bool redundant_update = false;
       if (frame_number < last_viewable_window.startFrame())
       {
+        // FIXME(KS): I think I'm better off making the assumption that a rewind in the cached window will not send
+        // through the messages again. Will wait to see how other handlers pan out.
         redundant_update = true;
       }
       else if (frame_number == last_viewable_window.startFrame())
       {
         // Potentially rendundant update. Need to check the contents.
-        redundant_update = _viewables[shape->viewable_tail].instance.transform == transform &&
-                           _viewables[shape->viewable_tail].instance.colour == colour;
+        redundant_update = last_viewable->instance.transform == transform && last_viewable->instance.colour == colour;
       }
 
       if (!redundant_update)
       {
         // Not a redundant update. Add a viewable state.
-        ShapeViewable &viewable = _viewables.emplace_back();
-        // Must fetch the last viewable state after adding to the list in case of reallocation.
-        ShapeViewable &last_viewable = _viewables[shape->viewable_tail];
+        auto new_viewable = _viewables.allocate();
         // Duplicate the last viewable state.
-        viewable = last_viewable;
+        *new_viewable = *last_viewable;
         // Set updated values.
-        viewable.instance.transform = transform;
-        viewable.instance.colour = colour;
-        viewable.next = kListEnd;
+        new_viewable->instance.transform = transform;
+        new_viewable->instance.colour = colour;
+        new_viewable->next = kListEnd;
         // Update the list tail.
-        shape->viewable_tail = last_viewable.next = _viewables.size() - 1u;
+        shape->viewable_tail = last_viewable->next = new_viewable.id();
         // Update the viewable windows.
-        last_viewable.window =
-          ViewableWindow(last_viewable.window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
-        viewable.window = ViewableWindow(frame_number);
+        last_viewable->window =
+          ViewableWindow(last_viewable_window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
+        new_viewable->window = ViewableWindow(frame_number);
+        // We can assume that the parent viewable index is the same for the new viewable as for the previous one.
+        // But, when we update a parent do we need to update the children.
+        if (shape->isParent())
+        {
+          // Update all the child viewables.
+          auto next_child = _shapes.at(shape->next);
+          while (next_child.isValid())
+          {
+            // Update the child with it's current transform to give it a new viewable.
+            auto child_viewable = _viewables.at(next_child->viewable_tail);
+            update(next_child.id(), frame_number, child_viewable->instance.transform, child_viewable->instance.colour);
+
+            // Then set link the new child viewable to the new parent viewable.
+            child_viewable = _viewables.at(next_child->viewable_tail);
+            child_viewable->parent_viewable_index = new_viewable.id();
+
+            next_child = _shapes.at(next_child->next);
+          }
+        }
       }
       // else redundant update. Just continue to bounds update.
 
@@ -251,29 +274,40 @@ bool ShapeCache::get(util::ResourceListId id, FrameNumber frame_number, bool app
     {
       found = true;
       // Start with checking the lastest viewable state.
-      if (_viewables[shape->viewable_tail].window.overlaps(frame_number))
+      auto viewable = _viewables.at(shape->viewable_tail);
+      TES_ASSERT(viewable.isValid());
+
+      if (viewable->window.overlaps(frame_number))
       {
         // Latest item is the relevant one.
-        transform = _viewables[shape->viewable_tail].instance.transform;
-        colour = _viewables[shape->viewable_tail].instance.colour;
+        transform = viewable->instance.transform;
+        colour = viewable->instance.colour;
       }
       else
       {
         // Need to traverse the list.
-        size_t next = shape->viewable_head;
+        auto next = shape->viewable_head;
         while (next != kListEnd)
         {
-          if (_viewables[next].window.overlaps(frame_number))
+          viewable = _viewables.at(next);
+          if (viewable.isValid())
           {
-            // Latest item is the relevant one.
-            transform = _viewables[next].instance.transform;
-            colour = _viewables[next].instance.colour;
-            break;
+            if (viewable.isValid() && viewable->window.overlaps(frame_number))
+            {
+              // Latest item is the relevant one.
+              transform = viewable->instance.transform;
+              colour = viewable->instance.colour;
+              break;
+            }
+            next = viewable->next;
           }
-          next = _viewables[next].next;
+          else
+          {
+            next = kListEnd;
+          }
         }
       }
-      id = (apply_parent_transform) ? shape->parent_index : kListEnd;
+      id = (apply_parent_transform) ? shape->parent_rid : kListEnd;
     }
   }
   return found;
@@ -313,7 +347,7 @@ void ShapeCache::expireShapes(FrameNumber before_frame)
   for (auto iter = _shapes.begin(); iter != _shapes.end(); ++iter)
   {
     auto &shape = *iter;
-    if (shape.parent_index == kListEnd)
+    if (shape.parent_rid == kListEnd)
     {
       const FrameNumber last_frame = shape.window.endFrame();
       if (last_frame < before_frame)
@@ -334,7 +368,7 @@ bool ShapeCache::release(util::ResourceListId id)
   // The first item, specified by @p index, must not be part of a chain.
   util::ResourceListId remove_next = id;
   auto shape_ref = _shapes.at(id);
-  if (shape_ref.isValid() && shape_ref->parent_index == kListEnd)
+  if (shape_ref.isValid() && shape_ref->parent_rid == kListEnd)
   {
     bool removed = false;
     do
@@ -342,12 +376,12 @@ bool ShapeCache::release(util::ResourceListId id)
       _culler->release(shape_ref->bounds_id);
       const auto remove_current = remove_next;
       remove_next = shape_ref->next;
-      shape_ref->parent_index = 0u;
+      shape_ref->parent_rid = 0u;
       shape_ref->next = kListEnd;
       shape_ref = _shapes.at(remove_next);
       _shapes.release(remove_current);
       removed = true;
-    } while (shape_ref.isValid() && remove_next != _shapes.kNull);
+    } while (shape_ref.isValid() && remove_next != util::kNullResource);
 
     return removed;
   }
@@ -392,14 +426,16 @@ void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
       const unsigned marshal_index = _instance_buffers[cur_instance_buffer_idx].count;
       ++_instance_buffers[cur_instance_buffer_idx].count;
       _marshal_buffer[marshal_index] = viewable.instance;
-      // unsigned parent_index = shape.parent_index;
-      // TODO(KS): Include the parent transform(s).
-      // while (parent_index != ~0u)
-      // {
-      //   _marshal_buffer[marshal_index].transform =
-      //     _shapes[parent_index].instance.transform * _marshal_buffer[marshal_index].transform;
-      //   parent_index = _shapes[parent_index].parent_index;
-      // }
+      auto parent_index = viewable.parent_viewable_index;
+      // Include the parent transform(s).
+      while (parent_index != kListEnd)
+      {
+        auto parent_viewable = _viewables.at(parent_index);
+        TES_ASSERT(parent_viewable.isValid());
+        _marshal_buffer[marshal_index].transform =
+          parent_viewable->instance.transform * _marshal_buffer[marshal_index].transform;
+        parent_index = parent_viewable->parent_viewable_index;
+      }
 
       // Upload if at limit.
       if (_instance_buffers[cur_instance_buffer_idx].count == _marshal_buffer.size())

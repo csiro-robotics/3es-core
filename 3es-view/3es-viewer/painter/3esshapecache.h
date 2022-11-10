@@ -168,7 +168,7 @@ public:
                                     Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents);
 
   /// Internal free list terminator value.
-  static constexpr size_t kListEnd = util::ResourceList<int>::kNull;
+  static constexpr size_t kListEnd = util::kNullResource;
 
   /// @overload
   ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
@@ -210,12 +210,12 @@ public:
   /// @param window The window for which the shape is viewable. Use an open window if the end frame is not yet known.
   /// @param transform The shape instance transformation.
   /// @param colour The shape instance colour.
-  /// @param parent_index Index of the parent shape whose transform also affects this shape. Use ~0u for no parent.
+  /// @param parent_rid Index of the parent shape whose transform also affects this shape. Use ~0u for no parent.
   ///   Must be valid when specified - i.e., the parent must be added first and removed last. Specifying the parent
   ///   index also forms a shape chain.
   /// @return The shape ID/index. Must be used to @c remove() or @c update() the shape.
   util::ResourceListId add(const ViewableWindow &window, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
-                           util::ResourceListId parent_index = kListEnd);
+                           util::ResourceListId parent_rid = kListEnd);
   /// Set the end of the viewable window for a shape.
   ///
   /// The shape will no longer be visible once the @c activeWindow() is beyond the @p frame_number .
@@ -295,8 +295,9 @@ private:
     /// Index of the next viewable item for this shape. Viewable items in the same list
     /// represent a @c Shape at different moments in time, thus the @c instance should vary, while the @c window
     /// must vary, without overlapping.
-    size_t next = kListEnd;
+    util::ResourceListId next = kListEnd;
     // TODO(KS): we need a parent index here to, indexing the _viewables, not the shapes.
+    util::ResourceListId parent_viewable_index = kListEnd;
   };
 
   /// An entry in the shape cache.
@@ -306,19 +307,26 @@ private:
   struct Shape
   {
     /// The index of the viewable list head item for the shape. This must reference a valid index.
-    size_t viewable_head = kListEnd;
+    util::ResourceListId viewable_head = kListEnd;
     /// The index of the viewable list tail item for the shape. Represents the last/latest viewable state of the shape.
-    size_t viewable_tail = kListEnd;
+    util::ResourceListId viewable_tail = kListEnd;
     /// The window spanning the lifetime of this shape, regardless of which viewable is actually active.
     ViewableWindow window = {};
     /// The shape entry @c BoundsCuller entry ID.
     BoundsId bounds_id = ~0u;
     /// Index of the "parent" shape. The parent shape transform also affects this shape's final transformation.
-    util::ResourceListId parent_index = kListEnd;
+    util::ResourceListId parent_rid = kListEnd;
     /// Shape list (linked list) next item ID. Used to link the free list when a shape is not in used. Used to specify
     /// a multi-shape chain dependency for valid shapes. This value is @c kListEnd for the end of the
     /// list.
     util::ResourceListId next = kListEnd;
+
+    /// Check if this is a parent shape.
+    /// @return True for a parent shape.
+    inline bool isParent() const { return parent_rid == kListEnd && next != kListEnd; }
+    /// Check if this is a child shape.
+    /// @return True for a child shape.
+    inline bool isChild() const { return parent_rid != kListEnd; }
   };
 
   /// Instance buffer used to render shapes. Only valid during the @c draw() call.
@@ -348,7 +356,8 @@ private:
   /// Instantiated shape array. These represent active shapes in the array.
   util::ResourceList<Shape> _shapes;
   /// Array of viewable items. Traversed when building the renderable instance buffers.
-  std::vector<ShapeViewable> _viewables;
+  util::ResourceList<ShapeViewable> _viewables;
+  // std::vector<ShapeViewable> _viewables;
   /// Mesh parts to render.
   std::vector<Part> _parts;
   /// Transformation matrix applied to the shape before rendering. This allows the Magnum primitives to be transformed

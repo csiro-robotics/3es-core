@@ -58,8 +58,8 @@ public:
   static Magnum::GL::Mesh wireframeMeshCap();
 
 protected:
-  unsigned Capsule::addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
-                             const Magnum::Color4 &colour, const ParentId &parent_id) override;
+  util::ResourceListId Capsule::addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
+                                         const Magnum::Color4 &colour, const ParentId &parent_id) override;
 
 private:
   static void buildEndCapSolid(SimpleMesh &mesh, bool bottomCap);

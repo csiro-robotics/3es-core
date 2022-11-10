@@ -43,7 +43,7 @@ ShapePainter::ParentId ShapePainter::add(const Id &id, FrameNumber frame_number,
 {
   const bool transient = id.id() == 0;
   const ViewableWindow view_window(frame_number, (transient) ? 1 : 0, ViewableWindow::Interval::Relative);
-  unsigned index = addShape(view_window, type, transform, colour);
+  util::ResourceListId index = addShape(view_window, type, transform, colour);
   if (!transient)
   {
     _id_index_map.emplace(id, CacheIndex{ type, index });
@@ -61,8 +61,9 @@ void ShapePainter::addSubShape(const ParentId &parent_id, FrameNumber frame_numb
 }
 
 
-unsigned ShapePainter::addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
-                                const Magnum::Color4 &colour, const ParentId &parent_id)
+util::ResourceListId ShapePainter::addShape(const ViewableWindow &view_window, Type type,
+                                            const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
+                                            const ParentId &parent_id)
 {
   if (ShapeCache *cache = cacheForType(type))
   {

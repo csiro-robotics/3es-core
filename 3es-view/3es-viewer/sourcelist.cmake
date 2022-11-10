@@ -49,6 +49,7 @@ list(APPEND SOURCES
   shaders/3esedl.cpp
   shaders/3esedl.frag
   shaders/3esedl.vert
+  util/3esresourcelist.cpp
 )
 
 list(APPEND PRIVATE_SOURCES
