@@ -208,6 +208,7 @@ TEST(Util, ResourceList_Threads)
     // Unlock our resource to allow the other thread to allocate.
     thread_resource.release();
     thread_lock.lock();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     EXPECT_EQ(shared.contended_count.load(), 2);
   };
 
