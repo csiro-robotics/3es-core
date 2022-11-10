@@ -103,6 +103,26 @@ private:
   FrameNumber _frame_count = 0;
 };
 
+inline bool operator<(const ViewableWindow &window, FrameNumber frame)
+{
+  return window.endFrame() < frame;
+}
+
+inline bool operator<=(const ViewableWindow &window, FrameNumber frame)
+{
+  return window.endFrame() <= frame;
+}
+
+inline bool operator>(const ViewableWindow &window, FrameNumber frame)
+{
+  return window.startFrame() > frame;
+}
+
+inline bool operator>=(const ViewableWindow &window, FrameNumber frame)
+{
+  return window.startFrame() <= frame;
+}
+
 }  // namespace tes::viewer
 
 #endif  // TES_VIEWER_VIEWABLE_WINDOW_H

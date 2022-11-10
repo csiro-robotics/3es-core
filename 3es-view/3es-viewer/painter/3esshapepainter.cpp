@@ -140,11 +140,14 @@ void ShapePainter::drawTransparent(const FrameStamp &stamp, const Magnum::Matrix
 
 void ShapePainter::endFrame(FrameNumber frame_number)
 {
-  const FrameNumber kCacheWindow = 200u;
-  const FrameNumber expire_before = (frame_number >= kCacheWindow) ? frame_number - kCacheWindow : 0u;
+  const FrameNumber kCacheWindow = frameWindow();
+  if (frame_number >= kCacheWindow)
+  {
+    const FrameNumber expire_before = frame_number - kCacheWindow;
   _solid_cache->expireShapes(expire_before);
   _wireframe_cache->expireShapes(expire_before);
   _transparent_cache->expireShapes(expire_before);
+  }
 }
 
 

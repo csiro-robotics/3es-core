@@ -51,9 +51,6 @@ public:
     Overlay
   };
 
-  /// The default number of frames message data should be retained for.
-  static constexpr FrameNumber kDefaultFrameWindow = 200u;
-
   Message(uint16_t routing_id, const std::string &name);
   virtual ~Message();
 
@@ -70,7 +67,7 @@ public:
 
   /// The number of frame for which message data should be retained.
   /// @return The number of frames to retain data for.
-  inline FrameNumber frameWindow() const { return _frame_window; }
+  inline FrameNumber frameWindow() const { return tes::viewer::frameWindow(); }
 
   /// Get the handler name.
   /// @return The handler name.
@@ -128,7 +125,6 @@ protected:
   unsigned _mode_flags = 0u;
   FrameStamp _frame_stamp;
   ServerInfoMessage _server_info = {};
-  FrameNumber _frame_window = kDefaultFrameWindow;
   std::string _name;
 };
 }  // namespace tes::viewer::handler
