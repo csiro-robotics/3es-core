@@ -6,6 +6,7 @@
 #include "camera/3esfly.h"
 
 #include "3esboundsculler.h"
+#include "3esframestamp.h"
 #include "painter/3esshapecache.h"
 #include "painter/3esshapepainter.h"
 
@@ -97,7 +98,7 @@ private:
 
   std::unordered_map<ShapeHandlerIDs, std::shared_ptr<painter::ShapePainter>> _painters;
 
-  unsigned _mark = 0;
+  FrameStamp _render_stamp = {};
 
   bool _mouse_rotation_active = false;
   bool _continuous_sim = false;

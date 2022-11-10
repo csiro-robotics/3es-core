@@ -6,6 +6,7 @@ list(APPEND PUBLIC_HEADERS
   3esfboeffect.h
   3esframestamp.h
   3esviewablewindow.h
+  3esviewer.h
   camera/3escamera.h
   camera/3escontroller.h
   camera/3esfly.h
@@ -30,6 +31,8 @@ list(APPEND SOURCES
   3esboundsculler.cpp
   3esedleffect.cpp
   3esfboeffect.cpp
+  3esframestamp.cpp
+  3esviewer.cpp
   camera/3escamera.cpp
   camera/3escontroller.cpp
   camera/3esfly.cpp

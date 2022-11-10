@@ -1,11 +1,9 @@
 
 list(APPEND PUBLIC_HEADERS
-  # General headers
-  3esviewer.h
 )
 
 list(APPEND SOURCES
-  3esviewer.cpp
+  3esmain.cpp
 )
 
 list(APPEND PRIVATE_SOURCES
