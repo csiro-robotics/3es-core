@@ -141,8 +141,8 @@ public:
   virtual bool update(const Id &id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
                       const Magnum::Color4 &colour);
 
-  virtual bool updateSubShape(const ChildId &child_id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
-                              const Magnum::Color4 &colour);
+  virtual bool updateChildShape(const ChildId &child_id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
+                                const Magnum::Color4 &colour);
 
   /// Read the current properties for a shape instance.
   /// @param id Shape id of interest.

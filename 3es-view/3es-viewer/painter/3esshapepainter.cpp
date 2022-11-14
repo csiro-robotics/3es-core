@@ -92,8 +92,8 @@ bool ShapePainter::update(const Id &id, FrameNumber frame_number, const Magnum::
 }
 
 
-bool ShapePainter::updateSubShape(const ChildId &child_id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
-                                  const Magnum::Color4 &colour)
+bool ShapePainter::updateChildShape(const ChildId &child_id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
+                                    const Magnum::Color4 &colour)
 {
   const auto search = _id_index_map.find(child_id.shapeId());
   if (search != _id_index_map.end())

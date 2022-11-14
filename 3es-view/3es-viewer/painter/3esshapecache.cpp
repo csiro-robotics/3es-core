@@ -131,12 +131,14 @@ util::ResourceListId ShapeCache::add(const ViewableWindow &window, const Magnum:
   {
     // Add to a shape chain.
     auto parent = _shapes.at(parent_rid);
+    // To assert or validate?
     TES_ASSERT(parent.isValid());
-    shape->next = parent.id();
-    parent->next = shape.id();
-    viewable->parent_viewable_index = parent->viewable_tail;
     if (parent.isValid())
     {
+      shape->parent_rid = parent.id();
+      shape->next = parent->next;
+      parent->next = shape.id();
+      viewable->parent_viewable_index = parent->viewable_tail;
       if (child_index)
       {
         *child_index = parent->child_count;
@@ -209,19 +211,16 @@ bool ShapeCache::update(util::ResourceListId id, FrameNumber frame_number, const
       auto last_viewable = _viewables.at(shape->viewable_tail);
       const auto last_viewable_window = last_viewable->window;
       bool redundant_update = false;
-      if (frame_number < last_viewable_window.startFrame())
+      if (frame_number == last_viewable_window.startFrame())
       {
-        // FIXME(KS): I'm going to allow a repeated update to handle parents updating. A parent update will create new
-        // viewables for children. These could then be updated themselves on the same frame.
-        redundant_update = true;
+        // This is a special case, where the current frame number matches the current viewable frame number. This
+        // will occur when updating a child shape which has had its parent updated on the same frame.
+        // We can handle that case immediately by overwriting the viewable instance. There's no need to propagate
+        // further as that should have already been effected.
+        last_viewable->instance.transform = transform;
+        last_viewable->instance.colour = colour;
       }
-      else if (frame_number == last_viewable_window.startFrame())
-      {
-        // Potentially rendundant update. Need to check the contents.
-        redundant_update = last_viewable->instance.transform == transform && last_viewable->instance.colour == colour;
-      }
-
-      if (!redundant_update)
+      else if (frame_number > last_viewable_window.startFrame())
       {
         // Not a redundant update. Add a viewable state.
         auto new_viewable = _viewables.allocate();
@@ -246,12 +245,12 @@ bool ShapeCache::update(util::ResourceListId id, FrameNumber frame_number, const
           auto next_child = _shapes.at(shape->next);
           while (next_child.isValid())
           {
-            // FIXME(KS): unbounded recursion with child updates.
             // Update the child with it's current transform to give it a new viewable.
             auto child_viewable = _viewables.at(next_child->viewable_tail);
             update(next_child.id(), frame_number, child_viewable->instance.transform, child_viewable->instance.colour);
 
             // Then set link the new child viewable to the new parent viewable.
+            // Note we refetch the next_child viewable tail as it will have changed in update().
             child_viewable = _viewables.at(next_child->viewable_tail);
             child_viewable->parent_viewable_index = new_viewable.id();
 
