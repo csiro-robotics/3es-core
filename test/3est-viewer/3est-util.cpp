@@ -170,6 +170,10 @@ TEST(Util, ResourceList_Threads)
   // 1. Recursive mutex: one thread can attain multiple resource locks.
   // 2. Multi-thread access: only one thread can have resources at a time.
   // 3. (maybe as it will leak) Release exception: releasing the resource list while another thread has locks throws.
+  //
+  // Note: This test is not bullet proof on the thread management. There is technically a race condition where the next
+  // thread may fail to respond while the other sleeps.
+  const auto sleep_duration = std::chrono::milliseconds(500);
   ResourceList resources;
   SharedData shared;
 
@@ -187,7 +191,7 @@ TEST(Util, ResourceList_Threads)
   // We'll use this for partial synchronisation. Not great, but direct.
   std::unique_lock<std::mutex> lock(shared.mutex);
 
-  const auto thread_func = [&resources, &shared]() {
+  const auto thread_func = [&resources, &shared, sleep_duration]() {
     shared.running = true;
     // Lock mutex here so we block and wait for control here.
     std::unique_lock<std::mutex> thread_lock(shared.mutex);
@@ -202,13 +206,13 @@ TEST(Util, ResourceList_Threads)
     thread_lock.unlock();
 
     // Sleep a while to allow the other thread to try allocate; expect it can't
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(sleep_duration);
     EXPECT_EQ(shared.contended_count.load(), 1);
 
     // Unlock our resource to allow the other thread to allocate.
     thread_resource.release();
+    std::this_thread::sleep_for(sleep_duration);
     thread_lock.lock();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     EXPECT_EQ(shared.contended_count.load(), 2);
   };
 
@@ -225,12 +229,12 @@ TEST(Util, ResourceList_Threads)
   lock.unlock();
 
   // Sleep a while; we expect the other thread cannot attain any resources.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  std::this_thread::sleep_for(sleep_duration);
   EXPECT_EQ(shared.contended_count.load(), 0);
   // Release this thread's reference.
   ref2.release();
   // Wait for the other thread; it should be able to allocate now.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  std::this_thread::sleep_for(sleep_duration);
   EXPECT_EQ(shared.contended_count.load(), 1);
 
   // Now try allocate a new item here. We'll use the mutex to know we have control.
