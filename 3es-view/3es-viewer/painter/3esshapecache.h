@@ -331,6 +331,7 @@ private:
     /// Shape list (linked list) next item ID. Used to link the free list when a shape is not in used. Used to specify
     /// a multi-shape chain dependency for valid shapes. This value is @c kListEnd for the end of the
     /// list.
+    /// @note Children appear in reverse order with the oldest at the end of the list, which is child "index" zero.
     util::ResourceListId next = kListEnd;
     /// Number of children for a parent shape.
     unsigned child_count = 0;

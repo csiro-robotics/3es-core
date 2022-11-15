@@ -289,8 +289,9 @@ bool ShapeCache::get(util::ResourceListId id, FrameNumber frame_number, bool app
       if (viewable->window.overlaps(frame_number))
       {
         // Latest item is the relevant one.
-        transform = viewable->instance.transform;
-        colour = viewable->instance.colour;
+        transform = viewable->instance.transform * transform;
+        // Only set the colour the first time.
+        colour = (!found) ? viewable->instance.colour : colour;
         found = true;
       }
       else
@@ -305,8 +306,9 @@ bool ShapeCache::get(util::ResourceListId id, FrameNumber frame_number, bool app
             if (viewable.isValid() && viewable->window.overlaps(frame_number))
             {
               // Latest item is the relevant one.
-              transform = viewable->instance.transform;
-              colour = viewable->instance.colour;
+              transform = viewable->instance.transform * transform;
+              // Only set the colour the first time.
+              colour = (!found) ? viewable->instance.colour : colour;
               found = true;
               break;
             }
@@ -334,9 +336,11 @@ util::ResourceListId ShapeCache::getChildId(util::ResourceListId parent_id, unsi
     return util::kNullResource;
   }
 
+  // Children appear in reverse order on the parent list.
   auto child = _shapes.at(parent->next);
+  const auto child_count = parent->child_count;
   parent.release();
-  for (unsigned i = 0; i < child_index && child.isValid(); ++i)
+  for (unsigned i = child_count - 1 - child_index; i > 0 && child.isValid(); --i)
   {
     child = _shapes.at(child->next);
   }

@@ -85,26 +85,26 @@ TEST(Shapes, Painter_Parents)
       EXPECT_NEAR(pos.y(), expect_y, epsilon);
       EXPECT_NEAR(pos.z(), expect_z, epsilon);
 
-      // // Children move each frame.
-      // expect_z = f;
-      // for (unsigned i = 0; i < child_count; ++i)
-      // {
-      //   // Check child.
-      //   expect_x = i;
-      //   // Read without parent transform.
-      //   painter.readChildShape(painter::ShapePainter::ChildId(id, i), f, false, transform, colour);
-      //   pos = transform[3].xyz();
-      //   const float epsilon = 1e-5;
-      //   EXPECT_NEAR(pos.x(), expect_x, epsilon);
-      //   EXPECT_NEAR(pos.y(), 0, epsilon);
-      //   EXPECT_NEAR(pos.z(), 0.0f, epsilon);
-      //   // Read with parent transform.
-      //   painter.readChildShape(painter::ShapePainter::ChildId(id, i), f, true, transform, colour);
-      //   pos = transform[3].xyz();
-      //   EXPECT_NEAR(pos.x(), expect_x, epsilon);
-      //   EXPECT_NEAR(pos.y(), 0, epsilon);
-      //   EXPECT_NEAR(pos.z(), 0.0f, epsilon);
-      // }
+      // Children move each frame.
+      expect_z = f;
+      for (unsigned i = 0; i < child_count; ++i)
+      {
+        // Check child.
+        expect_x = i;
+        // Read without parent transform.
+        painter.readChildShape(painter::ShapePainter::ChildId(id, i), f, false, transform, colour);
+        pos = transform[3].xyz();
+        const float epsilon = 1e-5;
+        EXPECT_NEAR(pos.x(), expect_x, epsilon);
+        EXPECT_NEAR(pos.y(), 0, epsilon);
+        EXPECT_NEAR(pos.z(), expect_z, epsilon);
+        // Read with parent transform.
+        painter.readChildShape(painter::ShapePainter::ChildId(id, i), f, true, transform, colour);
+        pos = transform[3].xyz();
+        EXPECT_NEAR(pos.x(), expect_x, epsilon);
+        EXPECT_NEAR(pos.y(), expect_y, epsilon);
+        EXPECT_NEAR(pos.z(), expect_z, epsilon);
+      }
     }
   };
 
