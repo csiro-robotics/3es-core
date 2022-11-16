@@ -18,19 +18,30 @@
 
 namespace tes::viewer
 {
-/// Initialise a viewer for use in unit tests. Test which use any of the 3D graphics API require a viewer first.
-/// @note This will not be thread safe using OpenGL. It may with Vulkan - untested.
-/// @return A new viewer.
-std::unique_ptr<Viewer> initViewer()
+class Shapes : public testing::Test
 {
-  int argc = 1;
-  std::string arg = "test";
-  char *arg_ptr = arg.data();
-  char **argv = &arg_ptr;
-  return std::make_unique<Viewer>(Magnum::Platform::GlfwApplication::Arguments(argc, argv));
-}
+public:
+  /// Initialise a viewer for use in unit tests. Test which use any of the 3D graphics API require a viewer first.
+  /// @note This will not be thread safe using OpenGL. It may with Vulkan - untested.
+  void SetUp()
+  {
+    int argc = 1;
+    std::string arg = "test";
+    char *arg_ptr = arg.data();
+    char **argv = &arg_ptr;
+    _viewer = std::make_unique<Viewer>(Magnum::Platform::GlfwApplication::Arguments(argc, argv));
+  }
 
-TEST(Shapes, Painter_Parents)
+  void TearDown() { _viewer.reset(); }
+
+  Viewer &viewer() { return *_viewer; }
+  const Viewer &viewer() const { return *_viewer; }
+
+private:
+  std::unique_ptr<Viewer> _viewer;
+};
+
+TEST_F(Shapes, Painter_Parents)
 {
   // Test creating a shapes with a parent;
   // - Basic parenting affecting transformations.
@@ -47,8 +58,7 @@ TEST(Shapes, Painter_Parents)
   // - z => fame number
   const unsigned child_count = 10;
   const unsigned frame_count = 100;
-  auto viewer = initViewer();
-  painter::Box painter(viewer->culler());
+  painter::Box painter(viewer().culler());
 
   FrameStamp stamp = {};
   const Id id(1);
@@ -132,15 +142,14 @@ TEST(Shapes, Painter_Parents)
 }
 
 
-TEST(Shapes, Painter_WindowSimple)
+TEST_F(Shapes, Painter_WindowSimple)
 {
   // Make sure our viewable window works in the simple case:
   // - add shapes for N frames
   // - keep a window W where W < N
   // - make sure the window is always valid
   // - make sure expired shapes are not valid.
-  auto viewer = initViewer();
-  painter::Box painter(viewer->culler());
+  painter::Box painter(viewer().culler());
 
   const FrameNumber max_frames = frameWindow() + 10u;
   const FrameNumber window = 10u;
@@ -189,8 +198,9 @@ TEST(Shapes, Painter_WindowSimple)
   }
 }
 
-TEST(Shapes, Painter_WindowParents)
+TEST_F(Shapes, Painter_WindowParents)
 {
-  auto viewer = initViewer();
+  // This test combines Painter_Parents and Painter_WindowSimple such that each frame we allocate a set of shapes with
+  // children. We repeat this process often enough to ensure we start expiring shapes.
 }
 }  // namespace tes::viewer
