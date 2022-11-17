@@ -4,29 +4,8 @@
 #include "3es-viewer.h"
 
 #include "camera/3esfly.h"
+#include "3esthirdeyescene.h"
 
-#include "3esboundsculler.h"
-#include "3esframestamp.h"
-#include "painter/3esshapecache.h"
-#include "painter/3esshapepainter.h"
-
-#include <3esmessages.h>
-
-#include <Magnum/GL/FrameBuffer.h>
-#include <Magnum/GL/Mesh.h>
-#include <Magnum/GL/Renderbuffer.h>
-#include <Magnum/GL/Texture.h>
-#include <Magnum/Math/Color.h>
-#include <Magnum/Platform/GlfwApplication.h>
-#include <Magnum/Shaders/Flat.h>
-
-#include <array>
-#include <chrono>
-#include <vector>
-#include <unordered_map>
-#include <memory>
-
-// TODO(KS): abstract away Magnum so it's not in any public headers.
 namespace tes::viewer
 {
 namespace shaders
@@ -44,7 +23,7 @@ public:
 
   explicit Viewer(const Arguments &arguments);
 
-  inline std::shared_ptr<BoundsCuller> culler() const { return _culler; }
+  inline std::shared_ptr<ThirdEyeScene> tes() const { return _tes; }
 
   void setContinuousSim(bool continuous);
   void checkContinuousSim();
@@ -57,8 +36,6 @@ private:
     Radius
   };
 
-  void initialisePainters();
-
   void drawEvent() override;
   void viewportEvent(ViewportEvent &event) override;
   void mousePressEvent(MouseEvent &event) override;
@@ -69,8 +46,7 @@ private:
 
   bool checkEdlKeys(KeyEvent &event);
 
-  void updateCamera(float dt);
-  void drawShapes(float dt, const Magnum::Matrix4 &projection_matrix);
+  void updateCamera(float dt, camera::Camera &camera);
 
   struct KeyAxis
   {
@@ -80,27 +56,14 @@ private:
     bool active = false;
   };
 
-  struct InstanceData
-  {
-    Magnum::Matrix4 transform;
-    Magnum::Color3 colour;
-  };
-
-  std::shared_ptr<FboEffect> _active_fbo_effect;
   std::shared_ptr<EdlEffect> _edl_effect;
   EdlParam _edl_tweak = EdlParam::LinearScale;
 
+  std::shared_ptr<ThirdEyeScene> _tes;
+
   Clock::time_point _last_sim_time = Clock::now();
 
-  Magnum::Matrix4 _projection;
-  camera::Camera _camera;
   camera::Fly _fly;
-
-  std::shared_ptr<BoundsCuller> _culler;
-
-  std::unordered_map<ShapeHandlerIDs, std::shared_ptr<painter::ShapePainter>> _painters;
-
-  FrameStamp _render_stamp = {};
 
   bool _mouse_rotation_active = false;
   bool _continuous_sim = false;

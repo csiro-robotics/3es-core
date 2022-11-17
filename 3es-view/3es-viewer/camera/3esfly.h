@@ -46,7 +46,7 @@ private:
   /// Rotation speed for key rotation updates: radians/s.
   float _rotation_speed = float(Magnum::Rad(Magnum::Deg(90.0f)));
   /// Mouse sensitivity: radians/pixel.
-  float _mouse_sensitivity = float(Magnum::Rad(Magnum::Deg(5.0f)));
+  float _mouse_sensitivity = float(Magnum::Rad(Magnum::Deg(2.0f)));
   /// Current movement multiplier.
   float _move_multiplier = 1.0f;
   /// Current rotation multiplier.

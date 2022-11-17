@@ -71,7 +71,7 @@ struct ParentsTest
   /// @param viewer The viewer framework.
   void run(Viewer &viewer)
   {
-    _painter = std::make_unique<Painter>(viewer.culler());
+    _painter = std::make_unique<Painter>(viewer.tes()->culler());
 
     Magnum::Matrix4 transform = {};
     Magnum::Color4 colour = Magnum::Color4(0.5f);
@@ -175,7 +175,7 @@ private:
 
 TEST_F(Shapes, Painter_Add)
 {
-  painter::Box painter(viewer().culler());
+  painter::Box painter(viewer().tes()->culler());
 
   const Magnum::Matrix4 transform = Magnum::Matrix4::translation({ 1, 2, 3 });
   const Magnum::Color4 colour = { 3, 2, 1, 0 };
@@ -206,7 +206,7 @@ TEST_F(Shapes, Painter_Add)
 
 TEST_F(Shapes, Painter_Remove)
 {
-  painter::Box painter(viewer().culler());
+  painter::Box painter(viewer().tes()->culler());
 
   const Id id(1);
   const Magnum::Matrix4 transform = Magnum::Matrix4::translation({ 1, 2, 3 });
@@ -251,7 +251,7 @@ TEST_F(Shapes, Painter_ReAdd)
 {
   // Validate we can add a shape, remove it, then add it again all in the same frame.
   // This isn't an expected use case, but it should not break.
-  painter::Box painter(viewer().culler());
+  painter::Box painter(viewer().tes()->culler());
 
   Magnum::Matrix4 transform = Magnum::Matrix4::translation({ 1, 2, 3 });
   Magnum::Color4 colour = { 3, 2, 1, 0 };
@@ -328,7 +328,7 @@ TEST_F(Shapes, Painter_Update)
   // - keep a window W where W < N
   // - make sure the window is always valid
   // - make sure expired shapes are not valid.
-  painter::Box painter(viewer().culler());
+  painter::Box painter(viewer().tes()->culler());
 
   const FrameNumber max_frames = 20;
   const FrameNumber window = 10u;

@@ -32,6 +32,7 @@ namespace tes::viewer
 {
 Viewer::Viewer(const Arguments &arguments)
   : Magnum::Platform::Application{ arguments, Configuration{}.setTitle("3rd Eye Scene Viewer") }
+  , _tes(std::make_shared<ThirdEyeScene>())
   , _move_keys({
       { KeyEvent::Key::A, 0, true },         //
       { KeyEvent::Key::Left, 0, true },      //
@@ -53,17 +54,8 @@ Viewer::Viewer(const Arguments &arguments)
       { KeyEvent::Key::E, 1, true },   //
     })
 {
-  using namespace Magnum::Math::Literals;
-
-  Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::DepthTest);
-  Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
-  Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::Blending);
-
   _edl_effect = std::make_shared<EdlEffect>(Magnum::GL::defaultFramebuffer.viewport());
-  _active_fbo_effect = _edl_effect;
-
-  _culler = std::make_shared<BoundsCuller>();
-  initialisePainters();
+  _tes->setActiveFboEffect(_edl_effect);
 }
 
 void Viewer::setContinuousSim(bool continuous)
@@ -93,118 +85,6 @@ void Viewer::checkContinuousSim()
 }
 
 
-void Viewer::initialisePainters()
-{
-  _painters.emplace(SIdSphere, std::make_shared<painter::Sphere>(_culler));
-  _painters.emplace(SIdBox, std::make_shared<painter::Box>(_culler));
-  _painters.emplace(SIdCylinder, std::make_shared<painter::Cylinder>(_culler));
-  _painters.emplace(SIdCapsule, std::make_shared<painter::Capsule>(_culler));
-  _painters.emplace(SIdPlane, std::make_shared<painter::Plane>(_culler));
-  _painters.emplace(SIdStar, std::make_shared<painter::Star>(_culler));
-  _painters.emplace(SIdArrow, std::make_shared<painter::Arrow>(_culler));
-  _painters.emplace(SIdPose, std::make_shared<painter::Pose>(_culler));
-
-  Magnum::Matrix4 shape_transform = {};
-
-  // Axis box markers
-  _painters[SIdBox]->add(Id(2), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ 10, 0, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 0 });
-  _painters[SIdBox]->add(Id(3), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ 0, 10, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 0 });
-  _painters[SIdBox]->add(Id(4), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ 0, 0, 10 }) * shape_transform, Magnum::Color4{ 0, 0, 1 });
-  _painters[SIdBox]->add(Id(5), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ -10, 0, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
-  _painters[SIdBox]->add(Id(6), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ 0, -10, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1 });
-  _painters[SIdBox]->add(Id(7), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ 0, 0, -10 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
-
-  // Add debug shapes.
-  float x = 0;
-  shape_transform = {};
-  _painters[SIdSphere]->add(Id(1), painter::ShapePainter::Type::Solid,
-                            Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
-  _painters[SIdSphere]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                            Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
-  _painters[SIdSphere]->add(Id(1), painter::ShapePainter::Type::Transparent,
-                            Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
-                            Magnum::Color4{ 1, 0, 1, 0.4f });
-
-  x = -2.5f;
-  shape_transform = {};
-  _painters[SIdBox]->add(Id(1), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 0 });
-  _painters[SIdBox]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                         Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
-  _painters[SIdBox]->add(Id(1), painter::ShapePainter::Type::Transparent,
-                         Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1, 0.4f });
-
-  x = 2.5f;
-  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 0.3f, 0.3f, 1.0f });
-  _painters[SIdCylinder]->add(Id(1), painter::ShapePainter::Type::Solid,
-                              Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
-  _painters[SIdCylinder]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                              Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
-  _painters[SIdCylinder]->add(Id(1), painter::ShapePainter::Type::Transparent,
-                              Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
-                              Magnum::Color4{ 1, 0, 1, 0.4f });
-
-  x = -5.0f;
-  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 0.3f, 0.3f, 1.0f });
-  _painters[SIdCapsule]->add(Id(1), painter::ShapePainter::Type::Solid,
-                             Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
-  _painters[SIdCapsule]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                             Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
-  _painters[SIdCapsule]->add(Id(1), painter::ShapePainter::Type::Transparent,
-                             Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
-                             Magnum::Color4{ 1, 0, 1, 0.4f });
-
-  x = 7.5f;
-  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 1.0f, 1.0f, 1.0f });
-  _painters[SIdPlane]->add(Id(1), painter::ShapePainter::Type::Solid,
-                           Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
-  _painters[SIdPlane]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                           Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
-  _painters[SIdPlane]->add(Id(1), painter::ShapePainter::Type::Transparent,
-                           Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
-                           Magnum::Color4{ 1, 0, 1, 0.4f });
-
-  x = -7.5f;
-  shape_transform = Magnum::Matrix4::scaling({ 1.0f, 1.0f, 1.0f });
-  _painters[SIdStar]->add(Id(1), painter::ShapePainter::Type::Solid,
-                          Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
-  _painters[SIdStar]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                          Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
-  _painters[SIdStar]->add(Id(1), painter::ShapePainter::Type::Transparent,
-                          Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1, 0.4f });
-
-  x = 10.0f;
-  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 0.1f, 0.1f, 1.0f });
-  _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Solid,
-                           Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
-  _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                           Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
-  _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Transparent,
-                           Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
-                           Magnum::Color4{ 1, 0, 1, 0.4f });
-
-  x = -10.0f;
-  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 1.0f, 1.0f, 1.0f });
-  _painters[SIdPose]->add(Id(1), painter::ShapePainter::Type::Solid,
-                          Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 1 });
-  _painters[SIdPose]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                          Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 1 });
-  _painters[SIdPose]->add(Id(1), painter::ShapePainter::Type::Transparent,
-                          Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1, 0.4f });
-
-  for (auto &painter : _painters)
-  {
-    painter.second->commit();
-  }
-}
-
-
 void Viewer::drawEvent()
 {
   using namespace Magnum::Math::Literals;
@@ -214,31 +94,9 @@ void Viewer::drawEvent()
   _last_sim_time = now;
   const float dt = std::chrono::duration_cast<std::chrono::duration<float>>(delta_time).count();
 
-  updateCamera(dt);
+  updateCamera(dt, _tes->camera());
 
-  auto projection_matrix = camera::viewProjection(_camera, Magnum::Vector2(windowSize()));
-  ++_render_stamp.render_mark;
-  _culler->cull(_render_stamp.render_mark, Magnum::Frustum::fromMatrix(projection_matrix));
-
-  if (_active_fbo_effect)
-  {
-    _active_fbo_effect->prepareFrame(projection_matrix, FboEffect::ProjectionType::Perspective, _camera.clip_near,
-                                     _camera.clip_far);
-  }
-  else
-  {
-    Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth)
-      .bind();
-  }
-
-  drawShapes(dt, projection_matrix);
-
-  if (_active_fbo_effect)
-  {
-    Magnum::GL::defaultFramebuffer.bind();
-    Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth);
-    _active_fbo_effect->completeFrame();
-  }
+  _tes->update(dt, Magnum::Vector2(windowSize()));
 
   swapBuffers();
   if (_continuous_sim)
@@ -247,10 +105,12 @@ void Viewer::drawEvent()
   }
 }
 
+
 void Viewer::viewportEvent(ViewportEvent &event)
 {
   _edl_effect->viewportChange(Magnum::GL::defaultFramebuffer.viewport());
 }
+
 
 void Viewer::mousePressEvent(MouseEvent &event)
 {
@@ -262,6 +122,7 @@ void Viewer::mousePressEvent(MouseEvent &event)
   event.setAccepted();
 }
 
+
 void Viewer::mouseReleaseEvent(MouseEvent &event)
 {
   _mouse_rotation_active = false;
@@ -269,6 +130,7 @@ void Viewer::mouseReleaseEvent(MouseEvent &event)
   event.setAccepted();
   redraw();
 }
+
 
 void Viewer::mouseMoveEvent(MouseMoveEvent &event)
 {
@@ -278,12 +140,13 @@ void Viewer::mouseMoveEvent(MouseMoveEvent &event)
     return;
   }
 
-  _fly.updateMouse(event.relativePosition().x(), event.relativePosition().y(), _camera);
+  _fly.updateMouse(event.relativePosition().x(), event.relativePosition().y(), _tes->camera());
 
   event.setAccepted();
   redraw();
   checkContinuousSim();
 }
+
 
 void Viewer::keyPressEvent(KeyEvent &event)
 {
@@ -318,7 +181,7 @@ void Viewer::keyPressEvent(KeyEvent &event)
 
   if (event.key() == KeyEvent::Key::Space)
   {
-    _camera.position.y() -= 0.1f;
+    _tes->camera().position.y() -= 0.1f;
     dirty = true;
     event.setAccepted();
   }
@@ -377,14 +240,14 @@ bool Viewer::checkEdlKeys(KeyEvent &event)
   if (event.key() == KeyEvent::Key::Tab)
   {
     bool edl_on = false;
-    if (!_active_fbo_effect)
+    if (!_tes->activeFboEffect())
     {
-      _active_fbo_effect = _edl_effect;
+      _tes->setActiveFboEffect(_edl_effect);
       edl_on = true;
     }
     else
     {
-      _active_fbo_effect = nullptr;
+      _tes->clearActiveFboEffect();
     }
     event.setAccepted(true);
     dirty = true;
@@ -442,7 +305,7 @@ bool Viewer::checkEdlKeys(KeyEvent &event)
 }
 
 
-void Viewer::updateCamera(float dt)
+void Viewer::updateCamera(float dt, camera::Camera &camera)
 {
   Magnum::Vector3i key_translation(0);
   Magnum::Vector3i key_rotation(0);
@@ -461,20 +324,6 @@ void Viewer::updateCamera(float dt)
     }
   }
 
-  _fly.updateKeys(dt, key_translation, key_rotation, _camera);
-}
-
-
-void Viewer::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix)
-{
-  // Draw opaque then transparent for proper blending.
-  for (const auto &[id, painter] : _painters)
-  {
-    painter->drawOpaque(_render_stamp, projection_matrix);
-  }
-  for (const auto &[id, painter] : _painters)
-  {
-    painter->drawTransparent(_render_stamp, projection_matrix);
-  }
+  _fly.updateKeys(dt, key_translation, key_rotation, _tes->camera());
 }
 }  // namespace tes::viewer

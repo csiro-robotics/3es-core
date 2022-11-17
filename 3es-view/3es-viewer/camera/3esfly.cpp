@@ -14,8 +14,8 @@ void Fly::updateMouse(float dx, float dy, Camera &camera)
   {
     dx *= -1.0f;
   }
-  camera.pitch += dy * _mouse_sensitivity * _mouse_multiplier;
-  camera.yaw += dx * _mouse_sensitivity * _mouse_multiplier;
+  camera.pitch -= dy * _mouse_sensitivity * _mouse_multiplier;
+  camera.yaw -= dx * _mouse_sensitivity * _mouse_multiplier;
 
   clampRotation(camera);
 }
