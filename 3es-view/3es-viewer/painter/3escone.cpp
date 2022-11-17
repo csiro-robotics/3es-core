@@ -36,13 +36,13 @@ Magnum::GL::Mesh Cone::solidMesh()
     // a = atan(r/h)
     // r = h * tan(a)
     const float coneLength = 1.0f;
-    const float coneRadius = 1. 0f;
+    const float coneRadius = 1.0f;
     const float coneAngle = std::atan(coneRadius / coneLength);
 
     std::vector<tes::Vector3f> vertices;
     std::vector<tes::Vector3f> normals;
     std::vector<unsigned> indices;
-    tes::cone::solid(vertices, indices, normals, Vector3f(0, 0, coneLength), Vector3f(0, 0, coneLength), coneHeight,
+    tes::cone::solid(vertices, indices, normals, Vector3f(0, 0, coneLength), Vector3f(0, 0, coneLength), coneLength,
                      coneAngle, 24);
 
     build_mesh.setVertexCount(vertices.size());
@@ -79,11 +79,11 @@ Magnum::GL::Mesh Cone::wireframeMesh()
     // a = atan(r/h)
     // r = h * tan(a)
     const float coneLength = 1.0f;
-    const float coneRadius = 1. 0f;
+    const float coneRadius = 1.0f;
     const float coneAngle = std::atan(coneRadius / coneLength);
     std::vector<tes::Vector3f> vertices;
     std::vector<unsigned> indices;
-    tes::cone::wireframe(vertices, indices, Vector3f(0, 0, coneLength), Vector3f(0, 0, coneLength), coneHeight,
+    tes::cone::wireframe(vertices, indices, Vector3f(0, 0, coneLength), Vector3f(0, 0, coneLength), coneLength,
                          coneAngle, 16);
 
     build_mesh.setVertexCount(vertices.size());

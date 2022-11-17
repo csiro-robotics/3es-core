@@ -17,6 +17,7 @@ list(APPEND PUBLIC_HEADERS
   painter/3esarrow.h
   painter/3esbox.h
   painter/3escapsule.h
+  painter/3escone.h
   painter/3escylinder.h
   painter/3esplane.h
   painter/3espose.h
@@ -43,6 +44,7 @@ list(APPEND SOURCES
   painter/3esarrow.cpp
   painter/3esbox.cpp
   painter/3escapsule.cpp
+  painter/3escone.cpp
   painter/3escylinder.cpp
   painter/3esplane.cpp
   painter/3espose.cpp

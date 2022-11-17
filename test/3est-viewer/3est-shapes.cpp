@@ -2,7 +2,15 @@
 // author: Kazys Stepanas
 //
 
+#include <3es-viewer/painter/3esarrow.h>
 #include <3es-viewer/painter/3esbox.h>
+#include <3es-viewer/painter/3escapsule.h>
+#include <3es-viewer/painter/3escone.h>
+#include <3es-viewer/painter/3escylinder.h>
+#include <3es-viewer/painter/3esplane.h>
+#include <3es-viewer/painter/3espose.h>
+#include <3es-viewer/painter/3essphere.h>
+#include <3es-viewer/painter/3esstar.h>
 #include <3es-viewer/3esviewer.h>
 
 #include <gtest/gtest.h>
@@ -355,5 +363,64 @@ TEST_F(Shapes, Painter_Update)
   painter.remove(id);
   painter.commit();
   EXPECT_FALSE(painter.readShape(id, transform, colour));
+}
+
+
+// -----------------------------------------------------------------------------
+// Test each of the painters
+// -----------------------------------------------------------------------------
+TEST_F(Shapes, Painter_Arrow)
+{
+  ParentsTest<painter::Arrow> test;
+  test.run(viewer());
+}
+
+
+TEST_F(Shapes, Painter_Box)
+{
+  ParentsTest<painter::Box> test;
+  test.run(viewer());
+}
+
+
+TEST_F(Shapes, Painter_Capsule)
+{
+  ParentsTest<painter::Capsule> test;
+  test.run(viewer());
+}
+
+
+TEST_F(Shapes, Painter_Cone)
+{
+  ParentsTest<painter::Cone> test;
+  test.run(viewer());
+}
+
+
+TEST_F(Shapes, Painter_Cylinder)
+{
+  ParentsTest<painter::Cylinder> test;
+  test.run(viewer());
+}
+
+
+TEST_F(Shapes, Painter_Plane)
+{
+  ParentsTest<painter::Plane> test;
+  test.run(viewer());
+}
+
+
+TEST_F(Shapes, Painter_Sphere)
+{
+  ParentsTest<painter::Sphere> test;
+  test.run(viewer());
+}
+
+
+TEST_F(Shapes, Painter_Star)
+{
+  ParentsTest<painter::Star> test;
+  test.run(viewer());
 }
 }  // namespace tes::viewer
