@@ -102,6 +102,8 @@ public:
   virtual void reset();
 
   /// Add a shape with the given @p id to paint.
+  ///
+  /// This change is not effected util the next @c commit() call.
   /// @param id The object @c Id for the shape. A zero @c Id is a transient shape and is removed between draw calls.
   /// @param frame_number The frame at which the shape becomes visible.
   /// @param type The draw type for the shape.
@@ -109,8 +111,7 @@ public:
   /// @param colour The shape colour.
   /// @return An id value which can be passed to @c addChild() to add child shapes. This is transient and should
   /// only be used immediately after calling @c add() to call @c addChild() .
-  virtual ParentId add(const Id &id, FrameNumber frame_number, Type type, const Magnum::Matrix4 &transform,
-                       const Magnum::Color4 &colour);
+  virtual ParentId add(const Id &id, Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
 
   /// Add a sub shape part.
   ///
@@ -121,56 +122,52 @@ public:
   /// To add a sub shape, first call @p add() with a new @p id , then call @c addChild() for each sub/child shape.
   /// Remember passing an identity @p transform for a sub shape co-locates the sub shape with the first shape.
   ///
+  /// This change is not effected util the next @c commit() call.
   /// @param parent_id The parent id obtained from @c add() .
-  /// @param frame_number The frame at which the shape becomes visible.
   /// @param type The draw type for the shape.
   /// @param transform The shape transformation.
   /// @param colour The shape colour.
-  virtual ChildId addChild(const ParentId &parent_id, FrameNumber frame_number, Type type,
-                           const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
+  virtual ChildId addChild(const ParentId &parent_id, Type type, const Magnum::Matrix4 &transform,
+                           const Magnum::Color4 &colour);
 
   /// Update an existing shape (non transient).
   ///
   /// This identifies the @c Type based on the @c Id .
   ///
+  /// This change is not effected util the next @c commit() call.
   /// @param id The @c Id of the shape to update.
-  /// @param frame_number The frame at which the shape update takes effect.
   /// @param transform The new shape transformation.
   /// @param colour The new shape colour.
   /// @return True if the @p id can be resolved and the shape updated.
-  virtual bool update(const Id &id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
-                      const Magnum::Color4 &colour);
+  virtual bool update(const Id &id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
 
-  virtual bool updateChildShape(const ChildId &child_id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
+  virtual bool updateChildShape(const ChildId &child_id, const Magnum::Matrix4 &transform,
                                 const Magnum::Color4 &colour);
-
-  /// Read the current properties for a shape instance.
-  /// @param id Shape id of interest.
-  /// @param frame_number The frame at which to get the properties.
-  /// @param[out] transform Transform output. Does not include any parent transform.
-  /// @param[out] colour Colour output.
-  /// @return True if @p id is valid.
-  virtual bool readShape(const Id &id, FrameNumber frame_number, Magnum::Matrix4 &transform,
-                         Magnum::Color4 &colour) const;
-
-  /// Read the current properties for a shape instance.
-  /// @param id Shape id of interest.
-  /// @param frame_number The frame at which to get the properties.
-  /// @param include_parent_transform True to have @p transform include the parent's transform.
-  /// @param[out] transform Transform output. Does not include any parent transform.
-  /// @param[out] colour Colour output.
-  /// @return True if @p id is valid.
-  virtual bool readChildShape(const ChildId &child_id, FrameNumber frame_number, bool include_parent_transform,
-                              Magnum::Matrix4 &transform, Magnum::Color4 &colour) const;
 
   /// Remove a shape by @c Id .
   ///
   /// This identifies the @c Type based on the @c Id .
   ///
+  /// This change is not effected util the next @c commit() call.
   /// @param id The @c Id of the shape to remove.
-  /// @param frame_number The frame number at which the shape is no longer visible.
   /// @return True if the @p id can be resolved, and the shape removed.
-  virtual bool remove(const Id &id, FrameNumber frame_number);
+  virtual bool remove(const Id &id);
+
+  /// Read the current properties for a shape instance as of the last @c commit().
+  /// @param id Shape id of interest.
+  /// @param[out] transform Transform output. Does not include any parent transform.
+  /// @param[out] colour Colour output.
+  /// @return True if @p id is valid.
+  virtual bool readShape(const Id &id, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const;
+
+  /// Read the current properties for a shape instance as of the last @c commit().
+  /// @param id Shape id of interest.
+  /// @param include_parent_transform True to have @p transform include the parent's transform.
+  /// @param[out] transform Transform output. Does not include any parent transform.
+  /// @param[out] colour Colour output.
+  /// @return True if @p id is valid.
+  virtual bool readChildShape(const ChildId &child_id, bool include_parent_transform, Magnum::Matrix4 &transform,
+                              Magnum::Color4 &colour) const;
 
   /// Render the current opaque (solid & wireframe) shapes set.
   /// @param stamp The frame stamp to draw at.
@@ -182,9 +179,15 @@ public:
   /// @param projection_matrix The view projection matrix.
   virtual void drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix);
 
-  /// Remove all the current transient objects.
-  /// @param frame_number The number of the frame ending.
-  void endFrame(FrameNumber frame_number);
+  /// Commit the pending changes.
+  ///
+  /// This removes the current transient objects, then effects changes from the following function calls:
+  /// - @c add()
+  /// - @c addChild()
+  /// - @c update()
+  /// - @c updateChild()
+  /// - @c remove()
+  void commit();
 
 protected:
   /// Identifies a shape type and index into the associated @c ShapeCache .
@@ -198,7 +201,7 @@ protected:
   /// @todo Use a different map; MSVC @c std::unordered_map performance is terrible.
   using IdIndexMap = std::unordered_map<Id, CacheIndex>;
 
-  virtual util::ResourceListId addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
+  virtual util::ResourceListId addShape(bool transient, Type type, const Magnum::Matrix4 &transform,
                                         const Magnum::Color4 &colour, const ParentId &parent_id = ParentId(),
                                         unsigned *child_index = nullptr);
 
@@ -213,6 +216,8 @@ protected:
   std::unique_ptr<ShapeCache> _transparent_cache;
   /// Maps 3es @p Id to a draw type and index in the associated @c ShapeCache .
   IdIndexMap _id_index_map;
+  /// Ids pending removal on next @c commit() .
+  std::vector<Id> _pending_removal;
 };
 }  // namespace tes::viewer::painter
 

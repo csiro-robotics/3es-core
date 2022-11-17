@@ -54,15 +54,14 @@ void Capsule::reset()
 }
 
 
-bool Capsule::update(const Id &id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
-                     const Magnum::Color4 &colour)
+bool Capsule::update(const Id &id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
 {
   const auto search = _id_index_map.find(id);
   if (search != _id_index_map.end())
   {
     if (ShapeCache *cache = cacheForType(search->second.type))
     {
-      cache->update(search->second.index, frame_number, transform, colour);
+      cache->update(search->second.index, transform, colour);
     }
 
     if (std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(search->second.type))
@@ -70,7 +69,7 @@ bool Capsule::update(const Id &id, FrameNumber frame_number, const Magnum::Matri
       const auto end_transforms = calcEndCapTransforms(transform);
       for (size_t i = 0; i < end_transforms.size(); ++i)
       {
-        (*end_caches)[i]->update(search->second.index, frame_number, end_transforms[i], colour);
+        (*end_caches)[i]->update(search->second.index, end_transforms[i], colour);
       }
     }
 
@@ -81,21 +80,20 @@ bool Capsule::update(const Id &id, FrameNumber frame_number, const Magnum::Matri
 }
 
 
-bool Capsule::remove(const Id &id, FrameNumber frame_number)
+bool Capsule::remove(const Id &id)
 {
   const auto search = _id_index_map.find(id);
   if (search != _id_index_map.end())
   {
-    const FrameNumber end_frame = (frame_number > 0) ? frame_number - 1u : 0u;
     if (ShapeCache *cache = cacheForType(search->second.type))
     {
-      cache->endShape(search->second.index, end_frame);
+      cache->endShape(search->second.index);
     }
     if (std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(search->second.type))
     {
       for (auto &cache : *end_caches)
       {
-        cache->endShape(search->second.index, end_frame);
+        cache->endShape(search->second.index);
       }
     }
     return true;
@@ -251,11 +249,11 @@ Magnum::GL::Mesh Capsule::wireframeMeshCap()
 }
 
 
-util::ResourceListId Capsule::addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
+util::ResourceListId Capsule::addShape(bool transient, Type type, const Magnum::Matrix4 &transform,
                                        const Magnum::Color4 &colour, const ParentId &parent_id, unsigned *child_index)
 {
   // Add as is for the cylinder part.
-  util::ResourceListId index = ShapePainter::addShape(view_window, type, transform, colour, parent_id, child_index);
+  util::ResourceListId index = ShapePainter::addShape(transient, type, transform, colour, parent_id, child_index);
   std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(type);
   if (index == ~0u || !end_caches)
   {
@@ -265,9 +263,11 @@ util::ResourceListId Capsule::addShape(const ViewableWindow &view_window, Type t
   // Modify the transform for the end caps. We change the Z scale to Z translation, then match Z scale to X/Y.
   // This makes the spherical end caps position and scale correctly.
   const auto end_transforms = calcEndCapTransforms(transform);
+  ShapeCache::ShapeFlag flags = ShapeCache::ShapeFlag::None;
+  flags |= (transient) ? ShapeCache::ShapeFlag::Transient : ShapeCache::ShapeFlag::None;
   for (size_t i = 0; i < end_transforms.size(); ++i)
   {
-    (*end_caches)[i]->add(view_window, end_transforms[i], colour, parent_id.resourceId(), nullptr);
+    (*end_caches)[i]->add(end_transforms[i], colour, flags, parent_id.resourceId(), nullptr);
   }
   return index;
 }

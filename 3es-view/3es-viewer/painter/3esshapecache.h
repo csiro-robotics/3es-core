@@ -114,6 +114,23 @@ public:
   using BoundsCalculator =
     std::function<void(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents)>;
 
+  /// Shape marker flags.
+  enum class ShapeFlag : unsigned
+  {
+    /// No flags.
+    None = 0u,
+    // External use.
+    /// Marks a transient shape, which expires on the @c commit() call after it becomes visible.
+    /// Removes shapes are also marked as @c Transient so they are removed on the next @c commit().
+    Transient = 1u << 0u,
+
+    // Internal use.
+    /// Internal: Marks a shape as pending "creation" after the next @c commit().
+    Pending = 1u << 8u,
+    /// Internal: Marks a shape as pending an update, changing it's shape properties on the next @c commit().
+    Dirty = 1u << 9u
+  };
+
   /// A mesh and transform part for use with the @c ShapeCache .
   ///
   /// A @c ShapeCache can have one or more @c Part objects to render. Each mesh is rendered by first applying an
@@ -207,7 +224,8 @@ public:
   /// Add a shape instance which persists over the specified @p window . Use an open window if the end frame is not yet
   /// known.
   ///
-  /// @param window The window for which the shape is viewable. Use an open window if the end frame is not yet known.
+  ///
+  ///
   /// @param transform The shape instance transformation.
   /// @param colour The shape instance colour.
   /// @param parent_rid Index of the parent shape whose transform also affects this shape. Use ~0u for no parent.
@@ -216,28 +234,20 @@ public:
   /// @param child_index When adding a child shape, this will be set to the index of the child in the parent (if not
   ///   null). Behaviour is undefined when @p parent_rid is invalid.
   /// @return The shape ID/index. Must be used to @c remove() or @c update() the shape.
-  util::ResourceListId add(const ViewableWindow &window, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
-                           util::ResourceListId parent_rid = kListEnd, unsigned *child_index = nullptr);
-  /// Set the end of the viewable window for a shape.
-  ///
-  /// The shape will no longer be visible once the @c activeWindow() is beyond the @p frame_number .
-  /// Calling for the head of a shape chain disables all items in the shape.
-  ///
-  /// Behaviour is undefined if the @p frame_number is before the first frame on which the shape was visible.
-  ///
+  util::ResourceListId add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
+                           ShapeFlag flags = ShapeFlag::None, util::ResourceListId parent_rid = kListEnd,
+                           unsigned *child_index = nullptr);
+  /// Mark a shape for removal on the next @c commit() .
   /// @param id Id of the shape to remove.
-  /// @param frame_number Last frame on which the shape is visible.
   /// @return True if the @p id is valid.
-  bool endShape(util::ResourceListId id, FrameNumber frame_number);
+  bool endShape(util::ResourceListId id);
 
   /// Update an existing shape instance.
   /// @param id Id of the shape to update.
-  /// @param frame_number The frame on which the shape changes.
   /// @param transform The shape instance transformation.
   /// @param colour The shape instance colour.
   /// @return True if the @p id was valid and an instance updated.
-  bool update(util::ResourceListId id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
-              const Magnum::Color4 &colour);
+  bool update(util::ResourceListId id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
 
   /// Get the details of an existing shape instance at the @c activeWindow().startFrame() .
   /// @param id Id of the shape to update.
@@ -246,12 +256,12 @@ public:
   /// @param[out] colour Set to the shape instance colour.
   /// @return True if the @p id was valid and an instance data retrieved. The out values are undefined when @p id is
   /// invalid.
-  bool get(util::ResourceListId id, FrameNumber frame_number, bool apply_parent_transform, Magnum::Matrix4 &transform,
+  bool get(util::ResourceListId id, bool apply_parent_transform, Magnum::Matrix4 &transform,
            Magnum::Color4 &colour) const;
   /// @overload
-  bool get(util::ResourceListId id, FrameNumber frame_number, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
+  bool get(util::ResourceListId id, Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
   {
-    return get(id, frame_number, false, transform, colour);
+    return get(id, false, transform, colour);
   }
 
   /// Lookup the resource id for a child shape.
@@ -263,10 +273,9 @@ public:
   /// @return The resource id of the child shape, or @c util::kNullResource if the id arguments are invalid.
   util::ResourceListId getChildId(util::ResourceListId parent_id, unsigned child_index) const;
 
-  /// Clear the shape cache, removing all shapes.
-  ///
-  /// @note Bounds are returned to the @c BoundsCuller iteratively.
-  void clear();
+  /// Expire all shapes which were viewable before, but not at @p before_frame .
+  /// @param before_frame The frame before which to expire shapes.
+  void commit();
 
   /// Draw all shape instances considered visible by the @p render_mark .
   ///
@@ -277,9 +286,10 @@ public:
   /// @param projection_matrix World to projection matrix.
   void draw(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix);
 
-  /// Expire all shapes which were viewable before, but not at @p before_frame .
-  /// @param before_frame The frame before which to expire shapes.
-  void expireShapes(FrameNumber before_frame);
+  /// Clear the shape cache, removing all shapes.
+  ///
+  /// @note Bounds are returned to the @c BoundsCuller iteratively.
+  void clear();
 
 private:
   /// Shape instance data.
@@ -291,39 +301,18 @@ private:
     Magnum::Color4 colour = {};
   };
 
-  /// Defines a viewable item consisting of a ShapeInstance and the window for
-  /// which it is visible. This can also form a linked list to the next viewable
-  /// item.
-  struct ShapeViewable
-  {
-    /// The renderable instance data for this viewable item.
-    ShapeInstance instance = {};
-    /// The window for which this viewable should be rendered.
-    ViewableWindow window = {};
-    /// Bounds for this item. All items in the @c ShapeViewable list (following @c next )
-    /// replicate the same ID. This replication allows the rendering to immediately resolve bounds_id
-    /// without needing to traverse any linked lists.
-    BoundsId bounds_id = ~0u;
-    /// Index of the next viewable item for this shape. Viewable items in the same list
-    /// represent a @c Shape at different moments in time, thus the @c instance should vary, while the @c window
-    /// must vary, without overlapping.
-    util::ResourceListId next = kListEnd;
-    // TODO(KS): we need a parent index here to, indexing the _viewables, not the shapes.
-    util::ResourceListId parent_viewable_index = kListEnd;
-  };
-
   /// An entry in the shape cache.
   ///
   /// The entry is fairly intricate, consisting of;
   /// - a @c view_index into the viewables array.
   struct Shape
   {
-    /// The index of the viewable list head item for the shape. This must reference a valid index.
-    util::ResourceListId viewable_head = kListEnd;
-    /// The index of the viewable list tail item for the shape. Represents the last/latest viewable state of the shape.
-    util::ResourceListId viewable_tail = kListEnd;
-    /// The window spanning the lifetime of this shape, regardless of which viewable is actually active.
-    ViewableWindow window = {};
+    /// The current shape details.
+    ShapeInstance current = {};
+    /// The updates shape details. Only relevant if `flags & (ShapeFlag::Update)` is non zero.
+    ShapeInstance updated = {};
+    /// Behavioural flags.
+    ShapeFlag flags = ShapeFlag::None;
     /// The shape entry @c BoundsCuller entry ID.
     BoundsId bounds_id = ~0u;
     /// Index of the "parent" shape. The parent shape transform also affects this shape's final transformation.
@@ -368,11 +357,8 @@ private:
 
   /// The bounds culler used to determine visibility.
   std::shared_ptr<BoundsCuller> _culler;
-  /// Instantiated shape array. These represent active shapes in the array.
+  /// Instantiated shape array. Some may be pending first view.
   util::ResourceList<Shape> _shapes;
-  /// Array of viewable items. Traversed when building the renderable instance buffers.
-  util::ResourceList<ShapeViewable> _viewables;
-  // std::vector<ShapeViewable> _viewables;
   /// Mesh parts to render.
   std::vector<Part> _parts;
   /// Transformation matrix applied to the shape before rendering. This allows the Magnum primitives to be transformed
@@ -386,6 +372,33 @@ private:
   /// Bounds calculation function.
   BoundsCalculator _bounds_calculator = ShapeCache::calcSphericalBounds;
 };
+
+inline ShapeCache::ShapeFlag operator|(ShapeCache::ShapeFlag a, ShapeCache::ShapeFlag b)
+{
+  return ShapeCache::ShapeFlag(unsigned(a) | unsigned(b));
+}
+
+inline ShapeCache::ShapeFlag operator&(ShapeCache::ShapeFlag a, ShapeCache::ShapeFlag b)
+{
+  return ShapeCache::ShapeFlag(unsigned(a) & unsigned(b));
+}
+
+inline ShapeCache::ShapeFlag &operator|=(ShapeCache::ShapeFlag &a, ShapeCache::ShapeFlag b)
+{
+  a = a | b;
+  return a;
+}
+
+inline ShapeCache::ShapeFlag &operator&=(ShapeCache::ShapeFlag &a, ShapeCache::ShapeFlag b)
+{
+  a = a & b;
+  return a;
+}
+
+inline ShapeCache::ShapeFlag operator~(ShapeCache::ShapeFlag a)
+{
+  return ShapeCache::ShapeFlag(~unsigned(a));
+}
 }  // namespace tes::viewer::painter
 
 #endif  // TES_VIEWER_SHAPE_CACHE_H

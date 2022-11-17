@@ -24,9 +24,6 @@ struct FrameStamp
   /// A monotonic increasing value, changing with every rendering of the scene.
   RenderStamp render_mark = 0;
 };
-
-FrameNumber frameWindow();
-void setFrameWindow(FrameNumber window_size);
 }  // namespace tes::viewer
 
 #endif  // TES_VIEWER_FRAME_STAMP_H

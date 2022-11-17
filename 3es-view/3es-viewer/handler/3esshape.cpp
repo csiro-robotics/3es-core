@@ -35,7 +35,7 @@ void Shape::beginFrame(const FrameStamp &stamp)
 
 void Shape::endFrame(const FrameStamp &stamp)
 {
-  _painter->endFrame(stamp.frame_number);
+  _painter->commit();
 }
 
 
@@ -177,13 +177,12 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
 
   if (msg.flags & OFReplace)
   {
-    _painter->remove(id, frame_number);
+    _painter->remove(id);
   }
 
   auto transform = composeTransform(attrs);
   auto c = Colour(attrs.colour);
-  const auto parent_id =
-    _painter->add(id, frame_number, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
+  const auto parent_id = _painter->add(id, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
 
   if (msg.flags & OFMultiShape)
   {
@@ -199,7 +198,7 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
       }
       transform = composeTransform(attrs);
       c = Colour(attrs.colour);
-      _painter->addChild(parent_id, frame_number, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
+      _painter->addChild(parent_id, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
     }
   }
 
@@ -218,7 +217,7 @@ bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs
   if (msg.flags & UFUpdateMode)
   {
     ObjectAttributes cur_attrs = {};
-    _painter->readShape(id, false, transform, colour);
+    _painter->readShape(id, transform, colour);
     if (msg.flags & (UFPosition | UFRotation | UFScale))
     {
       decomposeTransform(transform, cur_attrs);
@@ -254,7 +253,7 @@ bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs
     transform = composeTransform(attrs);
     colour = Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af());
   }
-  _painter->update(id, frame_number, transform, colour);
+  _painter->update(id, transform, colour);
   return true;
 }
 
@@ -262,7 +261,7 @@ bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs
 bool Shape::handleDestroy(const DestroyMessage &msg, PacketReader &reader, FrameNumber frame_number)
 {
   const Id id(msg.id);
-  return _painter->remove(id, frame_number);
+  return _painter->remove(id);
 }
 
 

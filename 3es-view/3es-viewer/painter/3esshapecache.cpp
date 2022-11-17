@@ -106,9 +106,8 @@ void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &c
   _bounds_calculator(transform, centre, halfExtents);
 }
 
-util::ResourceListId ShapeCache::add(const ViewableWindow &window, const Magnum::Matrix4 &transform,
-                                     const Magnum::Color4 &colour, util::ResourceListId parent_rid,
-                                     unsigned *child_index)
+util::ResourceListId ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour, ShapeFlag flags,
+                                     util::ResourceListId parent_rid, unsigned *child_index)
 {
   auto shape = _shapes.allocate();
 
@@ -117,12 +116,9 @@ util::ResourceListId ShapeCache::add(const ViewableWindow &window, const Magnum:
   _bounds_calculator(transform, centre, halfExtents);
 
   const auto bounds_id = _culler->allocate(centre, halfExtents);
-  auto viewable = _viewables.allocate();
-  *viewable = ShapeViewable{ { transform, colour }, window, bounds_id, kListEnd };
-
-  shape->viewable_head = shape->viewable_tail = viewable.id();
-  shape->window = window;
-
+  shape->flags = flags | ShapeFlag::Pending;
+  shape->current.transform = transform;
+  shape->current.colour = colour;
   shape->bounds_id = bounds_id;
   shape->parent_rid = parent_rid;
   shape->next = kListEnd;
@@ -138,7 +134,6 @@ util::ResourceListId ShapeCache::add(const ViewableWindow &window, const Magnum:
       shape->parent_rid = parent.id();
       shape->next = parent->next;
       parent->next = shape.id();
-      viewable->parent_viewable_index = parent->viewable_tail;
       if (child_index)
       {
         *child_index = parent->child_count;
@@ -150,7 +145,7 @@ util::ResourceListId ShapeCache::add(const ViewableWindow &window, const Magnum:
   return shape.id();
 }
 
-bool ShapeCache::endShape(util::ResourceListId id, FrameNumber frame_number)
+bool ShapeCache::endShape(util::ResourceListId id)
 {
   if (id < _shapes.size())
   {
@@ -161,160 +156,32 @@ bool ShapeCache::endShape(util::ResourceListId id, FrameNumber frame_number)
     // Only remove valid shapes which are not parented (we can only remove parent shapes).
     if (shape.isValid() && shape->parent_rid == kListEnd)
     {
-      bool ended = false;
-
-      if (frame_number < shape->window.startFrame())
-      {
-        // Can't remove before the start window.
-        return false;
-      }
-
-      // Special case: users may issue messages to add and remove a shape in the same frame. This is technically ok,
-      // but we need to remove the shape as a whole if that happens.
-      if (frame_number == shape->window.startFrame())
-      {
-        // Removing on the same frame as we started. Remove the whole shape (and children).
-        while (shape.isValid())
-        {
-          auto viewable = _viewables.at(shape->viewable_head);
-          while (viewable.isValid())
-          {
-            auto cur_view_id = viewable.id();
-            auto next_view_id = viewable->next;
-            viewable.release();
-            _viewables.release(cur_view_id);
-            viewable = _viewables.at(next_view_id);
-          }
-
-          const auto cur_id = shape->next;
-          const auto next_id = shape->next;
-          shape.release();
-          _shapes.release(cur_id);
-          shape = _shapes.at(next_id);
-        }
-        return true;
-      }
-
       while (shape.isValid())
       {
         const auto next_id = shape->next;
-        // Set to disable on the next frame, while keeping the same current frame.
-        shape->window = ViewableWindow(shape->window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
-        // Update the tail viewable window.
-        auto last_viewable = _viewables.at(shape->viewable_tail);
-        TES_ASSERT(last_viewable.isValid());
-        auto last_viewable_window = last_viewable->window;
-        // Special case: removing on the same frame as an update will create an invalid viewable window.
-        // We roll back the update if this is the case.
-        if (last_viewable_window.startFrame() == frame_number)
-        {
-          // Rollback the last viewable window. We've already handled the case where the shape maybe removed as a whole
-          // so we know we can just roll back this one window.
-          // Search for the viewable before the tail.
-          last_viewable = _viewables.at(shape->viewable_head);
-          while (last_viewable->next != shape->viewable_tail && last_viewable.isValid())
-          {
-            last_viewable = _viewables.at(last_viewable->next);
-          }
-          TES_ASSERT(last_viewable.isValid());
-          _viewables.release(shape->viewable_tail);
-          shape->viewable_tail = last_viewable.id();
-        }
-        TES_ASSERT(last_viewable_window.startFrame() <= frame_number);
-        if (last_viewable_window.startFrame() < frame_number)
-        {
-          last_viewable_window =
-            ViewableWindow(last_viewable_window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
-          last_viewable->window = last_viewable_window;
-        }
-        ended = true;
+        // Mark as transient to remove on the next commit.
+        shape->flags |= ShapeFlag::Transient;
+        // Clear pending flag in case it was added the same update.
+        shape->flags & ~ShapeFlag::Pending;
         shape = _shapes.at(next_id);
       }
-      return ended;
+      return true;
     }
   }
   return false;
 }
 
-bool ShapeCache::update(util::ResourceListId id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
-                        const Magnum::Color4 &colour)
+bool ShapeCache::update(util::ResourceListId id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
 {
   if (id < _shapes.size())
   {
     auto shape = _shapes.at(id);
     if (shape.isValid())
     {
-      // Notes on updating shapes.
-      // When we update a shape, we add a new ShapeViewable to the shape, referenced via Shape::viewable_tail. This
-      // viewable represents the state of the shape at the given frame_number.
-      //
-      // However, this is predicated on the frame_number representing a new state for the shape, temporally speaking.
-      // This may not always be the case, as can happen when we rewind to a previous frame, then receive an update() for
-      // which has already been processed as the same update message is repeated.
-      //
-      // We essentially make the assumption that an update() call is redundant if its frame_number occurs at or before
-      // the latest presentation of the shape. There's one exception which is when the updated transform/colour do not
-      // match the latest viewable state, as could happen when creating a shape, then modifying it with an update
-      // message in the same frame.
-      //
-      // Finally, even if the update() is redundant, we do update the shape bounds.
-
-      auto last_viewable = _viewables.at(shape->viewable_tail);
-      const auto last_viewable_window = last_viewable->window;
-      bool redundant_update = false;
-      if (frame_number == last_viewable_window.startFrame())
-      {
-        // This is a special case, where the current frame number matches the current viewable frame number. This
-        // will occur when updating a child shape which has had its parent updated on the same frame.
-        // We can handle that case immediately by overwriting the viewable instance. There's no need to propagate
-        // further as that should have already been effected.
-        last_viewable->instance.transform = transform;
-        last_viewable->instance.colour = colour;
-      }
-      else if (frame_number > last_viewable_window.startFrame())
-      {
-        // Not a redundant update. Add a viewable state.
-        auto new_viewable = _viewables.allocate();
-        // Duplicate the last viewable state.
-        *new_viewable = *last_viewable;
-        // Set updated values.
-        new_viewable->instance.transform = transform;
-        new_viewable->instance.colour = colour;
-        new_viewable->next = kListEnd;
-        // Update the list tail.
-        shape->viewable_tail = last_viewable->next = new_viewable.id();
-        // Update the viewable windows.
-        last_viewable->window =
-          ViewableWindow(last_viewable_window.startFrame(), (frame_number > 0) ? frame_number - 1 : 0,
-                         ViewableWindow::Interval::Absolute);
-        new_viewable->window = ViewableWindow(frame_number);
-        // We can assume that the parent viewable index is the same for the new viewable as for the previous one.
-        // But, when we update a parent do we need to update the children.
-        if (shape->isParent())
-        {
-          // Update all the child viewables.
-          auto next_child = _shapes.at(shape->next);
-          while (next_child.isValid())
-          {
-            // Update the child with it's current transform to give it a new viewable.
-            auto child_viewable = _viewables.at(next_child->viewable_tail);
-            update(next_child.id(), frame_number, child_viewable->instance.transform, child_viewable->instance.colour);
-
-            // Then set link the new child viewable to the new parent viewable.
-            // Note we refetch the next_child viewable tail as it will have changed in update().
-            child_viewable = _viewables.at(next_child->viewable_tail);
-            child_viewable->parent_viewable_index = new_viewable.id();
-
-            next_child = _shapes.at(next_child->next);
-          }
-        }
-      }
-      // else redundant update. Just continue to bounds update.
-
-      Magnum::Vector3 centre;
-      Magnum::Vector3 halfExtents;
-      _bounds_calculator(transform, centre, halfExtents);
-      _culler->update(shape->bounds_id, centre, halfExtents);
+      shape->updated.transform = transform;
+      shape->updated.colour = colour;
+      shape->flags |= ShapeFlag::Dirty;
+      // Don't update bounds now. That will be done during the commit().
       return true;
     }
   }
@@ -323,55 +190,31 @@ bool ShapeCache::update(util::ResourceListId id, FrameNumber frame_number, const
 }
 
 
-bool ShapeCache::get(util::ResourceListId id, FrameNumber frame_number, bool apply_parent_transform,
-                     Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
+bool ShapeCache::get(util::ResourceListId id, bool apply_parent_transform, Magnum::Matrix4 &transform,
+                     Magnum::Color4 &colour) const
 {
   bool found = false;
   transform = Magnum::Matrix4();
-  while (id < _shapes.size())
+  if (id < _shapes.size())
   {
     const auto shape = _shapes.at(id);
     if (shape.isValid())
     {
-      // Start with checking the lastest viewable state.
-      auto viewable = _viewables.at(shape->viewable_tail);
-      TES_ASSERT(viewable.isValid());
+      found = (shape->flags & ShapeFlag::Pending) == ShapeFlag::None;
+      transform = shape->current.transform;
+      colour = shape->current.colour;
 
-      if (viewable->window.overlaps(frame_number))
+      if (apply_parent_transform && shape->parent_rid != kListEnd)
       {
-        // Latest item is the relevant one.
-        transform = viewable->instance.transform * transform;
-        // Only set the colour the first time.
-        colour = (!found) ? viewable->instance.colour : colour;
-        found = true;
-      }
-      else
-      {
-        // Need to traverse the list.
-        auto next = shape->viewable_head;
-        while (next != kListEnd)
+        auto parent = _shapes.at(shape->parent_rid);
+        while (parent.isValid())
         {
-          viewable = _viewables.at(next);
-          if (viewable.isValid())
-          {
-            if (viewable.isValid() && viewable->window.overlaps(frame_number))
-            {
-              // Latest item is the relevant one.
-              transform = viewable->instance.transform * transform;
-              // Only set the colour the first time.
-              colour = (!found) ? viewable->instance.colour : colour;
-              found = true;
-              break;
-            }
-            next = viewable->next;
-          }
-          else
-          {
-            next = kListEnd;
-          }
+          transform = parent->current.transform * transform;
+          // Should really module colour values squared to be "correct" (gamma space I think?).
+          colour = parent->current.colour * colour;
+          parent = _shapes.at(parent->parent_rid);
         }
       }
-      id = (apply_parent_transform) ? shape->parent_rid : kListEnd;
     }
   }
   return found;
@@ -405,13 +248,32 @@ util::ResourceListId ShapeCache::getChildId(util::ResourceListId parent_id, unsi
 }
 
 
-void ShapeCache::clear()
+void ShapeCache::commit()
 {
-  for (const auto &shape : _shapes)
+  Magnum::Vector3 bounds_centre = {};
+  Magnum::Vector3 half_extents = {};
+  for (auto iter = _shapes.begin(); iter != _shapes.end(); ++iter)
   {
-    _culler->release(shape.bounds_id);
+    // Update bounds if changed.
+    if ((iter->flags & ShapeFlag::Dirty) != ShapeFlag::None)
+    {
+      iter->current = iter->updated;
+      calcBounds(iter->updated.transform, bounds_centre, half_extents);
+      _culler->update(iter->bounds_id, bounds_centre, half_extents);
+    }
+
+    // Effect removal, based on Transient flag. We skip Transient and Pending items as this is the initial state for
+    // transient shapes yet to be commited.
+    if ((iter->flags & (ShapeFlag::Transient | ShapeFlag::Pending)) == ShapeFlag::Transient)
+    {
+      release(iter.id());
+    }
+    else
+    {
+      // Clear pending and dirty flags to effect visibility.
+      iter->flags &= ~(ShapeFlag::Pending | ShapeFlag::Dirty);
+    }
   }
-  _shapes.clear();
 }
 
 
@@ -433,42 +295,13 @@ void ShapeCache::draw(const FrameStamp &stamp, const Magnum::Matrix4 &projection
 }
 
 
-void ShapeCache::expireShapes(FrameNumber before_frame)
+void ShapeCache::clear()
 {
-  for (auto iter = _shapes.begin(); iter != _shapes.end(); ++iter)
+  for (const auto &shape : _shapes)
   {
-    auto &shape = *iter;
-    if (shape.window <= before_frame)
-    {
-      // Note: it's actually ok to remove items from the resource list during iteration since it just adds things to
-      // a free list.
-      // Could be considered flakey though.
-      release(iter.id());
-    }
-    else
-    {
-      // Can't expire the shape as a whole. Just expire it's viewable windows if possible.
-      auto viewable = _viewables.at(shape.viewable_head);
-      TES_ASSERT(viewable.isValid());
-      while (viewable.isValid() && viewable->window <= before_frame)
-      {
-        TES_ASSERT(shape.viewable_head != shape.viewable_tail);
-        shape.viewable_head = viewable->next;
-        // Expire the current item.
-        _viewables.release(viewable.id());
-        viewable = _viewables.at(shape.viewable_head);
-      }
-      // Update the shape's viewable window.
-      if (shape.window.isOpen())
-      {
-        shape.window = ViewableWindow(before_frame);
-      }
-      else
-      {
-        shape.window = ViewableWindow(before_frame, shape.window.endFrame(), ViewableWindow::Interval::Absolute);
-      }
-    }
+    _culler->release(shape.bounds_id);
   }
+  _shapes.clear();
 }
 
 
@@ -529,22 +362,20 @@ void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
   };
 
   // Iterate shapes and marshal/upload.
-  for (auto &viewable : _viewables)
+  for (auto iter = _shapes.begin(); iter != _shapes.end(); ++iter)
   {
-    if (viewable.window.overlaps(stamp.frame_number) && culler.isVisible(viewable.bounds_id))
+    if ((iter->flags & ShapeFlag::Pending) == ShapeFlag::None && culler.isVisible(iter->bounds_id))
     {
       const unsigned marshal_index = _instance_buffers[cur_instance_buffer_idx].count;
       ++_instance_buffers[cur_instance_buffer_idx].count;
-      _marshal_buffer[marshal_index] = viewable.instance;
-      auto parent_index = viewable.parent_viewable_index;
-      // Include the parent transform(s).
-      while (parent_index != kListEnd)
+      if (iter->parent_rid == kListEnd)
       {
-        auto parent_viewable = _viewables.at(parent_index);
-        TES_ASSERT(parent_viewable.isValid());
-        _marshal_buffer[marshal_index].transform =
-          parent_viewable->instance.transform * _marshal_buffer[marshal_index].transform;
-        parent_index = parent_viewable->parent_viewable_index;
+        _marshal_buffer[marshal_index] = iter->current;
+      }
+      else
+      {
+        // Child shape. Include parent transforms.
+        get(iter.id(), true, _marshal_buffer[marshal_index].transform, _marshal_buffer[marshal_index].colour);
       }
 
       // Upload if at limit.

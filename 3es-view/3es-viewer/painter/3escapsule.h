@@ -24,9 +24,8 @@ public:
 
   void reset() override;
 
-  bool update(const Id &id, FrameNumber frame_number, const Magnum::Matrix4 &transform,
-              const Magnum::Color4 &colour) override;
-  bool remove(const Id &id, FrameNumber frame_number) override;
+  bool update(const Id &id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour) override;
+  bool remove(const Id &id) override;
 
   /// Calculate bounds for a capsule shape.
   /// @param transform The shape transform to calculate with.
@@ -58,7 +57,7 @@ public:
   static Magnum::GL::Mesh wireframeMeshCap();
 
 protected:
-  util::ResourceListId Capsule::addShape(const ViewableWindow &view_window, Type type, const Magnum::Matrix4 &transform,
+  util::ResourceListId Capsule::addShape(bool transient, Type type, const Magnum::Matrix4 &transform,
                                          const Magnum::Color4 &colour, const ParentId &parent_id,
                                          unsigned *child_index) override;
 

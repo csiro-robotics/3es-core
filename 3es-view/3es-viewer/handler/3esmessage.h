@@ -65,10 +65,6 @@ public:
   /// @param flags New values.
   inline void setModeFlags(unsigned flags) { _mode_flags = flags; }
 
-  /// The number of frame for which message data should be retained.
-  /// @return The number of frames to retain data for.
-  inline FrameNumber frameWindow() const { return tes::viewer::frameWindow(); }
-
   /// Get the handler name.
   /// @return The handler name.
   inline const std::string &name() const { return _name; }
