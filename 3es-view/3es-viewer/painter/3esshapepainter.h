@@ -187,7 +187,7 @@ public:
   /// - @c update()
   /// - @c updateChild()
   /// - @c remove()
-  void commit();
+  virtual void commit();
 
 protected:
   /// Identifies a shape type and index into the associated @c ShapeCache .

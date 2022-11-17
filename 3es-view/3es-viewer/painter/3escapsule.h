@@ -36,6 +36,8 @@ public:
   void drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
   void drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
 
+  void commit() override;
+
   /// Solid mesh creation function to generate the cyliindrical part.
   /// @return A solid (or transparent) mesh representation.
   static Magnum::GL::Mesh solidMeshCylinder();

@@ -44,13 +44,15 @@ Capsule::Capsule(std::shared_ptr<BoundsCuller> culler)
 
 void Capsule::reset()
 {
-  ShapePainter::reset();
+  static_assert(sizeof(_solid_end_caps) == sizeof(_wireframe_end_caps));
+  static_assert(sizeof(_solid_end_caps) == sizeof(_transparent_end_caps));
   for (size_t i = 0; i < _solid_end_caps.size(); ++i)
   {
     _solid_end_caps[i]->clear();
     _wireframe_end_caps[i]->clear();
     _transparent_end_caps[i]->clear();
   }
+  ShapePainter::reset();
 }
 
 
@@ -124,6 +126,21 @@ void Capsule::drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &pr
   _transparent_end_caps[1]->draw(stamp, projection_matrix);
   Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::One,
                                          Magnum::GL::Renderer::BlendFunction::Zero);
+}
+
+
+void Capsule::commit()
+{
+  static_assert(sizeof(_solid_end_caps) == sizeof(_wireframe_end_caps));
+  static_assert(sizeof(_solid_end_caps) == sizeof(_transparent_end_caps));
+  for (size_t i = 0; i < _solid_end_caps.size(); ++i)
+  {
+    _solid_end_caps[i]->commit();
+    _wireframe_end_caps[i]->commit();
+    _transparent_end_caps[i]->commit();
+  }
+
+  ShapePainter::commit();
 }
 
 
