@@ -162,22 +162,73 @@ bool ShapeCache::endShape(util::ResourceListId id, FrameNumber frame_number)
     if (shape.isValid() && shape->parent_rid == kListEnd)
     {
       bool ended = false;
-      auto next_shape = _shapes.at(shape->next);
-      while (remove_next != kListEnd && next_shape.isValid())
+
+      if (frame_number < shape->window.startFrame())
       {
-        const auto next_id = next_shape.id();
+        // Can't remove before the start window.
+        return false;
+      }
+
+      // Special case: users may issue messages to add and remove a shape in the same frame. This is technically ok,
+      // but we need to remove the shape as a whole if that happens.
+      if (frame_number == shape->window.startFrame())
+      {
+        // Removing on the same frame as we started. Remove the whole shape (and children).
+        while (shape.isValid())
+        {
+          auto viewable = _viewables.at(shape->viewable_head);
+          while (viewable.isValid())
+          {
+            auto cur_view_id = viewable.id();
+            auto next_view_id = viewable->next;
+            viewable.release();
+            _viewables.release(cur_view_id);
+            viewable = _viewables.at(next_view_id);
+          }
+
+          const auto cur_id = shape->next;
+          const auto next_id = shape->next;
+          shape.release();
+          _shapes.release(cur_id);
+          shape = _shapes.at(next_id);
+        }
+        return true;
+      }
+
+      while (shape.isValid())
+      {
+        const auto next_id = shape->next;
         // Set to disable on the next frame, while keeping the same current frame.
-        next_shape->window =
-          ViewableWindow(next_shape->window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
+        shape->window = ViewableWindow(shape->window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
         // Update the tail viewable window.
-        auto last_viewable = _viewables.at(next_shape->viewable_tail);
+        auto last_viewable = _viewables.at(shape->viewable_tail);
         TES_ASSERT(last_viewable.isValid());
         auto last_viewable_window = last_viewable->window;
-        last_viewable_window =
-          ViewableWindow(last_viewable_window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
-        last_viewable->window = last_viewable_window;
+        // Special case: removing on the same frame as an update will create an invalid viewable window.
+        // We roll back the update if this is the case.
+        if (last_viewable_window.startFrame() == frame_number)
+        {
+          // Rollback the last viewable window. We've already handled the case where the shape maybe removed as a whole
+          // so we know we can just roll back this one window.
+          // Search for the viewable before the tail.
+          last_viewable = _viewables.at(shape->viewable_head);
+          while (last_viewable->next != shape->viewable_tail && last_viewable.isValid())
+          {
+            last_viewable = _viewables.at(last_viewable->next);
+          }
+          TES_ASSERT(last_viewable.isValid());
+          _viewables.release(shape->viewable_tail);
+          shape->viewable_tail = last_viewable.id();
+        }
+        TES_ASSERT(last_viewable_window.startFrame() <= frame_number);
+        if (last_viewable_window.startFrame() < frame_number)
+        {
+          last_viewable_window =
+            ViewableWindow(last_viewable_window.startFrame(), frame_number, ViewableWindow::Interval::Absolute);
+          last_viewable->window = last_viewable_window;
+        }
         ended = true;
-        next_shape = _shapes.at(next_id);
+        shape = _shapes.at(next_id);
       }
       return ended;
     }
@@ -387,37 +438,34 @@ void ShapeCache::expireShapes(FrameNumber before_frame)
   for (auto iter = _shapes.begin(); iter != _shapes.end(); ++iter)
   {
     auto &shape = *iter;
-    if (shape.parent_rid == kListEnd)
+    if (shape.window <= before_frame)
     {
-      if (shape.window <= before_frame)
+      // Note: it's actually ok to remove items from the resource list during iteration since it just adds things to
+      // a free list.
+      // Could be considered flakey though.
+      release(iter.id());
+    }
+    else
+    {
+      // Can't expire the shape as a whole. Just expire it's viewable windows if possible.
+      auto viewable = _viewables.at(shape.viewable_head);
+      TES_ASSERT(viewable.isValid());
+      while (viewable.isValid() && viewable->window <= before_frame)
       {
-        // Note: it's actually ok to remove items from the resource list during iteration since it just adds things to
-        // a free list.
-        // Could be considered flakey though.
-        release(iter.id());
+        TES_ASSERT(shape.viewable_head != shape.viewable_tail);
+        shape.viewable_head = viewable->next;
+        // Expire the current item.
+        _viewables.release(viewable.id());
+        viewable = _viewables.at(shape.viewable_head);
+      }
+      // Update the shape's viewable window.
+      if (shape.window.isOpen())
+      {
+        shape.window = ViewableWindow(before_frame);
       }
       else
       {
-        // Can't expire the shape as a whole. Just expire it's viewable windows if possible.
-        auto viewable = _viewables.at(shape.viewable_head);
-        TES_ASSERT(viewable.isValid());
-        while (viewable.isValid() && viewable->window <= before_frame)
-        {
-          TES_ASSERT(shape.viewable_head != shape.viewable_tail);
-          shape.viewable_head = viewable->next;
-          // Expire the current item.
-          _viewables.release(viewable.id());
-          viewable = _viewables.at(shape.viewable_head);
-        }
-        // Update the shape's viewable window.
-        if (shape.window.isOpen())
-        {
-          shape.window = ViewableWindow(before_frame);
-        }
-        else
-        {
-          shape.window = ViewableWindow(before_frame, shape.window.endFrame(), ViewableWindow::Interval::Absolute);
-        }
+        shape.window = ViewableWindow(before_frame, shape.window.endFrame(), ViewableWindow::Interval::Absolute);
       }
     }
   }

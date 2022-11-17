@@ -169,7 +169,7 @@ public:
   ///
   /// @param id The @c Id of the shape to remove.
   /// @param frame_number The frame number at which the shape is no longer visible.
-  /// @return True if the @p id can be resolved and the shape removed.
+  /// @return True if the @p id can be resolved, and the shape removed.
   virtual bool remove(const Id &id, FrameNumber frame_number);
 
   /// Render the current opaque (solid & wireframe) shapes set.
