@@ -33,6 +33,7 @@ struct CollatedPacketDecoderDetail;
 ///   std::vector<uint8_t> readBuffer(0xffffu);
 ///   PacketBuffer packetBuffer;
 ///   CollatedPacketDecoder decoder;
+///   std::vector<uint8_t> rawBuffer;
 ///
 ///   /// Read from the socket.
 ///   while (socket.readAvailable(readBuffer.data(), readBuffer.size() >= 0)
@@ -41,7 +42,7 @@ struct CollatedPacketDecoderDetail;
 ///     packetBuffer.addBytes(readBuffer.data(), readCount);
 ///
 ///     /// Process new packets.
-///     while (PacketHeader *primaryPacket = packetBuffer.extractPacket())
+///     while (PacketHeader *primaryPacket = packetBuffer.extractPacket(rawBuffer))
 ///     {
 ///       // Extract collated packets. This will either decode a collated packet or
 ///       // return the same packet header just passed in.
@@ -73,19 +74,19 @@ public:
   unsigned targetBytes() const;
 
   /// True if the decoder is currently decoding a packet. This turns false after the last
-  /// of the current packets is extraced from @c next().
+  /// of the current packets is extracted from @c next().
   /// @return true while decoding a packet.
   bool decoding() const;
 
   /// Set the primary packet to decode. This may be any packet type, but only a
   /// @c CollatedPacketMessage will generate multiple subsequent packets via @c next().
-  /// Other packet types will be returned as is from @c next().
+  /// Other packet types will be returned as is from the first call to @c next().
   ///
   /// The memory for @p packet must persist until either @c next() returns null or the
   /// decoder object goes out of scope.
   ///
   /// @param packet The primary packet to decode.
-  /// @return True if decoding of @p packet successfully starts. False if @p pakcet is null
+  /// @return True if decoding of @p packet successfully starts. False if @p packet is null
   ///   or we fail to read the content of a @c CollatedPacketMessage message.
   bool setPacket(const PacketHeader *packet);
 

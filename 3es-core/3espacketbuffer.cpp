@@ -77,7 +77,7 @@ int PacketBuffer::addBytes(const uint8_t *bytes, size_t byteCount)
 }
 
 
-PacketHeader *PacketBuffer::extractPacket()
+PacketHeader *PacketBuffer::extractPacket(std::vector<uint8_t> &buffer)
 {
   if (_markerFound && _byteCount >= sizeof(PacketHeader))
   {
@@ -89,8 +89,9 @@ PacketHeader *PacketBuffer::extractPacket()
     {
       // We have a full packet. Allocate a copy and extract the full packet data.
       const unsigned packetSize = reader.packetSize();
-      uint8_t *packetMemory = new uint8_t[packetSize];
-      memcpy(packetMemory, _packetBuffer, packetSize);
+      buffer.resize(packetSize);
+      // FIXME(KS): why allocate? Can't we hold a pointer in the buffer, then shift bytes on release?
+      std::copy(_packetBuffer, _packetBuffer + packetSize, buffer.begin());
 
       _markerFound = false;
       if (_byteCount > packetSize)
@@ -113,17 +114,11 @@ PacketHeader *PacketBuffer::extractPacket()
         removeData(packetSize);
       }
 
-      return reinterpret_cast<PacketHeader *>(packetMemory);
+      return reinterpret_cast<PacketHeader *>(buffer.data());
     }
   }
 
   return nullptr;
-}
-
-
-void PacketBuffer::releasePacket(const PacketHeader *packet)
-{
-  delete[] reinterpret_cast<const uint8_t *>(packet);
 }
 
 

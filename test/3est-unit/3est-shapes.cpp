@@ -119,6 +119,7 @@ void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape, con
   typedef std::chrono::steady_clock Clock;
   ServerInfoMessage readServerInfo;
   std::vector<uint8_t> readBuffer(0xffffu);
+  std::vector<uint8_t> decodeBuffer(0xffffu);
   ResourceMap resources;
   PacketBuffer packetBuffer;
   CollatedPacketDecoder decoder;
@@ -152,7 +153,7 @@ void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape, con
 
     packetBuffer.addBytes(readBuffer.data(), unsigned(readCount));
 
-    while (const PacketHeader *primaryPacket = packetBuffer.extractPacket())
+    while (const PacketHeader *primaryPacket = packetBuffer.extractPacket(decodeBuffer))
     {
       decoder.setPacket(primaryPacket);
 
@@ -207,8 +208,6 @@ void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape, con
           break;
         }
       }
-
-      packetBuffer.releasePacket(primaryPacket);
     }
     // else fail?
   }

@@ -43,26 +43,71 @@ class TesRec
   static const unsigned PacketLimit = 500u;
 #endif  // PACKET_TIMING
 public:
-  bool quit() const { return _quit; }
-  bool argsOk() const { return _argsOk; }
-  bool showUsage() const { return _showUsage; }
-  bool connected() const { return _connected; }
-  bool persist() const { return _persist; }
-  bool overwrite() const { return _overwrite; }
-  bool quiet() const { return _quiet; }
+  bool quit() const
+  {
+    return _quit;
+  }
+  bool argsOk() const
+  {
+    return _argsOk;
+  }
+  bool showUsage() const
+  {
+    return _showUsage;
+  }
+  bool connected() const
+  {
+    return _connected;
+  }
+  bool persist() const
+  {
+    return _persist;
+  }
+  bool overwrite() const
+  {
+    return _overwrite;
+  }
+  bool quiet() const
+  {
+    return _quiet;
+  }
 
-  Mode decodeMode() const { return _decodeMode; }
+  Mode decodeMode() const
+  {
+    return _decodeMode;
+  }
 
-  unsigned totalFrames() const { return _totalFrames; }
+  unsigned totalFrames() const
+  {
+    return _totalFrames;
+  }
   // IPEndPoint ServerEndPoint { get; private set; }
-  const std::string &outputPrefix() const { return _outputPrefix; }
-  static const char *defaultPrefix() { return "tes"; }
-  static uint16_t defaultPort() { return 33500; }
-  static const char *defaultIP() { return "127.0.0.1"; }
+  const std::string &outputPrefix() const
+  {
+    return _outputPrefix;
+  }
+  static const char *defaultPrefix()
+  {
+    return "tes";
+  }
+  static uint16_t defaultPort()
+  {
+    return 33500;
+  }
+  static const char *defaultIP()
+  {
+    return "127.0.0.1";
+  }
 
-  static const char **defaultArgs() { return s_defaultArgs; }
+  static const char **defaultArgs()
+  {
+    return s_defaultArgs;
+  }
 
-  static const char **modeArgStrings() { return s_modeArgStrings; }
+  static const char **modeArgStrings()
+  {
+    return s_modeArgStrings;
+  }
 
   static const char *modeToArg(Mode m);
 
@@ -74,7 +119,10 @@ public:
 
   void run(FrameDisplay *frameDisplay);
 
-  void requestQuit() { _quit = true; }
+  void requestQuit()
+  {
+    _quit = true;
+  }
 
 private:
   std::unique_ptr<TcpSocket> attemptConnection();
@@ -216,6 +264,7 @@ void TesRec::run(FrameDisplay *frameDisplay)
 {
   int connectionPollTimeSecMs = 250;
   std::vector<uint8_t> socketBuffer(4 * 1024);
+  std::vector<uint8_t> decodeBuffer(4 * 1024);
   std::unique_ptr<TcpSocket> socket = nullptr;
   std::unique_ptr<PacketBuffer> packetBuffer;
   std::unique_ptr<std::iostream> ioStream;
@@ -284,14 +333,13 @@ void TesRec::run(FrameDisplay *frameDisplay)
       haveData = true;
       packetBuffer->addBytes(socketBuffer.data(), bytesRead);
 
-      while (PacketHeader *newPacketHeader = packetBuffer->extractPacket())
+      while (PacketHeader *newPacketHeader = packetBuffer->extractPacket(decodeBuffer))
       {
         PacketReader completedPacket(newPacketHeader);
 
         if (!completedPacket.checkCrc())
         {
           printf("CRC failure\n");
-          packetBuffer->releasePacket(newPacketHeader);
           continue;
         }
 
@@ -364,8 +412,6 @@ void TesRec::run(FrameDisplay *frameDisplay)
             }
           }
         }
-
-        packetBuffer->releasePacket(newPacketHeader);
       }
     }
 

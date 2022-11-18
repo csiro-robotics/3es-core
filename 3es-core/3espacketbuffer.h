@@ -7,6 +7,7 @@
 #include "3es-core.h"
 
 #include <cinttypes>
+#include <vector>
 
 namespace tes
 {
@@ -32,15 +33,17 @@ public:
   int addBytes(const uint8_t *bytes, size_t byteCount);
 
   /// Extract the first valid packet in the buffer. Additional packets
-  /// may be available.
+  /// may be left available.
   ///
+  /// The packet is extracted into the @p buffer, which is used to avoid
+  /// memory allocation on each extract call. When a packet is available,
+  /// the @p buffer is sized sufficiently to store the entire packet, then
+  /// the packet is copied into the @p buffer. The return value is the same
+  /// address as @p buffer.data(), but converted to the @c PacketHeader type.
+  ///
+  /// @param buffer A byte array to copy the packet into.
   /// @return A valid packet pointer if available, null if none available.
-  /// The caller must later release the packet calling @c releasePacket().
-  PacketHeader *extractPacket();
-
-  /// Releases the memory for the given packet.
-  /// @param packet The packet to release.
-  void releasePacket(const PacketHeader *packet);
+  PacketHeader *extractPacket(std::vector<uint8_t> &buffer);
 
 private:
   /// Grow the packet buffer with @p bytes.

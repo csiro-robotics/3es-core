@@ -32,6 +32,7 @@ list(APPEND PUBLIC_HEADERS
   3espacketheader.h
   3espacketreader.h
   3espacketstream.h
+  3espacketstreamreader.h
   3espacketwriter.h
   3esplanegeom.h
   3esquaternion.h
@@ -118,6 +119,7 @@ list(APPEND SOURCES
   3espacketheader.cpp
   3espacketreader.cpp
   3espacketstream.cpp
+  3espacketstreamreader.cpp
   3espacketwriter.cpp
   3esquaternion.cpp
   3esresource.cpp
