@@ -591,6 +591,7 @@ void ResourceList<T>::clear()
   }
   _items.clear();
   _free_head = _free_tail = kNullResource;
+  _item_count = 0;
 }
 }  // namespace tes::viewer::util
 
