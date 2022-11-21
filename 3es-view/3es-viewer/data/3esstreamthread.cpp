@@ -15,7 +15,6 @@ namespace tes::viewer
 StreamThread::StreamThread(std::shared_ptr<std::istream> stream, std::shared_ptr<ThirdEyeScene> tes)
 {
   _stream_reader = std::make_unique<PacketStreamReader>(std::exchange(stream, nullptr));
-  _collated_packet_decoder = std::make_unique<CollatedPacketDecoder>();
   _tes = std::exchange(tes, nullptr);
   _thread = std::thread([this] { run(); });
 }
@@ -36,6 +35,7 @@ void StreamThread::setTargetFrame(FrameNumber frame)
     // Reset and seek back.
     _tes->reset();
     _stream_reader->seek(0);
+    _currentFrame = 0;
   }
 }
 
@@ -43,7 +43,21 @@ void StreamThread::setTargetFrame(FrameNumber frame)
 FrameNumber StreamThread::targetFrame() const
 {
   std::lock_guard guard(_data_mutex);
-  return _target_frame;
+  return _target_frame.has_value() ? *_target_frame : 0;
+}
+
+
+void StreamThread::setLooping(bool loop)
+{
+  std::lock_guard guard(_data_mutex);
+  _looping = loop;
+}
+
+
+bool StreamThread::looping() const
+{
+  std::lock_guard guard(_data_mutex);
+  return _looping;
 }
 
 
@@ -78,22 +92,39 @@ void StreamThread::run()
   std::istream::pos_type last_seekable_position = 0;
   std::istream::pos_type last_keyframe_position = 0;
   uint64_t bytes_read = 0;
-  bool allow_yield = false;
+  bool at_frame = false;
   bool was_paused = _paused;
+  bool have_server_info = false;
   // HACK: when restoring keyframes to precise frames we don't do the main update. Needs to be cleaned up.
   bool skip_update = false;
   CollatedPacketDecoder packer_decoder;
 
   while (!_quitFlag)
   {
+    at_frame = false;
     if (blockOnPause())
     {
       continue;
     }
 
+    if (_stream_reader->isEof())
+    {
+      if (_looping)
+      {
+        setTargetFrame(0);
+        have_server_info = false;
+      }
+    }
+
     auto current_frame = _currentFrame.load();
-    auto target_frame = targetFrame();
-    if (target_frame == 0)
+    FrameNumber target_frame = 0;
+    bool have_target = false;
+    {
+      std::lock_guard guard(_data_mutex);
+      have_target = _target_frame.has_value();
+      target_frame = _target_frame ? *_target_frame : 0;
+    }
+    if (!have_target)
     {
       // Not stepping. Check time elapsed.
       _catchingUp = false;
@@ -107,15 +138,14 @@ void StreamThread::run()
     {
       _catchingUp = true;
     }
-    else if (_target_frame == current_frame)
+    else if (have_target && _target_frame == current_frame)
     {
       // Reached the target frame.
-      _target_frame = 0;
+      _target_frame.reset();
       next_frame_start = Clock::now();
     }
 
-    allow_yield = skip_update;
-    while (!allow_yield && _stream_reader->isOk() && !_stream_reader->isEof())
+    while (!at_frame && _stream_reader->isOk() && !_stream_reader->isEof())
     {
       auto packet_header = _stream_reader->extractPacket();
       if (packet_header)
@@ -125,17 +155,27 @@ void StreamThread::run()
         packer_decoder.setPacket(packet_header);
 
         // Iterate packets while we decode. These do not need to be released.
-        while (auto *header = _collated_packet_decoder->next())
+        while (auto *header = packer_decoder.next())
         {
           PacketReader packet(header);
           // Lock for frame control messages as these tell us to advance the frame and how long to wait.
-          if (packet.routingId() == MtControl)
+          switch (packet.routingId())
           {
-            next_frame_start += processControlMessage(packet);
-          }
-          else
-          {
+          case MtControl:
+            next_frame_start = Clock::now() + processControlMessage(packet);
+            at_frame = packet.messageId() == CIdFrame;
+            break;
+          case MtServerInfo:
+            processServerInfo(packet);
+            if (!have_server_info)
+            {
+              have_server_info = true;
+              next_frame_start = Clock::now();
+            }
+            break;
+          default:
             _tes->processMessage(packet);
+            break;
           }
         }
       }
@@ -218,5 +258,20 @@ StreamThread::Clock::duration StreamThread::processControlMessage(PacketReader &
     break;
   }
   return {};
+}
+
+
+void StreamThread::processServerInfo(PacketReader &reader)
+{
+  ServerInfoMessage msg;
+  if (msg.read(reader))
+  {
+    _server_info = msg;
+    _tes->updateServerInfo(msg);
+  }
+  else
+  {
+    log::error("Failed to decode server info.");
+  }
 }
 }  // namespace tes::viewer

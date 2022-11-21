@@ -43,6 +43,9 @@ public:
   /// Get the current frame number.
   virtual FrameNumber currentFrame() const = 0;
 
+  virtual void setLooping(bool loop) = 0;
+  virtual bool looping() const = 0;
+
   virtual bool paused() const = 0;
   /// Pause playback.
   virtual void pause() = 0;

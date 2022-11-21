@@ -25,6 +25,7 @@ public:
   using Clock = std::chrono::steady_clock;
 
   explicit Viewer(const Arguments &arguments);
+  ~Viewer();
 
   inline std::shared_ptr<ThirdEyeScene> tes() const { return _tes; }
 
@@ -32,7 +33,7 @@ public:
   bool closeOrDisconnect();
 
   void setContinuousSim(bool continuous);
-  void checkContinuousSim();
+  bool continuousSim();
 
 private:
   enum EdlParam

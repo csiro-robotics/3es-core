@@ -44,7 +44,7 @@ ThirdEyeScene::ThirdEyeScene()
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::Blending);
 
   _culler = std::make_shared<BoundsCuller>();
-  initialisePainters();
+  initialiseHandlers();
 }
 
 
@@ -62,20 +62,19 @@ void ThirdEyeScene::clearActiveFboEffect()
 
 void ThirdEyeScene::reset()
 {
-  _reset = true;
+  std::unique_lock guard(_render_mutex);
+  for (auto &[id, handler] : _messageHandlers)
+  {
+    handler->reset();
+  }
+  _unknown_handlers.clear();
 }
 
 
 void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
 {
   using namespace Magnum::Math::Literals;
-  std::unique_lock guard(_mutex);
-
-  if (_reset)
-  {
-    doReset();
-    _reset = false;
-  }
+  std::unique_lock guard(_render_mutex);
 
   // Update frame if needed.
   if (_new_frame.has_value() || _new_server_info)
@@ -98,7 +97,6 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
       handler->beginFrame(_render_stamp);
     }
   }
-  guard.unlock();
 
   auto projection_matrix = camera::viewProjection(_camera, window_size);
   ++_render_stamp.render_mark;
@@ -128,7 +126,7 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
 
 void ThirdEyeScene::updateToFrame(FrameNumber frame)
 {
-  std::lock_guard guard(_mutex);
+  std::lock_guard guard(_render_mutex);
   for (auto &[routingId, handler] : _messageHandlers)
   {
     handler->endFrame(_render_stamp);
@@ -139,7 +137,7 @@ void ThirdEyeScene::updateToFrame(FrameNumber frame)
 
 void ThirdEyeScene::updateServerInfo(const ServerInfoMessage &server_info)
 {
-  std::lock_guard guard(_mutex);
+  std::lock_guard guard(_render_mutex);
   _server_info = server_info;
   _new_server_info = true;
 }
@@ -152,24 +150,16 @@ void ThirdEyeScene::processMessage(PacketReader &packet)
   {
     handler->second->readMessage(packet);
   }
-  else
+  else if (_unknown_handlers.find(packet.routingId()) == _unknown_handlers.end())
   {
     log::error("No message handler for id ", packet.routingId());
+    _unknown_handlers.emplace(packet.routingId());
   }
 }
 
 
-void ThirdEyeScene::initialisePainters()
+void ThirdEyeScene::createSampleShapes()
 {
-  _painters.emplace(SIdSphere, std::make_shared<painter::Sphere>(_culler));
-  _painters.emplace(SIdBox, std::make_shared<painter::Box>(_culler));
-  _painters.emplace(SIdCylinder, std::make_shared<painter::Cylinder>(_culler));
-  _painters.emplace(SIdCapsule, std::make_shared<painter::Capsule>(_culler));
-  _painters.emplace(SIdPlane, std::make_shared<painter::Plane>(_culler));
-  _painters.emplace(SIdStar, std::make_shared<painter::Star>(_culler));
-  _painters.emplace(SIdArrow, std::make_shared<painter::Arrow>(_culler));
-  _painters.emplace(SIdPose, std::make_shared<painter::Pose>(_culler));
-
   Magnum::Matrix4 shape_transform = {};
 
   // Axis box markers
@@ -273,23 +263,31 @@ void ThirdEyeScene::initialisePainters()
 
 void ThirdEyeScene::initialiseHandlers()
 {
+  _painters.emplace(SIdSphere, std::make_shared<painter::Sphere>(_culler));
+  _painters.emplace(SIdBox, std::make_shared<painter::Box>(_culler));
+  _painters.emplace(SIdCylinder, std::make_shared<painter::Cylinder>(_culler));
+  _painters.emplace(SIdCapsule, std::make_shared<painter::Capsule>(_culler));
+  _painters.emplace(SIdPlane, std::make_shared<painter::Plane>(_culler));
+  _painters.emplace(SIdStar, std::make_shared<painter::Star>(_culler));
+  _painters.emplace(SIdArrow, std::make_shared<painter::Arrow>(_culler));
+  _painters.emplace(SIdPose, std::make_shared<painter::Pose>(_culler));
+
   _messageHandlers.emplace(  //
-    SIdSphere, std::make_shared<handler::Shape>(SIdSphere, "sphere", std::make_shared<painter::Sphere>(_culler)));
+    SIdSphere, std::make_shared<handler::Shape>(SIdSphere, "sphere", _painters[SIdSphere]));
   _messageHandlers.emplace(  //
-    SIdBox, std::make_shared<handler::Shape>(SIdBox, "box", std::make_shared<painter::Box>(_culler)));
+    SIdBox, std::make_shared<handler::Shape>(SIdBox, "box", _painters[SIdBox]));
   _messageHandlers.emplace(  //
-    SIdCylinder,
-    std::make_shared<handler::Shape>(SIdCylinder, "cylinder", std::make_shared<painter::Cylinder>(_culler)));
+    SIdCylinder, std::make_shared<handler::Shape>(SIdCylinder, "cylinder", _painters[SIdCylinder]));
   _messageHandlers.emplace(  //
-    SIdCapsule, std::make_shared<handler::Shape>(SIdCapsule, "capsule", std::make_shared<painter::Capsule>(_culler)));
+    SIdCapsule, std::make_shared<handler::Shape>(SIdCapsule, "capsule", _painters[SIdCapsule]));
   _messageHandlers.emplace(  //
-    SIdPlane, std::make_shared<handler::Shape>(SIdPlane, "plane", std::make_shared<painter::Plane>(_culler)));
+    SIdPlane, std::make_shared<handler::Shape>(SIdPlane, "plane", _painters[SIdPlane]));
   _messageHandlers.emplace(  //
-    SIdStar, std::make_shared<handler::Shape>(SIdStar, "star", std::make_shared<painter::Star>(_culler)));
+    SIdStar, std::make_shared<handler::Shape>(SIdStar, "star", _painters[SIdStar]));
   _messageHandlers.emplace(  //
-    SIdArrow, std::make_shared<handler::Shape>(SIdArrow, "arrow", std::make_shared<painter::Arrow>(_culler)));
+    SIdArrow, std::make_shared<handler::Shape>(SIdArrow, "arrow", _painters[SIdArrow]));
   _messageHandlers.emplace(  //
-    SIdPose, std::make_shared<handler::Shape>(SIdPose, "pose", std::make_shared<painter::Pose>(_culler)));
+    SIdPose, std::make_shared<handler::Shape>(SIdPose, "pose", _painters[SIdPose]));
 
   for (auto &[id, handler] : _messageHandlers)
   {
@@ -308,15 +306,6 @@ void ThirdEyeScene::drawShapes(float dt, const Magnum::Matrix4 &projection_matri
   for (const auto &[id, painter] : _painters)
   {
     painter->drawTransparent(_render_stamp, projection_matrix);
-  }
-}
-
-
-void ThirdEyeScene::doReset()
-{
-  for (auto &[id, handler] : _messageHandlers)
-  {
-    handler->reset();
   }
 }
 }  // namespace tes::viewer

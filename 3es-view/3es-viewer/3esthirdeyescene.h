@@ -24,6 +24,7 @@
 #include <memory>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 // TODO(KS): abstract away Magnum so it's not in any public headers.
@@ -93,14 +94,13 @@ public:
   /// @param packet
   void processMessage(PacketReader &packet);
 
+  void createSampleShapes();
+
 private:
-  void initialisePainters();
   void initialiseHandlers();
 
   void updateCamera(float dt);
   void drawShapes(float dt, const Magnum::Matrix4 &projection_matrix);
-
-  void doReset();
 
   std::shared_ptr<FboEffect> _active_fbo_effect;
 
@@ -110,10 +110,12 @@ private:
 
   std::unordered_map<ShapeHandlerIDs, std::shared_ptr<painter::ShapePainter>> _painters;
   std::unordered_map<uint32_t, std::shared_ptr<handler::Message>> _messageHandlers;
+  /// List of unknown message handlers for which we've raised warnings. Cleared on @c reset().
+  std::unordered_set<uint32_t> _unknown_handlers;
 
   FrameStamp _render_stamp = {};
 
-  std::mutex _mutex;
+  std::mutex _render_mutex;
   std::optional<FrameNumber> _new_frame;
   ServerInfoMessage _server_info = {};
   bool _new_server_info = false;

@@ -14,6 +14,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <iosfwd>
+#include <optional>
 #include <memory>
 #include <mutex>
 
@@ -57,6 +58,9 @@ public:
   /// Get the current frame number.
   inline FrameNumber currentFrame() const override { return _currentFrame; }
 
+  void setLooping(bool loop) override;
+  bool looping() const override;
+
   /// Request the thread to quit. The thread may then be joined.
   inline void stop() override
   {
@@ -97,18 +101,20 @@ private:
   /// @return The time to delay before the next frame, or a zero duration when not a frame message.
   Clock::duration processControlMessage(PacketReader &packet);
 
+  void processServerInfo(PacketReader &reader);
+
   mutable std::mutex _data_mutex;
   std::mutex _notify_mutex;
   std::condition_variable _notify;
   std::atomic_bool _quitFlag;
   std::atomic_bool _paused;
-  std::atomic_bool _catchingUp;
-  FrameNumber _target_frame = 0;
+  bool _catchingUp = false;
+  bool _looping = false;
+  std::optional<FrameNumber> _target_frame;
   FrameNumberAtomic _currentFrame = 0;
   /// The total number of frames in the stream, if know. Zero when unknown.
   FrameNumber _total_frames = 0;
   std::unique_ptr<PacketStreamReader> _stream_reader;
-  std::unique_ptr<CollatedPacketDecoder> _collated_packet_decoder;
   /// The scene manager.
   std::shared_ptr<ThirdEyeScene> _tes;
   std::thread _thread;

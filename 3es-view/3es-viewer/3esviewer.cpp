@@ -61,6 +61,25 @@ Viewer::Viewer(const Arguments &arguments)
 {
   _edl_effect = std::make_shared<EdlEffect>(Magnum::GL::defaultFramebuffer.viewport());
   _tes->setActiveFboEffect(_edl_effect);
+
+  if (arguments.argc > 1)
+  {
+    open(arguments.argv[1]);
+    if (_data_thread)
+    {
+      _data_thread->setLooping(true);
+    }
+  }
+  else
+  {
+    _tes->createSampleShapes();
+  }
+}
+
+
+Viewer::~Viewer()
+{
+  closeOrDisconnect();
 }
 
 
@@ -103,9 +122,15 @@ void Viewer::setContinuousSim(bool continuous)
   }
 }
 
-void Viewer::checkContinuousSim()
+bool Viewer::continuousSim()
 {
-  bool continuous_sim = _mouse_rotation_active;
+  if (_continuous_sim || _mouse_rotation_active || _data_thread)
+  {
+    return true;
+  }
+
+  // Check keys.
+  bool continuous_sim = false;
   for (const auto &key : _move_keys)
   {
     continuous_sim = key.active || continuous_sim;
@@ -114,7 +139,7 @@ void Viewer::checkContinuousSim()
   {
     continuous_sim = key.active || continuous_sim;
   }
-  setContinuousSim(continuous_sim);
+  return continuous_sim;
 }
 
 
@@ -132,7 +157,7 @@ void Viewer::drawEvent()
   _tes->render(dt, Magnum::Vector2(windowSize()));
 
   swapBuffers();
-  if (_continuous_sim)
+  if (continuousSim())
   {
     redraw();
   }
@@ -151,7 +176,6 @@ void Viewer::mousePressEvent(MouseEvent &event)
     return;
 
   _mouse_rotation_active = true;
-  setContinuousSim(true);
   event.setAccepted();
 }
 
@@ -177,7 +201,6 @@ void Viewer::mouseMoveEvent(MouseMoveEvent &event)
 
   event.setAccepted();
   redraw();
-  checkContinuousSim();
 }
 
 
@@ -223,7 +246,6 @@ void Viewer::keyPressEvent(KeyEvent &event)
 
   if (dirty)
   {
-    setContinuousSim(true);
     redraw();
   }
 }
@@ -261,7 +283,6 @@ void Viewer::keyReleaseEvent(KeyEvent &event)
 
   if (dirty)
   {
-    checkContinuousSim();
     redraw();
   }
 }
