@@ -297,14 +297,14 @@ bool CollatedPacketDecoder::setPacket(const PacketHeader *packet)
 
 const PacketHeader *CollatedPacketDecoder::next()
 {
-  if (_detail->stream)
-  {
-    // We have a collated packet. Start decoding.
-    return _detail->nextPacket();
-  }
-
   if (_detail)
   {
+    if (_detail->stream)
+    {
+      // We have a collated packet. Start decoding.
+      return _detail->nextPacket();
+    }
+
     const PacketHeader *next = _detail->packet;
     _detail->decodedBytes = _detail->targetBytes;
     _detail->packet = nullptr;
