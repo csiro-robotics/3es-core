@@ -92,7 +92,7 @@ template <typename T, typename... Args>
 void message(std::ostringstream &str, const T &arg, Args... args)
 {
   str << arg;
-  message(str, &args...);
+  message(str, args...);
 }
 
 /// Log a fatal error message and throw a @c std::runtime_error .
@@ -103,7 +103,7 @@ template <typename... Args>
 void fatal(Args... args)
 {
   std::ostringstream str;
-  message(str, prefix(Level::Fatal), &args...);
+  message(str, prefix(Level::Fatal), args...);
   str << std::endl;
   fatal(str.str());
 }
@@ -116,7 +116,7 @@ template <typename... Args>
 void error(Args... args)
 {
   std::ostringstream str;
-  message(str, prefix(Level::Error), &args...);
+  message(str, prefix(Level::Error), args...);
   str << std::endl;
   log(Level::Error, str.str());
 }
@@ -129,7 +129,7 @@ template <typename... Args>
 void warn(Args... args)
 {
   std::ostringstream str;
-  message(str, prefix(Level::Warn), &args...);
+  message(str, prefix(Level::Warn), args...);
   str << std::endl;
   log(Level::Warn, str.str());
 }
@@ -142,7 +142,7 @@ template <typename... Args>
 void info(Args... args)
 {
   std::ostringstream str;
-  message(str, prefix(Level::Info), &args...);
+  message(str, prefix(Level::Info), args...);
   str << std::endl;
   log(Level::Info, str.str());
 }
@@ -155,7 +155,7 @@ template <typename... Args>
 void trace(Args... args)
 {
   std::ostringstream str;
-  message(str, prefix(Level::Trace), &args...);
+  message(str, prefix(Level::Trace), args...);
   str << std::endl;
   log(Level::Trace, str.str());
 }
