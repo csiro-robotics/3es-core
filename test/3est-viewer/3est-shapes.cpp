@@ -55,10 +55,9 @@ std::unique_ptr<Viewer> Shapes::_viewer;
 ///
 /// The test starts by allocating a shape with @p child_count children. The test simulates updating the children for
 /// @p frame_count, adjusting the parent and child positions each frame. The position of each shape is filled with
-/// information about the current frame and the child id. We then validate the position for each frame so far, within
-/// the overall @c frameWindow(). If @c frame_count exceeds the frame window, then we also validate there is no
-/// transform information outside the window.
-/// @tparam Painter The @c painter::ShapePainter instance to simulate swith.
+/// information about the current frame and the child id. We then validate the position for the parent and child shapes.
+///
+/// @tparam Painter The @c painter::ShapePainter instance to simulate with.
 template <typename Painter>
 struct ParentsTest
 {

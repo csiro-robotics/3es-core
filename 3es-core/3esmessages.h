@@ -65,13 +65,32 @@ enum ShapeHandlerIDs
 enum ControlId
 {
   CIdNull,
-  CIdFrame,            ///< Defines a new frame. @c value32 is the delta time in microseconds.
-  CIdCoordinateFrame,  ///< Specifies the a change in coordinate frame view.
-  CIdFrameCount,       ///< Set the total number of frames to expect (@c value32). More for serialised streams.
-  CIdForceFrameFlush,  ///< Forces a frame update (render) without advancing the time.
-  CIdReset,            ///< Clear the scene. This drops all existing data.
-  CIdKeyframe,         ///< Request a keframe. @c value32 is the frame number.
-  CIdEnd,              ///< Marks the end of the server stream. Clients may disconnect.
+  /// Marks a change of frame. Pending objects changes are applied Defines a new
+  /// frame. @c value32 specifies the frame time delta in the server time units,
+  /// or to use the default time delta when 0. @c Value64 should always be zero,
+  /// but is used internally during playback to identify the frame number.
+  CIdFrame,
+  /// Specifies the a change in coordinate frame view. @c value32 contains the
+  /// new @c CoordinateFrame to use.
+  CIdCoordinateFrame,
+  /// Set the total number of frames to expect ( @c value32 ). Generally for
+  /// serialised streams as live streams rarely know the total frame count.
+  CIdFrameCount,
+  /// Forces a frame update (render) without advancing the time. This message is
+  /// primarily used at the start of a recording in order to display the shapes
+  /// which have been loaded so far.
+  CIdForceFrameFlush,
+  /// Clear the scene. This drops all existing data. This is primarily intended
+  /// for internal use in playback mode. The @c value32 is used to identify the
+  /// frame number to which we are resetting.
+  CIdReset,
+  /// Request a keyframe. @c value32 is the frame number. This is not for remote
+  /// This is not for remote transmission, but supports snapping the scene in
+  /// order to improve step-back updates.transmission, but supports snapping the
+  /// scene in order to improve step-back updates.
+  CIdKeyframe,
+  /// Marks the end of the server stream. Clients may disconnect.
+  CIdEnd,
 };
 
 /// Message IDs for @c MtCategory routing.

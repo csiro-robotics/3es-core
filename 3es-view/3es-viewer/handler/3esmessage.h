@@ -28,8 +28,6 @@ namespace tes::viewer::handler
 ///
 /// As such, the @c readMessage() function must be thread safe with respect to @c beginFrame(), @c endFrame() and
 /// @c draw().
-///
-/// @todo Document the @c frameWindow() data management requirements.
 class Message
 {
 public:
@@ -102,19 +100,18 @@ public:
   /// @p frame_number. Additionally, see thread safety requirements described in the class documentation.
   ///
   /// @param reader The message data reader.
-  virtual void readMessage(PacketReader &reader, FrameNumber frame_number) = 0;
+  virtual void readMessage(PacketReader &reader) = 0;
 
-  virtual inline void serialise(Connection &out, FrameNumber frame_number)
+  virtual inline void serialise(Connection &out)
   {
     ServerInfoMessage info = {};
-    serialise(out, frame_number, info);
+    serialise(out, info);
   }
   /// Serialise a snapshot of the renderable objects for the specified frame. Serialisation is performed using the
   /// messages required to restore the current state.
   /// @param out Stream to write to.
-  /// @param frame_number The frame number the frame number to serialise.
   /// @param[out] info Provides information about about the serialisation.
-  virtual void serialise(Connection &out, FrameNumber frame_number, ServerInfoMessage &info) = 0;
+  virtual void serialise(Connection &out, ServerInfoMessage &info) = 0;
 
 protected:
   uint16_t _routing_id = 0u;

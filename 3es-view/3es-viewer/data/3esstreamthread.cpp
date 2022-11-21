@@ -1,17 +1,73 @@
-#include "3esfilethread.h"
+#include "3esstreamthread.h"
 
-#include <3es-core/3esmessages.h>
-#include <3es-core/3espacketreader.h>
-#include <3es-core/3espacketstreamreader.h>
+#include "3esthirdeyescene.h"
+
+#include <3escollatedpacketdecoder.h>
+#include <3espacketreader.h>
+#include <3espacketstreamreader.h>
+#include <3eslog.h>
 
 #include <cinttypes>
 #include <fstream>
 
 namespace tes::viewer
 {
+StreamThread::StreamThread(std::shared_ptr<std::istream> stream, std::shared_ptr<ThirdEyeScene> tes)
+{
+  _stream_reader = std::make_unique<PacketStreamReader>(std::exchange(stream, nullptr));
+  _collated_packet_decoder = std::make_unique<CollatedPacketDecoder>();
+  _tes = std::exchange(tes, nullptr);
+  _thread = std::thread([this] { run(); });
+}
+
+
 bool StreamThread::isLiveStream() const
 {
   return false;
+}
+
+
+void StreamThread::setTargetFrame(FrameNumber frame)
+{
+  std::lock_guard guard(_data_mutex);
+  _target_frame = frame;
+  if (_target_frame < _currentFrame)
+  {
+    // Reset and seek back.
+    _tes->reset();
+    _stream_reader->seek(0);
+  }
+}
+
+
+FrameNumber StreamThread::targetFrame() const
+{
+  std::lock_guard guard(_data_mutex);
+  return _target_frame;
+}
+
+
+void StreamThread::pause()
+{
+  _paused = false;
+  _notify.notify_all();
+}
+
+
+void StreamThread::unpause()
+{
+  if (_paused)
+  {
+    _paused = false;
+  }
+}
+
+
+void StreamThread::join()
+{
+  _quitFlag = true;
+  unpause();
+  _thread.join();
 }
 
 
@@ -23,110 +79,43 @@ void StreamThread::run()
   std::istream::pos_type last_keyframe_position = 0;
   uint64_t bytes_read = 0;
   bool allow_yield = false;
-  bool failed_keyframe = false;
-  bool at_seekable_position = false;
   bool was_paused = _paused;
   // HACK: when restoring keyframes to precise frames we don't do the main update. Needs to be cleaned up.
   bool skip_update = false;
-  FrameNumber last_keyframe_frame = 0;
-  FrameNumber last_seekable_frame = 0;
   CollatedPacketDecoder packer_decoder;
 
-  stopwatch.Start();
-  while (!quit_flag)
+  while (!_quitFlag)
   {
     if (blockOnPause())
     {
       continue;
     }
 
-    if (_target_frame == 0)
+    auto current_frame = _currentFrame.load();
+    auto target_frame = targetFrame();
+    if (target_frame == 0)
     {
       // Not stepping. Check time elapsed.
       _catchingUp = false;
       std::this_thread::sleep_until(next_frame_start);
     }
-    else if (_target_frame < _current_frame)
+    else if (target_frame < current_frame)
     {
-      skipBack(_target_frame);
+      skipBack(target_frame);
     }
-    else if (_target_frame == _current_frame)
+    else if (target_frame > current_frame)
+    {
+      _catchingUp = true;
+    }
+    else if (_target_frame == current_frame)
     {
       // Reached the target frame.
       _target_frame = 0;
+      next_frame_start = Clock::now();
     }
 
-    // else
-    // {
-    //   lock(this)
-    //   {
-    //     if (_targetFrame < _currentFrame)
-    //     {
-    //       // Stepping back.
-    //       lastKeyframeFrame = 0;
-    //       lastSeekablePosition = 0;
-    //       lastSeekableFrame = 0;
-    //       bool restoredKeyframe = false;
-    //       if (AllowKeyframes && !failedKeyframe)
-    //       {
-    //         Keyframe keyframe;
-    //         if (TryRestoreKeyframe(out keyframe, _targetFrame))
-    //         {
-    //           // No failures. Does not meek we have a valid keyframe.
-    //           if (keyframe != null)
-    //           {
-    //             lastKeyframeFrame = _currentFrame = keyframe.FrameNumber;
-    //             restoredKeyframe = true;
-    //             skipUpdate = _currentFrame == keyframe.FrameNumber;
-    //           }
-    //         }
-    //         else
-    //         {
-    //           // Failed a keyframe. Disallow further keyframes.
-    //           // TODO: consider just invalidating the failed keyframe.
-    //           failedKeyframe = true;
-    //         }
-    //       }
-
-    //       // Not available, not allowed or failed keyframe.
-    //       if (!restoredKeyframe)
-    //       {
-    //         _packetStream.Reset();
-    //         ResetQueue(0);
-    //       }
-    //       _catchingUp = _currentFrame + 1 < _targetFrame;
-    //       stopwatch.Reset();
-    //       stopwatch.Start();
-    //     }
-    //     else if (_targetFrame > _currentFrame + KeyframeSkipForwardFrames)
-    //     {
-    //       // Skipping forward a fair number of frames. Try for a keyframe.
-    //       if (AllowKeyframes && !failedKeyframe)
-    //       {
-    //         // Ok to try for a keyframe.
-    //         Keyframe keyframe;
-    //         if (TryRestoreKeyframe(out keyframe, _targetFrame, _currentFrame))
-    //         {
-    //           // No failure. Check if we have a keyframe.
-    //           if (keyframe != null)
-    //           {
-    //             lastKeyframeFrame = _currentFrame = keyframe.FrameNumber;
-    //             _catchingUp = _currentFrame + 1 < _targetFrame;
-    //             skipUpdate = _currentFrame == keyframe.FrameNumber;
-    //           }
-    //         }
-    //         else
-    //         {
-    //           // Failed. Stream has been reset.
-    //           failedKeyframe = true;
-    //         }
-    //       }
-    //     }
-    //   }  // lock(this)
-    // }
-
     allow_yield = skip_update;
-    while (!allow_yield && _stream && !_stream->eof() && _stream->good())
+    while (!allow_yield && _stream_reader->isOk() && !_stream_reader->isEof())
     {
       auto packet_header = _stream_reader->extractPacket();
       if (packet_header)
@@ -136,17 +125,17 @@ void StreamThread::run()
         packer_decoder.setPacket(packet_header);
 
         // Iterate packets while we decode. These do not need to be released.
-        while (auto *header = packet_decoder.next())
+        while (auto *header = _collated_packet_decoder->next())
         {
           PacketReader packet(header);
           // Lock for frame control messages as these tell us to advance the frame and how long to wait.
           if (packet.routingId() == MtControl)
           {
-            next_frame_start += processControlPacket(packet);
+            next_frame_start += processControlMessage(packet);
           }
           else
           {
-            processPacket(packet);
+            _tes->processMessage(packet);
           }
         }
       }
@@ -155,11 +144,17 @@ void StreamThread::run()
 }
 
 
+void StreamThread::skipBack(FrameNumber targetFrame)
+{
+  // Simple implementation until we get keyframes.
+  setTargetFrame(targetFrame);
+}
+
+
 bool StreamThread::blockOnPause()
 {
-  if (_paused && target_frame == 0)
+  if (_paused && _target_frame == 0)
   {
-    was_paused = true;
     std::unique_lock lock(_notify_mutex);
     // Wait for unpause.
     _notify.wait(lock, [this] { return !_paused; });
@@ -169,12 +164,59 @@ bool StreamThread::blockOnPause()
 }
 
 
-Clock::duration StreamThread::processControlPacket(PacketReader &packet)
+StreamThread::Clock::duration StreamThread::processControlMessage(PacketReader &packet)
 {
+  ControlMessage msg;
+  if (!msg.read(packet))
+  {
+    log::error("Failed to decode control packet: ", packet.messageId());
+    return {};
+  }
+  switch (packet.messageId())
+  {
+  case CIdNull:
+    break;
+  case CIdFrame: {
+    // Frame ending.
+    _tes->updateToFrame(++_currentFrame);
+    // Work out how long to the next frame.
+    const auto dt = (msg.value32) ? msg.value32 : _server_info.defaultFrameTime;
+    return std::chrono::microseconds(_server_info.timeUnit * dt);
+  }
+  case CIdCoordinateFrame:
+    if (msg.value32 < CFCount)
+    {
+      _server_info.coordinateFrame = CoordinateFrame(msg.value32);
+      _tes->updateServerInfo(_server_info);
+    }
+    else
+    {
+      log::error("Invalid coordinate frame value: ", msg.value32);
+    }
+    break;
+  case CIdFrameCount:
+    _total_frames = msg.value32;
+    break;
+  case CIdForceFrameFlush:
+    _tes->updateToFrame(_currentFrame);
+    return std::chrono::microseconds(_server_info.timeUnit * _server_info.defaultFrameTime);
+  case CIdReset:
+    // This doesn't seem right any more. Need to check what the Unity viewer did with this. It may be an artifact of
+    // the main thread needing to do so much work in Unity.
+    _currentFrame = msg.value32;
+    _tes->reset();
+    break;
+  case CIdKeyframe:
+    // NYI
+    log::warn("Keyframe control message handling not implemented.");
+    break;
+  case CIdEnd:
+    log::warn("End control message handling not implemented.");
+    break;
+  default:
+    log::error("Unknown control message id: ", packet.messageId());
+    break;
+  }
   return {};
 }
-
-
-void StreamThread::processPacket(PacketReader &packet)
-{}
 }  // namespace tes::viewer

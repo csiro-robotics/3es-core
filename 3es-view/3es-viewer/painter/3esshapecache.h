@@ -7,6 +7,8 @@
 #include "3esviewablewindow.h"
 #include "util/3esresourcelist.h"
 
+#include <shapes/3esid.h>
+
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Matrix4.h>
@@ -40,6 +42,10 @@ public:
   /// @param projection The next projection matrix to draw with.
   virtual void setProjectionMatrix(const Magnum::Matrix4 &projection) = 0;
 
+  /// Set a colour tint to modulate the instance colour with.
+  /// @param colour The tint colour.
+  virtual void setColour(const Magnum::Color4 &colour) = 0;
+
   /// Draw the @p mesh with this shader with shape instances from @p buffer .
   ///
   /// May be called multiple times for each frame with only one call to @c setProjectionMatrix() in between.
@@ -60,6 +66,8 @@ public:
   ~ShapeCacheShaderFlat();
 
   void setProjectionMatrix(const Magnum::Matrix4 &projection) override;
+
+  void setColour(const Magnum::Color4 &colour) override;
 
   void draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count) override;
 
@@ -114,6 +122,9 @@ public:
   using BoundsCalculator =
     std::function<void(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents)>;
 
+  class const_iterator;
+  class Shape;
+
   /// Shape marker flags.
   enum class ShapeFlag : unsigned
   {
@@ -131,6 +142,15 @@ public:
     Dirty = 1u << 9u
   };
 
+  /// Shape instance data.
+  struct ShapeInstance
+  {
+    /// The instance transformation matrix.
+    Magnum::Matrix4 transform = {};
+    /// The instance colour.
+    Magnum::Color4 colour = {};
+  };
+
   /// A mesh and transform part for use with the @c ShapeCache .
   ///
   /// A @c ShapeCache can have one or more @c Part objects to render. Each mesh is rendered by first applying an
@@ -145,6 +165,8 @@ public:
     std::shared_ptr<Magnum::GL::Mesh> mesh;
     /// Transform to apply to @c mesh before rendering.
     Magnum::Matrix4 transform = {};
+    /// Tint to apply to the shape colour.
+    Magnum::Color4 colour = { 1, 1, 1, 1 };
 
     inline Part() = default;
     inline Part(const Part &other) = default;
@@ -225,7 +247,8 @@ public:
   /// known.
   ///
   ///
-  ///
+  /// @param shape_id The user ID for the shape. This is only kept as a user value, it is never used to address a shape
+  /// in the cache.
   /// @param transform The shape instance transformation.
   /// @param colour The shape instance colour.
   /// @param parent_rid Index of the parent shape whose transform also affects this shape. Use ~0u for no parent.
@@ -234,7 +257,7 @@ public:
   /// @param child_index When adding a child shape, this will be set to the index of the child in the parent (if not
   ///   null). Behaviour is undefined when @p parent_rid is invalid.
   /// @return The shape ID/index. Must be used to @c remove() or @c update() the shape.
-  util::ResourceListId add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
+  util::ResourceListId add(const tes::Id &shape_id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
                            ShapeFlag flags = ShapeFlag::None, util::ResourceListId parent_rid = kListEnd,
                            unsigned *child_index = nullptr);
   /// Mark a shape for removal on the next @c commit() .
@@ -291,15 +314,103 @@ public:
   /// @note Bounds are returned to the @c BoundsCuller iteratively.
   void clear();
 
-private:
-  /// Shape instance data.
-  struct ShapeInstance
+  /// Iterator for the shape cache. Iteration is read only and shows a proxy @c View for the shape, rather than
+  /// addressing the actual shape data.
+  class const_iterator
   {
-    /// The instance transformation matrix.
-    Magnum::Matrix4 transform = {};
-    /// The instance colour.
-    Magnum::Color4 colour = {};
+  public:
+    /// An external view of a shape in the cache.
+    struct View
+    {
+      /// The shape user id.
+      Id id;
+      /// The shape render attributes.
+      ShapeInstance attributes;
+      /// Number of child shapes this has.
+      unsigned child_count = 0;
+    };
+
+    /// Default constructor.
+    inline const_iterator() = default;
+    /// Iteration constructor
+    /// @param cursor Initial iterator position
+    /// @param end End iterator for the internal cache data.
+    inline const_iterator(util::ResourceList<Shape>::const_iterator &&cursor,
+                          util::ResourceList<Shape>::const_iterator &&end)
+      : _cursor(std::move(cursor))
+      , _end(std::move(end))
+    {}
+    /// Copy constructor.
+    /// @param other Iterator to copy.
+    inline const_iterator(const const_iterator &other) = default;
+    /// Copy constructor.
+    /// @param other Iterator to move.
+    inline const_iterator(const_iterator &&other) = default;
+
+    /// Copy assignment operator.
+    /// @param other Iterator to copy.
+    /// @return @c *this
+    inline const_iterator &operator=(const const_iterator &other) = default;
+    /// Move assignment operator.
+    /// @param other Iterator to move.
+    /// @return @c *this
+    inline const_iterator &operator=(const_iterator &&other) = default;
+
+    /// Equality test. Only compares the cursor.
+    /// @param other Iterator to compare.
+    /// @return True if the iterators are semantically equivalent.
+    inline bool operator==(const const_iterator &other) const { return _cursor == other._cursor; }
+    /// Inequality test. Only compares the cursor.
+    /// @param other Iterator to compare.
+    /// @return True unless the iterators are semantically equivalent.
+    inline bool operator!=(const const_iterator &other) const { return !operator==(other); }
+
+    /// Prefix increment
+    /// @return @c *this
+    inline const_iterator &operator++()
+    {
+      next();
+      return *this;
+    }
+
+    /// Postfix increment
+    /// @return An iterator before incrementing.
+    inline const_iterator operator++(int)
+    {
+      auto iter = *this;
+      next();
+      return iter;
+    }
+
+    /// Dereference to a @c View.
+    /// @return A @c View to the current item.
+    inline const View &operator*() const { return _view; }
+    /// Dereference to a @c View.
+    /// @return A @c View to the current item.
+    inline const View *operator->() const { return &_view; }
+
+    /// Get the internal resource ID of the current item.
+    /// @return
+    inline util::ResourceListId rid() const { return _cursor.id(); }
+
+  private:
+    /// Iterate to the next item.
+    void next();
+
+    util::ResourceList<Shape>::const_iterator _cursor;
+    util::ResourceList<Shape>::const_iterator _end;
+    View _view = {};
   };
+
+  /// Begin iteration of the shapes in the cache.
+  /// @return The starting iterator.
+  inline const_iterator begin() const { return const_iterator(_shapes.begin(), _shapes.end()); }
+  /// End iterator.
+  /// @return The end iterator.
+  inline const_iterator end() const { return const_iterator(_shapes.end(), _shapes.end()); }
+
+private:
+  friend const_iterator;
 
   /// An entry in the shape cache.
   ///
@@ -324,6 +435,8 @@ private:
     util::ResourceListId next = kListEnd;
     /// Number of children for a parent shape.
     unsigned child_count = 0;
+    /// The user shape ID. For information purposes only. Never used to address the shape.
+    Id shape_id = {};
 
     /// Check if this is a parent shape.
     /// @return True for a parent shape.
@@ -398,6 +511,23 @@ inline ShapeCache::ShapeFlag &operator&=(ShapeCache::ShapeFlag &a, ShapeCache::S
 inline ShapeCache::ShapeFlag operator~(ShapeCache::ShapeFlag a)
 {
   return ShapeCache::ShapeFlag(~unsigned(a));
+}
+
+
+inline void ShapeCache::const_iterator::next()
+{
+  while (_cursor != _end && (_cursor->flags & ShapeFlag::Pending) == ShapeFlag::Pending)
+  {
+    ++_cursor;
+  }
+  if (_cursor != _end)
+  {
+    _view = View{ _cursor->shape_id, _cursor->current, _cursor->child_count };
+  }
+  else
+  {
+    _view = {};
+  }
 }
 }  // namespace tes::viewer::painter
 

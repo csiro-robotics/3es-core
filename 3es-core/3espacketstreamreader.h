@@ -54,6 +54,13 @@ public:
   /// @return The next packet or null on failure. Check status on failure.
   const PacketHeader *extractPacket();
 
+  /// Seek to the given stream position.
+  ///
+  /// This clears the current data buffer, invalidating results from @c extractPacket().
+  ///
+  /// @param position The stream byte offset to seek to.
+  void seek(std::istream::pos_type position);
+
 private:
   size_t readMore(size_t moreCount);
   bool checkMarker(std::vector<char> &buffer, size_t i);

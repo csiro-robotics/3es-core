@@ -23,6 +23,11 @@ void ShapeCacheShaderFlat::setProjectionMatrix(const Magnum::Matrix4 &projection
   _shader.setTransformationProjectionMatrix(projection);
 }
 
+void ShapeCacheShaderFlat::setColour(const Magnum::Color4 &colour)
+{
+  _shader.setColor(colour);
+}
+
 void ShapeCacheShaderFlat::draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count)
 {
   mesh.setInstanceCount(instance_count)
@@ -106,8 +111,9 @@ void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &c
   _bounds_calculator(transform, centre, halfExtents);
 }
 
-util::ResourceListId ShapeCache::add(const Magnum::Matrix4 &transform, const Magnum::Color4 &colour, ShapeFlag flags,
-                                     util::ResourceListId parent_rid, unsigned *child_index)
+util::ResourceListId ShapeCache::add(const tes::Id &shape_id, const Magnum::Matrix4 &transform,
+                                     const Magnum::Color4 &colour, ShapeFlag flags, util::ResourceListId parent_rid,
+                                     unsigned *child_index)
 {
   auto shape = _shapes.allocate();
 
@@ -122,6 +128,7 @@ util::ResourceListId ShapeCache::add(const Magnum::Matrix4 &transform, const Mag
   shape->bounds_id = bounds_id;
   shape->parent_rid = parent_rid;
   shape->next = kListEnd;
+  shape->shape_id = shape_id;
 
   if (parent_rid != kListEnd)
   {
@@ -284,10 +291,15 @@ void ShapeCache::draw(const FrameStamp &stamp, const Magnum::Matrix4 &projection
   {
     if (buffer.count)
     {
-      for (const auto &part : _parts)
+      // for (const auto &part : _parts)
+      for (size_t i = 0; i < _parts.size(); ++i)
       {
-        const Magnum::Matrix4 projection = projection_matrix * part.transform;
+        const auto &part = _parts[i];
+        // Note: we can't actually add the part transform in here. It can't be multiplied in the right place to be
+        // a model matrix.
+        const Magnum::Matrix4 projection = projection_matrix;  // * part.transform;
         _shader->setProjectionMatrix(projection);
+        _shader->setColour(part.colour);
         _shader->draw(*part.mesh, buffer.buffer, buffer.count);
       }
     }

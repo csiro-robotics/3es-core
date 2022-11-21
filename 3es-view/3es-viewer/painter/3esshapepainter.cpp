@@ -1,5 +1,7 @@
 #include "3esshapepainter.h"
 
+#include <shapes/3esid.h>
+
 #include <Magnum/GL/Renderer.h>
 
 namespace tes::viewer::painter
@@ -42,9 +44,8 @@ void ShapePainter::reset()
 ShapePainter::ParentId ShapePainter::add(const Id &id, Type type, const Magnum::Matrix4 &transform,
                                          const Magnum::Color4 &colour)
 {
-  const bool transient = id.id() == 0;
-  util::ResourceListId index = addShape(transient, type, transform, colour);
-  if (!transient)
+  util::ResourceListId index = addShape(id, type, transform, colour);
+  if (!id.isTransient())
   {
     // Handle re-adding a shape which is already pending removal.
     const auto search = _id_index_map.find(id);
@@ -72,22 +73,21 @@ ShapePainter::ParentId ShapePainter::add(const Id &id, Type type, const Magnum::
 ShapePainter::ChildId ShapePainter::addChild(const ParentId &parent_id, Type type, const Magnum::Matrix4 &transform,
                                              const Magnum::Color4 &colour)
 {
-  const bool transient = _id_index_map.find(parent_id.shapeId()) == _id_index_map.end();
   unsigned child_index = 0;
-  addShape(transient, type, transform, colour, parent_id, &child_index);
+  addShape(parent_id.shapeId(), type, transform, colour, parent_id, &child_index);
   return ChildId(parent_id.shapeId(), child_index);
 }
 
 
-util::ResourceListId ShapePainter::addShape(bool transient, Type type, const Magnum::Matrix4 &transform,
+util::ResourceListId ShapePainter::addShape(const Id &shape_id, Type type, const Magnum::Matrix4 &transform,
                                             const Magnum::Color4 &colour, const ParentId &parent_id,
                                             unsigned *child_index)
 {
   if (ShapeCache *cache = cacheForType(type))
   {
     ShapeCache::ShapeFlag flags = ShapeCache::ShapeFlag::None;
-    flags |= (transient) ? ShapeCache::ShapeFlag::Transient : ShapeCache::ShapeFlag::None;
-    return cache->add(transform, colour, flags, parent_id.resourceId(), child_index);
+    flags |= (shape_id.isTransient()) ? ShapeCache::ShapeFlag::Transient : ShapeCache::ShapeFlag::None;
+    return cache->add(shape_id, transform, colour, flags, parent_id.resourceId(), child_index);
   }
   return ~0u;
 }

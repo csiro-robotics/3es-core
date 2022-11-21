@@ -8,7 +8,6 @@
 #include "3esboundsculler.h"
 #include "3esframestamp.h"
 #include "painter/3esshapecache.h"
-#include "painter/3esshapepainter.h"
 
 #include <3esmessages.h>
 
@@ -22,15 +21,26 @@
 
 #include <array>
 #include <chrono>
-#include <vector>
-#include <unordered_map>
 #include <memory>
+#include <optional>
+#include <unordered_map>
+#include <vector>
 
 // TODO(KS): abstract away Magnum so it's not in any public headers.
 namespace tes::viewer
 {
 class EdlEffect;
 class FboEffect;
+
+namespace handler
+{
+class Message;
+}
+
+namespace painter
+{
+class ShapePainter;
+}
 
 class ThirdEyeScene
 {
@@ -48,13 +58,49 @@ public:
   std::shared_ptr<FboEffect> activeFboEffect() { return _active_fbo_effect; }
   const std::shared_ptr<FboEffect> &activeFboEffect() const { return _active_fbo_effect; }
 
-  void update(float dt, const Magnum::Vector2 &window_size);
+  /// Reset the current state, clearing all the currently visible data.
+  void reset();
+
+  void render(float dt, const Magnum::Vector2 &window_size);
+
+  /// Update to the target frame number on the next @c render() call.
+  ///
+  /// Typically, this is called with a monotonic, increasing @p frame number, progressing on frame at a time.
+  /// However, the frame number will jump when stepping and skipping frames.
+  ///
+  /// This function is called from the @c DataThread and is thread safe. The changes are not effected until the
+  /// next @c render() call.
+  ///
+  /// @param frame The new frame number.
+  void updateToFrame(FrameNumber frame);
+
+  /// Updates the server information details.
+  ///
+  /// This is called on making a new connection and when details of that connection, such as the coordinate frame,
+  /// change.
+  ///
+  /// Threadsafe.
+  /// @param server_info The new server info.
+  void updateServerInfo(const ServerInfoMessage &server_info);
+
+  /// Process a message from the server. This is routed to the appropriate message handler.
+  ///
+  /// This function is not called for any control messages where the routing ID is @c MtControl.
+  ///
+  /// @note Message handling must be thread safe as this method is mostly called from a background thread. This
+  /// constraint is placed on the message handlers.
+  ///
+  /// @param packet
+  void processMessage(PacketReader &packet);
 
 private:
   void initialisePainters();
+  void initialiseHandlers();
 
   void updateCamera(float dt);
   void drawShapes(float dt, const Magnum::Matrix4 &projection_matrix);
+
+  void doReset();
 
   std::shared_ptr<FboEffect> _active_fbo_effect;
 
@@ -63,8 +109,15 @@ private:
   std::shared_ptr<BoundsCuller> _culler;
 
   std::unordered_map<ShapeHandlerIDs, std::shared_ptr<painter::ShapePainter>> _painters;
+  std::unordered_map<uint32_t, std::shared_ptr<handler::Message>> _messageHandlers;
 
   FrameStamp _render_stamp = {};
+
+  std::mutex _mutex;
+  std::optional<FrameNumber> _new_frame;
+  ServerInfoMessage _server_info = {};
+  bool _new_server_info = false;
+  std::atomic_bool _reset = false;
 };
 }  // namespace tes::viewer
 

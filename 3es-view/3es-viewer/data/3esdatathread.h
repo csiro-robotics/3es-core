@@ -3,6 +3,8 @@
 
 #include "3es-viewer.h"
 
+#include "3esframestamp.h"
+
 namespace tes::viewer
 {
 /// Base class for thread objects used as message sources.
@@ -15,11 +17,39 @@ namespace tes::viewer
 class DataThread
 {
 public:
+  /// Virtual destructor.
+  virtual ~DataThread();
+
   /// Reports whether the current stream is a live connection or a replay.
   ///
   /// Live streams do not support playback controls such as pausing and stepping.
   /// @return True if this is a live stream.
   virtual bool isLiveStream() const = 0;
+
+  /// Stop or disconnect, marking the thread to finish. @c join() may then be called.
+  virtual void stop() = 0;
+
+  /// Set the target frame to update to. This represents a frame jump.
+  ///
+  /// Threadsafe.
+  /// @param frame The frame to jump, skip or step to.
+  virtual void setTargetFrame(FrameNumber frame) = 0;
+
+  /// Get the target frame to jump to. Zero the current frame is up to date; i.e., this is zero once the current frame
+  /// reaches the target frame.
+  /// @return The target frame to jump to.
+  virtual FrameNumber targetFrame() const = 0;
+
+  /// Get the current frame number.
+  virtual FrameNumber currentFrame() const = 0;
+
+  virtual bool paused() const = 0;
+  /// Pause playback.
+  virtual void pause() = 0;
+  /// Unpause and resume playback.
+  virtual void unpause() = 0;
+
+  virtual void join() = 0;
 
 protected:
 private:

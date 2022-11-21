@@ -49,8 +49,8 @@ public:
 
   void draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
 
-  void readMessage(PacketReader &reader, FrameNumber frame_number) override;
-  void serialise(Connection &out, FrameNumber frame_number, ServerInfoMessage &info) override;
+  void readMessage(PacketReader &reader) override;
+  void serialise(Connection &out, ServerInfoMessage &info) override;
 
   /// Compose the object transform from the given object attributes.
   /// @param attrs Object attributes as read from the message payload.
@@ -63,12 +63,10 @@ public:
   virtual void decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttributes &attrs) const;
 
 protected:
-  virtual bool handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader,
-                            FrameNumber frame_number);
-  virtual bool handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader,
-                            FrameNumber frame_number);
-  virtual bool handleDestroy(const DestroyMessage &msg, PacketReader &reader, FrameNumber frame_number);
-  virtual bool handleData(const DataMessage &msg, PacketReader &reader, FrameNumber frame_number);
+  virtual bool handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader);
+  virtual bool handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader);
+  virtual bool handleDestroy(const DestroyMessage &msg, PacketReader &reader);
+  virtual bool handleData(const DataMessage &msg, PacketReader &reader);
 
 private:
   std::shared_ptr<painter::ShapePainter> _painter;

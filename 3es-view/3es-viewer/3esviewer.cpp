@@ -1,6 +1,9 @@
 #include "3esviewer.h"
 
 #include "3esedleffect.h"
+
+#include "data/3esstreamthread.h"
+
 #include "painter/3esarrow.h"
 #include "painter/3esbox.h"
 #include "painter/3escapsule.h"
@@ -16,6 +19,8 @@
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/GL/TextureFormat.h>
 #include <Magnum/GL/Version.h>
+
+#include <fstream>
 
 // Things to learn about:
 // - text rendering
@@ -58,6 +63,34 @@ Viewer::Viewer(const Arguments &arguments)
   _tes->setActiveFboEffect(_edl_effect);
 }
 
+
+bool Viewer::open(const std::filesystem::path &path)
+{
+  closeOrDisconnect();
+  std::ifstream file(path.string(), std::ios::binary);
+  if (!file.is_open())
+  {
+    return false;
+  }
+
+  _data_thread = std::make_shared<StreamThread>(std::make_shared<std::ifstream>(std::move(file)), _tes);
+  return true;
+}
+
+
+bool Viewer::closeOrDisconnect()
+{
+  if (_data_thread)
+  {
+    _data_thread->stop();
+    _data_thread->join();
+    _data_thread = nullptr;
+    return true;
+  }
+  return false;
+}
+
+
 void Viewer::setContinuousSim(bool continuous)
 {
   if (_continuous_sim != continuous)
@@ -96,7 +129,7 @@ void Viewer::drawEvent()
 
   updateCamera(dt, _tes->camera());
 
-  _tes->update(dt, Magnum::Vector2(windowSize()));
+  _tes->render(dt, Magnum::Vector2(windowSize()));
 
   swapBuffers();
   if (_continuous_sim)

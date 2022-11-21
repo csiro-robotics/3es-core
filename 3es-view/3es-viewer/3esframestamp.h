@@ -4,11 +4,13 @@
 #include "3es-viewer.h"
 
 #include <cinttypes>
+#include <atomic>
 
 namespace tes::viewer
 {
 using FrameNumber = uint32_t;
 using RenderStamp = uint32_t;
+using FrameNumberAtomic = std::atomic_uint32_t;
 
 /// The @c FrameStamp represents a rendered moment in time.
 ///

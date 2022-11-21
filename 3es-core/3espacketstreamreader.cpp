@@ -86,6 +86,16 @@ const PacketHeader *PacketStreamReader::extractPacket()
 }
 
 
+void PacketStreamReader::seek(std::istream::pos_type position)
+{
+  _buffer.clear();
+  if (_stream)
+  {
+    _stream->seekg(position);
+  }
+}
+
+
 size_t PacketStreamReader::readMore(size_t moreCount)
 {
   auto haveCount = _buffer.size();

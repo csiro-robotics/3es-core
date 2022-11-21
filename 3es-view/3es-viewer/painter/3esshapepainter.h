@@ -29,12 +29,15 @@ public:
   /// Bounds calculation function signature.
   using BoundsCalculator = ShapeCache::BoundsCalculator;
 
+  class const_iterator;
+
   /// Shape rendering type.
-  enum class Type
+  enum class Type : int
   {
     Solid,        ///< Solid shape rendering.
     Wireframe,    ///< Wireframe or line based rendering.
     Transparent,  ///< Transparent shape rendering (triangles).
+    // Note: reordering this breaks const_iterator
   };
 
   /// An id returned from @p add() which can be passed to @c addChild() to create child shapes.
@@ -184,10 +187,152 @@ public:
   /// This removes the current transient objects, then effects changes from the following function calls:
   /// - @c add()
   /// - @c addChild()
-  /// - @c update()
+  /// - @c update ()
   /// - @c updateChild()
   /// - @c remove()
   virtual void commit();
+
+  /// An iterator for the shapes in the painter. Only iterates one shape @c Type at a time.
+  ///
+  /// Contents are read only and provide a @c View to the shape. For shapes with a @c child_count, use
+  /// @c getChild() to iterate the children.
+  class const_iterator
+  {
+  public:
+    /// An external view of a shape.
+    struct View
+    {
+      Id id;
+      /// The instance transformation matrix.
+      Magnum::Matrix4 transform = {};
+      /// The instance colour.
+      Magnum::Color4 colour = {};
+      /// Number of children this shape has.
+      unsigned child_count = 0;
+    };
+
+    /// Default constructor.
+    const_iterator();
+    /// Iteration constructor
+    /// @param cache_type The type being iterated.
+    /// @param cache The shape to iterate.
+    /// @param begin True to begin iterator, false to create an @c end iterator.
+    const_iterator(Type cache_type, const ShapeCache *cache, bool begin = true)
+      : _cache_type(cache_type)
+      , _cache(cache)
+    {
+      if (_cache)
+      {
+        _end = _cache->end();
+        if (begin)
+        {
+          _cursor = _cache->begin();
+        }
+        else
+        {
+          _cursor = _end;
+        }
+      }
+    }
+    /// Copy constructor.
+    /// @param other Iterator to copy.
+    inline const_iterator(const const_iterator &other) = default;
+    /// Copy constructor.
+    /// @param other Iterator to move.
+    inline const_iterator(const_iterator &&other) = default;
+
+    /// Copy assignment operator.
+    /// @param other Iterator to copy.
+    /// @return @c *this
+    inline const_iterator &operator=(const const_iterator &other) = default;
+    /// Move assignment operator.
+    /// @param other Iterator to move.
+    /// @return @c *this
+    inline const_iterator &operator=(const_iterator &&other) = default;
+
+    /// Equality test. Only compares the cursor.
+    /// @param other Iterator to compare.
+    /// @return True if the iterators are semantically equivalent.
+    inline bool operator==(const const_iterator &other) const
+    {
+      return _cache == other._cache && _cache_type == other._cache_type && _cursor == other._cursor;
+    }
+    /// Inequality test. Only compares the cursor.
+    /// @param other Iterator to compare.
+    /// @return True unless the iterators are semantically equivalent.
+    inline bool operator!=(const const_iterator &other) const { return !operator==(other); }
+
+    /// Prefix increment
+    /// @return @c *this
+    inline const_iterator &operator++()
+    {
+      next();
+      return *this;
+    }
+
+    /// Postfix increment
+    /// @return An iterator before incrementing.
+    inline const_iterator operator++(int)
+    {
+      auto iter = *this;
+      next();
+      return iter;
+    }
+
+    /// Dereference to a @c View.
+    /// @return A @c View to the current item.
+    inline const View &operator*() const { return _view; }
+    /// Dereference to a @c View.
+    /// @return A @c View to the current item.
+    inline const View *operator->() const { return &_view; }
+
+    /// Get a @c View to the child at @p child_index.
+    /// @param child_index The index of the child to retrieve.
+    /// @return The child @c View.
+    View getChild(unsigned child_index) const
+    {
+      View view = {};
+      view.id = _view.id;
+      view.child_count = 0;
+      auto child_rid = _cache->getChildId(_cursor.rid(), child_index);
+      if (child_rid != util::kNullResource)
+      {
+        _cache->get(child_rid, false, view.transform, view.colour);
+      }
+      return view;
+    }
+
+  protected:
+    /// Iterate to the next item.
+    void next()
+    {
+      ++_cursor;
+      if (_cursor != _end)
+      {
+        _view = { _cursor->id, _cursor->attributes.transform, _cursor->attributes.colour };
+      }
+      else
+      {
+        _view = {};
+      }
+    }
+
+  private:
+    ShapeCache::const_iterator _cursor;
+    ShapeCache::const_iterator _end;
+    const ShapeCache *_cache = nullptr;
+    Type _cache_type = Type::Solid;
+    View _view = {};
+  };
+
+  /// Begin iteration of the shapes of @p type.
+  /// @param type The @c Type of shape to iterate.
+  /// @return The starting iterator.
+  inline const_iterator begin(Type type) const { return const_iterator(type, cacheForType(type), true); }
+  /// End iterator for shapes of @p type.
+  /// @param type The @c Type of shape to iterate.
+  /// @return The end iterator.
+  inline const_iterator end(Type type) const { return const_iterator(type, cacheForType(type), false); }
 
 protected:
   /// Identifies a shape type and index into the associated @c ShapeCache .
@@ -201,7 +346,7 @@ protected:
   /// @todo Use a different map; MSVC @c std::unordered_map performance is terrible.
   using IdIndexMap = std::unordered_map<Id, CacheIndex>;
 
-  virtual util::ResourceListId addShape(bool transient, Type type, const Magnum::Matrix4 &transform,
+  virtual util::ResourceListId addShape(const Id &shape_id, Type type, const Magnum::Matrix4 &transform,
                                         const Magnum::Color4 &colour, const ParentId &parent_id = ParentId(),
                                         unsigned *child_index = nullptr);
 

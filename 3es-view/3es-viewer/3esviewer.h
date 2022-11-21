@@ -6,6 +6,8 @@
 #include "camera/3esfly.h"
 #include "3esthirdeyescene.h"
 
+#include <filesystem>
+
 namespace tes::viewer
 {
 namespace shaders
@@ -15,6 +17,7 @@ class Edl;
 
 class EdlEffect;
 class FboEffect;
+class DataThread;
 
 class Viewer : public Magnum::Platform::Application
 {
@@ -24,6 +27,9 @@ public:
   explicit Viewer(const Arguments &arguments);
 
   inline std::shared_ptr<ThirdEyeScene> tes() const { return _tes; }
+
+  bool open(const std::filesystem::path &path);
+  bool closeOrDisconnect();
 
   void setContinuousSim(bool continuous);
   void checkContinuousSim();
@@ -60,6 +66,7 @@ private:
   EdlParam _edl_tweak = EdlParam::LinearScale;
 
   std::shared_ptr<ThirdEyeScene> _tes;
+  std::shared_ptr<DataThread> _data_thread;
 
   Clock::time_point _last_sim_time = Clock::now();
 

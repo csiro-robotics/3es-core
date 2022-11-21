@@ -7,7 +7,9 @@
 #include <sstream>
 #include <string>
 
-namespace tes::log
+namespace tes
+{
+namespace log
 {
 /// Logging levels.
 enum class Level
@@ -157,12 +159,13 @@ void trace(Args... args)
   str << std::endl;
   log(Level::Trace, str.str());
 }
-}  // namespace tes::log
 
 inline std::ostream &operator<<(std::ostream &o, tes::log::Level level)
 {
   o << toString(level);
   return o;
 }
+}  // namespace log
+}  // namespace tes
 
 #endif  // TES_CORE_LOG_H

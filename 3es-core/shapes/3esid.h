@@ -77,6 +77,14 @@ public:
     _category = category;
   }
 
+  /// Check if this ID represents a transient shape. By convention, a transient
+  /// shape has a zero ID value, and we cannot address this ID.
+  /// @return
+  inline bool isTransient() const
+  {
+    return _id == 0;
+  }
+
   /// Test for equality.
   /// @param other Object to compare to.
   /// @return True if the id values are identical.

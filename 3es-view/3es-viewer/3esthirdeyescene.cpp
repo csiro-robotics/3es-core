@@ -1,14 +1,19 @@
 #include "3esthirdeyescene.h"
 
 #include "3esedleffect.h"
+#include "handler/3esmessage.h"
+#include "handler/3esshape.h"
 #include "painter/3esarrow.h"
 #include "painter/3esbox.h"
 #include "painter/3escapsule.h"
 #include "painter/3escylinder.h"
 #include "painter/3esplane.h"
 #include "painter/3espose.h"
+#include "painter/3esshapepainter.h"
 #include "painter/3essphere.h"
 #include "painter/3esstar.h"
+
+#include <3eslog.h>
 
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
@@ -55,9 +60,45 @@ void ThirdEyeScene::clearActiveFboEffect()
 }
 
 
-void ThirdEyeScene::update(float dt, const Magnum::Vector2 &window_size)
+void ThirdEyeScene::reset()
+{
+  _reset = true;
+}
+
+
+void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
 {
   using namespace Magnum::Math::Literals;
+  std::unique_lock guard(_mutex);
+
+  if (_reset)
+  {
+    doReset();
+    _reset = false;
+  }
+
+  // Update frame if needed.
+  if (_new_frame.has_value() || _new_server_info)
+  {
+    // Update server info.
+    if (_new_server_info)
+    {
+      for (auto &[routingId, handler] : _messageHandlers)
+      {
+        handler->updateServerInfo(_server_info);
+      }
+      _new_server_info = false;
+    }
+
+    _render_stamp.frame_number = *_new_frame;
+    _new_frame.reset();
+
+    for (auto &[routingId, handler] : _messageHandlers)
+    {
+      handler->beginFrame(_render_stamp);
+    }
+  }
+  guard.unlock();
 
   auto projection_matrix = camera::viewProjection(_camera, window_size);
   ++_render_stamp.render_mark;
@@ -81,6 +122,39 @@ void ThirdEyeScene::update(float dt, const Magnum::Vector2 &window_size)
     Magnum::GL::defaultFramebuffer.bind();
     Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth);
     _active_fbo_effect->completeFrame();
+  }
+}
+
+
+void ThirdEyeScene::updateToFrame(FrameNumber frame)
+{
+  std::lock_guard guard(_mutex);
+  for (auto &[routingId, handler] : _messageHandlers)
+  {
+    handler->endFrame(_render_stamp);
+  }
+  _new_frame = frame;
+}
+
+
+void ThirdEyeScene::updateServerInfo(const ServerInfoMessage &server_info)
+{
+  std::lock_guard guard(_mutex);
+  _server_info = server_info;
+  _new_server_info = true;
+}
+
+
+void ThirdEyeScene::processMessage(PacketReader &packet)
+{
+  auto handler = _messageHandlers.find(packet.routingId());
+  if (handler != _messageHandlers.end())
+  {
+    handler->second->readMessage(packet);
+  }
+  else
+  {
+    log::error("No message handler for id ", packet.routingId());
   }
 }
 
@@ -197,6 +271,33 @@ void ThirdEyeScene::initialisePainters()
 }
 
 
+void ThirdEyeScene::initialiseHandlers()
+{
+  _messageHandlers.emplace(  //
+    SIdSphere, std::make_shared<handler::Shape>(SIdSphere, "sphere", std::make_shared<painter::Sphere>(_culler)));
+  _messageHandlers.emplace(  //
+    SIdBox, std::make_shared<handler::Shape>(SIdBox, "box", std::make_shared<painter::Box>(_culler)));
+  _messageHandlers.emplace(  //
+    SIdCylinder,
+    std::make_shared<handler::Shape>(SIdCylinder, "cylinder", std::make_shared<painter::Cylinder>(_culler)));
+  _messageHandlers.emplace(  //
+    SIdCapsule, std::make_shared<handler::Shape>(SIdCapsule, "capsule", std::make_shared<painter::Capsule>(_culler)));
+  _messageHandlers.emplace(  //
+    SIdPlane, std::make_shared<handler::Shape>(SIdPlane, "plane", std::make_shared<painter::Plane>(_culler)));
+  _messageHandlers.emplace(  //
+    SIdStar, std::make_shared<handler::Shape>(SIdStar, "star", std::make_shared<painter::Star>(_culler)));
+  _messageHandlers.emplace(  //
+    SIdArrow, std::make_shared<handler::Shape>(SIdArrow, "arrow", std::make_shared<painter::Arrow>(_culler)));
+  _messageHandlers.emplace(  //
+    SIdPose, std::make_shared<handler::Shape>(SIdPose, "pose", std::make_shared<painter::Pose>(_culler)));
+
+  for (auto &[id, handler] : _messageHandlers)
+  {
+    handler->initialise();
+  }
+}
+
+
 void ThirdEyeScene::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix)
 {
   // Draw opaque then transparent for proper blending.
@@ -207,6 +308,15 @@ void ThirdEyeScene::drawShapes(float dt, const Magnum::Matrix4 &projection_matri
   for (const auto &[id, painter] : _painters)
   {
     painter->drawTransparent(_render_stamp, projection_matrix);
+  }
+}
+
+
+void ThirdEyeScene::doReset()
+{
+  for (auto &[id, handler] : _messageHandlers)
+  {
+    handler->reset();
   }
 }
 }  // namespace tes::viewer

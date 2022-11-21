@@ -55,7 +55,7 @@ void Shape::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &
 }
 
 
-void Shape::readMessage(PacketReader &reader, FrameNumber frame_number)
+void Shape::readMessage(PacketReader &reader)
 {
   TES_ASSERT(reader.routingId() == routingId());
   ObjectAttributes attrs = {};
@@ -65,17 +65,17 @@ void Shape::readMessage(PacketReader &reader, FrameNumber frame_number)
   {
   case OIdCreate: {
     CreateMessage msg;
-    ok = msg.read(reader, attrs) && handleCreate(msg, attrs, reader, frame_number);
+    ok = msg.read(reader, attrs) && handleCreate(msg, attrs, reader);
     break;
   }
   case OIdDestroy: {
     DestroyMessage msg;
-    ok = msg.read(reader) && handleDestroy(msg, reader, frame_number);
+    ok = msg.read(reader) && handleDestroy(msg, reader);
     break;
   }
   case OIdUpdate: {
     UpdateMessage msg;
-    ok = msg.read(reader, attrs) && handleUpdate(msg, attrs, reader, frame_number);
+    ok = msg.read(reader, attrs) && handleUpdate(msg, attrs, reader);
     break;
   }
   default:
@@ -91,7 +91,7 @@ void Shape::readMessage(PacketReader &reader, FrameNumber frame_number)
 }
 
 
-void Shape::serialise(Connection &out, FrameNumber frame_number, ServerInfoMessage &info)
+void Shape::serialise(Connection &out, ServerInfoMessage &info)
 {
   info = _server_info;
   std::array<uint8_t, (1u << 16u) - 1> buffer;
@@ -99,36 +99,65 @@ void Shape::serialise(Connection &out, FrameNumber frame_number, ServerInfoMessa
   CreateMessage create = {};
   ObjectAttributes attrs = {};
 
-  // for (auto &&shape : *_painter)
-  // {
-  //   const auto transform = shape.transform();
-  //   const auto colour = shape.colour();
+  const std::array<painter::ShapePainter::Type, 3> shape_types = { painter::ShapePainter::Type::Solid,
+                                                                   painter::ShapePainter::Type::Wireframe,
+                                                                   painter::ShapePainter::Type::Transparent };
 
-  //   create.id = shape.id();
-  //   // @todo create.category = shape.category()
-  //   create.flags = 0;
-  //   if (shape.type() == painter::ShapePainter::Type::Transparent)
-  //   {
-  //     create.flags |= OFTransparent;
-  //   }
-  //   if (shape.type() == painter::ShapePainter::Type::Wireframe)
-  //   {
-  //     create.flags |= OFWire;
-  //   }
+  for (auto shape_type : shape_types)
+  {
+    auto end = _painter->end(shape_type);
+    for (auto shape = _painter->begin(shape_type); shape != end; ++shape)
+    {
+      const auto transform = shape->transform;
+      const auto colour = shape->colour;
 
-  //   decomposeTransform(transform, attrs);
-  //   attrs.colour = Colour(colour.x(), colour.y(), colour.z(), colour.w()).c;
+      create.id = shape->id.id();
+      create.category = shape->id.category();
+      create.flags = 0;
+      if (shape_type == painter::ShapePainter::Type::Transparent)
+      {
+        create.flags |= OFTransparent;
+      }
+      if (shape_type == painter::ShapePainter::Type::Wireframe)
+      {
+        create.flags |= OFWire;
+      }
 
-  //   // Handle multi shape
-  //   // if (shape.isChain())
-  //   // {
-  //   // }
+      decomposeTransform(transform, attrs);
+      attrs.colour = Colour(colour.x(), colour.y(), colour.z(), colour.w()).c;
 
-  //   writer.reset(routingId(), OIdCreate);
-  //   create.write(writer, attrs);
-  //   writer.finalise();
-  //   out.send(writer.data(), writer.packetSize());
-  // }
+      writer.reset(routingId(), OIdCreate);
+      bool ok = true;
+      ok = create.write(writer, attrs) && ok;
+
+      if (shape->child_count)
+      {
+        // Handle multi shape
+        uint32_t child_count = shape->child_count;
+        writer.writeElement(child_count) == sizeof(child_count) && ok;
+
+        for (uint32_t i = 0; i < child_count; ++i)
+        {
+          auto child = shape.getChild(i);
+
+          decomposeTransform(transform, attrs);
+          attrs.colour = Colour(colour.x(), colour.y(), colour.z(), colour.w()).c;
+          ok = attrs.write(writer) && ok;
+        }
+      }
+
+      ok = writer.finalise() && ok;
+      if (ok)
+      {
+        out.send(writer.data(), writer.packetSize());
+      }
+      else
+      {
+        log::error("Failed to serialise shapes: ", name());
+        break;
+      }
+    }
+  }
 }
 
 
@@ -159,8 +188,7 @@ void Shape::decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttribute
 }
 
 
-bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader,
-                         FrameNumber frame_number)
+bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader)
 {
   painter::ShapePainter::Type draw_type = painter::ShapePainter::Type::Solid;
 
@@ -206,8 +234,7 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
 }
 
 
-bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader,
-                         FrameNumber frame_number)
+bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader)
 {
   const Id id(msg.id);
   Magnum::Matrix4 transform = {};
@@ -258,14 +285,14 @@ bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs
 }
 
 
-bool Shape::handleDestroy(const DestroyMessage &msg, PacketReader &reader, FrameNumber frame_number)
+bool Shape::handleDestroy(const DestroyMessage &msg, PacketReader &reader)
 {
   const Id id(msg.id);
   return _painter->remove(id);
 }
 
 
-bool Shape::handleData(const DataMessage &msg, PacketReader &reader, FrameNumber frame_number)
+bool Shape::handleData(const DataMessage &msg, PacketReader &reader)
 {
   // Not expecting data messages.
   return false;
