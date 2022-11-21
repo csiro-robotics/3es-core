@@ -2,6 +2,7 @@
 
 #include <Magnum/Math/Intersection.h>
 
+
 namespace tes::viewer
 {
 BoundsCuller::BoundsCuller() = default;
@@ -10,47 +11,31 @@ BoundsCuller::~BoundsCuller() = default;
 
 BoundsId BoundsCuller::allocate(const Magnum::Vector3 &centre, const Magnum::Vector3 &half_extents)
 {
-  BoundsId new_id = invalidBoundsId();
-  if (_free_list_head != invalidBoundsId())
-  {
-    new_id = _free_list_head;
-    _free_list_head = _bounds[_free_list_head].id;
-  }
-  else
-  {
-    new_id = BoundsId(_bounds.size());
-    _bounds.emplace_back();
-  }
-
-  auto &bounds = _bounds[new_id];
-  bounds.centre = centre;
-  bounds.half_extents = half_extents;
+  auto bounds = _bounds.allocate();
+  bounds->centre = centre;
+  bounds->half_extents = half_extents;
   // Ensure it's not visible.
-  bounds.visible_mark = _last_mark - 1;
-  bounds.id = new_id;
+  bounds->visible_mark = _last_mark - 1;
+  bounds->id = bounds.id();
 
-  return new_id;
+  return bounds.id();
 }
 
 
 void BoundsCuller::release(BoundsId id)
 {
-  if (id < _bounds.size())
-  {
-    if (_bounds[id].id == id)
-    {
-      _bounds[id].id = _free_list_head;
-      _free_list_head = id;
-    }
-  }
+  _bounds.release(id);
 }
 
 
 void BoundsCuller::update(BoundsId id, const Magnum::Vector3 &centre, const Magnum::Vector3 &half_extents)
 {
-  auto &bounds = _bounds.at(id);
-  bounds.centre = centre;
-  bounds.half_extents = half_extents;
+  auto bounds = _bounds.at(id);
+  if (bounds.isValid())
+  {
+    bounds->centre = centre;
+    bounds->half_extents = half_extents;
+  }
 }
 
 

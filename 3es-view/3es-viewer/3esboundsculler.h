@@ -3,20 +3,19 @@
 
 #include "3es-viewer.h"
 
+#include "3esframestamp.h"
+#include "util/3esresourcelist.h"
+
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Frustum.h>
 #include <Magnum/Math/Vector3.h>
 
+#include <mutex>
 #include <vector>
 
 namespace tes::viewer
 {
-using BoundsId = unsigned;
-
-constexpr inline BoundsId invalidBoundsId()
-{
-  return ~0u;
-}
+using BoundsId = util::ResourceListId;
 
 /// Culling bounds structure.
 struct Bounds
@@ -26,7 +25,7 @@ struct Bounds
   /// Upper bounds.
   Magnum::Vector3 half_extents;
   /// Render stamp for which the bounds were last in view.
-  unsigned visible_mark = 0;
+  RenderStamp visible_mark = 0;
   /// Bounds culling id.
   ///
   /// Internally used to address the next item in the free list.
@@ -56,7 +55,7 @@ public:
   /// @param id Bounds entry ID to check visibility of. Must be a valid entry or behaviour is undefined.
   /// @param render_mark The render mark to check visibility against.
   /// @return True if the bounds entry with @p id is visible at the given @p render_mark .
-  inline bool isVisible(BoundsId id, unsigned render_mark) const { return _bounds[id].visible_mark == render_mark; }
+  bool isVisible(BoundsId id, unsigned render_mark) const;
 
   /// Check if a bounds entry was visible at the last mark given to @p cull() .
   /// @param id Bounds entry ID to check visibility of. Must be a valid entry or behaviour is undefined.
@@ -85,13 +84,17 @@ public:
   void cull(unsigned mark, const Magnum::Math::Frustum<Magnum::Float> &view_frustum);
 
 private:
-  /// Bounds array.
-  std::vector<Bounds> _bounds;
-  /// Bounds array free list head.
-  unsigned _free_list_head = invalidBoundsId();
-  /// The mast @c mark given to @c cull() .
-  unsigned _last_mark = 0;
+  using ResourceList = util::ResourceList<Bounds>;
+  ResourceList _bounds;
+  RenderStamp _last_mark = ~0;
 };
+
+
+inline bool BoundsCuller::isVisible(BoundsId id, unsigned render_mark) const
+{
+  auto bounds = _bounds.at(id);
+  return bounds.isValid() && bounds->visible_mark == render_mark;
+}
 }  // namespace tes::viewer
 
 #endif  // TES_VIEWER_BOUNDS_CULLER_H
