@@ -63,7 +63,7 @@ public:
 
 private:
   size_t readMore(size_t moreCount);
-  bool checkMarker(std::vector<char> &buffer, size_t i);
+  bool checkMarker(std::vector<uint8_t> &buffer, size_t i);
   /// Consume the packet at the head of the buffer (if valid and able).
   void consume();
 
@@ -75,7 +75,7 @@ private:
 
   std::shared_ptr<std::istream> _stream;
   std::array<uint8_t, sizeof(tes::PacketMarker)> _markerBytes;
-  std::vector<char> _buffer;
+  std::vector<uint8_t> _buffer;
   size_t _chunkSize = 1024u;
 };
 }  // namespace tes

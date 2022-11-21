@@ -91,6 +91,7 @@ void PacketStreamReader::seek(std::istream::pos_type position)
   _buffer.clear();
   if (_stream)
   {
+    _stream->clear();
     _stream->seekg(position);
   }
 }
@@ -98,15 +99,17 @@ void PacketStreamReader::seek(std::istream::pos_type position)
 
 size_t PacketStreamReader::readMore(size_t moreCount)
 {
+  static_assert(sizeof(*_buffer.data()) == sizeof(char));
   auto haveCount = _buffer.size();
   _buffer.resize(haveCount + moreCount);
-  auto readCount = _stream->readsome(_buffer.data() + haveCount, moreCount);
+  _stream->read(reinterpret_cast<char *>(_buffer.data()) + haveCount, moreCount);
+  auto readCount = _stream->gcount();
   _buffer.resize(haveCount + readCount);
   return readCount;
 }
 
 
-bool PacketStreamReader::checkMarker(std::vector<char> &buffer, size_t i)
+bool PacketStreamReader::checkMarker(std::vector<uint8_t> &buffer, size_t i)
 {
   if (_buffer[i] == _markerBytes[0])
   {
