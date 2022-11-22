@@ -117,10 +117,8 @@ public:
   /// to consider the effects of rotation.
   ///
   /// @param transform The shape transformation matrix.
-  /// @param[out] centre Set to the bounds centre.
-  /// @param[out] halfExtents Set to the bounds half extents vector.
-  using BoundsCalculator =
-    std::function<void(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents)>;
+  /// @param[out] bounds Set to the calculated bounds axis aligned box.
+  using BoundsCalculator = std::function<void(const Magnum::Matrix4 &transform, Bounds &bounds)>;
 
   class const_iterator;
   class Shape;
@@ -194,8 +192,7 @@ public:
   /// @param transform The shape transformation matrix.
   /// @param[out] centre Set to the bounds centre.
   /// @param[out] halfExtents Set to the bounds half extents vector.
-  static void calcSphericalBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre,
-                                  Magnum::Vector3 &halfExtents);
+  static void calcSphericalBounds(const Magnum::Matrix4 &transform, Bounds &bounds);
 
   /// Calculate bounds of a cylindrical object. Assumes cylinder major axis is (0, 0, 1).
   /// @param transform The shape transformation matrix.
@@ -203,8 +200,7 @@ public:
   /// @param length Cylindrical length.
   /// @param[out] centre Set to the bounds centre.
   /// @param[out] halfExtents Set to the bounds half extents vector.
-  static void calcCylindricalBounds(const Magnum::Matrix4 &transform, float radius, float length,
-                                    Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents);
+  static void calcCylindricalBounds(const Magnum::Matrix4 &transform, float radius, float length, Bounds &bounds);
 
   /// Internal free list terminator value.
   static constexpr size_t kListEnd = util::kNullResource;
@@ -232,7 +228,7 @@ public:
   /// @param transform The shape instance transformation matrix.
   /// @param[out] centre Calculated bounds centre.
   /// @param[out] halfExtents Calculated bounds half extents.
-  void calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents);
+  void calcBounds(const Magnum::Matrix4 &transform, Bounds &bounds);
 
   inline std::shared_ptr<ShapeCacheShader> shader() const { return _shader; }
 

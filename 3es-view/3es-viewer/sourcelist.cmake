@@ -5,6 +5,8 @@ list(APPEND PUBLIC_HEADERS
   3esedleffect.h
   3esfboeffect.h
   3esframestamp.h
+  3esmagnum.h
+  3esmagnumv3.h
   3esthirdeyescene.h
   3esviewablewindow.h
   3esviewer.h

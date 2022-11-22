@@ -38,12 +38,34 @@ public:
   ///     @p minExtents.
   Bounds(const Vector3<T> &minExt, const Vector3<T> maxExt);
 
+  /// Initialise the boudns to the given point.
+  /// @param point The point to set as both min and max extents.
+  explicit Bounds(const Vector3<T> &point)
+    : Bounds(point, point)
+  {}
+
+  /// Create a bounds structure from centre and half extents values.
+  /// @param centre The bounds centre.
+  /// @param half_extents Bounds half extents.
+  /// @return The bounds AABB.
+  static Bounds fromCentreHalfExtents(const Vector3<T> &centre, const Vector3<T> &half_extents)
+  {
+    return { centre - half_extents, centre + half_extents };
+  }
+
   /// Access the minimum extents.
   /// @return The minimal corder of the bounding box.
   const Vector3<T> &minimum() const;
   /// Access the maximum extents.
   /// @return The maximal corder of the bounding box.
   const Vector3<T> &maximum() const;
+
+  /// Get the bounds centre point.
+  /// @return The bounds centre.
+  const Vector3<T> &centre() const;
+  /// Get the bounds half extents, from centre to max.
+  /// @return The half extents, centre to max.
+  const Vector3<T> &halfExtents() const;
 
   /// Expand the bounding box to include @p point.
   /// @param point The point to include.
@@ -117,6 +139,12 @@ inline Bounds<T>::Bounds(const Vector3<T> &minExt, const Vector3<T> maxExt)
 
 
 template <typename T>
+inline Bounds<T>::Bounds(const Vector3<T> &point)
+  : Bounds(point, point)
+{}
+
+
+template <typename T>
 inline const Vector3<T> &Bounds<T>::minimum() const
 {
   return _minimum;
@@ -127,6 +155,18 @@ template <typename T>
 inline const Vector3<T> &Bounds<T>::maximum() const
 {
   return _maximum;
+}
+
+
+const Vector3<T> &Bounds<T>::centre() const
+{
+  return T(0.5) * (_minimum + _maximum);
+}
+
+
+const Vector3<T> &Bounds<T>::halfExtents() const
+{
+  return _maximum - centre();
 }
 
 

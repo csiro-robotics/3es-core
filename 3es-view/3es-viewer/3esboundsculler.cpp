@@ -5,18 +5,18 @@
 
 namespace tes::viewer
 {
+constexpr BoundsId BoundsCuller::kInvalidId;
+
 BoundsCuller::BoundsCuller() = default;
 BoundsCuller::~BoundsCuller() = default;
 
 
-BoundsId BoundsCuller::allocate(const Magnum::Vector3 &centre, const Magnum::Vector3 &half_extents)
+BoundsId BoundsCuller::allocate(const Bounds &bounds)
 {
   auto bounds = _bounds.allocate();
-  bounds->centre = centre;
-  bounds->half_extents = half_extents;
+  bounds->bounds = bounds;
   // Ensure it's not visible.
   bounds->visible_mark = _last_mark - 1;
-  bounds->id = bounds.id();
 
   return bounds.id();
 }
@@ -28,13 +28,12 @@ void BoundsCuller::release(BoundsId id)
 }
 
 
-void BoundsCuller::update(BoundsId id, const Magnum::Vector3 &centre, const Magnum::Vector3 &half_extents)
+void BoundsCuller::update(BoundsId id, const Bounds &bounds)
 {
   auto bounds = _bounds.at(id);
   if (bounds.isValid())
   {
-    bounds->centre = centre;
-    bounds->half_extents = half_extents;
+    bounds->bounds = bounds;
   }
 }
 
@@ -43,9 +42,13 @@ void BoundsCuller::cull(unsigned mark, const Magnum::Math::Frustum<Magnum::Float
 {
   for (auto &bounds : _bounds)
   {
-    bounds.visible_mark = (Magnum::Math::Intersection::aabbFrustum(bounds.centre, bounds.half_extents, view_frustum)) ?
-                            mark :
-                            bounds.visible_mark;
+    const auto centre = bounds.bounds.centre();
+    const auto half_extents = bounds.bounds.halfExtents();
+    bounds.visible_mark =
+      (Magnum::Math::Intersection::aabbFrustum({ centre.x, centre.y, centre.z },
+                                               { half_extents.x, half_extents.y, half_extents.z }, view_frustum)) ?
+        mark :
+        bounds.visible_mark;
   }
   _last_mark = mark;
 }

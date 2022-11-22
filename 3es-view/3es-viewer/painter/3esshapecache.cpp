@@ -37,18 +37,15 @@ void ShapeCacheShaderFlat::draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buff
 }
 
 
-void ShapeCache::calcSphericalBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre,
-                                     Magnum::Vector3 &halfExtents)
+void ShapeCache::calcSphericalBounds(const Magnum::Matrix4 &transform, Bounds &bounds)
 {
-  halfExtents[0] = transform[0].xyz().length();
-  halfExtents[1] = transform[1].xyz().length();
-  halfExtents[2] = transform[2].xyz().length();
-  centre = transform[3].xyz();
+  bounds = Bounds::fromCentreHalfExtents(
+    transform[3].xyz(),
+    Magnum::Vector3(transform[0].xyz().length(), transform[1].xyz().length(), transform[2].xyz().length()));
 }
 
 
-void ShapeCache::calcCylindricalBounds(const Magnum::Matrix4 &transform, float radius, float length,
-                                       Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents)
+void ShapeCache::calcCylindricalBounds(const Magnum::Matrix4 &transform, float radius, float length, Bounds &bounds)
 {
   // Scale and rotate an AABB then recalculate bounds from that.
   // Note: assumes the axis.
@@ -63,21 +60,11 @@ void ShapeCache::calcCylindricalBounds(const Magnum::Matrix4 &transform, float r
     (transform * Magnum::Vector4(-radius, radius, -0.5f * length, 1)).xyz(),
   };
 
-  Magnum::Vector3 minExt = boxVertices[0];
-  Magnum::Vector3 maxExt = boxVertices[0];
-  centre = {};
+  bounds = Bounds(boxVertices[0]);
   for (const auto &v : boxVertices)
   {
-    centre += v;
-    minExt.x() = std::min(v.x(), minExt.x());
-    minExt.y() = std::min(v.y(), minExt.y());
-    minExt.z() = std::min(v.z(), minExt.z());
-    maxExt.x() = std::max(v.x(), maxExt.x());
-    maxExt.y() = std::max(v.y(), maxExt.y());
-    maxExt.z() = std::max(v.z(), maxExt.z());
+    bounds.expand(v);
   }
-  centre /= float(boxVertices.size());
-  halfExtents = 0.5f * (maxExt - minExt);
 }
 
 
@@ -106,9 +93,9 @@ ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::initializer_li
   _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
 }
 
-void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents)
+void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Bounds &bounds)
 {
-  _bounds_calculator(transform, centre, halfExtents);
+  _bounds_calculator(transform, bounds);
 }
 
 util::ResourceListId ShapeCache::add(const tes::Id &shape_id, const Magnum::Matrix4 &transform,
@@ -117,11 +104,10 @@ util::ResourceListId ShapeCache::add(const tes::Id &shape_id, const Magnum::Matr
 {
   auto shape = _shapes.allocate();
 
-  Magnum::Vector3 centre;
-  Magnum::Vector3 halfExtents;
-  _bounds_calculator(transform, centre, halfExtents);
+  Bounds bounds;
+  _bounds_calculator(transform, bounds);
 
-  const auto bounds_id = _culler->allocate(centre, halfExtents);
+  const auto bounds_id = _culler->allocate(bounds);
   shape->flags = flags | ShapeFlag::Pending;
   shape->current.transform = transform;
   shape->current.colour = colour;
@@ -257,16 +243,15 @@ util::ResourceListId ShapeCache::getChildId(util::ResourceListId parent_id, unsi
 
 void ShapeCache::commit()
 {
-  Magnum::Vector3 bounds_centre = {};
-  Magnum::Vector3 half_extents = {};
+  Bounds bounds;
   for (auto iter = _shapes.begin(); iter != _shapes.end(); ++iter)
   {
     // Update bounds if changed.
     if ((iter->flags & ShapeFlag::Dirty) != ShapeFlag::None)
     {
       iter->current = iter->updated;
-      calcBounds(iter->updated.transform, bounds_centre, half_extents);
-      _culler->update(iter->bounds_id, bounds_centre, half_extents);
+      calcBounds(iter->updated.transform, bounds);
+      _culler->update(iter->bounds_id, bounds);
     }
 
     // Effect removal, based on Transient flag. We skip Transient and Pending items as this is the initial state for

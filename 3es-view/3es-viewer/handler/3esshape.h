@@ -16,25 +16,7 @@ class ShapePainter;
 
 namespace tes::viewer::handler
 {
-/// Defines the base functionality for @c handler::Message objects which add 3D objects to the scene.
-///
-/// The base class handles incoming create, update and destroy messages
-/// with consideration given to transient and non-transient and solid or wire frame
-/// shapes.
-///
-/// The @c handler::Shape class uses a @c painter::Shape to track shapes to draw.
-///
-/// @note out of date
-/// Derivations must define the <see cref="SolidMesh"/> and <see cref="WireframeMesh"/>
-/// properties to yield the solid and wire frame mesh objects respectively. Derivations
-/// must also complete the <see cref="Shape3D.MeshSetHandler"/> definition by implementing the
-/// <see cref="Shape3D.MeshSetHandler.Name"/> and <see cref="Shape3D.MeshSetHandler.RoutingID"/>
-/// properties.
-///
-/// @note out of date
-/// Derivations may optionally override the default message handling, or parts thereof.
-/// Most commonly, the methods <see cref="DecodeTransform"/> and <see cref="EncodeAttributes"/>
-/// may be overridden.
+/// A common message handler for all primitive shapes, rendered using a @c painter::ShapePainter.
 class Shape : public Message
 {
 public:

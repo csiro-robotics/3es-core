@@ -4,7 +4,10 @@
 #include "3es-viewer.h"
 
 #include "3esframestamp.h"
+#include "3esmagnumv3.h"
 #include "util/3esresourcelist.h"
+
+#include <3esbounds.h>
 
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Frustum.h>
@@ -17,19 +20,79 @@ namespace tes::viewer
 {
 using BoundsId = util::ResourceListId;
 
-/// Culling bounds structure.
-struct Bounds
+class Bounds : public tes::Bounds<Magnum::Float>
 {
-  /// Lower bounds.
-  Magnum::Vector3 centre;
-  /// Upper bounds.
-  Magnum::Vector3 half_extents;
-  /// Render stamp for which the bounds were last in view.
-  RenderStamp visible_mark = 0;
-  /// Bounds culling id.
-  ///
-  /// Internally used to address the next item in the free list.
-  unsigned id = 0;
+public:
+  using Super = tes::Bounds<Magnum::Float>;
+
+  inline Bounds()
+    : Super()
+  {}
+  inline Bounds(const Bounds &other)
+    : Super(other)
+  {}
+  inline Bounds(const Magnum::Vector3 &min_ext, const Magnum::Vector3 &max_ext)
+    : Super(convert(min_ext), convert(max_ext))
+  {}
+  inline Bounds(const Magnum::Vector3 &point)
+    : Super(convert(point))
+  {}
+  inline Bounds(const tes::Vector3<Magnum::Float> &min_ext, const tes::Vector3<Magnum::Float> &max_ext)
+    : Super(min_ext, max_ext)
+  {}
+  inline Bounds(const tes::Vector3<Magnum::Float> &point)
+    : Super(point)
+  {}
+
+  /// Create a bounds structure from centre and half extents values.
+  /// @param centre The bounds centre.
+  /// @param half_extents Bounds half extents.
+  /// @return The bounds AABB.
+  static Bounds fromCentreHalfExtents(const Magnum::Vector3 &centre, const Magnum::Vector3 &half_extents)
+  {
+    return { centre - half_extents, centre + half_extents };
+  }
+
+  /// Access the minimum extents.
+  /// @return The minimal corder of the bounding box.
+  inline const Magnum::Vector3 &minimum() const { return convert(Super::minimum()); }
+  /// Access the maximum extents.
+  /// @return The maximal corder of the bounding box.
+  inline const Magnum::Vector3 &maximum() const { return convert(Super::maximum()); }
+
+  /// Get the bounds centre point.
+  /// @return The bounds centre.
+  const Magnum::Vector3 &centre() const { return convert(Super::centre()); }
+  /// Get the bounds half extents, from centre to max.
+  /// @return The half extents, centre to max.
+  const Magnum::Vector3 &halfExtents() const { return convert(Super::halfExtents()); }
+
+  /// Expand the bounding box to include @p point.
+  /// @param point The point to include.
+  inline void expand(const Magnum::Vector3 &point) { expand(convert(point)); }
+
+  /// Expand the bounding box to include @p other.
+  /// @param other The bounds to include.
+  inline void expand(const Bounds &other) { Super::expand(other); }
+
+  /// Precise equality operator.
+  /// @param other The object to compare to.
+  /// @return True if this is precisely equal to @p other.
+  inline bool operator==(const Bounds &other) const { return Super::operator==(other); }
+
+  /// Precise inequality operator.
+  /// @param other The object to compare to.
+  /// @return True if this is no precisely equal to @p other.
+  inline bool operator!=(const Bounds &other) const { return Super::operator!=(other); }
+
+  /// Assignment operator.
+  /// @param other The bounds to copy.
+  /// @return @c this.
+  inline Bounds &operator=(const Bounds &other)
+  {
+    Super::operator=(other);
+    return *this;
+  }
 };
 
 /// Bounds culling system.
@@ -46,6 +109,9 @@ struct Bounds
 class BoundsCuller
 {
 public:
+  using Bounds = tes::Bounds<Magnum::Float>;
+  static constexpr BoundsId kInvalidId = util::kNullResource;
+
   /// Constructor.
   BoundsCuller();
   /// Destructor.
@@ -63,20 +129,18 @@ public:
   inline bool isVisible(BoundsId id) const { return isVisible(id, _last_mark); }
 
   /// Allocate a new bounds entry with the given bounds.
-  /// @param centre Bounds centre.
-  /// @param half_extents Bounds AABB half extents.
+  /// @param bounds Bounds AABB.
   /// @return The bound entry ID.
-  BoundsId allocate(const Magnum::Vector3 &centre, const Magnum::Vector3 &half_extents);
+  BoundsId allocate(const Bounds &bounds);
 
   /// Release a bounds entry.
   /// @param id ID of the entry to release. Must be a valid entry or behaviour is undefined.
   void release(BoundsId id);
 
   /// Update an existing bounds entry to the given bounds.
-  /// @param centre Bounds centre.
-  /// @param half_extents Bounds AABB half extents.
+  /// @param bounds Bounds AABB.
   /// @param id ID of the entry to release. Must be a valid entry or behaviour is undefined.
-  void update(BoundsId id, const Magnum::Vector3 &centre, const Magnum::Vector3 &half_extents);
+  void update(BoundsId id, const Bounds &bounds);
 
   /// Perform bounds culling on all registered bounds.
   /// @param mark The render mark to stamp visible bounds entries with.
@@ -84,7 +148,15 @@ public:
   void cull(unsigned mark, const Magnum::Math::Frustum<Magnum::Float> &view_frustum);
 
 private:
-  using ResourceList = util::ResourceList<Bounds>;
+  /// Culling bounds structure.
+  struct CullBounds
+  {
+    Bounds bounds;
+    /// Render stamp for which the bounds were last in view.
+    RenderStamp visible_mark = 0;
+  };
+
+  using ResourceList = util::ResourceList<CullBounds>;
   ResourceList _bounds;
   RenderStamp _last_mark = ~0;
 };
