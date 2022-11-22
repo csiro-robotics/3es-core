@@ -6,6 +6,7 @@
 #include "painter/3esarrow.h"
 #include "painter/3esbox.h"
 #include "painter/3escapsule.h"
+#include "painter/3escone.h"
 #include "painter/3escylinder.h"
 #include "painter/3esplane.h"
 #include "painter/3espose.h"
@@ -265,6 +266,7 @@ void ThirdEyeScene::initialiseHandlers()
 {
   _painters.emplace(SIdSphere, std::make_shared<painter::Sphere>(_culler));
   _painters.emplace(SIdBox, std::make_shared<painter::Box>(_culler));
+  _painters.emplace(SIdCone, std::make_shared<painter::Cone>(_culler));
   _painters.emplace(SIdCylinder, std::make_shared<painter::Cylinder>(_culler));
   _painters.emplace(SIdCapsule, std::make_shared<painter::Capsule>(_culler));
   _painters.emplace(SIdPlane, std::make_shared<painter::Plane>(_culler));
@@ -277,6 +279,8 @@ void ThirdEyeScene::initialiseHandlers()
   _messageHandlers.emplace(  //
     SIdBox, std::make_shared<handler::Shape>(SIdBox, "box", _painters[SIdBox]));
   _messageHandlers.emplace(  //
+    SIdCone, std::make_shared<handler::Shape>(SIdCone, "cone", _painters[SIdCone]));
+  _messageHandlers.emplace(  //
     SIdCylinder, std::make_shared<handler::Shape>(SIdCylinder, "cylinder", _painters[SIdCylinder]));
   _messageHandlers.emplace(  //
     SIdCapsule, std::make_shared<handler::Shape>(SIdCapsule, "capsule", _painters[SIdCapsule]));
@@ -288,6 +292,17 @@ void ThirdEyeScene::initialiseHandlers()
     SIdArrow, std::make_shared<handler::Shape>(SIdArrow, "arrow", _painters[SIdArrow]));
   _messageHandlers.emplace(  //
     SIdPose, std::make_shared<handler::Shape>(SIdPose, "pose", _painters[SIdPose]));
+
+  // TODO:
+  // - mesh shape
+  //  - lines
+  //  - triangles
+  //  - points
+  // - mesh set
+  // - point cloud
+  // - multi-shape
+  // - text2d
+  // - text3d
 
   for (auto &[id, handler] : _messageHandlers)
   {
