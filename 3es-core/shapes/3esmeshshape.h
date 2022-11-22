@@ -8,6 +8,7 @@
 
 #include "3esdebug.h"
 #include "3esmeshmessages.h"
+#include "3esmeshresource.h"
 #include "3esshape.h"
 #include "3esdatabuffer.h"
 
@@ -22,6 +23,51 @@ namespace tes
 class _3es_coreAPI MeshShape : public Shape
 {
 public:
+  /// Provides a @c MeshResource wrapper around a @c MeshShape object. This
+  /// allows the details of the @c MeshShape to be read via the @c MeshResource
+  /// API.
+  class Resource : public MeshResource
+  {
+  public:
+    /// Wraps a @c MeshShape with a @c MeshResource.
+    ///
+    /// The user must supply a @p resource_id since @c MeshResource should have a unique @c id(),
+    /// but we cannot infer this from this from the @p shape. An arbitrary value, such as zero,
+    /// is fine so long as the resource is not transferred over a @c Connection.
+    ///
+    /// @param shape The @c MeshShape to wrap.
+    /// @param resource_id A user supplied resource id. Must be unique if the @c Resource is to
+    /// be sent over a @c Connection.
+    Resource(MeshShape &shape, uint32_t resource_id);
+
+    uint32_t id() const override;
+
+    Transform transform() const override;
+    uint32_t tint() const override;
+    uint8_t drawType(int stream = 0) const override;
+    unsigned vertexCount(int stream = 0) const override;
+    unsigned indexCount(int stream = 0) const override;
+    DataBuffer vertices(int stream = 0) const override;
+    DataBuffer indices(int stream = 0) const override;
+    DataBuffer normals(int stream = 0) const override;
+    DataBuffer uvs(int stream = 0) const override;
+    DataBuffer colours(int stream = 0) const override;
+
+    /// Not allowed.
+    /// @param packet Ignored.
+    /// @return @c false
+    bool readCreate(PacketReader &packet) override;
+    /// Not allowed.
+    /// @param messageType Ignored.
+    /// @param packet Ignored.
+    /// @return @c false
+    bool readTransfer(int messageType, PacketReader &packet) override;
+
+  private:
+    MeshShape &_shape;
+    uint32_t _resource_id;
+  };
+
   /// Codes for @c writeData().
   ///
   /// The @c SDT_End flag is send in the send data value on the last message. However, the flag

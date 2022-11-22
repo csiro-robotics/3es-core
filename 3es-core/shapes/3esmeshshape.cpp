@@ -11,7 +11,8 @@
 
 #include <algorithm>
 
-using namespace tes;
+namespace tes
+{
 
 namespace
 {
@@ -25,6 +26,100 @@ struct DataPhase
   const DataBuffer *stream;
 };
 }  // namespace
+
+
+MeshShape::MeshShape::Resource::Resource(MeshShape &shape, uint32_t resource_id)
+  : _shape(shape)
+  , _resource_id(resource_id)
+{}
+
+
+uint32_t MeshShape::Resource::id() const
+{
+  return _resource_id;
+}
+
+
+Transform MeshShape::Resource::transform() const
+{
+  return _shape.transform();
+}
+
+
+uint32_t MeshShape::Resource::tint() const
+{
+  return _shape.attributes().colour;
+}
+
+
+uint8_t MeshShape::Resource::drawType(int stream) const
+{
+  return _shape.drawType();
+}
+
+
+unsigned MeshShape::Resource::vertexCount(int stream) const
+{
+  (void)stream;
+  return _shape.vertices().count();
+}
+
+
+unsigned MeshShape::Resource::indexCount(int stream) const
+{
+  (void)stream;
+  return _shape.indices().count();
+}
+
+
+DataBuffer MeshShape::Resource::vertices(int stream) const
+{
+  (void)stream;
+  return _shape.vertices();
+}
+
+
+DataBuffer MeshShape::Resource::indices(int stream) const
+{
+  (void)stream;
+  return _shape.indices();
+}
+
+
+DataBuffer MeshShape::Resource::normals(int stream) const
+{
+  (void)stream;
+  return _shape.normals();
+}
+
+
+DataBuffer MeshShape::Resource::uvs(int stream) const
+{
+  (void)stream;
+  return {};
+}
+
+
+DataBuffer MeshShape::Resource::colours(int stream) const
+{
+  (void)stream;
+  return _shape.colours();
+}
+
+
+bool MeshShape::Resource::readCreate(PacketReader &packet)
+{
+  (void)packet;
+  return false;
+}
+
+
+bool MeshShape::Resource::readTransfer(int messageType, PacketReader &packet)
+{
+  (void)messageType;
+  (void)packet;
+  return false;
+}
 
 
 MeshShape::MeshShape(const MeshShape &other)
@@ -332,3 +427,4 @@ void MeshShape::onClone(MeshShape *copy) const
   copy->_drawScale = _drawScale;
   copy->_drawType = _drawType;
 }
+}  // namespace tes
