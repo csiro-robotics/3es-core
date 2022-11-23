@@ -116,8 +116,9 @@ private:
   FrameStamp _render_stamp = {};
 
   std::mutex _render_mutex;
-  std::optional<FrameNumber> _new_frame;
+  FrameNumber _new_frame = 0;
   ServerInfoMessage _server_info = {};
+  bool _have_new_frame = false;
   bool _new_server_info = false;
   std::atomic_bool _reset = false;
 };

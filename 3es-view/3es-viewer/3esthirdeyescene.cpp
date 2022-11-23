@@ -78,7 +78,7 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
   std::unique_lock guard(_render_mutex);
 
   // Update frame if needed.
-  if (_new_frame.has_value() || _new_server_info)
+  if (_have_new_frame || _new_server_info)
   {
     // Update server info.
     if (_new_server_info)
@@ -90,8 +90,8 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
       _new_server_info = false;
     }
 
-    _render_stamp.frame_number = *_new_frame;
-    _new_frame.reset();
+    _render_stamp.frame_number = _new_frame;
+    _have_new_frame = false;
 
     for (auto &[routingId, handler] : _messageHandlers)
     {
@@ -133,6 +133,7 @@ void ThirdEyeScene::updateToFrame(FrameNumber frame)
     handler->endFrame(_render_stamp);
   }
   _new_frame = frame;
+  _have_new_frame = true;
 }
 
 
