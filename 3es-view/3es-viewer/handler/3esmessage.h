@@ -31,6 +31,8 @@ namespace tes::viewer::handler
 class Message
 {
 public:
+  using ObjectAttributes = tes::ObjectAttributes<Magnum::Float>;
+
   /// Flags modifying the normal operating behaviour of a message handler.
   enum class ModeFlag
   {
@@ -112,6 +114,9 @@ public:
   /// @param out Stream to write to.
   /// @param[out] info Provides information about about the serialisation.
   virtual void serialise(Connection &out, ServerInfoMessage &info) = 0;
+
+  static Magnum::Matrix4 composeTransform(const ObjectAttributes &attrs);
+  static void decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttributes &attrs);
 
 protected:
   uint16_t _routing_id = 0u;

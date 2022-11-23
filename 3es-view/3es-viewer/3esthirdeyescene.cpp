@@ -1,6 +1,7 @@
 #include "3esthirdeyescene.h"
 
 #include "3esedleffect.h"
+#include "handler/3esmeshshape.h"
 #include "handler/3esmessage.h"
 #include "handler/3esshape.h"
 #include "painter/3esarrow.h"
@@ -294,6 +295,8 @@ void ThirdEyeScene::initialiseHandlers()
   _messageHandlers.emplace(  //
     SIdPose, std::make_shared<handler::Shape>(SIdPose, "pose", _painters[SIdPose]));
 
+  _messageHandlers.emplace(SIdMeshShape, std::make_shared<handler::MeshShape>(_culler));
+
   // TODO:
   // - mesh shape
   //  - lines
@@ -315,13 +318,17 @@ void ThirdEyeScene::initialiseHandlers()
 void ThirdEyeScene::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix)
 {
   // Draw opaque then transparent for proper blending.
-  for (const auto &[id, painter] : _painters)
+  for (const auto &[id, handler] : _messageHandlers)
   {
-    painter->drawOpaque(_render_stamp, projection_matrix);
+    handler->draw(handler::Message::DrawPass::Opaque, _render_stamp, projection_matrix);
   }
-  for (const auto &[id, painter] : _painters)
+  for (const auto &[id, handler] : _messageHandlers)
   {
-    painter->drawTransparent(_render_stamp, projection_matrix);
+    handler->draw(handler::Message::DrawPass::Transparent, _render_stamp, projection_matrix);
+  }
+  for (const auto &[id, handler] : _messageHandlers)
+  {
+    handler->draw(handler::Message::DrawPass::Overlay, _render_stamp, projection_matrix);
   }
 }
 }  // namespace tes::viewer

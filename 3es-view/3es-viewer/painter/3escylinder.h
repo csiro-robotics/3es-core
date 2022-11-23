@@ -18,9 +18,8 @@ public:
 
   /// Calculate bounds for a cylinder shape.
   /// @param transform The shape transform to calculate with.
-  /// @param[out] centre Bounds centre output.
-  /// @param[out] half_extents Bounds half extents output.
-  static void calculateBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents);
+  /// @param[out] bounds Bounds output.
+  static void calculateBounds(const Magnum::Matrix4 &transform, Bounds &bounds);
 
   /// Solid mesh creation function.
   /// @return A solid (or transparent) mesh representation.

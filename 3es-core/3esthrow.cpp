@@ -4,19 +4,20 @@
 #include "3esthrow.h"
 
 #include "3esexception.h"
+#include "3eslog.h"
 
 #include <iostream>
 
 namespace tes
 {
-void log(const Exception &e)
+void logException(const Exception &e)
 {
-  std::cerr << e.what() << std::endl;
+  log::error(e.what());
 }
 
 
-void log(const Exception &e, const char *file, int line)
+void logException(const Exception &e, const char *file, int line)
 {
-  std::cerr << file << '(' << line << "): " << e.what() << std::endl;
+  log::error("(", line, "): ", e.what());
 }
-}
+}  // namespace tes

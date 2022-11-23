@@ -15,9 +15,9 @@ Cylinder::Cylinder(std::shared_ptr<BoundsCuller> culler)
 {}
 
 
-void Cylinder::calculateBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents)
+void Cylinder::calculateBounds(const Magnum::Matrix4 &transform, Bounds &bounds)
 {
-  return ShapeCache::calcCylindricalBounds(transform, 1.0f, 1.0f, centre, halfExtents);
+  return ShapeCache::calcCylindricalBounds(transform, 1.0f, 1.0f, bounds);
 }
 
 

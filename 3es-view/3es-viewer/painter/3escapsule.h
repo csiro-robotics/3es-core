@@ -29,9 +29,8 @@ public:
 
   /// Calculate bounds for a capsule shape.
   /// @param transform The shape transform to calculate with.
-  /// @param[out] centre Bounds centre output.
-  /// @param[out] half_extents Bounds half extents output.
-  static void calculateBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &half_extents);
+  /// @param[out] bounds Bounds output.
+  static void calculateBounds(const Magnum::Matrix4 &transform, Bounds &bounds);
 
   void drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
   void drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;

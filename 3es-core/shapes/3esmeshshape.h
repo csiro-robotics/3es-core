@@ -42,6 +42,8 @@ public:
 
     uint32_t id() const override;
 
+    tes::Resource *clone() const override;
+
     Transform transform() const override;
     uint32_t tint() const override;
     uint8_t drawType(int stream = 0) const override;

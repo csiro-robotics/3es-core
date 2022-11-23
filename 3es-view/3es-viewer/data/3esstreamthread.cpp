@@ -122,7 +122,7 @@ void StreamThread::run()
     {
       std::lock_guard guard(_data_mutex);
       have_target = _target_frame.has_value();
-      target_frame = _target_frame ? *_target_frame : 0;
+      target_frame = (have_target) ? *_target_frame : 0;
     }
     if (!have_target)
     {
@@ -138,9 +138,10 @@ void StreamThread::run()
     {
       _catchingUp = true;
     }
-    else if (have_target && _target_frame == current_frame)
+    else if (have_target && target_frame == current_frame)
     {
       // Reached the target frame.
+      std::lock_guard guard(_data_mutex);
       _target_frame.reset();
       next_frame_start = Clock::now();
     }

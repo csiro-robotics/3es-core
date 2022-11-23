@@ -13,12 +13,12 @@ BoundsCuller::~BoundsCuller() = default;
 
 BoundsId BoundsCuller::allocate(const Bounds &bounds)
 {
-  auto bounds = _bounds.allocate();
-  bounds->bounds = bounds;
+  auto cull_bounds = _bounds.allocate();
+  cull_bounds->bounds = bounds;
   // Ensure it's not visible.
-  bounds->visible_mark = _last_mark - 1;
+  cull_bounds->visible_mark = _last_mark - 1;
 
-  return bounds.id();
+  return cull_bounds.id();
 }
 
 
@@ -30,10 +30,10 @@ void BoundsCuller::release(BoundsId id)
 
 void BoundsCuller::update(BoundsId id, const Bounds &bounds)
 {
-  auto bounds = _bounds.at(id);
-  if (bounds.isValid())
+  auto cull_bounds = _bounds.at(id);
+  if (cull_bounds.isValid())
   {
-    bounds->bounds = bounds;
+    cull_bounds->bounds = bounds;
   }
 }
 

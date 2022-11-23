@@ -9,7 +9,7 @@
 #include <3espacketreader.h>
 #include <shapes/3esmeshshape.h>
 
-#include <Magnum/Color4.h>
+#include <Magnum/Math/Color.h>
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Quaternion.h>
 
@@ -46,7 +46,9 @@ inline MeshShape::Flag operator~(MeshShape::Flag a)
 MeshShape::MeshShape(std::shared_ptr<BoundsCuller> culler)
   : Message(SIdMeshShape, "mesh shape")
   , _culler(std::move(culler))
-{}
+{
+  _opaque_shader = std::make_shared<Magnum::Shaders::VertexColor3D>();
+}
 
 
 void MeshShape::initialise()
@@ -58,63 +60,44 @@ void MeshShape::reset()
 
 
 void MeshShape::beginFrame(const FrameStamp &stamp)
-{}
+{
+  updateRenderAssets();
+}
 
 
 void MeshShape::endFrame(const FrameStamp &stamp)
 {
-  std::lock_guard guard(_shapes_mutex);
-  for (auto &&transient : _transients[_active_transients_index])
-  {
-    std::lock_guard guard2(transient->mutex);
-    transient->mesh = nullptr;
-  }
-  _transients[_active_transients_index].clear();
-  _active_transients_index = 1 - _active_transients_index;
-  for (auto &&transient : _transients[_active_transients_index])
-  {
-    transient->flags &= ~Flag::Pending;
-    updateRenderResources(transient);
-  }
-
-  for (auto iter = _mesh_shapes.begin(); iter != _mesh_shapes.end();)
-  {
-    auto data = iter->second;
-    std::lock_guard guard2(data->mutex);
-    if ((data->flags & Flag::MarkForDeath) != Flag::MarkForDeath)
-    {
-      if ((data->flags & Flag::Pending) != Flag::Pending)
-      {
-        updateRenderResources(transient);
-      }
-      if ((data->flags & Flag::Dirty) != Flag::Dirty)
-      {
-        updateRenderResources(transient);
-        data->flags |= Flag::Dirty;
-      }
-
-      data->flags &= ~(Flag::Pending | Flag::Dirty);
-
-      ++iter;
-    }
-    else
-    {
-      iter = _mesh_shapes.erase(iter);
-    }
-  }
+  // Note: it would be ideal to do the render mesh creation here, but that happens on the background thread and we
+  // can't create OpenGL resources from there. Instead, we do the work in beginFrame().
+  // FIXME(KS): unfortunately this means there is a race condition where one frame ends, then a mesh may be updated
+  // before being commited for rendering.
 }
 
 
 void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
 {
-  switch (pass)
+  std::lock_guard guard(_shapes_mutex);
+
+  auto &transients = _transients[_active_transients_index];
+  for (auto &transient : transients)
   {
-  case DrawPass::Opaque:
-    break;
-  case DrawPass::Transparent:
-    break;
-  default:
-    break;
+    // All this locking may prove very slow :S
+    std::lock_guard guard2(transient->mutex);
+    if (_culler->isVisible(transient->bounds_id) && transient->mesh)
+    {
+      _opaque_shader->setTransformationProjectionMatrix(projection_matrix * transient->transform)
+        .draw(*transient->mesh);
+    }
+  }
+
+  for (auto &[id, render_mesh] : _shapes)
+  {
+    std::lock_guard guard2(render_mesh->mutex);
+    if (_culler->isVisible(render_mesh->bounds_id) && render_mesh->mesh)
+    {
+      _opaque_shader->setTransformationProjectionMatrix(projection_matrix * render_mesh->transform)
+        .draw(*render_mesh->mesh);
+    }
   }
 }
 
@@ -135,11 +118,9 @@ void MeshShape::readMessage(PacketReader &reader)
     ok = msg.read(reader) && handleDestroy(msg, reader);
     break;
   }
-  case OIdUpdate: {
-    UpdateMessage msg;
-    ok = msg.read(reader, attrs) && handleUpdate(msg, attrs, reader);
+  case OIdUpdate:
+    ok = handleUpdate(reader);
     break;
-  }
   case OIdData:
     ok = handleData(reader);
     break;
@@ -196,14 +177,14 @@ void MeshShape::decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttri
 bool MeshShape::handleCreate(PacketReader &reader)
 {
   // Start by modifying the _shapes set
-  auto mesh = std::make_shared<tes::MeshShape>();
-  if (!mesh->readCreate(reader))
+  auto shape = std::make_shared<tes::MeshShape>();
+  if (!shape->readCreate(reader))
   {
     log::error("Error reading mesh create.");
     return false;
   }
 
-  create(mesh);
+  create(shape);
   return true;
 }
 
@@ -221,10 +202,12 @@ bool MeshShape::handleUpdate(PacketReader &reader)
   }
 
   std::lock_guard guard(data->mutex);
-  if (!data->mesh->readData(packet))
+  if (!data->shape->readData(reader))
   {
     return false;
   }
+
+  data->flags |= Flag::DirtyAttributes;
   return true;
 }
 
@@ -255,28 +238,28 @@ bool MeshShape::handleData(PacketReader &reader)
   }
 
   std::lock_guard guard(data->mutex);
-  if (!data->mesh->readData(reader))
+  if (!data->shape->readData(reader))
   {
     return false;
   }
 
-  mesh_data->flags |= Flag::Dirty;
+  data->flags |= Flag::DirtyMesh;
   return true;
 }
 
 
-std::shared_ptr<MeshShape::RenderMesh> MeshShape::create(std::shared_ptr<tes::MeshShape> mesh);
+std::shared_ptr<MeshShape::RenderMesh> MeshShape::create(std::shared_ptr<tes::MeshShape> shape)
 {
-  const Id id = mesh->id();
+  const Id id = shape->id();
   if (id.isTransient())
   {
     auto new_entry = std::make_shared<RenderMesh>();
-    new_entry->mesh = mesh;
+    new_entry->shape = shape;
     new_entry->flags |= Flag::Pending;
     new_entry->flags &= ~Flag::MarkForDeath;
     // No need to lock until here.
     std::lock_guard guard(_shapes_mutex);
-    _transient.emplace_back(new_entry);
+    _transients[1 - _active_transients_index].emplace_back(new_entry);
     return new_entry;
   }
 
@@ -285,28 +268,30 @@ std::shared_ptr<MeshShape::RenderMesh> MeshShape::create(std::shared_ptr<tes::Me
   auto search = _shapes.find(id);
   if (search != _shapes.end())
   {
-    search->second->mesh = mesh;
-    new_entry->flags |= Flag::Dirty;
+    std::lock_guard guard2(search->second->mutex);
+    search->second->shape = shape;
+    search->second->flags |= Flag::Dirty;
     return search->second;
   }
 
   auto new_entry = std::make_shared<RenderMesh>();
-  new_entry->mesh = mesh;
+  new_entry->shape = shape;
   new_entry->flags |= Flag::Pending;
   _shapes.emplace(id, new_entry);
   return new_entry;
 }
 
 
-std::shared_ptr<MeshShape::RenderMesh> MeshShape::getEntry(const Id &id)
+std::shared_ptr<MeshShape::RenderMesh> MeshShape::getData(const Id &id)
 {
   std::lock_guard guard(_shapes_mutex);
   if (id.isTransient())
   {
     // No need to lock until here.
-    if (!_transient.empty())
+    auto &transients = _transients[1 - _active_transients_index];
+    if (!transients.empty())
     {
-      return _transient.back();
+      return transients.back();
     }
     return {};
   }
@@ -322,13 +307,58 @@ std::shared_ptr<MeshShape::RenderMesh> MeshShape::getEntry(const Id &id)
 }
 
 
+void MeshShape::updateRenderAssets()
+{
+  std::lock_guard guard(_shapes_mutex);
+  for (auto &&transient : _transients[_active_transients_index])
+  {
+    std::lock_guard guard2(transient->mutex);
+    transient->shape = nullptr;
+  }
+  _transients[_active_transients_index].clear();
+  _active_transients_index = 1 - _active_transients_index;
+  for (auto &&transient : _transients[_active_transients_index])
+  {
+    std::lock_guard guard2(transient->mutex);
+    transient->flags &= ~Flag::Pending;
+    updateRenderResources(*transient);
+  }
+
+  for (auto iter = _shapes.begin(); iter != _shapes.end();)
+  {
+    auto data = iter->second;
+    std::lock_guard guard2(data->mutex);
+    if ((data->flags & Flag::MarkForDeath) != Flag::MarkForDeath)
+    {
+      if ((data->flags & (Flag::Pending | Flag::DirtyMesh)) != Flag::Zero)
+      {
+        updateRenderResources(*data);
+      }
+      else if ((data->flags & Flag::DirtyAttributes) != Flag::Zero)
+      {
+        data->transform = composeTransform(data->shape->attributes());
+      }
+
+      data->flags &= ~(Flag::Pending | Flag::Dirty);
+
+      ++iter;
+    }
+    else
+    {
+      iter = _shapes.erase(iter);
+    }
+  }
+}
+
+
 void MeshShape::updateRenderResources(RenderMesh &render_mesh)
 {
-  if (render_mesh->mesh)
+  if (render_mesh.shape)
   {
     Bounds bounds;
     // TODO(KS): calculate normals if requested.
-    render_mesh.render_mesh = mesh::convert(tes::MeshShape::Resource(*render_mesh->mesh), bounds);
+    render_mesh.mesh =
+      std::make_unique<Magnum::GL::Mesh>(mesh::convert(tes::MeshShape::Resource(*render_mesh.shape, 0), bounds));
     if (render_mesh.bounds_id == BoundsCuller::kInvalidId)
     {
       render_mesh.bounds_id = _culler->allocate(bounds);

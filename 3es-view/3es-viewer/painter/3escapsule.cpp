@@ -144,10 +144,9 @@ void Capsule::commit()
 }
 
 
-void Capsule::calculateBounds(const Magnum::Matrix4 &transform, Magnum::Vector3 &centre, Magnum::Vector3 &halfExtents)
+void Capsule::calculateBounds(const Magnum::Matrix4 &transform, Bounds &bounds)
 {
-  return ShapeCache::calcCylindricalBounds(transform, kDefaultRadius, kDefaultHeight + kDefaultRadius, centre,
-                                           halfExtents);
+  return ShapeCache::calcCylindricalBounds(transform, kDefaultRadius, kDefaultHeight + kDefaultRadius, bounds);
 }
 
 

@@ -7,7 +7,10 @@
 #include "3esboundsculler.h"
 #include "3esmessage.h"
 
+#include <shapes/3esid.h>
+
 #include <Magnum/GL/Mesh.h>
+#include <Magnum/Shaders/VertexColor.h>
 
 #include <iosfwd>
 #include <unordered_map>
@@ -31,6 +34,17 @@ class MeshShape : public Message
 {
 public:
   using ObjectAttributes = tes::ObjectAttributes<float>;
+
+  enum class Flag : unsigned
+  {
+    Zero = 0u,
+    Pending = 1u << 0u,
+    MarkForDeath = 1u << 1u,
+    DirtyAttributes = 1u << 2u,
+    DirtyMesh = 1u << 3u,
+
+    Dirty = DirtyAttributes | DirtyMesh
+  };
 
   MeshShape(std::shared_ptr<BoundsCuller> culler);
 
@@ -61,26 +75,22 @@ protected:
   virtual bool handleData(PacketReader &reader);
 
 private:
-  enum class Flag : unsigned
-  {
-    Zero = 0u,
-    Pending = 1u << 0u,
-    MarkForDeath = 1u << 1u,
-    DirtyAttributes = 1u << 2u,
-    Dirty = 1u << 3u,
-  };
-
   struct RenderMesh
   {
-    BoundsId bounds_id = ;
-    std::shared_ptr<tes::MeshShape> mesh;
+    BoundsId bounds_id = BoundsCuller::kInvalidId;
+    std::shared_ptr<tes::MeshShape> shape;
+    Magnum::Matrix4 transform = {};
     Flag flags = Flag::Zero;
-    Magnum::GL::Mesh render_mesh;
+    /// The mesh to render.
+    /// @note Cannot be created on the background thread with OpenGL. Maybe with Vulkan.
+    std::shared_ptr<Magnum::GL::Mesh> mesh;
     std::mutex mutex;
   };
 
-  std::shared_ptr<RenderMesh> create(std::shared_ptr<tes::MeshShape> mesh);
+  std::shared_ptr<RenderMesh> create(std::shared_ptr<tes::MeshShape> shape);
   std::shared_ptr<RenderMesh> getData(const Id &id);
+  /// Create all the pending render assets. Must be called on the main thread ( @c beginFrame() ).
+  void updateRenderAssets();
   /// Create or update the render resources for @p render_mesh.
   /// @param render_mesh Mesh data to update.
   void updateRenderResources(RenderMesh &render_mesh);
@@ -91,6 +101,7 @@ private:
   std::array<std::vector<std::shared_ptr<RenderMesh>>, 2> _transients;
   unsigned _active_transients_index = 0;
   std::shared_ptr<BoundsCuller> _culler;
+  std::shared_ptr<Magnum::Shaders::VertexColor3D> _opaque_shader;
 };
 }  // namespace tes::viewer::handler
 

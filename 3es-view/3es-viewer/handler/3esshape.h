@@ -20,8 +20,6 @@ namespace tes::viewer::handler
 class Shape : public Message
 {
 public:
-  using ObjectAttributes = tes::ObjectAttributes<float>;
-
   Shape(uint16_t routing_id, const std::string &name, std::shared_ptr<painter::ShapePainter> painter);
 
   void initialise() override;

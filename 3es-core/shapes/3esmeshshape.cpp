@@ -40,6 +40,12 @@ uint32_t MeshShape::Resource::id() const
 }
 
 
+Resource *MeshShape::Resource::clone() const
+{
+  return new MeshShape::Resource(_shape, _resource_id);
+}
+
+
 Transform MeshShape::Resource::transform() const
 {
   return _shape.transform();
@@ -196,11 +202,11 @@ MeshShape &MeshShape::expandVertices()
 
   if (_vertices.type() == DctFloat64)
   {
-    ::expandVertices<double>(_vertices, _indices);
+    tes::expandVertices<double>(_vertices, _indices);
   }
   else
   {
-    ::expandVertices<float>(_vertices, _indices);
+    tes::expandVertices<float>(_vertices, _indices);
   }
 
   return *this;
