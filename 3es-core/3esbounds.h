@@ -40,9 +40,7 @@ public:
 
   /// Initialise the boudns to the given point.
   /// @param point The point to set as both min and max extents.
-  explicit Bounds(const Vector3<T> &point)
-    : Bounds(point, point)
-  {}
+  explicit Bounds(const Vector3<T> &point);
 
   /// Create a bounds structure from centre and half extents values.
   /// @param centre The bounds centre.
@@ -62,10 +60,10 @@ public:
 
   /// Get the bounds centre point.
   /// @return The bounds centre.
-  const Vector3<T> &centre() const;
+  Vector3<T> centre() const;
   /// Get the bounds half extents, from centre to max.
   /// @return The half extents, centre to max.
-  const Vector3<T> &halfExtents() const;
+  Vector3<T> halfExtents() const;
 
   /// Expand the bounding box to include @p point.
   /// @param point The point to include.
@@ -158,13 +156,15 @@ inline const Vector3<T> &Bounds<T>::maximum() const
 }
 
 
-const Vector3<T> &Bounds<T>::centre() const
+template <typename T>
+Vector3<T> Bounds<T>::centre() const
 {
   return T(0.5) * (_minimum + _maximum);
 }
 
 
-const Vector3<T> &Bounds<T>::halfExtents() const
+template <typename T>
+Vector3<T> Bounds<T>::halfExtents() const
 {
   return _maximum - centre();
 }
