@@ -44,6 +44,8 @@ ThirdEyeScene::ThirdEyeScene()
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::DepthTest);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::Blending);
+  Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::ProgramPointSize);
+  Magnum::GL::Renderer::setPointSize(8);
 
   _camera.position = { 0, -5, 0 };
 
