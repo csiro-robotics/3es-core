@@ -132,9 +132,12 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
 void ThirdEyeScene::updateToFrame(FrameNumber frame)
 {
   std::lock_guard guard(_render_mutex);
-  for (auto &[routingId, handler] : _messageHandlers)
+  if (frame != _render_stamp.frame_number)
   {
-    handler->endFrame(_render_stamp);
+    for (auto &[routingId, handler] : _messageHandlers)
+    {
+      handler->endFrame(_render_stamp);
+    }
   }
   _new_frame = frame;
   _have_new_frame = true;
