@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 namespace tes
 {
@@ -102,8 +103,26 @@ private:
     }
   };
 
-  std::shared_ptr<RenderMesh> create(std::shared_ptr<tes::MeshShape> shape);
-  std::shared_ptr<RenderMesh> getData(const Id &id);
+  using RenderMeshPtr = std::shared_ptr<RenderMesh>;
+
+  /// Create a @c RenderMesh entry for @p shape in @p _pending_shapes.
+  /// @param shape The shape data to create for.
+  RenderMeshPtr create(std::shared_ptr<tes::MeshShape> shape);
+
+  /// Get the @c RenderMesh shape entry for the given ID.
+  ///
+  /// This makes a number of assumptions.
+  /// - @c _shapes_mutex must not be locked when calling this function or a deadlock will ensue.
+  /// - If @p id is transient, then we fetch the last transient item from @c _pending_shapes. Commited transients
+  ///   cannot be retrieved.
+  /// - Non transient shapes may be retrieved from either @p _pending_shapes (preferred), or @c _shapes.
+  ///
+  /// This is only intended for use from @c handleData(), @c handleUpdate() or @c handleDestroy().
+  ///
+  /// @param id The ID of the shape to fetch.
+  /// @return A pointer to the @c RenderMesh for @p id or null on failure.
+  RenderMeshPtr getRenderMesh(const Id &id);
+
   /// Create all the pending render assets. Must be called on the main thread ( @c beginFrame() ).
   void updateRenderAssets();
   /// Create or update the render resources for @p render_mesh.
@@ -112,9 +131,12 @@ private:
 
   /// Mutex locked whenever touching @c _shapes or @c _transients.
   mutable std::mutex _shapes_mutex;
-  std::unordered_map<Id, std::shared_ptr<RenderMesh>> _shapes;
+  std::unordered_map<Id, RenderMeshPtr> _shapes;
+  /// A buffer for items to be added to _shapes on the next @c beginFrame() call.
+  /// For details, see the large comment block in @c create().
+  std::vector<std::pair<Id, RenderMeshPtr>> _pending_shapes;
   /// Transient shapes. The last item is the most current which is returned when requesting a transient shape.
-  std::array<std::vector<std::shared_ptr<RenderMesh>>, 2> _transients;
+  std::vector<RenderMeshPtr> _transients;
   unsigned _active_transients_index = 0;
   std::shared_ptr<BoundsCuller> _culler;
   std::shared_ptr<Magnum::Shaders::VertexColor3D> _opaque_shader;

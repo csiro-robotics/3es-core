@@ -46,8 +46,9 @@ void MeshShape::endFrame(const FrameStamp &stamp)
 {
   // Note: it would be ideal to do the render mesh creation here, but that happens on the background thread and we
   // can't create OpenGL resources from there. Instead, we do the work in beginFrame().
-  // FIXME(KS): unfortunately this means there is a race condition where one frame ends, then a mesh may be updated
-  // before being commited for rendering.
+  // Note(KS): there would be a race condition here if a mesh shape is allowed to update it's data after it's been
+  // created and a frame boundary occurs. However, that is not allowed. We do, though, have to deal with a destroy/
+  // recreate case.
 }
 
 
@@ -81,8 +82,7 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matri
     }
   };
 
-  auto &transients = _transients[_active_transients_index];
-  for (auto &transient : transients)
+  for (auto &transient : _transients)
   {
     draw_mesh(*transient);
   }
@@ -141,28 +141,13 @@ void MeshShape::serialise(Connection &out, ServerInfoMessage &info)
 
 Magnum::Matrix4 MeshShape::composeTransform(const ObjectAttributes &attrs) const
 {
-  return Magnum::Matrix4::translation(Magnum::Vector3(attrs.position[0], attrs.position[1], attrs.position[2])) *
-         Magnum::Matrix4(Magnum::Quaternion(Magnum::Vector3(attrs.rotation[0], attrs.rotation[1], attrs.rotation[2]),
-                                            attrs.rotation[3])
-                           .toMatrix()) *
-         Magnum::Matrix4::scaling(Magnum::Vector3(attrs.scale[0], attrs.scale[1], attrs.scale[2]));
+  return Message::composeTransform(attrs);
 }
 
 
 void MeshShape::decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttributes &attrs) const
 {
-  const auto position = transform[3].xyz();
-  attrs.position[0] = position[0];
-  attrs.position[1] = position[1];
-  attrs.position[2] = position[2];
-  const auto rotation = Magnum::Quaternion::fromMatrix(transform.rotation());
-  attrs.rotation[0] = rotation.vector()[0];
-  attrs.rotation[1] = rotation.vector()[1];
-  attrs.rotation[2] = rotation.vector()[2];
-  attrs.rotation[3] = rotation.scalar();
-  attrs.scale[0] = transform[0].xyz().length();
-  attrs.scale[1] = transform[1].xyz().length();
-  attrs.scale[2] = transform[2].xyz().length();
+  Message::decomposeTransform(transform, attrs);
 }
 
 
@@ -186,7 +171,7 @@ bool MeshShape::handleUpdate(PacketReader &reader)
   uint32_t id = 0;
   reader.peek(reinterpret_cast<uint8_t *>(&id), sizeof(id));
 
-  auto data = getData(Id(id));
+  auto data = getRenderMesh(Id(id));
   if (!data)
   {
     log::error("Invalid mesh shape id for update message: ", id);
@@ -199,6 +184,7 @@ bool MeshShape::handleUpdate(PacketReader &reader)
     return false;
   }
 
+  data->transform = composeTransform(data->shape->attributes());
   data->flags |= Flag::DirtyAttributes;
   return true;
 }
@@ -206,7 +192,7 @@ bool MeshShape::handleUpdate(PacketReader &reader)
 
 bool MeshShape::handleDestroy(const DestroyMessage &msg, PacketReader &reader)
 {
-  auto data = getData(Id(msg.id));
+  auto data = getRenderMesh(Id(msg.id));
   if (!data)
   {
     return false;
@@ -222,7 +208,7 @@ bool MeshShape::handleData(PacketReader &reader)
   uint32_t id = 0;
   reader.peek(reinterpret_cast<uint8_t *>(&id), sizeof(id));
 
-  auto data = getData(Id(id));
+  auto data = getRenderMesh(Id(id));
   if (!data)
   {
     log::error("Invalid mesh shape id for data message: ", id);
@@ -240,52 +226,85 @@ bool MeshShape::handleData(PacketReader &reader)
 }
 
 
-std::shared_ptr<MeshShape::RenderMesh> MeshShape::create(std::shared_ptr<tes::MeshShape> shape)
+MeshShape::RenderMeshPtr MeshShape::create(std::shared_ptr<tes::MeshShape> shape)
 {
   const Id id = shape->id();
-  if (id.isTransient())
-  {
-    auto new_entry = std::make_shared<RenderMesh>();
-    new_entry->shape = shape;
-    new_entry->flags |= Flag::Pending;
-    new_entry->flags &= ~Flag::MarkForDeath;
-    // No need to lock until here.
-    std::lock_guard guard(_shapes_mutex);
-    _transients[1 - _active_transients_index].emplace_back(new_entry);
-    return new_entry;
-  }
 
-  std::lock_guard guard(_shapes_mutex);
-  // Search the map.
-  auto search = _shapes.find(id);
-  if (search != _shapes.end())
-  {
-    std::lock_guard guard2(search->second->mutex);
-    search->second->shape = shape;
-    search->second->flags |= Flag::Dirty;
-    return search->second;
-  }
-
+  // Note: this comment is referenced from the header documentation for _pending_shapes.
+  // We have an existing shape. That is valid, but poses a potential race condition. Consider the following event
+  // streams.
+  //
+  // | Data Thread    | Render Thread |
+  // | ------------   | ------------- |
+  // | create mesh 1  |               |
+  // | update frame 0 |               |
+  // |                | begin frame 0 |
+  // | destroy 1      |               |
+  // | create 2       |               |
+  // | update frame 1 |               |
+  // | end frame 0    |               |
+  // | destroy 2 *    |               |
+  // | create 2  *    |               |
+  // |                | begin frame 1 |
+  // | update frame 2 |               |
+  // | end frame 2    |               |
+  //
+  // Frame 0 proceeds fine. On frame 1, the render thread marks frame 1 as being complete, but calls
+  // handler::Message::endFrame(0) from the data thread. On the next render thread update, it will call
+  // handler::Message::beginFrame(1), which will display mesh 2.
+  //
+  // Before we start frame 1 and display mesh 2, the data thread already routes a message to destroy mesh 2 and
+  // recreate it. So the RenderMesh::shape data will change before the render thread can create
+  // RenderMesh::render_thread from beginFrame(1). By the time that is called, we are displaying the new state of
+  // mesh 2 a frame early.
+  //
+  // Now we can safely assume we only need to buffer for one frame ahead - either the render thread will show the
+  // frame or not, but we can't show the wrong data on a frame.
+  //
+  // Options:
+  // - Keep a second shape in RenderMesh for this exact case. We still instantiate the same memory, we just buffer it
+  //   differently.
+  // - Buffer pending additions to _shapes in a different list, to be added during the beginFrame() call, like a
+  //   command queue.
+  //
+  // For this reason we always add shapes to _pending_shapes rather than to _transients or _shapes directly.
   auto new_entry = std::make_shared<RenderMesh>();
   new_entry->shape = shape;
   new_entry->flags |= Flag::Pending;
-  _shapes.emplace(id, new_entry);
+  new_entry->flags &= ~Flag::MarkForDeath;
+  // No need to lock until here.
+  std::lock_guard guard(_shapes_mutex);
+  _pending_shapes.emplace_back(id, new_entry);
   return new_entry;
 }
 
 
-std::shared_ptr<MeshShape::RenderMesh> MeshShape::getData(const Id &id)
+MeshShape::RenderMeshPtr MeshShape::getRenderMesh(const Id &id)
 {
   std::lock_guard guard(_shapes_mutex);
   if (id.isTransient())
   {
-    // No need to lock until here.
-    auto &transients = _transients[1 - _active_transients_index];
-    if (!transients.empty())
+    // For a transient shape, we may only fetch the last transient item from _pending_shapes. _transients is already
+    // commited and cannot be changed.
+    for (auto iter = _pending_shapes.rbegin(); iter != _pending_shapes.rend(); ++iter)
     {
-      return transients.back();
+      if (iter->first.isTransient())
+      {
+        return iter->second;
+      }
     }
     return {};
+  }
+
+  // Search pending items first.
+  // We expect this list to always be small-ish.
+  for (auto iter = _pending_shapes.begin(); iter != _pending_shapes.end(); ++iter)
+  {
+    // Ignore category in comparison.
+    if (id.id() == iter->first.id())
+    {
+      return iter->second;
+    }
   }
 
   // Search the map.
@@ -302,37 +321,23 @@ std::shared_ptr<MeshShape::RenderMesh> MeshShape::getData(const Id &id)
 void MeshShape::updateRenderAssets()
 {
   std::lock_guard guard(_shapes_mutex);
-  for (auto &&transient : _transients[_active_transients_index])
-  {
-    std::lock_guard guard2(transient->mutex);
-    transient->shape = nullptr;
-  }
-  _transients[_active_transients_index].clear();
-  _active_transients_index = 1 - _active_transients_index;
-  for (auto &&transient : _transients[_active_transients_index])
-  {
-    std::lock_guard guard2(transient->mutex);
-    transient->flags &= ~Flag::Pending;
-    updateRenderResources(*transient);
-  }
 
+  // Clear previous transients.
+  _transients.clear();
+
+  // Remove expired shapes and update transforms for persistent shapes.
   for (auto iter = _shapes.begin(); iter != _shapes.end();)
   {
     auto data = iter->second;
     std::lock_guard guard2(data->mutex);
     if ((data->flags & Flag::MarkForDeath) != Flag::MarkForDeath)
     {
-      if ((data->flags & (Flag::Pending | Flag::DirtyMesh)) != Flag::Zero)
+      if ((data->flags & Flag::DirtyAttributes) != Flag::Zero)
       {
-        updateRenderResources(*data);
-      }
-      else if ((data->flags & Flag::DirtyAttributes) != Flag::Zero)
-      {
-        data->transform = composeTransform(data->shape->attributes());
         _culler->update(data->bounds_id, data->cullBounds());
       }
 
-      data->flags &= ~(Flag::Pending | Flag::Dirty);
+      data->flags &= ~(Flag::DirtyAttributes);
 
       ++iter;
     }
@@ -341,6 +346,29 @@ void MeshShape::updateRenderAssets()
       iter = _shapes.erase(iter);
     }
   }
+
+  // Process and commit pending assets.
+  for (auto &[id, render_mesh] : _pending_shapes)
+  {
+    std::lock_guard guard2(render_mesh->mutex);
+    if ((render_mesh->flags & Flag::MarkForDeath) != Flag::Zero)
+    {
+      // Already deleted. Skip this item.
+      continue;
+    }
+
+    updateRenderResources(*render_mesh);
+    render_mesh->flags &= ~(Flag::Pending | Flag::Dirty);
+    if (id.isTransient())
+    {
+      _transients.emplace_back(render_mesh);
+    }
+    else
+    {
+      _shapes.emplace(id, render_mesh);
+    }
+  }
+  _pending_shapes.clear();
 }
 
 
