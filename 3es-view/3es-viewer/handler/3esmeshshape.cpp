@@ -132,10 +132,23 @@ void MeshShape::readMessage(PacketReader &reader)
 void MeshShape::serialise(Connection &out, ServerInfoMessage &info)
 {
   info = _server_info;
-  std::array<uint8_t, (1u << 16u) - 1> buffer;
-  PacketWriter writer(buffer.data(), buffer.size());
-  CreateMessage create = {};
-  ObjectAttributes attrs = {};
+
+  const auto check = [](int error) {
+    if (error)
+    {
+      log::error("Error code serialising mesh: ", error);
+    }
+  };
+
+  for (auto &transient : _transients)
+  {
+    check(out.create(*transient->shape));
+  }
+
+  for (auto &[id, render_mesh] : _shapes)
+  {
+    check(out.create(*render_mesh->shape));
+  }
 }
 
 
