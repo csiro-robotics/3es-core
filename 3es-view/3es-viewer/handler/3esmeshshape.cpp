@@ -1,6 +1,7 @@
 #include "3esmeshshape.h"
 
 #include "mesh/3esconverter.h"
+#include "util/3esenum.h"
 
 #include <3esconnection.h>
 #include <3escolour.h>
@@ -15,32 +16,7 @@
 
 namespace tes::viewer::handler
 {
-inline MeshShape::Flag operator|(MeshShape::Flag a, MeshShape::Flag b)
-{
-  return MeshShape::Flag(unsigned(a) | unsigned(b));
-}
-
-inline MeshShape::Flag operator&(MeshShape::Flag a, MeshShape::Flag b)
-{
-  return MeshShape::Flag(unsigned(a) & unsigned(b));
-}
-
-inline MeshShape::Flag &operator|=(MeshShape::Flag &a, MeshShape::Flag b)
-{
-  a = a | b;
-  return a;
-}
-
-inline MeshShape::Flag &operator&=(MeshShape::Flag &a, MeshShape::Flag b)
-{
-  a = a & b;
-  return a;
-}
-
-inline MeshShape::Flag operator~(MeshShape::Flag a)
-{
-  return MeshShape::Flag(~unsigned(a));
-}
+TES_ENUM_FLAGS(MeshShape::Flag, unsigned);
 
 
 MeshShape::MeshShape(std::shared_ptr<BoundsCuller> culler)
@@ -202,7 +178,7 @@ bool MeshShape::handleUpdate(PacketReader &reader)
   }
 
   std::lock_guard guard(data->mutex);
-  if (!data->shape->readData(reader))
+  if (!data->shape->readUpdate(reader))
   {
     return false;
   }
@@ -337,6 +313,7 @@ void MeshShape::updateRenderAssets()
       else if ((data->flags & Flag::DirtyAttributes) != Flag::Zero)
       {
         data->transform = composeTransform(data->shape->attributes());
+        _culler->update(data->bounds_id, data->cullBounds());
       }
 
       data->flags &= ~(Flag::Pending | Flag::Dirty);
@@ -355,17 +332,20 @@ void MeshShape::updateRenderResources(RenderMesh &render_mesh)
 {
   if (render_mesh.shape)
   {
-    Bounds bounds;
-    // TODO(KS): calculate normals if requested.
-    render_mesh.mesh =
-      std::make_unique<Magnum::GL::Mesh>(mesh::convert(tes::MeshShape::Resource(*render_mesh.shape, 0), bounds));
+    mesh::ConvertOptions options = {};
+
+    render_mesh.mesh = std::make_unique<Magnum::GL::Mesh>(
+      mesh::convert(tes::MeshShape::Resource(*render_mesh.shape, 0), render_mesh.bounds, options));
+    render_mesh.transform = composeTransform(render_mesh.shape->attributes());
+
     if (render_mesh.bounds_id == BoundsCuller::kInvalidId)
     {
-      render_mesh.bounds_id = _culler->allocate(bounds);
+      // TODO(KS): transform the bounds.
+      render_mesh.bounds_id = _culler->allocate(render_mesh.cullBounds());
     }
     else
     {
-      _culler->update(render_mesh.bounds_id, bounds);
+      _culler->update(render_mesh.bounds_id, render_mesh.cullBounds());
     }
   }
 }

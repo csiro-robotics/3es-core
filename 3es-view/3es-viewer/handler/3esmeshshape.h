@@ -78,6 +78,7 @@ private:
   struct RenderMesh
   {
     BoundsId bounds_id = BoundsCuller::kInvalidId;
+    Bounds bounds = {};
     std::shared_ptr<tes::MeshShape> shape;
     Magnum::Matrix4 transform = {};
     Flag flags = Flag::Zero;
@@ -85,6 +86,20 @@ private:
     /// @note Cannot be created on the background thread with OpenGL. Maybe with Vulkan.
     std::shared_ptr<Magnum::GL::Mesh> mesh;
     std::mutex mutex;
+
+    /// Calculate bounds used for rendering.
+    /// @return Culling bounds
+    inline Bounds cullBounds() const
+    {
+      // The accurate approach would be to recalculate the bounds with the transform applied to each vertex.
+      // That could be inefficient for moving meshes with many vertices. The simple option is to make the
+      // bounds pseudo spherical and just translate them.
+      const auto centre = bounds.centre() + transform[3].xyz();
+      auto half_extents = bounds.halfExtents();
+      half_extents.x() = half_extents.y() = half_extents.z() =
+        std::max(half_extents.x(), std::max(half_extents.y(), half_extents.z()));
+      return Bounds::fromCentreHalfExtents(centre, half_extents);
+    }
   };
 
   std::shared_ptr<RenderMesh> create(std::shared_ptr<tes::MeshShape> shape);

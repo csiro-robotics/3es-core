@@ -6,6 +6,7 @@
 #include "3esboundsculler.h"
 #include "3esviewablewindow.h"
 #include "util/3esresourcelist.h"
+#include "util/3esenum.h"
 
 #include <shapes/3esid.h>
 
@@ -482,32 +483,7 @@ private:
   BoundsCalculator _bounds_calculator = ShapeCache::calcSphericalBounds;
 };
 
-inline ShapeCache::ShapeFlag operator|(ShapeCache::ShapeFlag a, ShapeCache::ShapeFlag b)
-{
-  return ShapeCache::ShapeFlag(unsigned(a) | unsigned(b));
-}
-
-inline ShapeCache::ShapeFlag operator&(ShapeCache::ShapeFlag a, ShapeCache::ShapeFlag b)
-{
-  return ShapeCache::ShapeFlag(unsigned(a) & unsigned(b));
-}
-
-inline ShapeCache::ShapeFlag &operator|=(ShapeCache::ShapeFlag &a, ShapeCache::ShapeFlag b)
-{
-  a = a | b;
-  return a;
-}
-
-inline ShapeCache::ShapeFlag &operator&=(ShapeCache::ShapeFlag &a, ShapeCache::ShapeFlag b)
-{
-  a = a & b;
-  return a;
-}
-
-inline ShapeCache::ShapeFlag operator~(ShapeCache::ShapeFlag a)
-{
-  return ShapeCache::ShapeFlag(~unsigned(a));
-}
+TES_ENUM_FLAGS(ShapeCache::ShapeFlag, unsigned);
 
 
 inline void ShapeCache::const_iterator::next()

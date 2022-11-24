@@ -52,6 +52,9 @@ struct VertexMapper
   inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals,
                        const DataBuffer &src_colours) const
   {
+    (void)src_vertices;
+    (void)src_normals;
+    (void)src_colours;
     return false;
   }
   void operator()(V &vertex, size_t src_index, const DataBuffer &src_vertices, const DataBuffer &src_normals,
@@ -67,6 +70,8 @@ struct VertexMapper<VertexP>
   inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals,
                        const DataBuffer &src_colours) const
   {
+    (void)src_normals;
+    (void)src_colours;
     return src_vertices.isValid();
   }
   inline Magnum::Vector3 operator()(VertexP &vertex, size_t src_index, const DataBuffer &src_vertices,
@@ -97,6 +102,7 @@ struct VertexMapper<VertexPN>
   inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals,
                        const DataBuffer &src_colours) const
   {
+    (void)src_colours;
     return src_vertices.isValid() && src_normals.isValid();
   }
   inline Magnum::Vector3 operator()(VertexPN &vertex, size_t src_index, const DataBuffer &src_vertices,
@@ -136,7 +142,8 @@ struct VertexMapper<VertexPC>
   inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals,
                        const DataBuffer &src_colours) const
   {
-    return src_vertices.isValid() && src_normals.isValid() && src_colours.isValid();
+    (void)src_normals;
+    return src_vertices.isValid() && src_colours.isValid();
   }
   inline Magnum::Vector3 operator()(VertexPC &vertex, size_t src_index, const DataBuffer &src_vertices,
                                     const DataBuffer &src_normals, const DataBuffer &src_colours)
@@ -145,7 +152,7 @@ struct VertexMapper<VertexPC>
     const auto y = src_vertices.get<Magnum::Float>(src_index, 1);
     const auto z = src_vertices.get<Magnum::Float>(src_index, 2);
     vertex.position = Magnum::Vector3(x, y, z);
-    const auto c = src_colours.get<Colour>(src_index);
+    const auto c = Colour(src_colours.get<uint32_t>(src_index));
     vertex.colour = Magnum::Color4(Magnum::Color4ub(c.r, c.g, c.b, c.a));
     return vertex.position;
   }
@@ -213,7 +220,7 @@ struct VertexMapper<VertexPNC>
 
 template <typename V>
 Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, Magnum::MeshPrimitive draw_type,
-                         tes::Bounds<Magnum::Float> &bounds)
+                         tes::Bounds<Magnum::Float> &bounds, const ConvertOptions &options)
 {
   Array<V> vertices(Corrade::Containers::DefaultInit, mesh_resource.vertexCount());
   Array<Magnum::UnsignedInt> indices(Corrade::Containers::DefaultInit, mesh_resource.indexCount());
@@ -242,18 +249,36 @@ Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, Magnum::MeshPri
   }
 
   const DataBuffer src_indices = mesh_resource.indices();
-  for (size_t i = 0; i < indices.size(); ++i)
+  if (src_indices.count())
   {
-    indices[i] = src_indices.get<unsigned>(i);
+    for (size_t i = 0; i < indices.size(); ++i)
+    {
+      indices[i] = src_indices.get<unsigned>(i);
+    }
+  }
+  else if (options.auto_index)
+  {
+    indices = Array<Magnum::UnsignedInt>(Corrade::Containers::DefaultInit, mesh_resource.indexCount());
+    for (unsigned i = 0; i < unsigned(indices.size()); ++i)
+    {
+      indices[i] = i;
+    }
   }
 
-  Magnum::Trade::MeshData md(draw_type, Magnum::Trade::DataFlags{}, ArrayView<const void>(indices),
-                             Magnum::Trade::MeshIndexData{ indices }, Magnum::Trade::DataFlags{},
-                             ArrayView<const void>(vertices), mapper.attributes(vertices));
+  if (!indices.empty())
+  {
+    Magnum::Trade::MeshData md(draw_type, Magnum::Trade::DataFlags{}, ArrayView<const void>(indices),
+                               Magnum::Trade::MeshIndexData{ indices }, Magnum::Trade::DataFlags{},
+                               ArrayView<const void>(vertices), mapper.attributes(vertices));
+    return Magnum::MeshTools::compile(md);
+  }
+  Magnum::Trade::MeshData md(draw_type, Magnum::Trade::DataFlags{}, ArrayView<const void>(vertices),
+                             mapper.attributes(vertices));
   return Magnum::MeshTools::compile(md);
 }
 
-Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, tes::Bounds<Magnum::Float> &bounds)
+Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, tes::Bounds<Magnum::Float> &bounds,
+                         const ConvertOptions &options)
 {
   Magnum::MeshPrimitive primitive = {};
 
@@ -278,14 +303,14 @@ Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, tes::Bounds<Mag
   {
     if (mesh_resource.colours().isValid())
     {
-      return convert<VertexPNC>(mesh_resource, primitive, bounds);
+      return convert<VertexPNC>(mesh_resource, primitive, bounds, options);
     }
-    return convert<VertexPN>(mesh_resource, primitive, bounds);
+    return convert<VertexPN>(mesh_resource, primitive, bounds, options);
   }
   else if (mesh_resource.colours().isValid())
   {
-    return convert<VertexPC>(mesh_resource, primitive, bounds);
+    return convert<VertexPC>(mesh_resource, primitive, bounds, options);
   }
-  return convert<VertexP>(mesh_resource, primitive, bounds);
+  return convert<VertexP>(mesh_resource, primitive, bounds, options);
 }
 }  // namespace tes::viewer::mesh

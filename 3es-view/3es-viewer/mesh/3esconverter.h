@@ -14,12 +14,20 @@ class MeshResource;
 
 namespace tes::viewer::mesh
 {
-Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, tes::Bounds<Magnum::Float> &bounds);
+/// Options to adjust the behaviour of @c convert() functions.
+struct ConvertOptions
+{
+  /// If indices are missing, automatically create sequential vertex indexing.
+  bool auto_index = false;
+};
 
-inline Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource)
+Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, tes::Bounds<Magnum::Float> &bounds,
+                         const ConvertOptions &options = {});
+
+inline Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, const ConvertOptions &options = {})
 {
   tes::Bounds<Magnum::Float> bounds;
-  return convert(mesh_resource, bounds);
+  return convert(mesh_resource, bounds, options);
 }
 }  // namespace tes::viewer::mesh
 

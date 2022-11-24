@@ -394,6 +394,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     // {
     //   movers.emplace_back(new Oscilator(mesh, 2.0f, 2.5f));
     // }
+    std::cout << "make mesh" << std::endl;
   }
 
   if (allShapes || haveOption("points", argc, argv))

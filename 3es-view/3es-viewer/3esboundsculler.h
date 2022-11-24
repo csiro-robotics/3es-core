@@ -62,10 +62,10 @@ public:
 
   /// Get the bounds centre point.
   /// @return The bounds centre.
-  const Magnum::Vector3 &centre() const { return convert(Super::centre()); }
+  Magnum::Vector3 centre() const { return convert(Super::centre()); }
   /// Get the bounds half extents, from centre to max.
   /// @return The half extents, centre to max.
-  const Magnum::Vector3 &halfExtents() const { return convert(Super::halfExtents()); }
+  Magnum::Vector3 halfExtents() const { return convert(Super::halfExtents()); }
 
   /// Expand the bounding box to include @p point.
   /// @param point The point to include.

@@ -45,6 +45,8 @@ ThirdEyeScene::ThirdEyeScene()
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::Blending);
 
+  _camera.position = { 0, -5, 0 };
+
   _culler = std::make_shared<BoundsCuller>();
   initialiseHandlers();
 }
