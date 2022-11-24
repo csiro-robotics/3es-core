@@ -545,6 +545,7 @@ void TesRec::parseArgs(int argc, const char **argv)
   bool ok = argc > 0;
   std::string ipStr;
   std::string portStr;
+  bool output_prefix_set = false;
 
   _argsOk = false;
   for (int i = 1; i < argc; ++i)
@@ -600,9 +601,10 @@ void TesRec::parseArgs(int argc, const char **argv)
         ok = false;
       }
     }
-    else if (_outputPrefix.empty() && arg.find("-") != 0 && arg.find("-") != std::string::npos)
+    else if (!output_prefix_set && arg.find("-") != 0)
     {
       _outputPrefix = arg;
+      output_prefix_set = true;
     }
   }
 
