@@ -10,6 +10,7 @@
 #include <3espacketreader.h>
 #include <shapes/3esmeshshape.h>
 
+#include <Magnum/GL/Renderer.h>
 #include <Magnum/Math/Color.h>
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Quaternion.h>
@@ -54,26 +55,41 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matri
 {
   std::lock_guard guard(_shapes_mutex);
 
+  const auto draw_mesh = [this, &projection_matrix](RenderMesh &render_mesh) {
+    // All this locking may prove very slow :S
+    std::lock_guard guard2(render_mesh.mutex);
+    if (_culler->isVisible(render_mesh.bounds_id) && render_mesh.mesh)
+    {
+      // TODO(KS): Move default draw scales to shared settings.
+      switch (render_mesh.shape->drawType())
+      {
+      case DtPoints: {
+        const float draw_scale = (render_mesh.shape->drawScale() > 0) ? render_mesh.shape->drawScale() : 8.0f;
+        Magnum::GL::Renderer::setPointSize(draw_scale);
+        break;
+      }
+      case DtLines: {
+        const float draw_scale = (render_mesh.shape->drawScale() > 0) ? render_mesh.shape->drawScale() : 2.0f;
+        Magnum::GL::Renderer::setLineWidth(draw_scale);
+        break;
+      }
+      default:
+        break;
+      }
+      _opaque_shader->setTransformationProjectionMatrix(projection_matrix * render_mesh.transform)
+        .draw(*render_mesh.mesh);
+    }
+  };
+
   auto &transients = _transients[_active_transients_index];
   for (auto &transient : transients)
   {
-    // All this locking may prove very slow :S
-    std::lock_guard guard2(transient->mutex);
-    if (_culler->isVisible(transient->bounds_id) && transient->mesh)
-    {
-      _opaque_shader->setTransformationProjectionMatrix(projection_matrix * transient->transform)
-        .draw(*transient->mesh);
-    }
+    draw_mesh(*transient);
   }
 
   for (auto &[id, render_mesh] : _shapes)
   {
-    std::lock_guard guard2(render_mesh->mutex);
-    if (_culler->isVisible(render_mesh->bounds_id) && render_mesh->mesh)
-    {
-      _opaque_shader->setTransformationProjectionMatrix(projection_matrix * render_mesh->transform)
-        .draw(*render_mesh->mesh);
-    }
+    draw_mesh(*render_mesh);
   }
 }
 

@@ -29,9 +29,7 @@
 // - UI
 
 // Things to implement:
-// - mesh renderer
 // - point cloud rendering
-//  - simple from vertex buffer
 //  - with point shader
 //  - voxel shader
 
@@ -44,6 +42,7 @@ ThirdEyeScene::ThirdEyeScene()
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::DepthTest);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::Blending);
+  Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::ProgramPointSize);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::ProgramPointSize);
   Magnum::GL::Renderer::setPointSize(8);
 
@@ -302,10 +301,6 @@ void ThirdEyeScene::initialiseHandlers()
   _messageHandlers.emplace(SIdMeshShape, std::make_shared<handler::MeshShape>(_culler));
 
   // TODO:
-  // - mesh shape
-  //  - lines
-  //  - triangles
-  //  - points
   // - mesh set
   // - point cloud
   // - multi-shape
