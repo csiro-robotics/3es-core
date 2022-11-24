@@ -49,16 +49,17 @@ using ArrayView = Corrade::Containers::ArrayView<T>;
 template <typename V>
 struct VertexMapper
 {
-  inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals,
-                       const DataBuffer &src_colours) const
+  inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals, const DataBuffer &src_colours,
+                       const ConvertOptions &options) const
   {
     (void)src_vertices;
     (void)src_normals;
     (void)src_colours;
+    (void)options;
     return false;
   }
   void operator()(V &vertex, size_t src_index, const DataBuffer &src_vertices, const DataBuffer &src_normals,
-                  const DataBuffer &src_colours) = delete;
+                  const DataBuffer &src_colours, const ConvertOptions &options) = delete;
 
   Array<Magnum::Trade::MeshAttributeData> attributes(const Array<V> &vertices) const = delete;
 };
@@ -67,15 +68,17 @@ struct VertexMapper
 template <>
 struct VertexMapper<VertexP>
 {
-  inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals,
-                       const DataBuffer &src_colours) const
+  inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals, const DataBuffer &src_colours,
+                       const ConvertOptions &options) const
   {
     (void)src_normals;
     (void)src_colours;
+    (void)options;
     return src_vertices.isValid();
   }
   inline Magnum::Vector3 operator()(VertexP &vertex, size_t src_index, const DataBuffer &src_vertices,
-                                    const DataBuffer &src_normals, const DataBuffer &src_colours)
+                                    const DataBuffer &src_normals, const DataBuffer &src_colours,
+                                    const ConvertOptions &options)
   {
     const auto x = src_vertices.get<Magnum::Float>(src_index, 0);
     const auto y = src_vertices.get<Magnum::Float>(src_index, 1);
@@ -99,14 +102,16 @@ struct VertexMapper<VertexP>
 template <>
 struct VertexMapper<VertexPN>
 {
-  inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals,
-                       const DataBuffer &src_colours) const
+  inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals, const DataBuffer &src_colours,
+                       const ConvertOptions &options) const
   {
     (void)src_colours;
+    (void)options;
     return src_vertices.isValid() && src_normals.isValid();
   }
   inline Magnum::Vector3 operator()(VertexPN &vertex, size_t src_index, const DataBuffer &src_vertices,
-                                    const DataBuffer &src_normals, const DataBuffer &src_colours)
+                                    const DataBuffer &src_normals, const DataBuffer &src_colours,
+                                    const ConvertOptions &options)
   {
     const auto x = src_vertices.get<Magnum::Float>(src_index, 0);
     const auto y = src_vertices.get<Magnum::Float>(src_index, 1);
@@ -139,20 +144,21 @@ struct VertexMapper<VertexPN>
 template <>
 struct VertexMapper<VertexPC>
 {
-  inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals,
-                       const DataBuffer &src_colours) const
+  inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals, const DataBuffer &src_colours,
+                       const ConvertOptions &options) const
   {
     (void)src_normals;
-    return src_vertices.isValid() && src_colours.isValid();
+    return src_vertices.isValid() && (options.auto_colour || src_colours.isValid());
   }
   inline Magnum::Vector3 operator()(VertexPC &vertex, size_t src_index, const DataBuffer &src_vertices,
-                                    const DataBuffer &src_normals, const DataBuffer &src_colours)
+                                    const DataBuffer &src_normals, const DataBuffer &src_colours,
+                                    const ConvertOptions &options)
   {
     const auto x = src_vertices.get<Magnum::Float>(src_index, 0);
     const auto y = src_vertices.get<Magnum::Float>(src_index, 1);
     const auto z = src_vertices.get<Magnum::Float>(src_index, 2);
     vertex.position = Magnum::Vector3(x, y, z);
-    const auto c = Colour(src_colours.get<uint32_t>(src_index));
+    const auto c = (src_colours.count()) ? Colour(src_colours.get<uint32_t>(src_index)) : options.default_colour;
     vertex.colour = Magnum::Color4(Magnum::Color4ub(c.r, c.g, c.b, c.a));
     return vertex.position;
   }
@@ -177,13 +183,14 @@ struct VertexMapper<VertexPC>
 template <>
 struct VertexMapper<VertexPNC>
 {
-  inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals,
-                       const DataBuffer &src_colours) const
+  inline bool validate(const DataBuffer &src_vertices, const DataBuffer &src_normals, const DataBuffer &src_colours,
+                       const ConvertOptions &options) const
   {
-    return src_vertices.isValid() && src_normals.isValid() && src_colours.isValid();
+    return src_vertices.isValid() && src_normals.isValid() && (options.auto_colour || src_colours.isValid());
   }
   inline Magnum::Vector3 operator()(VertexPNC &vertex, size_t src_index, const DataBuffer &src_vertices,
-                                    const DataBuffer &src_normals, const DataBuffer &src_colours)
+                                    const DataBuffer &src_normals, const DataBuffer &src_colours,
+                                    const ConvertOptions &options)
   {
     const auto x = src_vertices.get<Magnum::Float>(src_index, 0);
     const auto y = src_vertices.get<Magnum::Float>(src_index, 1);
@@ -193,7 +200,7 @@ struct VertexMapper<VertexPNC>
     const auto ny = src_normals.get<Magnum::Float>(src_index, 1);
     const auto nz = src_normals.get<Magnum::Float>(src_index, 2);
     vertex.normal = Magnum::Vector3(nx, ny, nz);
-    const auto c = Colour(src_colours.get<uint32_t>(src_index));
+    const auto c = (src_colours.count()) ? Colour(src_colours.get<uint32_t>(src_index)) : options.default_colour;
     vertex.colour = Magnum::Color4(Magnum::Color4ub(c.r, c.g, c.b, c.a));
     return vertex.position;
   }
@@ -230,14 +237,14 @@ Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, Magnum::MeshPri
   const DataBuffer src_colour = mesh_resource.colours();
 
   VertexMapper<V> mapper;
-  if (!mapper.validate(src_vertices, src_normals, src_colour))
+  if (!mapper.validate(src_vertices, src_normals, src_colour, options))
   {
     return Magnum::GL::Mesh();
   }
 
   for (size_t i = 0; i < vertices.size(); ++i)
   {
-    const auto vertex = mapper(vertices[i], i, src_vertices, src_normals, src_colour);
+    const auto vertex = mapper(vertices[i], i, src_vertices, src_normals, src_colour, options);
     if (i != 0)
     {
       bounds.expand(tes::Vector3<Magnum::Float>(vertex.x(), vertex.y(), vertex.z()));
@@ -307,7 +314,7 @@ Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, tes::Bounds<Mag
     }
     return convert<VertexPN>(mesh_resource, primitive, bounds, options);
   }
-  else if (mesh_resource.colours().isValid())
+  else if (mesh_resource.colours().isValid() || options.auto_colour)
   {
     return convert<VertexPC>(mesh_resource, primitive, bounds, options);
   }

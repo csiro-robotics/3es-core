@@ -333,6 +333,7 @@ void MeshShape::updateRenderResources(RenderMesh &render_mesh)
   if (render_mesh.shape)
   {
     mesh::ConvertOptions options = {};
+    options.auto_colour = true;
 
     render_mesh.mesh = std::make_unique<Magnum::GL::Mesh>(
       mesh::convert(tes::MeshShape::Resource(*render_mesh.shape, 0), render_mesh.bounds, options));
@@ -340,7 +341,6 @@ void MeshShape::updateRenderResources(RenderMesh &render_mesh)
 
     if (render_mesh.bounds_id == BoundsCuller::kInvalidId)
     {
-      // TODO(KS): transform the bounds.
       render_mesh.bounds_id = _culler->allocate(render_mesh.cullBounds());
     }
     else

@@ -110,6 +110,7 @@ private:
   /// @param render_mesh Mesh data to update.
   void updateRenderResources(RenderMesh &render_mesh);
 
+  /// Mutex locked whenever touching @c _shapes or @c _transients.
   mutable std::mutex _shapes_mutex;
   std::unordered_map<Id, std::shared_ptr<RenderMesh>> _shapes;
   /// Transient shapes. The last item is the most current which is returned when requesting a transient shape.
