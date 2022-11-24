@@ -139,7 +139,7 @@ private:
   std::vector<RenderMeshPtr> _transients;
   unsigned _active_transients_index = 0;
   std::shared_ptr<BoundsCuller> _culler;
-  std::shared_ptr<Magnum::Shaders::VertexColor3D> _opaque_shader;
+  Magnum::Shaders::VertexColor3D _opaque_shader;
 };
 }  // namespace tes::viewer::handler
 

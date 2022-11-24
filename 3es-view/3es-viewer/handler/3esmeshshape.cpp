@@ -23,9 +23,7 @@ TES_ENUM_FLAGS(MeshShape::Flag, unsigned);
 MeshShape::MeshShape(std::shared_ptr<BoundsCuller> culler)
   : Message(SIdMeshShape, "mesh shape")
   , _culler(std::move(culler))
-{
-  _opaque_shader = std::make_shared<Magnum::Shaders::VertexColor3D>();
-}
+{}
 
 
 void MeshShape::initialise()
@@ -77,7 +75,7 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matri
       default:
         break;
       }
-      _opaque_shader->setTransformationProjectionMatrix(projection_matrix * render_mesh.transform)
+      _opaque_shader.setTransformationProjectionMatrix(projection_matrix * render_mesh.transform)
         .draw(*render_mesh.mesh);
     }
   };
