@@ -24,7 +24,10 @@ BoundsId BoundsCuller::allocate(const Bounds &bounds)
 
 void BoundsCuller::release(BoundsId id)
 {
-  _bounds.release(id);
+  if (id != kInvalidId)
+  {
+    _bounds.release(id);
+  }
 }
 
 
