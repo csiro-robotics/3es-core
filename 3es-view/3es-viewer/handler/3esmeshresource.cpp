@@ -42,6 +42,13 @@ void MeshResource::beginFrame(const FrameStamp &stamp)
   // As we begin a frame, we need to commit resources.
   // For OpenGL this must be on beginFrame() as this is the main thread.
   // With Vulkan we could do it in endFrame().
+
+  // Move resources from the pending list. This may replace existing items, such as when we redefine an existing mesh.
+  for (auto &[id, resource] : _pending)
+  {
+    _resources[id] = resource;
+  }
+  _pending.clear();
   updateResources();
 }
 
@@ -86,7 +93,11 @@ void MeshResource::readMessage(PacketReader &reader)
   case MmtCreate: {
     Resource resource = {};
     resource.pending = std::make_shared<SimpleMesh>(mesh_id);
-    if (!resource.pending->readCreate(reader))
+    if (resource.pending->readCreate(reader))
+    {
+      _pending.emplace(mesh_id, resource);
+    }
+    else
     {
       log::error("Error reading mesh resource create: ", mesh_id);
     }

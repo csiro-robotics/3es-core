@@ -295,7 +295,7 @@ bool MeshSet::create(const std::shared_ptr<tes::MeshSet> &shape)
   const bool transient = shape->id() == 0;
   for (unsigned i = 0; i < shape->partCount(); ++i)
   {
-    Drawable drawable = {};
+    Drawable &drawable = _drawables.emplace_back();
     drawable.resource_id = shape->partResource(i)->id();
     drawable.transform = composeTransform(shape->attributes()) * composeTransform(shape->partTransform(i));
     const auto colour = shape->colour() * shape->partColour(i);
