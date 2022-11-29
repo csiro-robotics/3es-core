@@ -8,6 +8,7 @@
 
 #include "3esvector3.h"
 
+#include <algorithm>
 #include <limits>
 
 namespace tes
@@ -64,6 +65,14 @@ public:
   /// Get the bounds half extents, from centre to max.
   /// @return The half extents, centre to max.
   Vector3<T> halfExtents() const;
+
+  /// Converts the bounds from defining an AABB to being more spherical in nature.
+  ///
+  /// This adjusts the bounds such that all axes of the half extents are set to the maximum axis value, while
+  /// maintaining the same centre.
+  ///
+  /// Note, there is no way to explicitly identify that this adjustment has been made to a @c Bounds object.
+  void convertToSpherical();
 
   /// Expand the bounding box to include @p point.
   /// @param point The point to include.
@@ -167,6 +176,17 @@ template <typename T>
 Vector3<T> Bounds<T>::halfExtents() const
 {
   return _maximum - centre();
+}
+
+
+template <typename T>
+inline void Bounds<T>::convertToSpherical()
+{
+  const auto centre = this->centre();
+  auto ext = halfExtents();
+  ext.x = std::max(ext.x, ext.y);
+  ext.x = ext.y = ext.z = std::max(ext.x, ext.z);
+  *this = fromCentreHalfExtents(centre, ext);
 }
 
 

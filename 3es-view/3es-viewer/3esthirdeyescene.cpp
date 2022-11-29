@@ -1,9 +1,13 @@
 #include "3esthirdeyescene.h"
 
 #include "3esedleffect.h"
+
+#include "handler/3esmeshresource.h"
+#include "handler/3esmeshset.h"
 #include "handler/3esmeshshape.h"
 #include "handler/3esmessage.h"
 #include "handler/3esshape.h"
+
 #include "painter/3esarrow.h"
 #include "painter/3esbox.h"
 #include "painter/3escapsule.h"
@@ -68,7 +72,7 @@ void ThirdEyeScene::clearActiveFboEffect()
 void ThirdEyeScene::reset()
 {
   std::unique_lock guard(_render_mutex);
-  for (auto &[id, handler] : _messageHandlers)
+  for (auto &handler : _orderedMessageHandlers)
   {
     handler->reset();
   }
@@ -87,7 +91,7 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
     // Update server info.
     if (_new_server_info)
     {
-      for (auto &[routingId, handler] : _messageHandlers)
+      for (auto &handler : _orderedMessageHandlers)
       {
         handler->updateServerInfo(_server_info);
       }
@@ -97,7 +101,7 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
     _render_stamp.frame_number = _new_frame;
     _have_new_frame = false;
 
-    for (auto &[routingId, handler] : _messageHandlers)
+    for (auto &handler : _orderedMessageHandlers)
     {
       handler->beginFrame(_render_stamp);
     }
@@ -134,7 +138,7 @@ void ThirdEyeScene::updateToFrame(FrameNumber frame)
   std::lock_guard guard(_render_mutex);
   if (frame != _render_stamp.frame_number)
   {
-    for (auto &[routingId, handler] : _messageHandlers)
+    for (auto &handler : _orderedMessageHandlers)
     {
       handler->endFrame(_render_stamp);
     }
@@ -282,26 +286,21 @@ void ThirdEyeScene::initialiseHandlers()
   _painters.emplace(SIdArrow, std::make_shared<painter::Arrow>(_culler));
   _painters.emplace(SIdPose, std::make_shared<painter::Pose>(_culler));
 
-  _messageHandlers.emplace(  //
-    SIdSphere, std::make_shared<handler::Shape>(SIdSphere, "sphere", _painters[SIdSphere]));
-  _messageHandlers.emplace(  //
-    SIdBox, std::make_shared<handler::Shape>(SIdBox, "box", _painters[SIdBox]));
-  _messageHandlers.emplace(  //
-    SIdCone, std::make_shared<handler::Shape>(SIdCone, "cone", _painters[SIdCone]));
-  _messageHandlers.emplace(  //
-    SIdCylinder, std::make_shared<handler::Shape>(SIdCylinder, "cylinder", _painters[SIdCylinder]));
-  _messageHandlers.emplace(  //
-    SIdCapsule, std::make_shared<handler::Shape>(SIdCapsule, "capsule", _painters[SIdCapsule]));
-  _messageHandlers.emplace(  //
-    SIdPlane, std::make_shared<handler::Shape>(SIdPlane, "plane", _painters[SIdPlane]));
-  _messageHandlers.emplace(  //
-    SIdStar, std::make_shared<handler::Shape>(SIdStar, "star", _painters[SIdStar]));
-  _messageHandlers.emplace(  //
-    SIdArrow, std::make_shared<handler::Shape>(SIdArrow, "arrow", _painters[SIdArrow]));
-  _messageHandlers.emplace(  //
-    SIdPose, std::make_shared<handler::Shape>(SIdPose, "pose", _painters[SIdPose]));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdSphere, "sphere", _painters[SIdSphere]));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdBox, "box", _painters[SIdBox]));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdCone, "cone", _painters[SIdCone]));
+  _orderedMessageHandlers.emplace_back(
+    std::make_shared<handler::Shape>(SIdCylinder, "cylinder", _painters[SIdCylinder]));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdCapsule, "capsule", _painters[SIdCapsule]));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdPlane, "plane", _painters[SIdPlane]));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdStar, "star", _painters[SIdStar]));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdArrow, "arrow", _painters[SIdArrow]));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdPose, "pose", _painters[SIdPose]));
 
-  _messageHandlers.emplace(SIdMeshShape, std::make_shared<handler::MeshShape>(_culler));
+  auto mesh_resources = std::make_shared<handler::MeshResource>();
+  _orderedMessageHandlers.emplace_back(mesh_resources);
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshShape>(_culler));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshSet>(_culler, mesh_resources));
 
   // TODO:
   // - mesh set
@@ -310,9 +309,11 @@ void ThirdEyeScene::initialiseHandlers()
   // - text2d
   // - text3d
 
-  for (auto &[id, handler] : _messageHandlers)
+  // Copy message handlers to the routing set and initialise.
+  for (auto &handler : _orderedMessageHandlers)
   {
     handler->initialise();
+    _messageHandlers.emplace(handler->routingId(), handler);
   }
 }
 
@@ -320,15 +321,15 @@ void ThirdEyeScene::initialiseHandlers()
 void ThirdEyeScene::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix)
 {
   // Draw opaque then transparent for proper blending.
-  for (const auto &[id, handler] : _messageHandlers)
+  for (const auto &handler : _orderedMessageHandlers)
   {
     handler->draw(handler::Message::DrawPass::Opaque, _render_stamp, projection_matrix);
   }
-  for (const auto &[id, handler] : _messageHandlers)
+  for (const auto &handler : _orderedMessageHandlers)
   {
     handler->draw(handler::Message::DrawPass::Transparent, _render_stamp, projection_matrix);
   }
-  for (const auto &[id, handler] : _messageHandlers)
+  for (const auto &handler : _orderedMessageHandlers)
   {
     handler->draw(handler::Message::DrawPass::Overlay, _render_stamp, projection_matrix);
   }

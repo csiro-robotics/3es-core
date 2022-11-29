@@ -8,6 +8,7 @@
 
 #include "3es-core.h"
 
+#include <array>
 #include <cstdint>
 
 namespace tes
@@ -151,11 +152,17 @@ public:
 
   /// Lighten the colour by 1.5
   /// @return A lighter colour.
-  inline Colour lighten() const { return adjust(1.5f); }
+  inline Colour lighten() const
+  {
+    return adjust(1.5f);
+  }
 
   /// Darken the colour by 0.5
   /// @return A darker colour.
-  inline Colour darken() const { return adjust(0.5f); }
+  inline Colour darken() const
+  {
+    return adjust(0.5f);
+  }
 
   /// Convert RGB to HSV form.
   /// @param[out] h The hue value [0, 360].
@@ -546,6 +553,56 @@ inline bool Colour::operator==(const Colour &other) const
 inline bool Colour::operator!=(const Colour &other) const
 {
   return c != other.c;
+}
+
+inline Colour operator*(const Colour &a, const Colour &b)
+{
+  std::array<float, 4> channels;
+
+  for (int i = 0; i < 4; ++i)
+  {
+    channels[i] = std::min(a.getf(i) * b.getf(i), 1.0f);
+  }
+
+  return Colour(channels[0], channels[1], channels[2], channels[3]);
+}
+
+inline Colour operator/(const Colour &a, const Colour &b)
+{
+  std::array<float, 4> channels;
+
+  for (int i = 0; i < 4; ++i)
+  {
+    channels[i] = std::min(a.getf(i) / b.getf(i), 1.0f);
+  }
+
+  return Colour(channels[0], channels[1], channels[2], channels[3]);
+}
+
+
+inline Colour operator+(const Colour &a, const Colour &b)
+{
+  std::array<float, 4> channels;
+
+  for (int i = 0; i < 4; ++i)
+  {
+    channels[i] = std::min(std::sqrt(a.getf(i) * a.getf(i) + b.getf(i) * b.getf(i)), 1.0f);
+  }
+
+  return Colour(channels[0], channels[1], channels[2], channels[3]);
+}
+
+
+inline Colour operator-(const Colour &a, const Colour &b)
+{
+  std::array<float, 4> channels;
+
+  for (int i = 0; i < 4; ++i)
+  {
+    channels[i] = std::min(std::sqrt(a.getf(i) * a.getf(i) - b.getf(i) * b.getf(i)), 1.0f);
+  }
+
+  return Colour(channels[0], channels[1], channels[2], channels[3]);
 }
 }  // namespace tes
 

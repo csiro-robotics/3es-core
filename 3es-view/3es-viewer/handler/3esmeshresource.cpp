@@ -19,6 +19,24 @@ MeshResource::MeshResource()
 {}
 
 
+void MeshResource::initialise()
+{}
+
+
+void MeshResource::reset()
+{
+  std::lock_guard guard(_resource_lock);
+  _resources.clear();
+  _pending.clear();
+}
+
+
+void MeshResource::updateServerInfo(const ServerInfoMessage &info)
+{
+  (void)info;
+}
+
+
 void MeshResource::beginFrame(const FrameStamp &stamp)
 {
   // As we begin a frame, we need to commit resources.
@@ -126,6 +144,25 @@ void MeshResource::serialise(Connection &out, ServerInfoMessage &info)
 }
 
 
+unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const std::vector<DrawItem> &drawables)
+{
+  std::lock_guard guard(_resource_lock);
+
+  unsigned drawn = 0;
+  for (const auto &item : drawables)
+  {
+    const auto search = _resources.find(item.resource_id);
+    if (search != _resources.end() && search->second.mesh)
+    {
+      _opaque_shader.setTransformationProjectionMatrix(projection_matrix).draw(*search->second.mesh);
+      ++drawn;
+    }
+  }
+
+  return drawn;
+}
+
+
 void MeshResource::updateResources()
 {
   std::lock_guard guard(_resource_lock);
@@ -140,6 +177,8 @@ void MeshResource::updateResources()
       {
         resource.current = resource.pending;
         resource.mesh = std::make_shared<Magnum::GL::Mesh>(mesh::convert(*resource.current, resource.bounds, options));
+        // Update to spherical bounds.
+        resource.bounds.convertToSpherical();
       }
       resource.flags &= ~ResourceFlag::Ready;
     }

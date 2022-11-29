@@ -1,7 +1,6 @@
 #include "3esmeshshape.h"
 
 #include "mesh/3esconverter.h"
-#include "util/3esenum.h"
 
 #include <3esconnection.h>
 #include <3escolour.h>
@@ -17,9 +16,6 @@
 
 namespace tes::viewer::handler
 {
-TES_ENUM_FLAGS(MeshShape::Flag, unsigned);
-
-
 MeshShape::MeshShape(std::shared_ptr<BoundsCuller> culler)
   : Message(SIdMeshShape, "mesh shape")
   , _culler(std::move(culler))
@@ -172,8 +168,7 @@ bool MeshShape::handleCreate(PacketReader &reader)
     return false;
   }
 
-  create(shape);
-  return true;
+  return create(shape) != nullptr;
 }
 
 

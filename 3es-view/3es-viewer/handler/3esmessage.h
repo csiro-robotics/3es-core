@@ -4,6 +4,7 @@
 #include "3es-viewer.h"
 
 #include "3esframestamp.h"
+#include "util/3esenum.h"
 
 #include <Magnum/Magnum.h>
 
@@ -38,6 +39,24 @@ public:
   {
     /// Ignore messages for transient objects. Do not create new transient objects.
     IgnoreTransient = (1u << 0u)
+  };
+
+  /// Flags commonly used to manage drawable items in a message handler.
+  enum class DrawableFlag : unsigned
+  {
+    /// No flags set.
+    Zero = 0u,
+    /// Item is pending commit for render on the next frame.
+    Pending = 1u << 0u,
+    /// Item is to be removed/disposed of on the next commit.
+    MarkForDeath = 1u << 1u,
+    /// Item has dirty @c ObjectAttributes - transform and/or colour.
+    DirtyAttributes = 1u << 2u,
+    /// Item has dirty mesh resources.
+    DirtyMesh = 1u << 3u,
+
+    /// A combination of @c DirtyAttributes and @c DirtyMesh .
+    Dirty = DirtyAttributes | DirtyMesh
   };
 
   /// Draw pass identifier for @c draw() call semantics.
@@ -125,6 +144,8 @@ protected:
   ServerInfoMessage _server_info = {};
   std::string _name;
 };
+
+TES_ENUM_FLAGS(Message::DrawableFlag, unsigned);
 }  // namespace tes::viewer::handler
 
 #endif  // TES_VIEWER_HANDLER_MESSAGE_H

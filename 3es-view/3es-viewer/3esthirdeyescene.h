@@ -110,6 +110,8 @@ private:
 
   std::unordered_map<ShapeHandlerIDs, std::shared_ptr<painter::ShapePainter>> _painters;
   std::unordered_map<uint32_t, std::shared_ptr<handler::Message>> _messageHandlers;
+  /// Message handers arranged by update order..
+  std::vector<std::shared_ptr<handler::Message>> _orderedMessageHandlers;
   /// List of unknown message handlers for which we've raised warnings. Cleared on @c reset().
   std::unordered_set<uint32_t> _unknown_handlers;
 

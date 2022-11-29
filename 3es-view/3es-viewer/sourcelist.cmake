@@ -6,6 +6,7 @@ list(APPEND PUBLIC_HEADERS
   3esfboeffect.h
   3esframestamp.h
   3esmagnum.h
+  3esmagnumcolour.h
   3esmagnumv3.h
   3esthirdeyescene.h
   3esviewablewindow.h
@@ -16,6 +17,7 @@ list(APPEND PUBLIC_HEADERS
   data/3esdatathread.h
   data/3esstreamthread.h
   handler/3esmeshresource.h
+  handler/3esmeshset.h
   handler/3esmeshshape.h
   handler/3esmessage.h
   handler/3esshape.h
@@ -49,6 +51,7 @@ list(APPEND SOURCES
   data/3esdatathread.cpp
   data/3esstreamthread.cpp
   handler/3esmeshresource.cpp
+  handler/3esmeshset.cpp
   handler/3esmeshshape.cpp
   handler/3esmessage.cpp
   handler/3esshape.cpp

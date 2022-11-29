@@ -34,19 +34,7 @@ namespace tes::viewer::handler
 class MeshShape : public Message
 {
 public:
-  using ObjectAttributes = tes::ObjectAttributes<float>;
-
-  enum class Flag : unsigned
-  {
-    Zero = 0u,
-    Pending = 1u << 0u,
-    MarkForDeath = 1u << 1u,
-    DirtyAttributes = 1u << 2u,
-    DirtyMesh = 1u << 3u,
-
-    Dirty = DirtyAttributes | DirtyMesh
-  };
-
+  using Flag = DrawableFlag;
   MeshShape(std::shared_ptr<BoundsCuller> culler);
 
   void initialise() override;
