@@ -709,6 +709,100 @@ struct _3es_coreAPI DestroyMessage
     return ok;
   }
 };
+
+/// The message structure for a @c MtCamera routing message.
+///
+/// Note, we only expect message id zero.
+struct _3es_coreAPI CameraMessage
+{
+  /// Reserved @c cameraId for recording the camera properties during playback.
+  static constexpr uint8_t kRecordedCameraID = 255u;
+
+  /// ID of the camera. 255 is reserved to record the view used while recording.
+  uint8_t cameraId;
+  /// Flags. Currently must be zero as the only valid flag is the double precision indicator (value 1), which is not
+  /// supported this structure. All values are floats.
+  uint8_t flags;
+  /// Padding/reserved. Must be zero.
+  uint32_t reserved;
+
+  /// Position X coordinate.
+  float x;
+  /// Position Y coordinate.
+  float y;
+  /// Position Z coordinate.
+  float z;
+
+  /// Forward vector X value.
+  float dirX;
+  /// Forward vector Y value.
+  float dirY;
+  /// Forward vector Z value.
+  float dirZ;
+
+  /// Up vector X value.
+  float upX;
+  /// Up vector Y value.
+  float upY;
+  /// Up vector Z value.
+  float upZ;
+
+  /// Near clip plane (optional). Zero or less implies an unspecified or unchanged value.
+  float near;
+  /// Far clip plane (optional). Zero or less implies an unspecified or unchanged value.
+  float far;
+  /// Horizontal field of view in degrees (optional). Zero or less implies an unspecified or unchanged value.
+  float fov;
+
+  /// Read the message from the given <paramref name="reader"/>.
+  inline bool read(PacketReader &reader)
+  {
+    bool ok = true;
+    ok = reader.readElement(cameraId) == sizeof(cameraId) && ok;
+    ok = reader.readElement(flags) == sizeof(flags) && ok;
+    ok = reader.readElement(reserved) == sizeof(reserved) && ok;
+    ok = reader.readElement(x) == sizeof(x) && ok;
+    ok = reader.readElement(y) == sizeof(y) && ok;
+    ok = reader.readElement(z) == sizeof(z) && ok;
+    ok = reader.readElement(dirX) == sizeof(dirX) && ok;
+    ok = reader.readElement(dirY) == sizeof(dirY) && ok;
+    ok = reader.readElement(dirZ) == sizeof(dirZ) && ok;
+    ok = reader.readElement(upX) == sizeof(upX) && ok;
+    ok = reader.readElement(upY) == sizeof(upY) && ok;
+    ok = reader.readElement(upZ) == sizeof(upZ) && ok;
+    ok = reader.readElement(near) == sizeof(near) && ok;
+    ok = reader.readElement(far) == sizeof(far) && ok;
+    ok = reader.readElement(fov) == sizeof(fov) && ok;
+    return ok;
+  }
+
+  /// <summary>
+  /// Write this message to <paramref name="packet"/>.
+  /// </summary>
+  /// <param name="packet">The packet to write to.</param>
+  /// <returns>True</returns>
+
+  inline bool write(PacketWriter &packet)
+  {
+    bool ok = true;
+    ok = packet.writeElement(cameraId) == sizeof(cameraId) && ok;
+    ok = packet.writeElement(flags) == sizeof(flags) && ok;
+    ok = packet.writeElement(reserved) == sizeof(reserved) && ok;
+    ok = packet.writeElement(x) == sizeof(x) && ok;
+    ok = packet.writeElement(y) == sizeof(y) && ok;
+    ok = packet.writeElement(z) == sizeof(z) && ok;
+    ok = packet.writeElement(dirX) == sizeof(dirX) && ok;
+    ok = packet.writeElement(dirY) == sizeof(dirY) && ok;
+    ok = packet.writeElement(dirZ) == sizeof(dirZ) && ok;
+    ok = packet.writeElement(upX) == sizeof(upX) && ok;
+    ok = packet.writeElement(upY) == sizeof(upY) && ok;
+    ok = packet.writeElement(upZ) == sizeof(upZ) && ok;
+    ok = packet.writeElement(near) == sizeof(near) && ok;
+    ok = packet.writeElement(far) == sizeof(far) && ok;
+    ok = packet.writeElement(fov) == sizeof(fov) && ok;
+    return ok;
+  }
+};
 }  // namespace tes
 
 #endif  // _3ESMESSAGES_H_

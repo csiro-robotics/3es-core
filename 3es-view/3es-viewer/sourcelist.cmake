@@ -16,6 +16,7 @@ list(APPEND PUBLIC_HEADERS
   camera/3esfly.h
   data/3esdatathread.h
   data/3esstreamthread.h
+  handler/3escamera.h
   handler/3escategory.h
   handler/3esmeshresource.h
   handler/3esmeshset.h
@@ -51,6 +52,7 @@ list(APPEND SOURCES
   camera/3esfly.cpp
   data/3esdatathread.cpp
   data/3esstreamthread.cpp
+  handler/3escamera.cpp
   handler/3escategory.cpp
   handler/3esmeshresource.cpp
   handler/3esmeshset.cpp
