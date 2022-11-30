@@ -2,6 +2,7 @@
 
 #include "3esedleffect.h"
 
+#include "handler/3escategory.h"
 #include "handler/3esmeshresource.h"
 #include "handler/3esmeshset.h"
 #include "handler/3esmeshshape.h"
@@ -286,6 +287,8 @@ void ThirdEyeScene::initialiseHandlers()
   _painters.emplace(SIdArrow, std::make_shared<painter::Arrow>(_culler));
   _painters.emplace(SIdPose, std::make_shared<painter::Pose>(_culler));
 
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Category>());
+
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdSphere, "sphere", _painters[SIdSphere]));
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdBox, "box", _painters[SIdBox]));
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdCone, "cone", _painters[SIdCone]));
@@ -303,7 +306,6 @@ void ThirdEyeScene::initialiseHandlers()
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshSet>(_culler, mesh_resources));
 
   // TODO:
-  // - mesh set
   // - point cloud
   // - multi-shape
   // - text2d
