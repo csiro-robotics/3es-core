@@ -74,6 +74,14 @@ public:
     Magnum::Color4 tint = { 1, 1, 1, 1 };
   };
 
+  enum class DrawFlag : unsigned
+  {
+    Zero = 0,
+    Wireframe = OFWire,
+    Transparent = OFTransparent,
+    TwoSided = OFTwoSided
+  };
+
   MeshResource();
 
   ResourceReference get(uint32_t id) const;
@@ -95,7 +103,8 @@ public:
   /// @param projection_matrix Current projection matrix.
   /// @param drawables Defines what to draw.
   /// @return The number of resources successfully resolved and drawn from @p drawables.
-  unsigned draw(const Magnum::Matrix4 &projection_matrix, const std::vector<DrawItem> &drawables);
+  unsigned draw(const Magnum::Matrix4 &projection_matrix, const std::vector<DrawItem> &drawables,
+                DrawFlag flags = DrawFlag::Zero);
 
   enum class ResourceFlag : unsigned
   {
@@ -125,9 +134,13 @@ private:
   mutable std::mutex _resource_lock;
   std::unordered_map<uint32_t, Resource> _resources;
   std::unordered_map<uint32_t, Resource> _pending;
+  /// Garbage list populated on @c reset() from background thread so main thread can release on @c beginFrame().
+  std::vector<std::shared_ptr<Magnum::GL::Mesh>> _garbage_list;
   Magnum::Shaders::VertexColor3D _opaque_shader;
 };
 
+
+TES_ENUM_FLAGS(MeshResource::DrawFlag, unsigned);
 
 inline MeshResource::ResourceReference MeshResource::get(uint32_t id) const
 {

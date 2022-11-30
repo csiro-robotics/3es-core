@@ -84,7 +84,6 @@ private:
     unsigned part_id = 0;
     /// State flags.
     DrawableFlag flags = DrawableFlag::Zero;
-    std::shared_ptr<Magnum::GL::Mesh> mesh;
     // TODO:(KS): shader;
   };
 
@@ -101,7 +100,9 @@ private:
   mutable std::mutex _mutex;
   std::shared_ptr<BoundsCuller> _culler;
   std::shared_ptr<MeshResource> _resources;
-  std::vector<MeshResource::DrawItem> _draw_set;
+  /// Used to marshal draw requests for the @c _resources. We use two to allow a single pass to collect single and
+  /// two sided drawing into separate sets.
+  std::array<std::vector<MeshResource::DrawItem>, 2> _draw_sets;
   std::vector<Drawable> _drawables;
   std::vector<MeshItem> _transients;
   std::unordered_map<uint32_t, MeshItem> _shapes;

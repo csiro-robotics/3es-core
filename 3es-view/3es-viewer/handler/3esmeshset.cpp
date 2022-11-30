@@ -33,7 +33,8 @@ void MeshSet::reset()
     _culler->release(drawable.bounds_id);
   }
   _drawables.clear();
-  _draw_set.clear();
+  _draw_sets[0].clear();
+  _draw_sets[1].clear();
   _transients.clear();
   _shapes.clear();
 }
@@ -94,26 +95,42 @@ void MeshSet::endFrame(const FrameStamp &stamp)
 
 void MeshSet::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
 {
-  _draw_set.clear();
   std::lock_guard guard(_mutex);
+  _draw_sets[0].clear();
+  _draw_sets[1].clear();
   for (const auto &drawable : _drawables)
   {
     if ((drawable.flags & (DrawableFlag::Pending | DrawableFlag::MarkForDeath)) != DrawableFlag::Zero)
     {
       continue;
     }
-    if (!drawable.mesh)
+    if (drawable.bounds_id == BoundsCuller::kInvalidId)
+    {
+      continue;
+    }
+
+    if (drawable.owner->transparent() != (pass == DrawPass::Transparent))
     {
       continue;
     }
 
     if (_culler->isVisible(drawable.bounds_id))
     {
-      _draw_set.push_back({ drawable.resource_id, drawable.transform, drawable.colour });
+      const unsigned set_idx = (!drawable.owner->twoSided()) ? 0 : 1;
+      _draw_sets[set_idx].push_back({ drawable.resource_id, drawable.transform, drawable.colour });
     }
   }
 
-  _resources->draw(projection_matrix, _draw_set);
+  const MeshResource::DrawFlag flags =
+    (pass == DrawPass::Transparent) ? MeshResource::DrawFlag::Transparent : MeshResource::DrawFlag::Zero;
+  if (!_draw_sets[0].empty())
+  {
+    _resources->draw(projection_matrix, _draw_sets[0], flags);
+  }
+  if (!_draw_sets[1].empty())
+  {
+    _resources->draw(projection_matrix, _draw_sets[1], flags | MeshResource::DrawFlag::TwoSided);
+  }
 }
 
 
@@ -296,6 +313,7 @@ bool MeshSet::create(const std::shared_ptr<tes::MeshSet> &shape)
   for (unsigned i = 0; i < shape->partCount(); ++i)
   {
     Drawable &drawable = _drawables.emplace_back();
+    drawable.part_id = i;
     drawable.resource_id = shape->partResource(i)->id();
     drawable.transform = composeTransform(shape->attributes()) * composeTransform(shape->partTransform(i));
     const auto colour = shape->colour() * shape->partColour(i);

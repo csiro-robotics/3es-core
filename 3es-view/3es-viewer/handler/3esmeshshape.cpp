@@ -27,11 +27,24 @@ void MeshShape::initialise()
 
 
 void MeshShape::reset()
-{}
+{
+  std::lock_guard guard(_shapes_mutex);
+  _garbage_list = _transients;
+  for (auto &[id, mesh] : _shapes)
+  {
+    _garbage_list.emplace_back(mesh);
+  }
+  for (auto &[id, mesh] : _pending_shapes)
+  {
+    _garbage_list.emplace_back(mesh);
+  }
+  _transients.clear();
+}
 
 
 void MeshShape::beginFrame(const FrameStamp &stamp)
 {
+  _garbage_list.clear();
   updateRenderAssets();
 }
 

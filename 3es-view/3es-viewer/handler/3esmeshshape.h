@@ -127,6 +127,8 @@ private:
   std::vector<RenderMeshPtr> _transients;
   unsigned _active_transients_index = 0;
   std::shared_ptr<BoundsCuller> _culler;
+  /// Garbage list populated on @c reset() from background thread so main thread can release on @c beginFrame().
+  std::vector<RenderMeshPtr> _garbage_list;
   Magnum::Shaders::VertexColor3D _opaque_shader;
 };
 }  // namespace tes::viewer::handler

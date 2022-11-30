@@ -10,6 +10,8 @@
 #include <3esmeshmessages.h>
 #include <3eslog.h>
 
+#include <Magnum/GL/Renderer.h>
+
 namespace tes::viewer::handler
 {
 TES_ENUM_FLAGS(MeshResource::ResourceFlag, unsigned);
@@ -26,6 +28,16 @@ void MeshResource::initialise()
 void MeshResource::reset()
 {
   std::lock_guard guard(_resource_lock);
+  for (auto &[id, resource] : _resources)
+  {
+    _garbage_list.emplace_back(resource.mesh);
+    resource.mesh = nullptr;
+  }
+  for (auto &[id, resource] : _pending)
+  {
+    _garbage_list.emplace_back(resource.mesh);
+    resource.mesh = nullptr;
+  }
   _resources.clear();
   _pending.clear();
 }
@@ -39,6 +51,7 @@ void MeshResource::updateServerInfo(const ServerInfoMessage &info)
 
 void MeshResource::beginFrame(const FrameStamp &stamp)
 {
+  _garbage_list.clear();
   // As we begin a frame, we need to commit resources.
   // For OpenGL this must be on beginFrame() as this is the main thread.
   // With Vulkan we could do it in endFrame().
@@ -155,9 +168,21 @@ void MeshResource::serialise(Connection &out, ServerInfoMessage &info)
 }
 
 
-unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const std::vector<DrawItem> &drawables)
+unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const std::vector<DrawItem> &drawables,
+                            DrawFlag flags)
 {
   std::lock_guard guard(_resource_lock);
+
+  if ((flags & DrawFlag::TwoSided) != DrawFlag::Zero)
+  {
+    Magnum::GL::Renderer::disable(Magnum::GL::Renderer::Feature::FaceCulling);
+  }
+
+  if ((flags & DrawFlag::Transparent) != DrawFlag::Zero)
+  {
+    Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::SourceAlpha,
+                                           Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
+  }
 
   unsigned drawn = 0;
   for (const auto &item : drawables)
@@ -165,9 +190,21 @@ unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const std:
     const auto search = _resources.find(item.resource_id);
     if (search != _resources.end() && search->second.mesh)
     {
-      _opaque_shader.setTransformationProjectionMatrix(projection_matrix).draw(*search->second.mesh);
+      _opaque_shader.setTransformationProjectionMatrix(projection_matrix * item.model_matrix)
+        .draw(*search->second.mesh);
       ++drawn;
     }
+  }
+
+  if ((flags & DrawFlag::Transparent) != DrawFlag::Zero)
+  {
+    Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::One,
+                                           Magnum::GL::Renderer::BlendFunction::Zero);
+  }
+
+  if ((flags & DrawFlag::TwoSided) != DrawFlag::Zero)
+  {
+    Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
   }
 
   return drawn;
