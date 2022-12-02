@@ -2,6 +2,7 @@
 
 #include "3esedleffect.h"
 
+#include "handler/3escamera.h"
 #include "handler/3escategory.h"
 #include "handler/3esmeshresource.h"
 #include "handler/3esmeshset.h"
@@ -288,6 +289,7 @@ void ThirdEyeScene::initialiseHandlers()
   _painters.emplace(SIdPose, std::make_shared<painter::Pose>(_culler));
 
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Category>());
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Camera>());
 
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdSphere, "sphere", _painters[SIdSphere]));
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdBox, "box", _painters[SIdBox]));

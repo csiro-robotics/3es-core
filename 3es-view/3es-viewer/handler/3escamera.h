@@ -41,6 +41,34 @@ public:
   void readMessage(PacketReader &reader) override;
   void serialise(Connection &out, ServerInfoMessage &info) override;
 
+  static void getWorldAxes(tes::CoordinateFrame frame, Magnum::Vector3 *side, Magnum::Vector3 *fwd,
+                           Magnum::Vector3 *up);
+
+  /// Calculate the camera @p pitch and @p yaw given camera axes and world axes.
+  ///
+  /// The fwd/up axis pairs must be unit length and perpendicular.
+  ///
+  /// @param camera_fwd The camera forward axis.
+  /// @param camera_up The camera up axis.
+  /// @param world_fwd The world forward axis.
+  /// @param world_up The world up axis.
+  /// @param[out] pitch Output pitch value (radians).
+  /// @param[out] yaw Output yaw value (radians).
+  static void calculatePitchYaw(const Magnum::Vector3 &camera_fwd, const Magnum::Vector3 &camera_up,
+                                const Magnum::Vector3 &world_fwd, const Magnum::Vector3 &world_up, float &pitch,
+                                float &yaw);
+
+  /// Calculate camera forward and up axes based on pitch and yaw values.
+  /// @param pitch The camera pitch (radians).
+  /// @param yaw The camera yaw (radians).
+  /// @param world_fwd The world forward axis.
+  /// @param world_up The world up axis.
+  /// @param[out] camera_fwd Output forward axis.
+  /// @param[out] camera_up Output up axis.
+  static void calculateCameraAxes(float pitch, float yaw, const Magnum::Vector3 &world_fwd,
+                                  const Magnum::Vector3 &world_up, Magnum::Vector3 &camera_fwd,
+                                  Magnum::Vector3 &camera_up);
+
 private:
   mutable std::mutex _mutex;
   /// Array of cameras. The boolean indicates the validity of the entry.

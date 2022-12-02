@@ -8,6 +8,7 @@
 #include <3esconnection.h>
 #include <3espacketwriter.h>
 
+#include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Vector3.h>
 
 #include <array>
@@ -100,61 +101,9 @@ void Camera::readMessage(PacketReader &reader)
   // Determine pitch and yaw by a deviation from the expected axis.
   Magnum::Vector3 ref_dir;
   Magnum::Vector3 ref_up;
-  switch (camera.frame)
-  {
-  case XYZ:
-    ref_dir = { 1, 0, 0 };
-    ref_up = { 0, 0, 1 };
-    break;
-  case XZYNeg:
-    ref_dir = { 1, 0, 0 };
-    ref_up = { 0, -1, 0 };
-    break;
-  case YXZNeg:
-    ref_dir = { 0, 1, 0 };
-    ref_up = { 0, 0, -1 };
-    break;
-  case YZX:
-    ref_dir = { 0, 1, 0 };
-    ref_up = { 1, 0, 0 };
-    break;
-  case ZXY:
-    ref_dir = { 0, 0, 1 };
-    ref_up = { 0, 1, 0 };
-    break;
-  case ZYXNeg:
-    ref_dir = { 0, 0, 1 };
-    ref_up = { -1, 0, 0 };
-    break;
-  case XYZNeg:
-    ref_dir = { 1, 0, 0 };
-    ref_up = { 0, 0, -1 };
-    break;
-  case XZY:
-    ref_dir = { 1, 0, 0 };
-    ref_up = { 0, 1, 0 };
-    break;
-  case YXZ:
-    ref_dir = { 0, 1, 0 };
-    ref_up = { 0, 0, 1 };
-    break;
-  case YZXNeg:
-    ref_dir = { 0, 1, 0 };
-    ref_up = { -1, 0, 0 };
-    break;
-  case ZXYNeg:
-    ref_dir = { 0, 0, 1 };
-    ref_up = { 0, -1, 0 };
-    break;
-  case ZYX:
-    ref_dir = { 0, 0, 1 };
-    ref_up = { -1, 0, 0 };
-    break;
-  }
-
-  // FIXME(KS): nope
-  camera.yaw = std::acos(Magnum::Math::dot(ref_dir, Magnum::Vector3(msg.dirX, msg.dirY, msg.dirZ)));
-  camera.pitch = std::acos(Magnum::Math::dot(ref_dir, Magnum::Vector3(msg.upX, msg.upY, msg.upZ)));
+  getWorldAxes(camera.frame, nullptr, &ref_dir, &ref_up);
+  calculatePitchYaw(Magnum::Vector3(msg.dirX, msg.dirY, msg.dirZ), Magnum::Vector3(msg.upX, msg.upY, msg.upZ), ref_dir,
+                    ref_up, camera.pitch, camera.yaw);
 
   std::lock_guard guard(_mutex);
   _pending_cameras[msg.cameraId] = std::make_pair(camera, true);
@@ -170,6 +119,10 @@ void Camera::serialise(Connection &out, ServerInfoMessage &info)
 
   std::vector<uint8_t> packet_buffer(1024u, 0u);
   PacketWriter writer(packet_buffer.data(), packet_buffer.size());
+  Magnum::Vector3 dir;
+  Magnum::Vector3 up;
+  Magnum::Vector3 world_fwd;
+  Magnum::Vector3 world_up;
   for (size_t i = 0; i < _cameras.size(); ++i)
   {
     if (!_cameras[i].second)
@@ -190,14 +143,16 @@ void Camera::serialise(Connection &out, ServerInfoMessage &info)
     msg.far = camera.clip_far;
     msg.fov = camera.fov_horizontal;
 
-    // TODO(KS):
-    msg.dirX = 1;
-    msg.dirY = 0;
-    msg.dirZ = 0;
+    getWorldAxes(camera.frame, nullptr, &world_fwd, &world_up);
+    calculateCameraAxes(camera.pitch, camera.yaw, world_fwd, world_up, dir, up);
 
-    msg.upX = 0;
-    msg.upY = 0;
-    msg.upZ = 1;
+    msg.dirX = dir[0];
+    msg.dirY = dir[1];
+    msg.dirZ = dir[2];
+
+    msg.upX = up[0];
+    msg.upY = up[1];
+    msg.upZ = up[2];
 
     writer.reset(routingId(), 0);
     ok = msg.write(writer) && ok;
@@ -211,4 +166,167 @@ void Camera::serialise(Connection &out, ServerInfoMessage &info)
   }
 }
 
+
+void Camera::getWorldAxes(tes::CoordinateFrame frame, Magnum::Vector3 *side, Magnum::Vector3 *fwd, Magnum::Vector3 *up)
+{
+  Magnum::Vector3 ref_side;
+  Magnum::Vector3 ref_dir;
+  Magnum::Vector3 ref_up;
+  switch (frame)
+  {
+  case XYZ:
+    ref_side = { 1, 0, 0 };
+    ref_dir = { 0, 1, 0 };
+    ref_up = { 0, 0, 1 };
+    break;
+  case XZYNeg:
+    ref_side = { 1, 0, 0 };
+    ref_dir = { 0, 0, 1 };
+    ref_up = { 0, -1, 0 };
+    break;
+  case YXZNeg:
+    ref_side = { 0, 1, 0 };
+    ref_dir = { 1, 0, 0 };
+    ref_up = { 0, 0, -1 };
+    break;
+  case YZX:
+    ref_side = { 0, 1, 0 };
+    ref_dir = { 0, 0, 1 };
+    ref_up = { 1, 0, 0 };
+    break;
+  case ZXY:
+    ref_side = { 0, 0, 1 };
+    ref_dir = { 1, 0, 0 };
+    ref_up = { 0, 1, 0 };
+    break;
+  case ZYXNeg:
+    ref_side = { 0, 0, 1 };
+    ref_dir = { 0, 1, 0 };
+    ref_up = { -1, 0, 0 };
+    break;
+  case XYZNeg:
+    ref_side = { 1, 0, 0 };
+    ref_dir = { 0, 1, 0 };
+    ref_up = { 0, 0, -1 };
+    break;
+  case XZY:
+    ref_side = { 1, 0, 0 };
+    ref_dir = { 0, 0, 1 };
+    ref_up = { 0, 1, 0 };
+    break;
+  case YXZ:
+    ref_side = { 0, 1, 0 };
+    ref_dir = { 1, 0, 0 };
+    ref_up = { 0, 0, 1 };
+    break;
+  case YZXNeg:
+    ref_side = { 0, 1, 0 };
+    ref_dir = { 0, 0, 1 };
+    ref_up = { -1, 0, 0 };
+    break;
+  case ZXYNeg:
+    ref_side = { 0, 0, 1 };
+    ref_dir = { 1, 0, 0 };
+    ref_up = { 0, -1, 0 };
+    break;
+  case ZYX:
+    ref_side = { 0, 0, 1 };
+    ref_dir = { 0, 1, 0 };
+    ref_up = { -1, 0, 0 };
+    break;
+  }
+
+  if (side)
+  {
+    *side = ref_side;
+  }
+  if (fwd)
+  {
+    *fwd = ref_dir;
+  }
+  if (up)
+  {
+    *up = ref_up;
+  }
+}
+
+
+void Camera::calculatePitchYaw(const Magnum::Vector3 &camera_fwd, const Magnum::Vector3 &camera_up,
+                               const Magnum::Vector3 &world_fwd, const Magnum::Vector3 &world_up, float &pitch,
+                               float &yaw)
+{
+  // Pitch
+  Magnum::Vector3 ref_fwd;
+  auto fwd_up_dot = Magnum::Math::dot(camera_fwd, world_up);
+  if (std::abs(std::abs(fwd_up_dot) - 1.0f) > 1e-6f)
+  {
+    // Calculate pitch as the angle between the camera and world forward vectors.
+    // First calculate a world vector which is aligned with the camera forward.
+    ref_fwd = Magnum::Math::cross(camera_fwd, world_up);
+    ref_fwd = Magnum::Math::cross(world_up, camera_fwd);
+    // We can just take the angle between them now.
+    pitch = std::acos(Magnum::Math::dot(camera_fwd, ref_fwd));
+
+    ref_fwd = camera_fwd;
+  }
+  else
+  {
+    // Edge case: forward ~ up
+    // Pitch is 90 degrees.
+    pitch = static_cast<Magnum::Float>(Magnum::Rad(Magnum::Deg(90.0f)));
+    // We need to use the up vector to get the yaw as the pitch won't yield useful info.
+    ref_fwd = camera_up;
+  }
+  pitch *= (fwd_up_dot > 0) ? -1.0f : 1.0f;
+
+  // Yaw
+  // Calculate yaw as the deviation between the reference forward and the camera forward projected onto the plane
+  // perpendicular to the world up axis.
+  fwd_up_dot = Magnum::Math::dot(ref_fwd, world_up);
+  ref_fwd -= world_up * fwd_up_dot;
+  ref_fwd = ref_fwd.normalized();
+
+  yaw = std::acos(Magnum::Math::dot(ref_fwd, world_fwd));
+
+  // Check the direction of rotation.
+  const auto world_side = Magnum::Math::cross(world_fwd, world_up);
+  if (Magnum::Math::dot(ref_fwd, world_side) < 0)
+  {
+    yaw *= -1.0f;
+  }
+}
+
+
+void Camera::calculateCameraAxes(float pitch, float yaw, const Magnum::Vector3 &world_fwd,
+                                 const Magnum::Vector3 &world_up, Magnum::Vector3 &camera_fwd,
+                                 Magnum::Vector3 &camera_up)
+{
+  const auto transform = Magnum::Matrix4::rotation(Magnum::Rad(yaw), world_up) *  //
+                         Magnum::Matrix4::rotation(Magnum::Rad(pitch), world_fwd);
+
+  int fwd_axis = 0;
+  int up_axis = 0;
+  bool negate_fwd = false;
+  bool negate_up = false;
+
+  for (int i = 1; i < 3; ++i)
+  {
+    if (world_fwd[i] != 0)
+    {
+      fwd_axis = i;
+      negate_fwd = world_fwd[i] < 0;
+    }
+    if (world_up[i] != 0)
+    {
+      up_axis = i;
+      negate_up = world_up[i] < 0;
+    }
+  }
+
+  camera_fwd = transform[fwd_axis].xyz();
+  camera_up = transform[up_axis].xyz();
+
+  camera_fwd *= (negate_fwd) ? -1 : 1;
+  camera_up *= (negate_up) ? -1 : 1;
+}
 }  // namespace tes::viewer::handler
