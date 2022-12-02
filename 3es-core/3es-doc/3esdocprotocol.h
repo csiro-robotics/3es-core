@@ -432,7 +432,7 @@ Double Precision        | 1       | Indicates Position, Facing, Up, Near, Far an
 @section seccategorymsg Category Messages
 
 Category messages are used to identify and control categories associated with @ref secshapemsg "shapes". These messages
-can be used to identyfing valid categories, give a category a name, build a category hierarchy or set the default state
+can be used to identifying valid categories, give a category a name, build a category hierarchy or set the default state
 for a category.
 
 There is currently one category message with ID of zero.
