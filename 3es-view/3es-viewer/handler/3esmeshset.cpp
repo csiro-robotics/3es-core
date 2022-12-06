@@ -93,7 +93,7 @@ void MeshSet::endFrame(const FrameStamp &stamp)
 }
 
 
-void MeshSet::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
+void MeshSet::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
 {
   std::lock_guard guard(_mutex);
   _draw_sets[0].clear();
@@ -125,11 +125,11 @@ void MeshSet::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4
     (pass == DrawPass::Transparent) ? MeshResource::DrawFlag::Transparent : MeshResource::DrawFlag::Zero;
   if (!_draw_sets[0].empty())
   {
-    _resources->draw(projection_matrix, _draw_sets[0], flags);
+    _resources->draw(params.projection_matrix, _draw_sets[0], flags);
   }
   if (!_draw_sets[1].empty())
   {
-    _resources->draw(projection_matrix, _draw_sets[1], flags | MeshResource::DrawFlag::TwoSided);
+    _resources->draw(params.projection_matrix, _draw_sets[1], flags | MeshResource::DrawFlag::TwoSided);
   }
 }
 

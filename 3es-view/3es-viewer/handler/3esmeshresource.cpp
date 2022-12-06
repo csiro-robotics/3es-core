@@ -70,7 +70,7 @@ void MeshResource::endFrame(const FrameStamp &stamp)
 {}
 
 
-void MeshResource::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
+void MeshResource::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
 {
   // This handler does not drawing, it just holds resources.
 }

@@ -9,6 +9,7 @@
 #include "handler/3esmeshshape.h"
 #include "handler/3esmessage.h"
 #include "handler/3esshape.h"
+#include "handler/3estext2d.h"
 
 #include "painter/3esarrow.h"
 #include "painter/3esbox.h"
@@ -113,6 +114,7 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
   ++_render_stamp.render_mark;
   _culler->cull(_render_stamp.render_mark, Magnum::Frustum::fromMatrix(projection_matrix));
 
+
   if (_active_fbo_effect)
   {
     _active_fbo_effect->prepareFrame(projection_matrix, FboEffect::ProjectionType::Perspective, _camera.clip_near,
@@ -124,7 +126,7 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
       .bind();
   }
 
-  drawShapes(dt, projection_matrix);
+  drawShapes(dt, projection_matrix, window_size);
 
   if (_active_fbo_effect)
   {
@@ -307,10 +309,12 @@ void ThirdEyeScene::initialiseHandlers()
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshShape>(_culler));
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshSet>(_culler, mesh_resources));
 
+  // TODO(KS): get resources strings passed in as it's the exe which must include the resources.
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text2D>("SourceSansPro-Regular.ttf", "fonts"));
+
   // TODO:
   // - point cloud
   // - multi-shape
-  // - text2d
   // - text3d
 
   // Copy message handlers to the routing set and initialise.
@@ -322,20 +326,21 @@ void ThirdEyeScene::initialiseHandlers()
 }
 
 
-void ThirdEyeScene::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix)
+void ThirdEyeScene::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix, const Magnum::Vector2 &window_size)
 {
+  handler::DrawParams params{ projection_matrix, window_size };
   // Draw opaque then transparent for proper blending.
   for (const auto &handler : _orderedMessageHandlers)
   {
-    handler->draw(handler::Message::DrawPass::Opaque, _render_stamp, projection_matrix);
+    handler->draw(handler::Message::DrawPass::Opaque, _render_stamp, params);
   }
   for (const auto &handler : _orderedMessageHandlers)
   {
-    handler->draw(handler::Message::DrawPass::Transparent, _render_stamp, projection_matrix);
+    handler->draw(handler::Message::DrawPass::Transparent, _render_stamp, params);
   }
   for (const auto &handler : _orderedMessageHandlers)
   {
-    handler->draw(handler::Message::DrawPass::Overlay, _render_stamp, projection_matrix);
+    handler->draw(handler::Message::DrawPass::Overlay, _render_stamp, params);
   }
 }
 }  // namespace tes::viewer

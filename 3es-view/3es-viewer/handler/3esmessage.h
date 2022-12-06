@@ -7,6 +7,8 @@
 #include "util/3esenum.h"
 
 #include <Magnum/Magnum.h>
+#include <Magnum/Math/Matrix4.h>
+#include <Magnum/Math/Vector2.h>
 
 #include <3esmessages.h>
 
@@ -19,6 +21,15 @@ class Connection;
 
 namespace tes::viewer::handler
 {
+/// Render related parameters passed to the @c Message::draw() function.
+struct DrawParams
+{
+  /// The current projection matrix.
+  Magnum::Matrix4 projection_matrix;
+  /// Size of the viewport being drawn to (pixels).
+  Magnum::Vector2 view_size;
+};
+
 /// The base class for a 3es message handler.
 ///
 /// @par Thread safety
@@ -113,7 +124,7 @@ public:
   virtual void endFrame(const FrameStamp &stamp) = 0;
 
   /// Render the current objects.
-  virtual void draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) = 0;
+  virtual void draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params) = 0;
 
   /// Read a message which has been predetermined to be belong to this handler.
   ///

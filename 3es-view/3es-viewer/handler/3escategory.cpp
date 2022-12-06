@@ -80,7 +80,7 @@ void Category::endFrame(const FrameStamp &stamp)
 {}
 
 
-void Category::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
+void Category::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
 {}
 
 

@@ -23,6 +23,7 @@ list(APPEND PUBLIC_HEADERS
   handler/3esmeshshape.h
   handler/3esmessage.h
   handler/3esshape.h
+  handler/3estext2d.h
   painter/3esshapecache.h
   painter/3esshapepainter.h
   painter/3esarrow.h
@@ -59,6 +60,7 @@ list(APPEND SOURCES
   handler/3esmeshshape.cpp
   handler/3esmessage.cpp
   handler/3esshape.cpp
+  handler/3estext2d.cpp
   painter/3esshapecache.cpp
   painter/3esshapepainter.cpp
   painter/3esarrow.cpp

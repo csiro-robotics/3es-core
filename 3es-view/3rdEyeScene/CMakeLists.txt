@@ -40,11 +40,13 @@ set(PUBLIC_HEADERS
 #-------------------------------------------------------------------------------
 include(sourcelist.cmake)
 
+corrade_add_resource(tes_RESOURCES resources.conf)
+
 #-------------------------------------------------------------------------------
 # Library setup.
 #-------------------------------------------------------------------------------
 # Define the 3rdEyeScene library.
-add_executable(3rdEyeScene ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
+add_executable(3rdEyeScene ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES} ${tes_RESOURCES})
 set_target_properties(3rdEyeScene PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
 # Disable some warnings.

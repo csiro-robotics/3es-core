@@ -42,7 +42,7 @@ public:
   void beginFrame(const FrameStamp &stamp) override;
   void endFrame(const FrameStamp &stamp) override;
 
-  void draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
+  void draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params) override;
 
   void readMessage(PacketReader &reader) override;
   void serialise(Connection &out, ServerInfoMessage &info) override;

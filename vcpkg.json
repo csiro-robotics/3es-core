@@ -39,6 +39,12 @@
             "ui"
           ]
         },
+        {
+          "name": "magnum-plugins",
+          "features": [
+            "freetypefont"
+          ]
+        },
         "vulkan"
       ]
     },

@@ -19,17 +19,6 @@ namespace tes::viewer::handler
 class MeshSet : public Message
 {
 public:
-  // enum class Flag : unsigned
-  // {
-  //   Zero = 0u,
-  //   Pending = 1u << 0u,
-  //   MarkForDeath = 1u << 1u,
-  //   DirtyAttributes = 1u << 2u,
-  //   DirtyMesh = 1u << 3u,
-
-  //   Dirty = DirtyAttributes | DirtyMesh
-  // };
-
   MeshSet(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<MeshResource> resources);
 
   void initialise() override;
@@ -37,7 +26,7 @@ public:
   void beginFrame(const FrameStamp &stamp) override;
   void endFrame(const FrameStamp &stamp) override;
 
-  void draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
+  void draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params) override;
 
   void readMessage(PacketReader &reader) override;
   void serialise(Connection &out, ServerInfoMessage &info) override;
@@ -66,8 +55,6 @@ protected:
   virtual bool handleDestroy(const DestroyMessage &msg, PacketReader &reader);
 
 private:
-  // using RenderMeshPtr = std::shared_ptr<RenderMesh>;
-
   /// A drawable item, which is one part of a @c MeshSet .
   struct Drawable
   {

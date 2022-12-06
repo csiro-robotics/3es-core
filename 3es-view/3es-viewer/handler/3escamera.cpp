@@ -76,7 +76,7 @@ void Camera::endFrame(const FrameStamp &stamp)
 {}
 
 
-void Camera::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
+void Camera::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
 {}
 
 

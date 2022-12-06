@@ -59,11 +59,11 @@ void MeshShape::endFrame(const FrameStamp &stamp)
 }
 
 
-void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
+void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
 {
   std::lock_guard guard(_shapes_mutex);
 
-  const auto draw_mesh = [this, &projection_matrix](RenderMesh &render_mesh) {
+  const auto draw_mesh = [this, &params](RenderMesh &render_mesh) {
     // All this locking may prove very slow :S
     std::lock_guard guard2(render_mesh.mutex);
     if (_culler->isVisible(render_mesh.bounds_id) && render_mesh.mesh)
@@ -84,7 +84,7 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const Magnum::Matri
       default:
         break;
       }
-      _opaque_shader.setTransformationProjectionMatrix(projection_matrix * render_mesh.transform)
+      _opaque_shader.setTransformationProjectionMatrix(params.projection_matrix * render_mesh.transform)
         .draw(*render_mesh.mesh);
     }
   };

@@ -100,7 +100,7 @@ private:
   void initialiseHandlers();
 
   void updateCamera(float dt);
-  void drawShapes(float dt, const Magnum::Matrix4 &projection_matrix);
+  void drawShapes(float dt, const Magnum::Matrix4 &projection_matrix, const Magnum::Vector2 &window_size);
 
   std::shared_ptr<FboEffect> _active_fbo_effect;
 
