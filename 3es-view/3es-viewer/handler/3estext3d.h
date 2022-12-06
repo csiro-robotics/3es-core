@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_HANDLER_TEXT2D_H
-#define TES_VIEWER_HANDLER_TEXT2D_H
+#ifndef TES_VIEWER_HANDLER_TEXT3D_H
+#define TES_VIEWER_HANDLER_TEXT3D_H
 
 #include "3es-viewer.h"
 
@@ -27,10 +27,10 @@ class DistanceFieldGlyphCache;
 
 namespace tes::viewer::handler
 {
-class Text2D : public Message
+class Text3D : public Message
 {
 public:
-  Text2D(Magnum::Text::AbstractFont *font, std::shared_ptr<Magnum::Text::DistanceFieldGlyphCache> cache);
+  Text3D(Magnum::Text::AbstractFont *font, std::shared_ptr<Magnum::Text::DistanceFieldGlyphCache> cache);
 
   void initialise() override;
   void reset() override;
@@ -46,25 +46,23 @@ private:
   {
     std::string text;
     uint32_t id;
-    Magnum::Vector3 position;
+    Magnum::Matrix4 transform;
     Magnum::Color4 colour;
-    /// True if the position is a projected from a world position to a 2D screen position.
-    bool world_projected = false;
   };
 
-  void draw(const TextEntry &text, const DrawParams &params);
+  void draw(const TextEntry &text, const Magnum::Matrix4 &projection_matrix);
 
   std::mutex _mutex;
   std::vector<TextEntry> _pending;
   std::vector<TextEntry> _transient;
   std::vector<uint32_t> _remove;
   std::unordered_map<uint32_t, TextEntry> _text;
-  std::unique_ptr<Magnum::Text::Renderer2D> _renderer;
+  std::unique_ptr<Magnum::Text::Renderer3D> _renderer;
 
   Magnum::Text::AbstractFont *_font = nullptr;
-  Magnum::Shaders::DistanceFieldVector2D _shader;
+  Magnum::Shaders::DistanceFieldVector3D _shader;
   std::shared_ptr<Magnum::Text::DistanceFieldGlyphCache> _cache;
 };
 }  // namespace tes::viewer::handler
 
-#endif  // TES_VIEWER_HANDLER_TEXT2D_H
+#endif  // TES_VIEWER_HANDLER_TEXT3D_H

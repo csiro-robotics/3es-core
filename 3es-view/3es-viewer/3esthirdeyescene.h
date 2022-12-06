@@ -11,6 +11,8 @@
 
 #include <3esmessages.h>
 
+#include <Corrade/PluginManager/Manager.h>
+
 #include <Magnum/GL/FrameBuffer.h>
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/GL/Renderbuffer.h>
@@ -18,6 +20,7 @@
 #include <Magnum/Math/Color.h>
 #include <Magnum/Platform/GlfwApplication.h>
 #include <Magnum/Shaders/Flat.h>
+#include <Magnum/Text/AbstractFont.h>
 
 #include <array>
 #include <chrono>
@@ -26,6 +29,14 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+namespace Magnum
+{
+namespace Text
+{
+class DistanceFieldGlyphCache;
+}  // namespace Text
+}  // namespace Magnum
 
 // TODO(KS): abstract away Magnum so it's not in any public headers.
 namespace tes::viewer
@@ -98,6 +109,7 @@ public:
 
 private:
   void initialiseHandlers();
+  void initialiseFont();
 
   void updateCamera(float dt);
   void drawShapes(float dt, const Magnum::Matrix4 &projection_matrix, const Magnum::Vector2 &window_size);
@@ -114,6 +126,10 @@ private:
   std::vector<std::shared_ptr<handler::Message>> _orderedMessageHandlers;
   /// List of unknown message handlers for which we've raised warnings. Cleared on @c reset().
   std::unordered_set<uint32_t> _unknown_handlers;
+
+  Corrade::PluginManager::Manager<Magnum::Text::AbstractFont> _manager;
+  std::shared_ptr<Magnum::Text::DistanceFieldGlyphCache> _cache;
+  std::unique_ptr<Magnum::Text::AbstractFont> _font;
 
   FrameStamp _render_stamp = {};
 

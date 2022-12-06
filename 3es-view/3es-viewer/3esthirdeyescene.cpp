@@ -10,6 +10,7 @@
 #include "handler/3esmessage.h"
 #include "handler/3esshape.h"
 #include "handler/3estext2d.h"
+#include "handler/3estext3d.h"
 
 #include "painter/3esarrow.h"
 #include "painter/3esbox.h"
@@ -24,12 +25,15 @@
 
 #include <3eslog.h>
 
+#include <Corrade/Utility/Resource.h>
+
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/GL/RenderbufferFormat.h>
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/GL/TextureFormat.h>
 #include <Magnum/GL/Version.h>
+#include <Magnum/Text/DistanceFieldGlyphCache.h>
 
 // Things to learn about:
 // - text rendering
@@ -56,6 +60,8 @@ ThirdEyeScene::ThirdEyeScene()
   _camera.position = { 0, -5, 0 };
 
   _culler = std::make_shared<BoundsCuller>();
+  // Initialise the font.
+  initialiseFont();
   initialiseHandlers();
 }
 
@@ -309,19 +315,47 @@ void ThirdEyeScene::initialiseHandlers()
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshShape>(_culler));
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshSet>(_culler, mesh_resources));
 
-  // TODO(KS): get resources strings passed in as it's the exe which must include the resources.
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text2D>("SourceSansPro-Regular.ttf", "fonts"));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text2D>(_font.get(), _cache));
+  // _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text3D>(_font.get(), _cache));
 
   // TODO:
   // - point cloud
   // - multi-shape
-  // - text3d
 
   // Copy message handlers to the routing set and initialise.
   for (auto &handler : _orderedMessageHandlers)
   {
     handler->initialise();
     _messageHandlers.emplace(handler->routingId(), handler);
+  }
+}
+
+
+void ThirdEyeScene::initialiseFont()
+{
+  // TODO(KS): get resources strings passed in as it's the exe which must include the resources.
+  const std::string font_name = "SourceSansPro-Regular.ttf";
+  Corrade::Utility::Resource rs("fonts");
+  _cache = std::make_shared<Magnum::Text::DistanceFieldGlyphCache>(Magnum::Vector2i(2048), Magnum::Vector2i(512), 22);
+  _font = _manager.loadAndInstantiate("TrueTypeFont");
+  if (!_font || !_font->openData(rs.getRaw(font_name), 180.0f))
+  {
+    log::error("Unable to initialise font ", font_name);
+    _font = nullptr;
+  }
+  else
+  {
+    std::string printable_characters;
+    printable_characters.reserve(std::numeric_limits<char>::max());
+    for (int c = 0; c < std::numeric_limits<char>::max(); ++c)
+    {
+      if (std::isprint(c))
+      {
+        printable_characters.append(1, c);
+      }
+    }
+
+    _font->fillGlyphCache(*_cache, printable_characters.c_str());
   }
 }
 
