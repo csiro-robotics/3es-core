@@ -48,9 +48,11 @@ private:
     uint32_t id;
     Magnum::Matrix4 transform;
     Magnum::Color4 colour;
+    double font_size = 1;
+    bool screen_facing = false;
   };
 
-  void draw(const TextEntry &text, const Magnum::Matrix4 &projection_matrix);
+  void draw(const TextEntry &text, const DrawParams &params);
 
   std::mutex _mutex;
   std::vector<TextEntry> _pending;
@@ -58,6 +60,10 @@ private:
   std::vector<uint32_t> _remove;
   std::unordered_map<uint32_t, TextEntry> _text;
   std::unique_ptr<Magnum::Text::Renderer3D> _renderer;
+  /// Default transformation matrix required to get the text from facing along Z to align with the world up vector,
+  /// facing back along the forward vector. That is, for @c CoordinateFrame::XYZ, we want text to face along -Y by
+  /// default, with Z up.
+  Magnum::Matrix4 _default_transform;
 
   Magnum::Text::AbstractFont *_font = nullptr;
   Magnum::Shaders::DistanceFieldVector3D _shader;

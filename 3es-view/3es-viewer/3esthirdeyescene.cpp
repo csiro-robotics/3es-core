@@ -316,7 +316,7 @@ void ThirdEyeScene::initialiseHandlers()
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshSet>(_culler, mesh_resources));
 
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text2D>(_font.get(), _cache));
-  // _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text3D>(_font.get(), _cache));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text3D>(_font.get(), _cache));
 
   // TODO:
   // - point cloud
@@ -362,7 +362,7 @@ void ThirdEyeScene::initialiseFont()
 
 void ThirdEyeScene::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix, const Magnum::Vector2 &window_size)
 {
-  handler::DrawParams params{ projection_matrix, window_size };
+  handler::DrawParams params{ _camera, projection_matrix, camera::matrix(_camera), window_size };
   // Draw opaque then transparent for proper blending.
   for (const auto &handler : _orderedMessageHandlers)
   {

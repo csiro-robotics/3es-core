@@ -37,7 +37,7 @@ public:
   inline const char *type() const override { return "text3D"; }
 
   bool screenFacing() const;
-  Text3D &setScreenFacing(bool worldSpace);
+  Text3D &setScreenFacing(bool screenFacing);
 
   Text3D &setFacing(const Vector3d &toCamera);
   Vector3d facing() const;
@@ -81,10 +81,10 @@ inline bool Text3D::screenFacing() const
 }
 
 
-inline Text3D &Text3D::setScreenFacing(bool worldSpace)
+inline Text3D &Text3D::setScreenFacing(bool screenFacing)
 {
   _data.flags = uint16_t(_data.flags & ~Text3DFScreenFacing);
-  _data.flags = uint16_t(_data.flags | Text3DFScreenFacing * !!worldSpace);
+  _data.flags = uint16_t(_data.flags | Text3DFScreenFacing * !!screenFacing);
   return *this;
 }
 

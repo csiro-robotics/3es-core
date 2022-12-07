@@ -49,10 +49,6 @@ void Text2D::reset()
 }
 
 
-void Text2D::updateServerInfo(const ServerInfoMessage &info)
-{}
-
-
 void Text2D::beginFrame(const FrameStamp &stamp)
 {
   std::lock_guard guard(_mutex);
@@ -162,7 +158,8 @@ void Text2D::serialise(Connection &out, ServerInfoMessage &info)
   const auto write_shape = [&out, &shape](const TextEntry &text) {
     shape.setId(text.id);
     shape.setText(text.text.c_str(), uint16_t(text.text.length()));
-    shape.setPosition(tes::Vector3f(text.position.x(), text.position.y(), 0.0f));
+    shape.setPosition(tes::Vector3f(text.position.x(), text.position.y(), text.position.z()));
+    shape.setInWorldSpace(text.world_projected);
     if (out.create(shape) < 0)
     {
       log::error("Error writing text 2D shape.");
@@ -195,10 +192,15 @@ void Text2D::draw(const TextEntry &text, const DrawParams &params)
   {
     auto projected_pos = params.projection_matrix.transformPoint(text.position);
     norm_position = { projected_pos.x(), projected_pos.y() };
-    if (norm_position.x() < 0 || norm_position.x() > 1 || norm_position.y() < 0 && norm_position.y() > 0)
-    {
-      return;
-    }
+    norm_position *= 0.5f;
+  }
+
+  // We try render text out range for a bit to allow long text to start offscreen. The right solution is to clip
+  // properly, but this is enough for now.
+  // TODO(KS): clip text correctly.
+  if (norm_position.x() < -1 || norm_position.x() > 1 || norm_position.y() < -1 && norm_position.y() > 1)
+  {
+    return;
   }
 
   // Expand buffers as required.

@@ -68,10 +68,6 @@ void Category::reset()
 }
 
 
-void Category::updateServerInfo(const ServerInfoMessage &info)
-{}
-
-
 void Category::beginFrame(const FrameStamp &stamp)
 {}
 

@@ -41,7 +41,6 @@ public:
 
   void initialise() override;
   void reset() override;
-  void updateServerInfo(const ServerInfoMessage &info) override;
   void beginFrame(const FrameStamp &stamp) override;
   void endFrame(const FrameStamp &stamp) override;
   void draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params) override;

@@ -61,10 +61,6 @@ void Camera::reset()
 }
 
 
-void Camera::updateServerInfo(const ServerInfoMessage &info)
-{}
-
-
 void Camera::beginFrame(const FrameStamp &stamp)
 {
   std::lock_guard guard(_mutex);

@@ -180,7 +180,7 @@ private:
 /// This includes @c Arrow, @c Capsule, @c Cone, @c Cylinder, @c Plane (radius used to scale the plane rendering).
 ///
 /// A @c Directional transform is constructed from a position and direction vector with optional radius and length.
-/// The direction vector is converted into the @c rotation() value by calulating the @c Quaternion rotation from
+/// The direction vector is converted into the @c rotation() value by calculating the @c Quaternion rotation from
 /// @c DefaultDirection to the specified direction vector. The radius and length are stored in the @c scale() with
 /// radius stored in X and Y components and length in Z.
 class _3es_coreAPI Directional : public Transform
@@ -246,7 +246,7 @@ public:
     return Directional(Vector3d(0.0), DefaultDirection, 1, 1, preferDouble);
   }
 
-  /// A untity function for calculating the @c Quaternion rotation from @c DefaultDirection to @c direction .
+  /// A utility function for calculating the @c Quaternion rotation from @c DefaultDirection to @c direction .
   /// @param direction The target direction vector. Normal vector expected.
   /// @return The rotation from @c DefaultDirection to @p direction .
   template <typename real>

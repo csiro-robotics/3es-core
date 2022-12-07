@@ -43,12 +43,6 @@ void MeshResource::reset()
 }
 
 
-void MeshResource::updateServerInfo(const ServerInfoMessage &info)
-{
-  (void)info;
-}
-
-
 void MeshResource::beginFrame(const FrameStamp &stamp)
 {
   _garbage_list.clear();
