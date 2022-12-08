@@ -26,6 +26,30 @@
 - QA testing
   - Record test sessions and attach 3es files to bug reports.
 
+## Building
+
+### Building with vcpkg
+
+Building with VCPKG is supported in order to fetch the dependencies. This affects both 3es-core and 3es-viewer.
+
+```shell
+# Must cmake configure from the source directory so vcpkg can find the vcpkg.json manifest.
+mkdir build
+cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=<vcpkg_dir>/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_FEATURES=test;viewer
+cmake --build build --targets all --
+```
+
+> Note: it's recommended to add `-G Ninja` as ninja makes for fast builds.
+
+For a multi-configuration generator - such as Visual Studio or `Ninja Multi-Config` (since CMake 3.17) we specify the configuration when we build instead.
+
+```shell
+# Must cmake configure from the source directory so vcpkg can find the vcpkg.json manifest.
+mkdir build
+cmake -B build -S . -G "Ninja Multi-Config" -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=<vcpkg_dir>/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_FEATURES=test;viewer
+cmake --build build --config Release --targets all --
+```
+
 ## 3rd Eye Scene Client
 
 Source code for the 3rd Eye Scene client viewer application is available on [GitHub](https://github.com/data61/3rdEyeScene)
@@ -162,8 +186,8 @@ void initCategories()
 }
 ```
 
-Using the Macro Interface
--------------------------
+## Using the Macro Interface
+
 It is also possible to use preprocessor macros to invoke must 3rd Eye Scene API calls. This is to support removing all debugging code via the preprocessor thereby eliminating all associated overhead. The examples above can be rewritten using the macro interface as shown below. The `animateBox2()` function is equivalent to the `animateBox()` function, but uses transient objects instead of updating a single object.
 
 ```c++
@@ -244,7 +268,3 @@ void releaseTes()
 ```
 
 Additional documentation can be found at [https://data61.github.io/3rdEyeScene/](https://data61.github.io/3rdEyeScene/)
-
-## Known issues
-
-- `MultiShape` objects do not support individual flags for transparency or wireframe as these are creation flags.
