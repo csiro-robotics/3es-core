@@ -30,14 +30,6 @@
 #include <unordered_set>
 #include <vector>
 
-namespace Magnum
-{
-namespace Text
-{
-class DistanceFieldGlyphCache;
-}  // namespace Text
-}  // namespace Magnum
-
 // TODO(KS): abstract away Magnum so it's not in any public headers.
 namespace tes::viewer
 {
@@ -52,12 +44,14 @@ class Message;
 namespace painter
 {
 class ShapePainter;
-}
+class Text;
+}  // namespace painter
 
 class ThirdEyeScene
 {
 public:
   ThirdEyeScene();
+  ~ThirdEyeScene();
 
   inline std::shared_ptr<BoundsCuller> culler() const { return _culler; }
 
@@ -127,11 +121,11 @@ private:
   /// List of unknown message handlers for which we've raised warnings. Cleared on @c reset().
   std::unordered_set<uint32_t> _unknown_handlers;
 
-  Corrade::PluginManager::Manager<Magnum::Text::AbstractFont> _manager;
-  std::shared_ptr<Magnum::Text::DistanceFieldGlyphCache> _cache;
-  std::unique_ptr<Magnum::Text::AbstractFont> _font;
+  std::shared_ptr<painter::Text> _text_painter;
 
   FrameStamp _render_stamp = {};
+
+  Corrade::PluginManager::Manager<Magnum::Text::AbstractFont> _font_manager;
 
   std::mutex _render_mutex;
   FrameNumber _new_frame = 0;

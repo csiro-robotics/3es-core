@@ -1,0 +1,31 @@
+//
+// Author: Kazys Stepanas
+//
+#ifndef TES_VIEWER_DRAW_PARAMS_H
+#define TES_VIEWER_DRAW_PARAMS_H
+
+#include "3es-viewer.h"
+
+#include "camera/3escamera.h"
+
+#include <Magnum/Math/Matrix3.h>
+#include <Magnum/Math/Matrix4.h>
+#include <Magnum/Math/Vector2.h>
+
+namespace tes::viewer
+{
+/// Render related parameters passed to the @c Message::draw() function.
+struct DrawParams
+{
+  /// Current view camera.
+  camera::Camera camera;
+  /// The current projection matrix. Includes the inverse camera transform
+  Magnum::Matrix4 projection_matrix;
+  /// Represents the @c camera transform in the world.
+  Magnum::Matrix4 camera_matrix;
+  /// Size of the viewport being drawn to (pixels).
+  Magnum::Vector2 view_size;
+};
+}  // namespace tes::viewer
+
+#endif  // TES_VIEWER_DRAW_PARAMS_H

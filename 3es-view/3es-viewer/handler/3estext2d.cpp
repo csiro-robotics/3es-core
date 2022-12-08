@@ -18,21 +18,10 @@
 
 namespace tes::viewer::handler
 {
-Text2D::Text2D(Magnum::Text::AbstractFont *font, std::shared_ptr<Magnum::Text::DistanceFieldGlyphCache> cache)
+Text2D::Text2D(std::shared_ptr<painter::Text> painter)
   : Message(SIdText2D, "text 2D")
-  , _font(font)
-  , _cache(std::move(cache))
-{
-  if (_font && _cache)
-  {
-    _renderer = std::make_unique<Magnum::Text::Renderer2D>(*_font, *_cache, 32.0f, Magnum::Text::Alignment::MiddleLeft);
-    _renderer->reserve(255, Magnum::GL::BufferUsage::DynamicDraw, Magnum::GL::BufferUsage::StaticDraw);
-  }
-  else
-  {
-    log::error("Text 2D not given a valid font and cache. Text 2D rendering will be disabled.");
-  }
-}
+  , _painter(std::move(painter))
+{}
 
 
 void Text2D::initialise()
@@ -64,17 +53,15 @@ void Text2D::beginFrame(const FrameStamp &stamp)
   }
   _remove.clear();
 
-  for (const auto &text : _pending)
+  for (const auto &[id, text] : _pending)
   {
-    const tes::Id id(text.id);
-
-    if (id.isTransient())
+    if (tes::Id(id).isTransient())
     {
       _transient.emplace_back(text);
     }
     else
     {
-      _text[text.id] = text;
+      _text[id] = text;
     }
   }
   _pending.clear();
@@ -92,22 +79,11 @@ void Text2D::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &para
     return;
   }
 
-  if (!_font || !_cache || !_renderer)
-  {
-    return;
-  }
-
-  _shader.bindVectorTexture(_cache->texture());
-
-  for (const auto &text : _transient)
-  {
-    draw(text, params);
-  }
-
-  for (const auto &[id, text] : _text)
-  {
-    draw(text, params);
-  }
+  _painter->draw2D(
+    _transient.begin(), _transient.end(), [](const std::vector<TextEntry>::iterator &iter) { return *iter; }, params);
+  _painter->draw2D(
+    _text.begin(), _text.end(),
+    [](const std::unordered_map<uint32_t, TextEntry>::iterator &iter) { return iter->second; }, params);
 }
 
 
@@ -124,15 +100,16 @@ void Text2D::readMessage(PacketReader &reader)
     }
 
     TextEntry text;
-    text.id = shape.id();
     text.text = std::string(shape.text(), shape.textLength());
-    text.position.x() = shape.position().x;
-    text.position.y() = shape.position().y;
-    text.position.z() = shape.position().z;
+    text.transform =
+      Magnum::Matrix4::translation(Magnum::Vector3(shape.position().x, shape.position().y, shape.position().z));
     text.colour = convert(shape.colour());
-    text.world_projected = shape.inWorldSpace();
+    if (shape.inWorldSpace())
+    {
+      text.flags |= painter::Text::TextFlag::ScreenProjected;
+    }
 
-    _pending.emplace_back(text);
+    _pending.emplace_back(shape.id(), text);
     break;
   }
   case OIdDestroy: {
@@ -155,11 +132,12 @@ void Text2D::serialise(Connection &out, ServerInfoMessage &info)
 {
   tes::Text2D shape;
 
-  const auto write_shape = [&out, &shape](const TextEntry &text) {
-    shape.setId(text.id);
+  const auto write_shape = [&out, &shape](uint32_t id, const TextEntry &text) {
+    shape.setId(id);
     shape.setText(text.text.c_str(), uint16_t(text.text.length()));
-    shape.setPosition(tes::Vector3f(text.position.x(), text.position.y(), text.position.z()));
-    shape.setInWorldSpace(text.world_projected);
+    const auto position = text.transform[3].xyz();
+    shape.setPosition(tes::Vector3f(position.x(), position.y(), position.z()));
+    shape.setInWorldSpace((text.flags & painter::Text::TextFlag::ScreenProjected) != painter::Text::TextFlag::Zero);
     if (out.create(shape) < 0)
     {
       log::error("Error writing text 2D shape.");
@@ -168,55 +146,12 @@ void Text2D::serialise(Connection &out, ServerInfoMessage &info)
 
   for (const auto &text : _transient)
   {
-    write_shape(text);
+    write_shape(0, text);
   }
 
   for (const auto &[id, text] : _text)
   {
-    write_shape(text);
+    write_shape(id, text);
   }
 }
-
-
-void Text2D::draw(const TextEntry &text, const DrawParams &params)
-{
-  using namespace Magnum::Math::Literals;
-
-  // Adjust the position from [0, 1] to [-0.5, 0.5] with Y inverted so that +y is downs.
-  Magnum::Vector2 norm_position = {};
-  if (!text.world_projected)
-  {
-    norm_position = Magnum::Vector2(text.position.x() - 0.5f, 1 - text.position.y() - 0.5f);
-  }
-  else
-  {
-    auto projected_pos = params.projection_matrix.transformPoint(text.position);
-    norm_position = { projected_pos.x(), projected_pos.y() };
-    norm_position *= 0.5f;
-  }
-
-  // We try render text out range for a bit to allow long text to start offscreen. The right solution is to clip
-  // properly, but this is enough for now.
-  // TODO(KS): clip text correctly.
-  if (norm_position.x() < -1 || norm_position.x() > 1 || norm_position.y() < -1 && norm_position.y() > 1)
-  {
-    return;
-  }
-
-  // Expand buffers as required.
-  if (_renderer->capacity() < text.text.length())
-  {
-    _renderer->reserve(text.text.length(), Magnum::GL::BufferUsage::DynamicDraw, Magnum::GL::BufferUsage::StaticDraw);
-  }
-  _renderer->render(text.text);
-
-  auto transform =
-    Magnum::Matrix3::projection(params.view_size) * Magnum::Matrix3::translation(norm_position * params.view_size);
-  _shader.setTransformationProjectionMatrix(transform)
-    .setColor(text.colour)
-    // .setOutlineColor(0xdcdcdc_rgbf)
-    // .setOutlineRange(0.25f, 0.15f)
-    // .setSmoothness(0.025f / _transformationRotatingText.uniformScaling())
-    .draw(_renderer->mesh());
-}  // namespace tes::viewer::handler
 }  // namespace tes::viewer::handler

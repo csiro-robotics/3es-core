@@ -3,6 +3,7 @@
 
 #include "3es-viewer.h"
 
+#include "3esdrawparams.h"
 #include "3esframestamp.h"
 #include "camera/3escamera.h"
 #include "util/3esenum.h"
@@ -23,19 +24,6 @@ class Connection;
 
 namespace tes::viewer::handler
 {
-/// Render related parameters passed to the @c Message::draw() function.
-struct DrawParams
-{
-  /// Current view camera.
-  camera::Camera camera;
-  /// The current projection matrix. Includes the inverse camera transform
-  Magnum::Matrix4 projection_matrix;
-  /// Represents the @c camera transform in the world.
-  Magnum::Matrix4 camera_matrix;
-  /// Size of the viewport being drawn to (pixels).
-  Magnum::Vector2 view_size;
-};
-
 /// The base class for a 3es message handler.
 ///
 /// @par Thread safety

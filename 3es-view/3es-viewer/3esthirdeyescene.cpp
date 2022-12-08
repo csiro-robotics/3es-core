@@ -22,10 +22,9 @@
 #include "painter/3esshapepainter.h"
 #include "painter/3essphere.h"
 #include "painter/3esstar.h"
+#include "painter/3estext.h"
 
 #include <3eslog.h>
-
-#include <Corrade/Utility/Resource.h>
 
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
@@ -63,6 +62,16 @@ ThirdEyeScene::ThirdEyeScene()
   // Initialise the font.
   initialiseFont();
   initialiseHandlers();
+}
+
+
+ThirdEyeScene::~ThirdEyeScene()
+{
+  // Need an ordered cleanup.
+  _messageHandlers.clear();
+  _orderedMessageHandlers.clear();
+  _painters.clear();
+  _text_painter = nullptr;
 }
 
 
@@ -315,8 +324,8 @@ void ThirdEyeScene::initialiseHandlers()
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshShape>(_culler));
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshSet>(_culler, mesh_resources));
 
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text2D>(_font.get(), _cache));
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text3D>(_font.get(), _cache));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text2D>(_text_painter));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text3D>(_text_painter));
 
   // TODO:
   // - point cloud
@@ -334,35 +343,13 @@ void ThirdEyeScene::initialiseHandlers()
 void ThirdEyeScene::initialiseFont()
 {
   // TODO(KS): get resources strings passed in as it's the exe which must include the resources.
-  const std::string font_name = "SourceSansPro-Regular.ttf";
-  Corrade::Utility::Resource rs("fonts");
-  _cache = std::make_shared<Magnum::Text::DistanceFieldGlyphCache>(Magnum::Vector2i(2048), Magnum::Vector2i(512), 22);
-  _font = _manager.loadAndInstantiate("TrueTypeFont");
-  if (!_font || !_font->openData(rs.getRaw(font_name), 180.0f))
-  {
-    log::error("Unable to initialise font ", font_name);
-    _font = nullptr;
-  }
-  else
-  {
-    std::string printable_characters;
-    printable_characters.reserve(std::numeric_limits<char>::max());
-    for (int c = 0; c < std::numeric_limits<char>::max(); ++c)
-    {
-      if (std::isprint(c))
-      {
-        printable_characters.append(1, c);
-      }
-    }
-
-    _font->fillGlyphCache(*_cache, printable_characters.c_str());
-  }
+  _text_painter = std::make_shared<painter::Text>(_font_manager);
 }
 
 
 void ThirdEyeScene::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix, const Magnum::Vector2 &window_size)
 {
-  handler::DrawParams params{ _camera, projection_matrix, camera::matrix(_camera), window_size };
+  DrawParams params{ _camera, projection_matrix, camera::matrix(_camera), window_size };
   // Draw opaque then transparent for proper blending.
   for (const auto &handler : _orderedMessageHandlers)
   {

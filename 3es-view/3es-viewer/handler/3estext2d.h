@@ -7,30 +7,23 @@
 #include "3es-viewer.h"
 
 #include "3esmessage.h"
+#include "painter/3estext.h"
 
 #include <Magnum/Magnum.h>
-#include <Magnum/Math/Color.h>
-#include <Magnum/Math/Vector2.h>
-#include <Magnum/Shaders/DistanceFieldVector.h>
-#include <Magnum/Text/Renderer.h>
 
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
 
-namespace Magnum::Text
-{
-class AbstractFont;
-class DistanceFieldGlyphCache;
-}  // namespace Magnum::Text
-
 namespace tes::viewer::handler
 {
 class Text2D : public Message
 {
 public:
-  Text2D(Magnum::Text::AbstractFont *font, std::shared_ptr<Magnum::Text::DistanceFieldGlyphCache> cache);
+  using TextEntry = painter::Text::TextEntry;
+
+  Text2D(std::shared_ptr<painter::Text> painter);
 
   void initialise() override;
   void reset() override;
@@ -41,28 +34,12 @@ public:
   void serialise(Connection &out, ServerInfoMessage &info) override;
 
 private:
-  struct TextEntry
-  {
-    std::string text;
-    uint32_t id;
-    Magnum::Vector3 position;
-    Magnum::Color4 colour;
-    /// True if the position is a projected from a world position to a 2D screen position.
-    bool world_projected = false;
-  };
-
-  void draw(const TextEntry &text, const DrawParams &params);
-
   std::mutex _mutex;
-  std::vector<TextEntry> _pending;
+  std::vector<std::pair<uint32_t, TextEntry>> _pending;
   std::vector<TextEntry> _transient;
   std::vector<uint32_t> _remove;
   std::unordered_map<uint32_t, TextEntry> _text;
-  std::unique_ptr<Magnum::Text::Renderer2D> _renderer;
-
-  Magnum::Text::AbstractFont *_font = nullptr;
-  Magnum::Shaders::DistanceFieldVector2D _shader;
-  std::shared_ptr<Magnum::Text::DistanceFieldGlyphCache> _cache;
+  std::shared_ptr<painter::Text> _painter;
 };
 }  // namespace tes::viewer::handler
 

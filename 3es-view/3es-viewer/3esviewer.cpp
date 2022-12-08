@@ -13,6 +13,8 @@
 #include "painter/3essphere.h"
 #include "painter/3esstar.h"
 
+#include <3eslog.h>
+
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/GL/RenderbufferFormat.h>
@@ -64,10 +66,16 @@ Viewer::Viewer(const Arguments &arguments)
 
   if (arguments.argc > 1)
   {
-    open(arguments.argv[1]);
-    if (_data_thread)
+    if (open(arguments.argv[1]))
     {
-      _data_thread->setLooping(true);
+      if (_data_thread)
+      {
+        _data_thread->setLooping(true);
+      }
+    }
+    else
+    {
+      log::error("Failed to open ", arguments.argv[1]);
     }
   }
   else

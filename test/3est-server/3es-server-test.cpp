@@ -535,7 +535,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   {
     Text3D *text;
     text = new Text3D("Hello World 3D", Id(nextId++, CatText3D),
-                      Directional(Vector3f(-1.0f, -1.0f, 1.0f), Vector3f(-1.0f, 0, 0), 1.0f, 8.0f));
+                      Directional(Vector3f(-1.0f, -1.0f, 1.0f), Vector3f(0, 1, 0), 1.0f, 8.0f));
     shapes.emplace_back(text);
     text = new Text3D("Hello World 3D Facing", Id(nextId++, CatText3D),
                       Directional(Vector3f(-1.0f, -1.0f, 0.0f), 1.0f, 8.0f));

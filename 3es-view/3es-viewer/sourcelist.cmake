@@ -2,6 +2,7 @@
 list(APPEND PUBLIC_HEADERS
   # General headers
   3esboundsculler.h
+  3esdrawparams.h
   3esedleffect.h
   3esfboeffect.h
   3esframestamp.h
@@ -36,6 +37,7 @@ list(APPEND PUBLIC_HEADERS
   painter/3espose.h
   painter/3essphere.h
   painter/3esstar.h
+  painter/3estext.h
   mesh/3esconverter.h
   shaders/3esedl.h
   util/3esenum.h
@@ -74,6 +76,7 @@ list(APPEND SOURCES
   painter/3espose.cpp
   painter/3essphere.cpp
   painter/3esstar.cpp
+  painter/3estext.cpp
   mesh/3esconverter.cpp
   shaders/3esedl.cpp
   shaders/3esedl.frag
