@@ -12,9 +12,9 @@
 
 namespace tes::viewer
 {
-struct EdlEffectDetail
+struct TES_VIEWER_API EdlEffectDetail
 {
-  struct Settings
+  struct TES_VIEWER_API Settings
   {
     float radius = 1.0f;
     float linear_scale = 1.0f;

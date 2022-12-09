@@ -96,15 +96,7 @@ include(sourcelist.cmake)
 #-------------------------------------------------------------------------------
 # Define the 3es-core library.
 add_library(3es-core ${PUBLIC_HEADERS} ${PUBLIC_SHAPE_HEADERS} ${PUBLIC_TESSELLATE_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
-
-# Disable some warnings.
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  # Disable warning about and/or precedence. Remember when it comes to precedence:
-  # - and is equivalent to multiplication
-  # - or is equilvanet to addition
-  # Now we don't need excessive brackets (parentheses for the Americans)
-  target_compile_options(3es-core PRIVATE "-Wno-logical-op-parentheses")
-endif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+tes_configure_target(3es-core)
 
 # Define DLL export header (primarily for MSVC).
 include(GenerateExportHeader)
@@ -117,19 +109,6 @@ generate_export_header(3es-core
 
 # set_target_properties(3es-core PROPERTIES FOLDER core)
 
-# Setup target versioning.
-set_target_properties(3es-core PROPERTIES
-  # Build version.
-  VERSION ${TES_VERSION}
-  # API version.
-  SOVERSION ${TES_VERSION_MAJOR} # API version.
-  # Compatibility versioning. Referenced via the COMPATIBLE_INTERFACE_STRING property.
-  INTERFACE_3escore_MAJOR_VERSION ${TES_VERSION_MAJOR}
-)
-
-# Help enforce version compability by ensuring all link dependencies expect the same INTERFACE_3escore_MAJOR_VERSION
-set_property(TARGET 3es-core APPEND PROPERTY COMPATIBLE_INTERFACE_STRING INTERFACE_3escore_MAJOR_VERSION)
-
 # Include directories
 target_include_directories(3es-core
   PUBLIC
@@ -138,9 +117,16 @@ target_include_directories(3es-core
     $<INSTALL_INTERFACE:include/3es-core>
 )
 
-if(CMAKE_THREAD_LIBS_INIT)
-  target_link_libraries(3es-core ${CMAKE_THREAD_LIBS_INIT})
-endif(CMAKE_THREAD_LIBS_INIT)
+target_link_libraries(3es-core
+  PUBLIC
+    $<$<BOOL:CMAKE_THREAD_LIBS_INIT>:${CMAKE_THREAD_LIBS_INIT}>
+    $<$<CXX_COMPILER_ID:MSVC>:Ws2_32.lib>
+)
+
+if(ZLIB_FOUND AND NOT TES_ZLIB_OFF)
+  target_include_directories(3es-core PRIVATE SYSTEM "${ZLIB_INCLUDE_DIRS}")
+  target_link_libraries(3es-core PUBLIC ${ZLIB_LIBRARIES})
+endif(ZLIB_FOUND AND NOT TES_ZLIB_OFF)
 
 # Need to explicitly define some compile flags because the target name starts with a number.
 if(BUILD_SHARED_LIBS)
@@ -150,20 +136,10 @@ else(BUILD_SHARED_LIBS)
 endif(BUILD_SHARED_LIBS)
 
 # Link dependencies
-if(ZLIB_FOUND AND NOT TES_ZLIB_OFF)
-  target_include_directories(3es-core PRIVATE "${ZLIB_INCLUDE_DIRS}")
-  target_link_libraries(3es-core ${ZLIB_LIBRARIES})
-endif(ZLIB_FOUND AND NOT TES_ZLIB_OFF)
-
 if(TES_SOCKETS STREQUAL "Qt")
-  target_link_libraries(3es-core Qt5::Network)
+  target_link_libraries(3es-core PRIVATE Qt5::Network)
   target_include_directories(3es-core PRIVATE "${Qt5Network_INCLUDE_DIRS}")
 endif()
-
-if(MSVC)
-  # Windows build requires Winsock2.
-  target_link_libraries(3es-core Ws2_32.lib)
-endif(MSVC)
 
 #-------------------------------------------------------------------------------
 # Doxygen configuration.
@@ -216,19 +192,6 @@ endif(TES_BUILD_DOXYGEN)
 #-------------------------------------------------------------------------------
 # Installation.
 #-------------------------------------------------------------------------------
-# Binary installation
-install(TARGETS 3es-core EXPORT 3es-config-targets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
-)
-
-# Install PDB files (MSVC) in part to avoid unsupressable linker warnings.
-if(BUILD_SHARED_LIBS)
-  install(FILES $<TARGET_PDB_FILE:3es-core> DESTINATION bin OPTIONAL)
-endif(BUILD_SHARED_LIBS)
-
 # Header installation
 install(FILES ${PUBLIC_HEADERS} DESTINATION include/3es-core COMPONENT Devel)
 install(FILES ${PUBLIC_SHAPE_HEADERS} DESTINATION include/3es-core/shapes COMPONENT Devel)

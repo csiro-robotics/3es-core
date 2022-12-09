@@ -9,7 +9,7 @@
 namespace tes::viewer::painter
 {
 /// Cylinder painter.
-class Cylinder : public ShapePainter
+class TES_VIEWER_API Cylinder : public ShapePainter
 {
 public:
   /// Constructor.

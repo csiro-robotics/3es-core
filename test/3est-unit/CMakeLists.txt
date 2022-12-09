@@ -9,14 +9,11 @@ set(SOURCES
 )
 
 add_executable(3est-unit ${SOURCES})
-set_target_properties(3est-unit PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-target_link_libraries(3est-unit 3es-core GTest::Main)
-target_include_directories(3est-unit
+tes_configure_unit_test_target(3est-unit)
+target_link_libraries(3est-unit
   PRIVATE
-    $<TARGET_PROPERTY:3es-core,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:GTest::Main,INTERFACE_INCLUDE_DIRECTORIES>
+    3es-core
+    GTest::Main
 )
-
-add_test(NAME 3est-unit COMMAND 3est-unit --gtest_output=xml:test-reports/)
 
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" PREFIX source FILES ${SOURCES})

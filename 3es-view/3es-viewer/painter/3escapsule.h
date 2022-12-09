@@ -15,7 +15,7 @@ class SimpleMesh;
 namespace tes::viewer::painter
 {
 /// Capsule painter.
-class Capsule : public ShapePainter
+class TES_VIEWER_API Capsule : public ShapePainter
 {
 public:
   /// Constructor.

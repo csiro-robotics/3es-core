@@ -16,7 +16,7 @@
 namespace tes::viewer::handler
 {
 /// The message handler for mesh sets which reference and render @c MeshResource items.
-class MeshSet : public Message
+class TES_VIEWER_API MeshSet : public Message
 {
 public:
   MeshSet(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<MeshResource> resources);

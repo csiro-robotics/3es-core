@@ -40,13 +40,13 @@ list(APPEND SOURCES
 )
 
 add_executable(3es-occupancy ${SOURCES})
-set_target_properties(3es-occupancy PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+tes_configure_target(3es-occupancy)
 
-target_link_libraries(3es-occupancy 3es-core)
-target_link_libraries(3es-occupancy octomap-static octomath-static)
-
-target_include_directories(3es-occupancy
+target_link_libraries(3es-occupancy
   PRIVATE
-    $<TARGET_PROPERTY:3es-core,INCLUDE_DIRECTORIES>
+    3es-core
+    octomap-static
+    octomath-static
 )
+
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" PREFIX source FILES ${SOURCES})

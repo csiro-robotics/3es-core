@@ -61,7 +61,8 @@ Text::Text(Corrade::PluginManager::Manager<Magnum::Text::AbstractFont> &font_man
     _cache = nullptr;
   }
 
-  // The constructor we call is to construct from *column* vectors, but for readability we layout *rows* then transpose.
+  // The constructor we call is to construct from *column* vectors, but for readability we layout *rows*
+  // then transpose.
   // TODO(KS): this is only set for CoordiateFrame::XYZ. Do we need anything else? really adding the CoordinateFrame
   // transform to the projection matrix should be enough. We just need to line up the matrix so it defaults to -Y
   // facing, Z up.

@@ -11,7 +11,7 @@
 
 namespace tes::camera
 {
-struct Camera
+struct TES_VIEWER_API Camera
 {
   Magnum::Vector3 position;
   float pitch = 0;

@@ -19,7 +19,7 @@ class EdlEffect;
 class FboEffect;
 class DataThread;
 
-class Viewer : public Magnum::Platform::Application
+class TES_VIEWER_API Viewer : public Magnum::Platform::Application
 {
 public:
   using Clock = std::chrono::steady_clock;

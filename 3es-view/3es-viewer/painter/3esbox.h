@@ -8,7 +8,7 @@
 namespace tes::viewer::painter
 {
 /// Box painter.
-class Box : public ShapePainter
+class TES_VIEWER_API Box : public ShapePainter
 {
 public:
   /// Constructor.

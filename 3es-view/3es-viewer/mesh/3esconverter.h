@@ -16,7 +16,7 @@ class MeshResource;
 namespace tes::viewer::mesh
 {
 /// Options to adjust the behaviour of @c convert() functions.
-struct ConvertOptions
+struct TES_VIEWER_API ConvertOptions
 {
   /// Default colour to apply if @c auto_colour is set.
   Colour default_colour = { 255, 255, 255 };

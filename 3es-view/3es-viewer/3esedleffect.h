@@ -15,7 +15,7 @@ namespace tes::viewer
 struct EdlEffectDetail;
 
 /// Eye dome lighting frame buffer effect.
-class EdlEffect : public FboEffect
+class TES_VIEWER_API EdlEffect : public FboEffect
 {
 public:
   EdlEffect(const Magnum::Range2Di &viewport = { Magnum::Vector2i(0), Magnum::Vector2i(1) });

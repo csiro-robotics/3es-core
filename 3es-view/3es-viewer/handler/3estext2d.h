@@ -18,7 +18,7 @@
 
 namespace tes::viewer::handler
 {
-class Text2D : public Message
+class TES_VIEWER_API Text2D : public Message
 {
 public:
   using TextEntry = painter::Text::TextEntry;

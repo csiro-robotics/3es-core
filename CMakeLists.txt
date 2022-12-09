@@ -47,7 +47,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Manage warnings, disabling ones we want to ignore.
-include(compilerSetup)
+include(3esTarget)
 
 # Include sub projects.
 add_subdirectory(3es-core)

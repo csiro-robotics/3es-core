@@ -19,7 +19,7 @@ using FrameNumberAtomic = std::atomic_uint32_t;
 ///
 /// The @c render_mark is a monotonic increasing value which changes with every rendering of the scene to the current
 /// camera, even when the logical frame stays fixed.
-struct FrameStamp
+struct TES_VIEWER_API FrameStamp
 {
   /// The logical frame number as dictated by the data stream.
   FrameNumber frame_number = 0;

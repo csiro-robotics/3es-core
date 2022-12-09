@@ -35,7 +35,6 @@
 #include <Magnum/Text/DistanceFieldGlyphCache.h>
 
 // Things to learn about:
-// - text rendering
 // - UI
 
 // Things to implement:

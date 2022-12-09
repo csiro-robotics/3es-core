@@ -9,7 +9,7 @@
 namespace tes::viewer::painter
 {
 /// Star painter.
-class Star : public ShapePainter
+class TES_VIEWER_API Star : public ShapePainter
 {
 public:
   /// Constructor.

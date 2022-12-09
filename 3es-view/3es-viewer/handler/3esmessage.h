@@ -34,7 +34,7 @@ namespace tes::viewer::handler
 ///
 /// As such, the @c readMessage() function must be thread safe with respect to @c beginFrame(), @c endFrame() and
 /// @c draw().
-class Message
+class TES_VIEWER_API Message
 {
 public:
   using ObjectAttributes = tes::ObjectAttributes<Magnum::Float>;

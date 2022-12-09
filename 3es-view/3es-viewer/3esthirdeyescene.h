@@ -47,7 +47,7 @@ class ShapePainter;
 class Text;
 }  // namespace painter
 
-class ThirdEyeScene
+class TES_VIEWER_API ThirdEyeScene
 {
 public:
   ThirdEyeScene();

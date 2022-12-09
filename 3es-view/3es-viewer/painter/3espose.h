@@ -9,7 +9,7 @@
 namespace tes::viewer::painter
 {
 /// Pose painter.
-class Pose : public ShapePainter
+class TES_VIEWER_API Pose : public ShapePainter
 {
 public:
   /// Constructor.

@@ -33,7 +33,7 @@ namespace tes::viewer::painter
 ///
 /// This abstracts away the details of the shader for the @c ShapeCache such that it simply needs to call
 /// @c setProjectionMatrix() and @c draw() .
-class ShapeCacheShader
+class TES_VIEWER_API ShapeCacheShader
 {
 public:
   /// Virtual destructor.
@@ -58,7 +58,7 @@ public:
 };
 
 /// Flat colour shader for a @p ShapeCache . Can be used for solid, transparent and line based shapes.
-class ShapeCacheShaderFlat : public ShapeCacheShader
+class TES_VIEWER_API ShapeCacheShaderFlat : public ShapeCacheShader
 {
 public:
   /// Constructor.
@@ -108,7 +108,7 @@ private:
 ///
 /// Child shapes may have @c update() called, although the parent transform always affects the child transform.
 /// Shape chains are removed collectively by specifying the parent shape.
-class ShapeCache
+class TES_VIEWER_API ShapeCache
 {
 public:
   /// Helper function used to implement @c calcBounds() for the cached shape type.
@@ -142,7 +142,7 @@ public:
   };
 
   /// Shape instance data.
-  struct ShapeInstance
+  struct TES_VIEWER_API ShapeInstance
   {
     /// The instance transformation matrix.
     Magnum::Matrix4 transform = {};
@@ -158,7 +158,7 @@ public:
   /// @code{.unparsed}
   ///   transform = projection_matrix * part.transform * instance_transform;
   /// @endcode
-  struct Part
+  struct TES_VIEWER_API Part
   {
     /// Mesh shared pointer; must not be null.
     std::shared_ptr<Magnum::GL::Mesh> mesh;
@@ -313,11 +313,11 @@ public:
 
   /// Iterator for the shape cache. Iteration is read only and shows a proxy @c View for the shape, rather than
   /// addressing the actual shape data.
-  class const_iterator
+  class TES_VIEWER_API const_iterator
   {
   public:
     /// An external view of a shape in the cache.
-    struct View
+    struct TES_VIEWER_API View
     {
       /// The shape user id.
       Id id;

@@ -15,7 +15,7 @@
 namespace tes::viewer
 {
 /// Render related parameters passed to the @c Message::draw() function.
-struct DrawParams
+struct TES_VIEWER_API DrawParams
 {
   /// Current view camera.
   camera::Camera camera;

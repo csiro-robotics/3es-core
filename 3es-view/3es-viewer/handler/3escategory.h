@@ -13,11 +13,11 @@
 
 namespace tes::viewer::handler
 {
-class Category : public Message
+class TES_VIEWER_API Category : public Message
 {
 public:
   /// Represents a display category.
-  struct CategoryInfo
+  struct TES_VIEWER_API CategoryInfo
   {
     /// Display name for the category.
     std::string name;

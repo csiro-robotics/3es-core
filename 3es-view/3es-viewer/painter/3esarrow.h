@@ -9,7 +9,7 @@
 namespace tes::viewer::painter
 {
 /// Arrow painter.
-class Arrow : public ShapePainter
+class TES_VIEWER_API Arrow : public ShapePainter
 {
 public:
   /// Constructor.

@@ -31,7 +31,7 @@ namespace tes::viewer
 class ThirdEyeScene;
 
 /// A @c DataThread implementation which reads and processes packets form a file.
-class StreamThread : public DataThread
+class TES_VIEWER_API StreamThread : public DataThread
 {
 public:
   using Clock = std::chrono::steady_clock;

@@ -60,7 +60,7 @@ namespace tes::viewer::painter
 /// ```
 ///
 /// This interface also supports rendering from a container which indirectly contains @c TextEntry items.
-class Text
+class TES_VIEWER_API Text
 {
 public:
   /// A hard limit to the number of characters we can render in a text string.
@@ -81,7 +81,7 @@ public:
   };
 
   /// A text entry to render.
-  struct TextEntry
+  struct TES_VIEWER_API TextEntry
   {
     /// The text to render. May be truncated by the rendering limit.
     std::string text;

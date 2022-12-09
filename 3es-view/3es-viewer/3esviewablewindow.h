@@ -16,7 +16,7 @@ namespace tes::viewer
 ///
 /// Viewable windows are used to specify both the frames a shape may be visible for and the window a shape drawer should
 /// display.
-class ViewableWindow
+class TES_VIEWER_API ViewableWindow
 {
 public:
   /// Identifies the type of interval during construction. This affects the semantics of the @c interval argument.

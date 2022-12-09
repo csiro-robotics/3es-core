@@ -8,7 +8,7 @@
 namespace tes::viewer::painter
 {
 /// Sphere painter.
-class Sphere : public ShapePainter
+class TES_VIEWER_API Sphere : public ShapePainter
 {
 public:
   /// Constructor.

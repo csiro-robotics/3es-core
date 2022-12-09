@@ -9,7 +9,7 @@
 namespace tes::viewer::painter
 {
 /// Plane painter.
-class Plane : public ShapePainter
+class TES_VIEWER_API Plane : public ShapePainter
 {
 public:
   /// Constructor.

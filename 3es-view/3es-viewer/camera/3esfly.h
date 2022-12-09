@@ -6,7 +6,7 @@
 
 namespace tes::camera
 {
-class Fly : public Controller
+class TES_VIEWER_API Fly : public Controller
 {
 public:
   Fly();

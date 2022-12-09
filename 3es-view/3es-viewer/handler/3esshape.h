@@ -17,7 +17,7 @@ class ShapePainter;
 namespace tes::viewer::handler
 {
 /// A common message handler for all primitive shapes, rendered using a @c painter::ShapePainter.
-class Shape : public Message
+class TES_VIEWER_API Shape : public Message
 {
 public:
   Shape(uint16_t routing_id, const std::string &name, std::shared_ptr<painter::ShapePainter> painter);

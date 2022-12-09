@@ -31,7 +31,7 @@ namespace tes::viewer::handler
 /// specialised handlers exist for meshes with parts - @c MeshSet - and point clouds - @c PointCloud - including
 /// points rendered using a voxel representation. Note these two also rely in the @c Mesh handler which decoders
 /// mesh resource definitions.
-class MeshShape : public Message
+class TES_VIEWER_API MeshShape : public Message
 {
 public:
   using Flag = DrawableFlag;

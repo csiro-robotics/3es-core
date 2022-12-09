@@ -10,7 +10,7 @@
 
 namespace tes::shaders
 {
-class Edl : public Magnum::GL::AbstractShaderProgram
+class TES_VIEWER_API Edl : public Magnum::GL::AbstractShaderProgram
 {
 public:
   using Position = Magnum::Shaders::Generic3D::Position;

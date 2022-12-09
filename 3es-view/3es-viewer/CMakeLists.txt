@@ -45,39 +45,18 @@ include(sourcelist.cmake)
 #-------------------------------------------------------------------------------
 # Define the 3es-viewer library.
 add_library(3es-viewer ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
-
-# Disable some warnings.
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  # Disable warning about and/or precedence. Remember when it comes to precedence:
-  # - and is equivalent to multiplication
-  # - or is equilvanet to addition
-  # Now we don't need excessive brackets (parentheses for the Americans)
-  target_compile_options(3es-viewer PRIVATE "-Wno-logical-op-parentheses")
-endif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+tes_configure_target(3es-viewer)
 
 # Define DLL export header (primarily for MSVC).
 include(GenerateExportHeader)
 generate_export_header(3es-viewer
-      EXPORT_MACRO_NAME _3es_viewerAPI
-      NO_EXPORT_MACRO_NAME _3es_viewerHIDDEN
+      EXPORT_MACRO_NAME TES_VIEWER_API
+      NO_EXPORT_MACRO_NAME TES_VIEWER_HIDDEN
       EXPORT_FILE_NAME 3es-viewer-export.h
-      STATIC_DEFINE TES_STATIC
+      STATIC_DEFINE TES_VIEWER_STATIC
       )
 
 # set_target_properties(3es-viewer PROPERTIES FOLDER view)
-
-# Setup target versioning.
-set_target_properties(3es-viewer PROPERTIES
-  # Build version.
-  VERSION ${TES_VERSION}
-  # API version.
-  SOVERSION ${TES_VERSION_MAJOR} # API version.
-  # Compatibility versioning. Referenced via the COMPATIBLE_INTERFACE_STRING property.
-  INTERFACE_3esclient_MAJOR_VERSION ${TES_VERSION_MAJOR}
-)
-
-# Help enforce version compability by ensuring all link dependencies expect the same INTERFACE_3esclient_MAJOR_VERSION
-set_property(TARGET 3es-viewer APPEND PROPERTY COMPATIBLE_INTERFACE_STRING INTERFACE_3esclient_MAJOR_VERSION)
 
 # Include directories
 target_include_directories(3es-viewer
@@ -89,19 +68,18 @@ target_include_directories(3es-viewer
     $<INSTALL_INTERFACE:include/3es-viewer>
 )
 
-if(CMAKE_THREAD_LIBS_INIT)
-  target_link_libraries(3es-viewer ${CMAKE_THREAD_LIBS_INIT})
-endif(CMAKE_THREAD_LIBS_INIT)
-
-target_link_libraries(3es-viewer PUBLIC 3es-core)
-
-target_link_libraries(3es-viewer PRIVATE
-  $<BUILD_INTERFACE:Corrade::Containers>
-  $<BUILD_INTERFACE:Magnum::Application>
-  $<BUILD_INTERFACE:Magnum::Magnum>
-  $<BUILD_INTERFACE:Magnum::Primitives>
-  $<BUILD_INTERFACE:Magnum::Shaders>
-  $<BUILD_INTERFACE:Magnum::Text>
+target_link_libraries(3es-viewer
+  PUBLIC
+    3es-core
+    $<$<BOOL:CMAKE_THREAD_LIBS_INIT>:${CMAKE_THREAD_LIBS_INIT}>
+  PRIVATE
+    # Should only use BUILD_INTERFACE when building a shared library.
+    $<BUILD_INTERFACE:Corrade::Containers>
+    $<BUILD_INTERFACE:Magnum::Application>
+    $<BUILD_INTERFACE:Magnum::Magnum>
+    $<BUILD_INTERFACE:Magnum::Primitives>
+    $<BUILD_INTERFACE:Magnum::Shaders>
+    $<BUILD_INTERFACE:Magnum::Text>
 )
 
 #-------------------------------------------------------------------------------
@@ -155,19 +133,6 @@ target_link_libraries(3es-viewer PRIVATE
 #-------------------------------------------------------------------------------
 # Installation.
 #-------------------------------------------------------------------------------
-# Binary installation
-install(TARGETS 3es-viewer EXPORT 3es-config-targets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
-)
-
-# Install PDB files (MSVC) in part to avoid unsupressable linker warnings.
-if(BUILD_SHARED_LIBS)
-  install(FILES $<TARGET_PDB_FILE:3es-viewer> DESTINATION bin OPTIONAL)
-endif(BUILD_SHARED_LIBS)
-
 # Header installation
 # install(FILES ${PUBLIC_HEADERS} DESTINATION include/3es-viewer COMPONENT Devel)
 # install(FILES ${PUBLIC_SHAPE_HEADERS} DESTINATION include/3es-viewer/shapes COMPONENT Devel)

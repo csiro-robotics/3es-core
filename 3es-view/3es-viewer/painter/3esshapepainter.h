@@ -21,7 +21,7 @@ namespace tes::viewer::painter
 /// The painter is supported by the @c ShapeCache class, one instance for each drawing @c Type . As such it has similar
 /// supporting requirements; a @c BoundsCuller , @c Mesh objects for solid, wireframe and transparent rendering and a
 /// bounds calculation function.
-class ShapePainter
+class TES_VIEWER_API ShapePainter
 {
 public:
   /// Part alias from @c ShapeCache .
@@ -41,7 +41,7 @@ public:
   };
 
   /// An id returned from @p add() which can be passed to @c addChild() to create child shapes.
-  class ParentId
+  class TES_VIEWER_API ParentId
   {
   public:
     inline explicit ParentId(const Id &shape_id, const util::ResourceListId resource_id)
@@ -64,7 +64,7 @@ public:
   };
 
   /// A child or sub-shape identifier.
-  class ChildId
+  class TES_VIEWER_API ChildId
   {
   public:
     inline ChildId(const Id shape_id, unsigned child_index)
@@ -196,11 +196,11 @@ public:
   ///
   /// Contents are read only and provide a @c View to the shape. For shapes with a @c child_count, use
   /// @c getChild() to iterate the children.
-  class const_iterator
+  class TES_VIEWER_API const_iterator
   {
   public:
     /// An external view of a shape.
-    struct View
+    struct TES_VIEWER_API View
     {
       Id id;
       /// The instance transformation matrix.
@@ -336,7 +336,7 @@ public:
 
 protected:
   /// Identifies a shape type and index into the associated @c ShapeCache .
-  struct CacheIndex
+  struct TES_VIEWER_API CacheIndex
   {
     Type type = {};
     util::ResourceListId index = {};

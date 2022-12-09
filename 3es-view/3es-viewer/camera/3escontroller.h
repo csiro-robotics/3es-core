@@ -8,7 +8,7 @@
 namespace tes::camera
 {
 /// Base class for camera update.
-class Controller
+class TES_VIEWER_API Controller
 {
 public:
   /// Control flags.

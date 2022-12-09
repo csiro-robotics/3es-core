@@ -21,12 +21,12 @@
 
 namespace tes::viewer::handler
 {
-class MeshResource : public Message
+class TES_VIEWER_API MeshResource : public Message
 {
   struct Resource;
 
 public:
-  class ResourceReference
+  class TES_VIEWER_API ResourceReference
   {
   public:
     inline ResourceReference() = default;
@@ -64,7 +64,7 @@ public:
   };
 
   /// A drawable item for @c draw() calls.
-  struct DrawItem
+  struct TES_VIEWER_API DrawItem
   {
     /// The mesh resource ID to draw.
     uint32_t resource_id = 0;

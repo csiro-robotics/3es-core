@@ -18,7 +18,7 @@
 
 namespace tes::viewer::handler
 {
-class Camera : public Message
+class TES_VIEWER_API Camera : public Message
 {
 public:
   using CameraId = uint8_t;

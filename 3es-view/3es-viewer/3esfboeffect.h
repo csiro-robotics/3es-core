@@ -16,11 +16,11 @@ class Framebuffer;
 namespace tes::viewer
 {
 /// Base class for any full screen, frame buffer object rendering effect.
-class FboEffect
+class TES_VIEWER_API FboEffect
 {
 public:
   /// Defines the projection matrix type.
-  enum class ProjectionType
+  enum class TES_VIEWER_API ProjectionType
   {
     Perspective,
     Orthographic

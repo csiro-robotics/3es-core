@@ -20,7 +20,7 @@ namespace tes::viewer
 {
 using BoundsId = util::ResourceListId;
 
-class Bounds : public tes::Bounds<Magnum::Float>
+class TES_VIEWER_API Bounds : public tes::Bounds<Magnum::Float>
 {
 public:
   using Super = tes::Bounds<Magnum::Float>;
@@ -106,7 +106,7 @@ public:
 /// important, so long as it changes each frame and has a long period before returning to the same value. During
 /// @p cull() each bounds visible bounds entry is stamped with this @p mark value. The same @p mark can later be used to
 /// check visibility via @p isVisible() .
-class BoundsCuller
+class TES_VIEWER_API BoundsCuller
 {
 public:
   using Bounds = tes::Bounds<Magnum::Float>;

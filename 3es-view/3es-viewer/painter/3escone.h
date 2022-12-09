@@ -9,7 +9,7 @@
 namespace tes::viewer::painter
 {
 /// Cone painter.
-class Cone : public ShapePainter
+class TES_VIEWER_API Cone : public ShapePainter
 {
 public:
   /// Constructor.

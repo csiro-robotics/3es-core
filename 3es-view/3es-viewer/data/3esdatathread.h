@@ -7,14 +7,14 @@
 
 namespace tes::viewer
 {
-/// Base class for thread objects used as message sources.
+/// Base class TES_VIEWER_API for thread objects used as message sources.
 ///
 /// A data thread is responsible for reading incoming data, generally over a network connection or from file, decoding
 /// data packages and routing them to the appropriate handlers. Note this implies the message handlers must be thread
 /// safe in their message handling.
 ///
 /// For recorded streams, it is up to the @c DataThread implementation to maintain the correct packet timing.
-class DataThread
+class TES_VIEWER_API DataThread
 {
 public:
   /// Virtual destructor.
