@@ -46,7 +46,7 @@ public:
   inline void clear(Flag flag) { _flags = Flag(unsigned(_flags) & ~unsigned(flag)); }
   /// Check fi the given control flags are set. The @p flag value may contain multiple flags, but the return value is
   /// only true if *all* flag bits are set.
-  inline bool isSet(Flag flag) const { return unsigned(_flags) & unsigned(flag) == unsigned(flag); }
+  inline bool isSet(Flag flag) const { return (unsigned(_flags) & unsigned(flag)) == unsigned(flag); }
 
   /// Perform mouse movement update logic.
   /// @param dx Mouse movement delta in x.
@@ -64,7 +64,7 @@ public:
   /// @overload
   void updateKeys(float dt, Magnum::Vector3i translate, Camera &camera)
   {
-    updateKeys(dt, translate, Magnum::Vector3i(0.), camera);
+    updateKeys(dt, translate, Magnum::Vector3i(0), camera);
   }
 
   inline static void clampRotation(Camera &camera)

@@ -60,6 +60,7 @@ uint32_t MeshShape::Resource::tint() const
 
 uint8_t MeshShape::Resource::drawType(int stream) const
 {
+  (void)stream;
   return _shape.drawType();
 }
 

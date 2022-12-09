@@ -228,7 +228,7 @@ void solidLatLong(std::vector<Vector3f> &vertices, std::vector<unsigned> &indice
   if (!hemisphereOnly)
   {
     unsigned mirrorStart = segments;  // Skip the shared, equatorial ring.
-    unsigned mirrorCount = vertices.size() - 1;
+    unsigned mirrorCount = unsigned(vertices.size() - 1);
     for (unsigned i = mirrorStart; i < mirrorCount; ++i)
     {
       v = vertices[i];
@@ -381,21 +381,21 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
   for (int i = 0; i < ring_vertex_count; ++i)
   {
     float angle = i * 2.0f * float(M_PI) / (float)ring_vertex_count;
-    vertices.emplace_back(Vector3f(std::cos(angle), std::sin(angle), 0));
+    vertices.emplace_back(origin + radius * Vector3f(std::cos(angle), std::sin(angle), 0));
   }
 
   // Build a circle around the Y axis.
   for (int i = 0; i < ring_vertex_count; ++i)
   {
     float angle = i * 2.0f * float(M_PI) / (float)ring_vertex_count;
-    vertices.emplace_back(Vector3f(std::cos(angle), 0, std::sin(angle)));
+    vertices.emplace_back(origin + radius * Vector3f(std::cos(angle), 0, std::sin(angle)));
   }
 
   // Build a circle around the X axis.
   for (int i = 0; i < ring_vertex_count; ++i)
   {
     float angle = i * 2.0f * float(M_PI) / (float)ring_vertex_count;
-    vertices.emplace_back(Vector3f(0, std::cos(angle), std::sin(angle)));
+    vertices.emplace_back(origin + radius * Vector3f(0, std::cos(angle), std::sin(angle)));
   }
 
   // Build indices.

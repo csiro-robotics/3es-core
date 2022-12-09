@@ -42,6 +42,7 @@ void MeshSet::reset()
 
 void MeshSet::beginFrame(const FrameStamp &stamp)
 {
+  (void)stamp;
   std::lock_guard guard(_mutex);
   // Update meshes and bounds.
   // @note: MeshResource handler has to beginFrame() first.
@@ -65,6 +66,7 @@ void MeshSet::beginFrame(const FrameStamp &stamp)
 
 void MeshSet::endFrame(const FrameStamp &stamp)
 {
+  (void)stamp;
   std::lock_guard guard(_mutex);
 
   // We can clean up marked for death here, in the background thread.
@@ -95,6 +97,7 @@ void MeshSet::endFrame(const FrameStamp &stamp)
 
 void MeshSet::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
 {
+  (void)stamp;
   std::lock_guard guard(_mutex);
   _draw_sets[0].clear();
   _draw_sets[1].clear();
@@ -166,6 +169,7 @@ void MeshSet::readMessage(PacketReader &reader)
 
 void MeshSet::serialise(Connection &out, ServerInfoMessage &info)
 {
+  (void)info;
   std::lock_guard guard(_mutex);
 
   const auto serialise_shape = [&out](const MeshItem &mesh) {
@@ -208,16 +212,16 @@ void MeshSet::decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttribu
 Magnum::Matrix4 MeshSet::composeTransform(const tes::Transform &tes_transform) const
 {
   ObjectAttributes attrs = {};
-  attrs.position[0] = tes_transform.position().x;
-  attrs.position[1] = tes_transform.position().y;
-  attrs.position[2] = tes_transform.position().z;
-  attrs.rotation[0] = tes_transform.rotation().x;
-  attrs.rotation[1] = tes_transform.rotation().y;
-  attrs.rotation[2] = tes_transform.rotation().z;
-  attrs.rotation[3] = tes_transform.rotation().w;
-  attrs.scale[0] = tes_transform.scale().x;
-  attrs.scale[1] = tes_transform.scale().y;
-  attrs.scale[2] = tes_transform.scale().z;
+  attrs.position[0] = Magnum::Float(tes_transform.position().x);
+  attrs.position[1] = Magnum::Float(tes_transform.position().y);
+  attrs.position[2] = Magnum::Float(tes_transform.position().z);
+  attrs.rotation[0] = Magnum::Float(tes_transform.rotation().x);
+  attrs.rotation[1] = Magnum::Float(tes_transform.rotation().y);
+  attrs.rotation[2] = Magnum::Float(tes_transform.rotation().z);
+  attrs.rotation[3] = Magnum::Float(tes_transform.rotation().w);
+  attrs.scale[0] = Magnum::Float(tes_transform.scale().x);
+  attrs.scale[1] = Magnum::Float(tes_transform.scale().y);
+  attrs.scale[2] = Magnum::Float(tes_transform.scale().z);
   return composeTransform(attrs);
 }
 
@@ -282,6 +286,7 @@ bool MeshSet::handleUpdate(PacketReader &reader)
 
 bool MeshSet::handleDestroy(const DestroyMessage &msg, PacketReader &reader)
 {
+  (void)reader;
   std::lock_guard guard(_mutex);
 
   auto search = _shapes.find(msg.id);

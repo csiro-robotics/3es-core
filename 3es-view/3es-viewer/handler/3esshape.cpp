@@ -27,11 +27,14 @@ void Shape::reset()
 
 
 void Shape::beginFrame(const FrameStamp &stamp)
-{}
+{
+  (void)stamp;
+}
 
 
 void Shape::endFrame(const FrameStamp &stamp)
 {
+  (void)stamp;
   _painter->commit();
 }
 
@@ -90,9 +93,10 @@ void Shape::readMessage(PacketReader &reader)
 
 void Shape::serialise(Connection &out, ServerInfoMessage &info)
 {
+  (void)info;
   info = _server_info;
   std::array<uint8_t, (1u << 16u) - 1> buffer;
-  PacketWriter writer(buffer.data(), buffer.size());
+  PacketWriter writer(buffer.data(), uint16_t(buffer.size()));
   CreateMessage create = {};
   ObjectAttributes attrs = {};
 
@@ -218,6 +222,7 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
 
 bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader)
 {
+  (void)reader;
   const Id id(msg.id);
   Magnum::Matrix4 transform = {};
   Magnum::Color4 colour = {};
@@ -269,6 +274,8 @@ bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs
 
 bool Shape::handleDestroy(const DestroyMessage &msg, PacketReader &reader)
 {
+  (void)msg;
+  (void)reader;
   const Id id(msg.id);
   return _painter->remove(id);
 }
@@ -276,6 +283,8 @@ bool Shape::handleDestroy(const DestroyMessage &msg, PacketReader &reader)
 
 bool Shape::handleData(const DataMessage &msg, PacketReader &reader)
 {
+  (void)msg;
+  (void)reader;
   // Not expecting data messages.
   return false;
 }

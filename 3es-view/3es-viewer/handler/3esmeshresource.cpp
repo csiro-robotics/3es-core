@@ -45,6 +45,7 @@ void MeshResource::reset()
 
 void MeshResource::beginFrame(const FrameStamp &stamp)
 {
+  (void)stamp;
   _garbage_list.clear();
   // As we begin a frame, we need to commit resources.
   // For OpenGL this must be on beginFrame() as this is the main thread.
@@ -61,12 +62,17 @@ void MeshResource::beginFrame(const FrameStamp &stamp)
 
 
 void MeshResource::endFrame(const FrameStamp &stamp)
-{}
+{
+  (void)stamp;
+}
 
 
 void MeshResource::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
 {
   // This handler does not drawing, it just holds resources.
+  (void)pass;
+  (void)stamp;
+  (void)params;
 }
 
 
@@ -146,6 +152,7 @@ void MeshResource::readMessage(PacketReader &reader)
 
 void MeshResource::serialise(Connection &out, ServerInfoMessage &info)
 {
+  (void)info;
   std::lock_guard guard(_resource_lock);
 
   for (auto &[id, resource] : _resources)

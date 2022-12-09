@@ -55,7 +55,7 @@ EdlEffect::EdlEffect(const Magnum::Range2Di &viewport)
     2, 1, 3   // |/ / |
   };          // 2 2--0
 
-  _imp->mesh.setCount(Magnum::Containers::arraySize(indices))
+  _imp->mesh.setCount(Magnum::Int(Magnum::Containers::arraySize(indices)))
     .addVertexBuffer(Magnum::GL::Buffer{ vertices }, 0, shaders::Edl::Position{}, shaders::Edl::TextureCoordinates{})
     .setIndexBuffer(Magnum::GL::Buffer{ indices }, 0, Magnum::GL::MeshIndexType::UnsignedInt);
 }
@@ -115,6 +115,8 @@ const Magnum::Vector3 &EdlEffect::lightDirection() const
 void EdlEffect::prepareFrame(const Magnum::Matrix4 &projection_matrix, ProjectionType projection_type, float near_clip,
                              float far_clip)
 {
+  (void)projection_matrix;
+  (void)projection_type;
   _imp->frame_buffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth).bind();
   _imp->near_clip = near_clip;
   _imp->far_clip = far_clip;

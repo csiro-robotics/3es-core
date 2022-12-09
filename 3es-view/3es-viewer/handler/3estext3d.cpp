@@ -41,6 +41,7 @@ void Text3D::reset()
 
 void Text3D::beginFrame(const FrameStamp &stamp)
 {
+  (void)stamp;
   std::lock_guard guard(_mutex);
   _transient.clear();
 
@@ -70,11 +71,15 @@ void Text3D::beginFrame(const FrameStamp &stamp)
 
 
 void Text3D::endFrame(const FrameStamp &stamp)
-{}
+{
+  (void)stamp;
+}
 
 
 void Text3D::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
 {
+  (void)stamp;
+  (void)params;
   if (pass != DrawPass::Opaque)
   {
     return;
@@ -103,7 +108,7 @@ void Text3D::readMessage(PacketReader &reader)
     TextEntry text;
     text.text = std::string(shape.text(), shape.textLength());
     // Read font size which comes from scale.
-    text.font_size = shape.fontSize();
+    text.font_size = Magnum::Float(shape.fontSize());
     // Remove the font size scaling before we compose the transform.
     shape.setFontSize(1.0);
     text.transform = Message::composeTransform(shape.attributes());
@@ -134,6 +139,7 @@ void Text3D::readMessage(PacketReader &reader)
 
 void Text3D::serialise(Connection &out, ServerInfoMessage &info)
 {
+  (void)info;
   tes::Text3D shape;
 
   const auto write_shape = [&out, &shape](uint32_t id, const TextEntry &text) {

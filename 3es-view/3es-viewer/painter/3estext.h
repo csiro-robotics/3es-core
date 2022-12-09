@@ -90,7 +90,7 @@ public:
     /// Text colour.
     Magnum::Color4 colour;
     /// Text render scale.
-    float font_size = 1;
+    Magnum::Float font_size = 1;
     /// Rendering flags.
     TextFlag flags = TextFlag::Zero;
   };

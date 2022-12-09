@@ -44,6 +44,7 @@ void MeshShape::reset()
 
 void MeshShape::beginFrame(const FrameStamp &stamp)
 {
+  (void)stamp;
   _garbage_list.clear();
   updateRenderAssets();
 }
@@ -51,6 +52,7 @@ void MeshShape::beginFrame(const FrameStamp &stamp)
 
 void MeshShape::endFrame(const FrameStamp &stamp)
 {
+  (void)stamp;
   // Note: it would be ideal to do the render mesh creation here, but that happens on the background thread and we
   // can't create OpenGL resources from there. Instead, we do the work in beginFrame().
   // Note(KS): there would be a race condition here if a mesh shape is allowed to update it's data after it's been
@@ -61,6 +63,8 @@ void MeshShape::endFrame(const FrameStamp &stamp)
 
 void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
 {
+  (void)pass;
+  (void)stamp;
   std::lock_guard guard(_shapes_mutex);
 
   const auto draw_mesh = [this, &params](RenderMesh &render_mesh) {
@@ -138,6 +142,7 @@ void MeshShape::readMessage(PacketReader &reader)
 
 void MeshShape::serialise(Connection &out, ServerInfoMessage &info)
 {
+  (void)info;
   info = _server_info;
 
   const auto check = [](int error) {
@@ -211,6 +216,7 @@ bool MeshShape::handleUpdate(PacketReader &reader)
 
 bool MeshShape::handleDestroy(const DestroyMessage &msg, PacketReader &reader)
 {
+  (void)reader;
   auto data = getRenderMesh(Id(msg.id));
   if (!data)
   {

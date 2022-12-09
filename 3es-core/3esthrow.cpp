@@ -18,6 +18,6 @@ void logException(const Exception &e)
 
 void logException(const Exception &e, const char *file, int line)
 {
-  log::error("(", line, "): ", e.what());
+  log::error(file, "(", line, "): ", e.what());
 }
 }  // namespace tes

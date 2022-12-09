@@ -220,6 +220,7 @@ unsigned getSendTimeout(int socket)
 
 void enableBlocking(int socket)
 {
+  (void)socket;
 #ifndef WIN32
   // Disable blocking on read.
   int socketFlags = fcntl(socket, F_GETFL) & ~O_NONBLOCK;
@@ -229,6 +230,7 @@ void enableBlocking(int socket)
 
 void disableBlocking(int socket)
 {
+  (void)socket;
 #ifndef WIN32
   // Disable blocking on read.
   int socketFlags = fcntl(socket, F_GETFL) | O_NONBLOCK;

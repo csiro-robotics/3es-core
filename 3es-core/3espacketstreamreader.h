@@ -16,7 +16,7 @@
 
 namespace tes
 {
-class PacketHeader;
+struct PacketHeader;
 
 /// A utility class which reads packets from a std::istream .
 ///

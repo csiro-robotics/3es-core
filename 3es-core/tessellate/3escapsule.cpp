@@ -46,7 +46,7 @@ void makeCapsule(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices
   // Generate the top cap hemisphere.
   tes::sphere::solidLatLong(part_vertices, part_indices, part_normals, radius, sphereOffset, 5, facets, axis, true);
   // Set to rebase indices based on the exiting vertex count.
-  unsigned rebase_index = vertices.size();
+  unsigned rebase_index = unsigned(vertices.size());
   if (part_isolated_index_offsets)
   {
     // No rebasing. Store the part start index.
@@ -61,7 +61,7 @@ void makeCapsule(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices
 
   // Build the bottom hemisphere. Flip the axis for the bottom hemisphere.
   tes::sphere::solidLatLong(part_vertices, part_indices, part_normals, radius, -sphereOffset, 5, facets, -axis, true);
-  rebase_index = vertices.size();
+  rebase_index = unsigned(vertices.size());
   if (part_isolated_index_offsets)
   {
     (*part_isolated_index_offsets)[int(PartIndex::BottomStart)] =
@@ -75,7 +75,7 @@ void makeCapsule(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices
 
   // Build the open cylinder.
   tes::cylinder::solid(part_vertices, part_indices, part_normals, axis, height, radius, facets, true);
-  rebase_index = vertices.size();
+  rebase_index = unsigned(vertices.size());
   if (part_isolated_index_offsets)
   {
     (*part_isolated_index_offsets)[int(PartIndex::BodyStart)] =
@@ -128,7 +128,7 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
   // Generate the top cap hemisphere.
   tes::sphere::wireframe(part_vertices, part_indices, radius, sphereOffset, segments);
   // Set to rebase indices based on the exiting vertex count.
-  unsigned rebase_index = vertices.size();
+  unsigned rebase_index = unsigned(vertices.size());
   if (part_isolated_index_offsets)
   {
     // No rebasing. Store the part start index.
@@ -142,7 +142,7 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
 
   // Build the bottom hemisphere. Flip the axis for the bottom hemisphere.
   tes::sphere::wireframe(part_vertices, part_indices, radius, -sphereOffset, segments);
-  rebase_index = vertices.size();
+  rebase_index = unsigned(vertices.size());
   if (part_isolated_index_offsets)
   {
     (*part_isolated_index_offsets)[int(PartIndex::BottomStart)] =
@@ -176,7 +176,7 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
     part_indices.emplace_back(unsigned(vertices.size()));
     part_vertices.emplace_back(-0.5f * height * axis + radials[i] * radius);
   }
-  rebase_index = vertices.size();
+  rebase_index = unsigned(vertices.size());
   if (part_isolated_index_offsets)
   {
     (*part_isolated_index_offsets)[int(PartIndex::BodyStart)] =

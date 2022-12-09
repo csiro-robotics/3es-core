@@ -80,6 +80,9 @@ struct VertexMapper<VertexP>
                                     const DataBuffer &src_normals, const DataBuffer &src_colours,
                                     const ConvertOptions &options)
   {
+    (void)src_normals;
+    (void)src_colours;
+    (void)options;
     const auto x = src_vertices.get<Magnum::Float>(src_index, 0);
     const auto y = src_vertices.get<Magnum::Float>(src_index, 1);
     const auto z = src_vertices.get<Magnum::Float>(src_index, 2);
@@ -113,6 +116,8 @@ struct VertexMapper<VertexPN>
                                     const DataBuffer &src_normals, const DataBuffer &src_colours,
                                     const ConvertOptions &options)
   {
+    (void)src_colours;
+    (void)options;
     const auto x = src_vertices.get<Magnum::Float>(src_index, 0);
     const auto y = src_vertices.get<Magnum::Float>(src_index, 1);
     const auto z = src_vertices.get<Magnum::Float>(src_index, 2);
@@ -154,6 +159,7 @@ struct VertexMapper<VertexPC>
                                     const DataBuffer &src_normals, const DataBuffer &src_colours,
                                     const ConvertOptions &options)
   {
+    (void)src_normals;
     const auto x = src_vertices.get<Magnum::Float>(src_index, 0);
     const auto y = src_vertices.get<Magnum::Float>(src_index, 1);
     const auto z = src_vertices.get<Magnum::Float>(src_index, 2);

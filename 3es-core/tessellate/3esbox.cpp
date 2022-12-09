@@ -118,6 +118,7 @@ void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, cons
 
 void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &scale)
 {
+  (void)scale;
   const unsigned initialVertCount = unsigned(vertices.size());
   const unsigned initialIdxCount = unsigned(indices.size());
   vertices.resize(vertices.size() + wireBoxVertices.size());

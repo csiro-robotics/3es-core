@@ -348,6 +348,7 @@ void ThirdEyeScene::initialiseFont()
 
 void ThirdEyeScene::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix, const Magnum::Vector2 &window_size)
 {
+  (void)dt;
   DrawParams params{ _camera, projection_matrix, camera::matrix(_camera), window_size };
   // Draw opaque then transparent for proper blending.
   for (const auto &handler : _orderedMessageHandlers)

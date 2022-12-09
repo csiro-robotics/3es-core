@@ -69,15 +69,23 @@ void Category::reset()
 
 
 void Category::beginFrame(const FrameStamp &stamp)
-{}
+{
+  (void)stamp;
+}
 
 
 void Category::endFrame(const FrameStamp &stamp)
-{}
+{
+  (void)stamp;
+}
 
 
 void Category::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
-{}
+{
+  (void)pass;
+  (void)stamp;
+  (void)params;
+}
 
 
 void Category::readMessage(PacketReader &reader)
@@ -114,13 +122,15 @@ void Category::readMessage(PacketReader &reader)
 
 void Category::serialise(Connection &out, ServerInfoMessage &info)
 {
+  (void)info;
   std::lock_guard guard(_mutex);
   CategoryNameMessage msg = {};
   const std::string error_str = "<error>";
   bool ok = true;
 
-  std::vector<uint8_t> packet_buffer(1024u, 0u);
-  PacketWriter writer(packet_buffer.data(), packet_buffer.size());
+  const uint16_t buffer_size = 1024u;
+  std::vector<uint8_t> packet_buffer(buffer_size, 0u);
+  PacketWriter writer(packet_buffer.data(), buffer_size);
   for (auto &[id, info] : _category_map)
   {
     msg.categoryId = info.id;
@@ -128,12 +138,12 @@ void Category::serialise(Connection &out, ServerInfoMessage &info)
     if (info.name.length() < std::numeric_limits<decltype(msg.nameLength)>::max())
     {
       msg.name = info.name.c_str();
-      msg.nameLength = info.name.size();
+      msg.nameLength = uint16_t(info.name.size());
     }
     else
     {
       msg.name = error_str.c_str();
-      msg.nameLength = error_str.size();
+      msg.nameLength = uint16_t(error_str.size());
     }
     msg.defaultActive = (info.default_active) ? 1 : 0;
 

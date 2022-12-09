@@ -123,28 +123,28 @@ private:
     Magnum::Matrix4 transform = {};
     Magnum::Color4 colour = {};
 
-    const float expect_y = frame_number;
+    const float expect_y = float(frame_number);
     float expect_x = 0;
     float expect_z = 0;
 
     // Check the parent.
     _painter->readShape(_shape_id, transform, colour);
     auto pos = transform[3].xyz();
-    const float epsilon = 1e-5;
+    const float epsilon = 1e-5f;
     EXPECT_NEAR(pos.x(), expect_x, epsilon);
     EXPECT_NEAR(pos.y(), expect_y, epsilon);
     EXPECT_NEAR(pos.z(), expect_z, epsilon);
 
     // Children move each frame.
-    expect_z = frame_number;
+    expect_z = float(frame_number);
     for (unsigned i = 0; i < child_count; ++i)
     {
       // Check child.
-      expect_x = i;
+      expect_x = float(i);
       // Read without parent transform.
       _painter->readChildShape(painter::ShapePainter::ChildId(_shape_id, i), false, transform, colour);
       pos = transform[3].xyz();
-      const float epsilon = 1e-5;
+      const float epsilon = 1e-5f;
       EXPECT_NEAR(pos.x(), expect_x, epsilon);
       EXPECT_NEAR(pos.y(), 0, epsilon);
       EXPECT_NEAR(pos.z(), expect_z, epsilon);
@@ -339,8 +339,8 @@ TEST_F(Shapes, Painter_Update)
 
   for (stamp.frame_number = 0; stamp.frame_number < max_frames; ++stamp.frame_number)
   {
-    transform = Magnum::Matrix4::translation(Magnum::Vector3(stamp.frame_number, 0, 0));
-    colour = Magnum::Color4(stamp.frame_number);
+    transform = Magnum::Matrix4::translation(Magnum::Vector3(Magnum::Float(stamp.frame_number), 0, 0));
+    colour = Magnum::Color4(Magnum::Float(stamp.frame_number));
     // Update a shape.
     if (stamp.frame_number > 0)
     {

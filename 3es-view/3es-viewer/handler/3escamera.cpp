@@ -63,17 +63,24 @@ void Camera::reset()
 
 void Camera::beginFrame(const FrameStamp &stamp)
 {
+  (void)stamp;
   std::lock_guard guard(_mutex);
   std::copy(_pending_cameras.begin(), _pending_cameras.end(), _cameras.begin());
 }
 
 
 void Camera::endFrame(const FrameStamp &stamp)
-{}
+{
+  (void)stamp;
+}
 
 
 void Camera::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
-{}
+{
+  (void)pass;
+  (void)stamp;
+  (void)params;
+}
 
 
 void Camera::readMessage(PacketReader &reader)
@@ -108,13 +115,15 @@ void Camera::readMessage(PacketReader &reader)
 
 void Camera::serialise(Connection &out, ServerInfoMessage &info)
 {
+  (void)info;
   std::lock_guard guard(_mutex);
   CameraMessage msg = {};
   const std::string error_str = "<error>";
   bool ok = true;
 
-  std::vector<uint8_t> packet_buffer(1024u, 0u);
-  PacketWriter writer(packet_buffer.data(), packet_buffer.size());
+  const uint16_t buffer_size = 1024u;
+  std::vector<uint8_t> packet_buffer(buffer_size, 0u);
+  PacketWriter writer(packet_buffer.data(), buffer_size);
   Magnum::Vector3 dir;
   Magnum::Vector3 up;
   Magnum::Vector3 world_fwd;
@@ -322,7 +331,7 @@ void Camera::calculateCameraAxes(float pitch, float yaw, const Magnum::Vector3 &
   camera_fwd = transform[fwd_axis].xyz();
   camera_up = transform[up_axis].xyz();
 
-  camera_fwd *= (negate_fwd) ? -1 : 1;
-  camera_up *= (negate_up) ? -1 : 1;
+  camera_fwd *= Magnum::Float((negate_fwd) ? -1 : 1);
+  camera_up *= Magnum::Float((negate_up) ? -1 : 1);
 }
 }  // namespace tes::viewer::handler

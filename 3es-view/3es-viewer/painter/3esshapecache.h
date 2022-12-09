@@ -110,6 +110,8 @@ private:
 /// Shape chains are removed collectively by specifying the parent shape.
 class TES_VIEWER_API ShapeCache
 {
+  struct Shape;
+
 public:
   /// Helper function used to implement @c calcBounds() for the cached shape type.
   ///
@@ -122,7 +124,6 @@ public:
   using BoundsCalculator = std::function<void(const Magnum::Matrix4 &transform, Bounds &bounds)>;
 
   class const_iterator;
-  class Shape;
 
   /// Shape marker flags.
   enum class ShapeFlag : unsigned

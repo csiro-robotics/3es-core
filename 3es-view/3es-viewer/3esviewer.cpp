@@ -174,6 +174,7 @@ void Viewer::drawEvent()
 
 void Viewer::viewportEvent(ViewportEvent &event)
 {
+  (void)event;
   _edl_effect->viewportChange(Magnum::GL::defaultFramebuffer.viewport());
 }
 
@@ -205,7 +206,7 @@ void Viewer::mouseMoveEvent(MouseMoveEvent &event)
     return;
   }
 
-  _fly.updateMouse(event.relativePosition().x(), event.relativePosition().y(), _tes->camera());
+  _fly.updateMouse(float(event.relativePosition().x()), float(event.relativePosition().y()), _tes->camera());
 
   event.setAccepted();
   redraw();
@@ -386,6 +387,6 @@ void Viewer::updateCamera(float dt, camera::Camera &camera)
     }
   }
 
-  _fly.updateKeys(dt, key_translation, key_rotation, _tes->camera());
+  _fly.updateKeys(dt, key_translation, key_rotation, camera);
 }
 }  // namespace tes::viewer

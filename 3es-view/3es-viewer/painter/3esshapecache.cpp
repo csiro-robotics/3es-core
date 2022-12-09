@@ -30,7 +30,7 @@ void ShapeCacheShaderFlat::setColour(const Magnum::Color4 &colour)
 
 void ShapeCacheShaderFlat::draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count)
 {
-  mesh.setInstanceCount(instance_count)
+  mesh.setInstanceCount(Magnum::Int(instance_count))
     .addVertexBufferInstanced(buffer, 1, 0, Magnum::Shaders::Flat3D::TransformationMatrix{},
                               Magnum::Shaders::Flat3D::Color4{});
   _shader.draw(mesh);
@@ -331,6 +331,7 @@ bool ShapeCache::release(util::ResourceListId id)
 
 void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
 {
+  (void)stamp;
   // Clear previous results.
   for (auto &buffer : _instance_buffers)
   {

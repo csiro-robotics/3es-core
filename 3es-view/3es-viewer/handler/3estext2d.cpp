@@ -4,6 +4,7 @@
 #include "3estext2d.h"
 
 #include "3esmagnumcolour.h"
+#include "3esmagnumv3.h"
 
 #include <3esconnection.h>
 #include <3eslog.h>
@@ -40,6 +41,7 @@ void Text2D::reset()
 
 void Text2D::beginFrame(const FrameStamp &stamp)
 {
+  (void)stamp;
   std::lock_guard guard(_mutex);
   _transient.clear();
 
@@ -69,11 +71,15 @@ void Text2D::beginFrame(const FrameStamp &stamp)
 
 
 void Text2D::endFrame(const FrameStamp &stamp)
-{}
+{
+  (void)stamp;
+}
 
 
 void Text2D::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
 {
+  (void)stamp;
+  (void)params;
   if (pass != DrawPass::Overlay)
   {
     return;
@@ -101,8 +107,7 @@ void Text2D::readMessage(PacketReader &reader)
 
     TextEntry text;
     text.text = std::string(shape.text(), shape.textLength());
-    text.transform =
-      Magnum::Matrix4::translation(Magnum::Vector3(shape.position().x, shape.position().y, shape.position().z));
+    text.transform = Magnum::Matrix4::translation(convert(shape.position()));
     text.colour = convert(shape.colour());
     if (shape.inWorldSpace())
     {
@@ -130,6 +135,7 @@ void Text2D::readMessage(PacketReader &reader)
 
 void Text2D::serialise(Connection &out, ServerInfoMessage &info)
 {
+  (void)info;
   tes::Text2D shape;
 
   const auto write_shape = [&out, &shape](uint32_t id, const TextEntry &text) {
