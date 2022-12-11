@@ -40,6 +40,9 @@ list(APPEND PUBLIC_HEADERS
   painter/3estext.h
   mesh/3esconverter.h
   shaders/3esedl.h
+  shaders/3esflat.h
+  shaders/3esshader.h
+  shaders/3esshadercache.h
   util/3esenum.h
   util/3esresourcelist.h
 )
@@ -81,6 +84,9 @@ list(APPEND SOURCES
   shaders/3esedl.cpp
   shaders/3esedl.frag
   shaders/3esedl.vert
+  shaders/3esflat.cpp
+  shaders/3esshader.cpp
+  shaders/3esshadercache.cpp
   util/3esresourcelist.cpp
 )
 
