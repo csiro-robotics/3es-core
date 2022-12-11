@@ -11,7 +11,7 @@
 namespace tes::viewer::shaders
 {
 /// Stores the common shaders used by the 3rd Eye Scene viewer.
-class TES_VIEWER_API ShaderLibrary
+class TES_VIEWER_API ShaderCache
 {
   /// IDs of known 3es shaders.
   enum class ID
