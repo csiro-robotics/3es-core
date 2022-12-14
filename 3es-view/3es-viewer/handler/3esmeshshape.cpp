@@ -80,25 +80,11 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &p
   const auto draw_mesh = [this, &params](RenderMesh &render_mesh) {
     // All this locking may prove very slow :S
     std::lock_guard guard2(render_mesh.mutex);
-    if (_culler->isVisible(render_mesh.bounds_id) && render_mesh.mesh)
+    if (_culler->isVisible(render_mesh.bounds_id) && render_mesh.mesh && render_mesh.shader)
     {
-      // TODO(KS): Move default draw scales to shared settings.
-      switch (render_mesh.shape->drawType())
-      {
-      case DtPoints: {
-        const float draw_scale = (render_mesh.shape->drawScale() > 0) ? render_mesh.shape->drawScale() : 8.0f;
-        Magnum::GL::Renderer::setPointSize(draw_scale);
-        break;
-      }
-      case DtLines: {
-        const float draw_scale = (render_mesh.shape->drawScale() > 0) ? render_mesh.shape->drawScale() : 2.0f;
-        Magnum::GL::Renderer::setLineWidth(draw_scale);
-        break;
-      }
-      default:
-        break;
-      }
-      _opaque_shader->setProjectionMatrix(params.projection_matrix * render_mesh.transform).draw(*render_mesh.mesh);
+      render_mesh.shader->setDrawScale(render_mesh.shape->drawScale())
+        .setProjectionMatrix(params.projection_matrix * render_mesh.transform)
+        .draw(*render_mesh.mesh);
     }
   };
 
@@ -425,6 +411,8 @@ void MeshShape::updateRenderResources(RenderMesh &render_mesh)
     {
       _culler->update(render_mesh.bounds_id, render_mesh.cullBounds());
     }
+
+    render_mesh.shader = _shader_library->lookupForDrawType(render_mesh.shape->drawType());
   }
 }
 }  // namespace tes::viewer::handler

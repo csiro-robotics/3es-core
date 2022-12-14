@@ -3,6 +3,8 @@
 //
 #include "3esshaderlibrary.h"
 
+#include <3eslog.h>
+
 #include <array>
 
 namespace tes::viewer::shaders
@@ -13,11 +15,11 @@ const std::array<std::string, unsigned(ShaderLibrary::ID::Count)> &shaderNames()
 {
   static const std::array<std::string, unsigned(ShaderLibrary::ID::Count)> names =  //
     {
-      "Flat",                //
-      "VertexColour",        //
-      "PointCloudPoints",    //
-      "PointCloudGeometry",  //
-      "VoxelGeometry",       //
+      "Flat",          //
+      "VertexColour",  //
+      "Line",          //
+      "PointCloud",    //
+      "Voxel",         //
     };
   return names;
 }
@@ -51,6 +53,26 @@ std::shared_ptr<Shader> ShaderLibrary::lookup(const std::string &name) const
 {
   const auto search = _shaders.find(name);
   return (search != _shaders.end()) ? search->second : nullptr;
+}
+
+
+std::shared_ptr<Shader> ShaderLibrary::lookupForDrawType(DrawType draw_type)
+{
+  switch (draw_type)
+  {
+  case DtPoints:
+    return lookup(shaders::ShaderLibrary::ID::PointCloud);
+  case DtLines:
+    return lookup(shaders::ShaderLibrary::ID::Line);
+  case DtTriangles:
+    return lookup(shaders::ShaderLibrary::ID::VertexColour);
+  case DtVoxels:
+    return lookup(shaders::ShaderLibrary::ID::Voxel);
+  default:
+    log::error("Unsupported mesh draw type: ", int(draw_type));
+    break;
+  }
+  return nullptr;
 }
 
 

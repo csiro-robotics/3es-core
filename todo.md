@@ -7,6 +7,7 @@
 
 - Remove `SIdPointCloud` and associated classes. `SIdMeshShape` and `SIdMeshSet` suffice.
   - Update `MeshResource` to have a `drawSize()` member targetting point size, line width or voxel size depending on draw type.
+- Deprecate `SIdPointCloud`. There's no real need and the same effect can be achieved with the mesh/mesh set shapes and a new mesh resource which can wrap an existing resource with new indices.
 
 ## Client
 

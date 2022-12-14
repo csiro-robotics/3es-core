@@ -32,6 +32,12 @@ public:
 
   Shader &setColour(const Magnum::Color4 &colour) override;
 
+  Shader &setDrawScale(float scale) override
+  {
+    (void)scale;
+    return *this;
+  }
+
   Shader &draw(Magnum::GL::Mesh &mesh) override;
   Shader &draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count) override;
 

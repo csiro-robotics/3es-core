@@ -69,7 +69,6 @@ protected:
   virtual bool handleDestroy(const DestroyMessage &msg, PacketReader &reader);
   virtual bool handleData(PacketReader &reader);
 
-private:
   struct RenderMesh
   {
     BoundsId bounds_id = BoundsCuller::kInvalidId;
@@ -80,6 +79,9 @@ private:
     /// The mesh to render.
     /// @note Cannot be created on the background thread with OpenGL. Maybe with Vulkan.
     std::shared_ptr<Magnum::GL::Mesh> mesh;
+    /// The shader used to draw this mesh.
+    /// @todo Evaluate if collating rendering by shader provides any performance benefits.
+    std::shared_ptr<shaders::Shader> shader;
     std::mutex mutex;
 
     /// Calculate bounds used for rendering.

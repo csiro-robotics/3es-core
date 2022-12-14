@@ -6,6 +6,8 @@
 
 #include "3es-viewer.h"
 
+#include <3esmeshmessages.h>
+
 #include <string>
 #include <memory>
 #include <unordered_map>
@@ -27,12 +29,12 @@ public:
     Flat,
     /// Mesh shader with vertex colour support.
     VertexColour,
-    /// Point cloud shader using hardware points.
-    PointCloudPoints,
-    /// Point cloud shader using geometry shaders.
-    PointCloudGeometry,
+    /// Line shader.
+    Line,
+    /// Point cloud shader using hardware points or point geometry.
+    PointCloud,
     /// Voxel geometry based shader.
-    VoxelGeometry,
+    Voxel,
     /// Number of core sharers. Not to be used as an ID.
     Count
   };
@@ -73,6 +75,25 @@ public:
   std::shared_ptr<T> lookup(const std::string &name) const
   {
     return std::dynamic_pointer_cast<T>(lookup(name));
+  };
+
+  /// Lookup a shader by a primitive @c DrawType.
+  ///
+  /// This maps:
+  /// - @c DtPoints `->` @c ID::PointCloud
+  /// - @c DtLines `->` @c ID::Line
+  /// - @c DtTriangles `->` @c ID::VertexColour
+  /// - @c DtVoxels `->` @c ID::Voxel
+  ///
+  /// @param draw_type The 3es-core mesh messages draw type.
+  /// @return A shader for drawing the specified type or null if no shader is available for that type.
+  std::shared_ptr<Shader> lookupForDrawType(DrawType draw_type);
+
+  /// @overload
+  template <typename T>
+  std::shared_ptr<T> lookupForDrawType(DrawType draw_type) const
+  {
+    return std::dynamic_pointer_cast<T>(lookupForDrawType(draw_type));
   };
 
   /// Register a shader by known @c ID. This replaces any existing shader with that @c ID.

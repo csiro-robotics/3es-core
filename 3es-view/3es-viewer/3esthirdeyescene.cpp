@@ -392,9 +392,12 @@ void ThirdEyeScene::initialiseHandlers()
 
 void ThirdEyeScene::initialiseShaders()
 {
-  _shader_library = std::make_unique<shaders::ShaderLibrary>();
-  _shader_library->registerShader(shaders::ShaderLibrary::ID::Flat, std::make_unique<shaders::Flat>());
-  _shader_library->registerShader(shaders::ShaderLibrary::ID::VertexColour, std::make_unique<shaders::VertexColour>());
+  _shader_library = std::make_shared<shaders::ShaderLibrary>();
+  _shader_library->registerShader(shaders::ShaderLibrary::ID::Flat, std::make_shared<shaders::Flat>());
+  auto vertex_colour_shader = std::make_shared<shaders::VertexColour>();
+  _shader_library->registerShader(shaders::ShaderLibrary::ID::VertexColour, vertex_colour_shader);
+  _shader_library->registerShader(shaders::ShaderLibrary::ID::Line, vertex_colour_shader);
+  _shader_library->registerShader(shaders::ShaderLibrary::ID::PointCloud, vertex_colour_shader);
 }
 
 

@@ -135,6 +135,7 @@ private:
     /// The current renderable mesh.
     std::shared_ptr<Magnum::GL::Mesh> mesh;
     ResourceFlag flags = ResourceFlag::Zero;
+    std::shared_ptr<shaders::Shader> shader;
   };
 
   mutable std::mutex _resource_lock;
@@ -143,7 +144,6 @@ private:
   /// Garbage list populated on @c reset() from background thread so main thread can release on @c beginFrame().
   std::vector<std::shared_ptr<Magnum::GL::Mesh>> _garbage_list;
   std::shared_ptr<shaders::ShaderLibrary> _shader_library;
-  std::shared_ptr<shaders::Shader> _opaque_shader;
 };
 
 

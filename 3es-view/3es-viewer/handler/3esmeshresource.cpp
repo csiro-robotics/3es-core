@@ -25,9 +25,7 @@ MeshResource::MeshResource(std::shared_ptr<shaders::ShaderLibrary> shader_librar
 
 
 void MeshResource::initialise()
-{
-  _opaque_shader = _shader_library->lookup(shaders::ShaderLibrary::ID::VertexColour);
-}
+{}
 
 
 void MeshResource::reset()
@@ -179,11 +177,6 @@ unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const std:
 {
   std::lock_guard guard(_resource_lock);
 
-  if (!_opaque_shader)
-  {
-    return 0;
-  }
-
   if ((flags & DrawFlag::TwoSided) != DrawFlag::Zero)
   {
     Magnum::GL::Renderer::disable(Magnum::GL::Renderer::Feature::FaceCulling);
@@ -199,9 +192,11 @@ unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const std:
   for (const auto &item : drawables)
   {
     const auto search = _resources.find(item.resource_id);
-    if (search != _resources.end() && search->second.mesh)
+    if (search != _resources.end() && search->second.mesh && search->second.shader)
     {
-      _opaque_shader->setProjectionMatrix(projection_matrix * item.model_matrix).draw(*search->second.mesh);
+      search->second.shader->setDrawScale(0)
+        .setProjectionMatrix(projection_matrix * item.model_matrix)
+        .draw(*search->second.mesh);
       ++drawn;
     }
   }
@@ -237,6 +232,7 @@ void MeshResource::updateResources()
         resource.mesh = std::make_shared<Magnum::GL::Mesh>(mesh::convert(*resource.current, resource.bounds, options));
         // Update to spherical bounds.
         resource.bounds.convertToSpherical();
+        resource.shader = _shader_library->lookupForDrawType(DrawType(resource.current->drawType(0)));
       }
       resource.flags &= ~ResourceFlag::Ready;
     }

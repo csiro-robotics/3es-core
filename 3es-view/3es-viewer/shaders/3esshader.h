@@ -39,7 +39,14 @@ public:
     Transparent = (1u << 1u),
     /// Colour tint feature: @c setColour().
     Tint = (1u << 2u),
+    /// Supports draw scale: @c setDrawScale().
+    DrawScale = (1u << 3u),
   };
+
+  /// The default point rendering size.
+  static constexpr float kDefaultPointSize = 8.0f;
+  /// The default line rendering width.
+  static constexpr float kDefaultLineWidth = 2.0f;
 
   /// Virtual destructor.
   virtual ~Shader();
@@ -67,14 +74,26 @@ public:
 
   /// Set the projection matrix for the next @c draw() call.
   /// @param projection The next projection matrix to draw with.
+  /// @return @c *this
   virtual Shader &setProjectionMatrix(const Magnum::Matrix4 &projection) = 0;
 
   /// Set a colour tint to modulate the instance colour with.
   /// @param colour The tint colour.
+  /// @return @c *this
   virtual Shader &setColour(const Magnum::Color4 &colour) = 0;
+
+  /// Sets the draw scale for things which support it. This depends on the shader, but is used for point rendering size,
+  /// line width, font size, etc.
+  ///
+  /// Setting a zero draw scale implies using the "default" draw scale. Negative values yield undefined behaviour.
+  ///
+  /// @param scale The draw scale to set.
+  /// @return @c *this
+  virtual Shader &setDrawScale(float scale) = 0;
 
   /// Draw the @p mesh with this shader.
   /// @param mesh The mesh to draw.
+  /// @return @c *this
   virtual Shader &draw(Magnum::GL::Mesh &mesh) = 0;
 
   /// Draw the @p mesh with this shader with shape instances from @p buffer .
@@ -86,6 +105,7 @@ public:
   /// @param mesh The mesh to draw.
   /// @param buffer The shape instance buffer or @c Magnum::Matrix4 and @c Magnum::Color4 pairs per instance.
   /// @param instance_count Number of instances in @p buffer .
+  /// @return @c *this
   virtual Shader &draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count) = 0;
 };
 

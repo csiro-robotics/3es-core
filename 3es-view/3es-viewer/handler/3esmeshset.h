@@ -71,7 +71,6 @@ private:
     unsigned part_id = 0;
     /// State flags.
     DrawableFlag flags = DrawableFlag::Zero;
-    // TODO:(KS): shader;
   };
 
   struct MeshItem

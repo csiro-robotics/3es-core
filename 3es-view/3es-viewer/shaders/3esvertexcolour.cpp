@@ -6,6 +6,7 @@
 #include <3eslog.h>
 
 #include <Magnum/GL/Mesh.h>
+#include <Magnum/GL/Renderer.h>
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Color.h>
 
@@ -30,6 +31,13 @@ Shader &VertexColour::setColour(const Magnum::Color4 &colour)
   (void)colour;
   // Not supported.
   // _shader->setColor(colour);
+  return *this;
+}
+
+Shader &VertexColour::setDrawScale(float scale)
+{
+  Magnum::GL::Renderer::setPointSize(scale > 0 ? scale : kDefaultPointSize);
+  Magnum::GL::Renderer::setLineWidth(scale > 0 ? scale : kDefaultLineWidth);
   return *this;
 }
 
