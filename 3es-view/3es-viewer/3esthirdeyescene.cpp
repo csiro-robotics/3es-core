@@ -159,14 +159,13 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
     }
   }
 
-  auto projection_matrix = camera::viewProjection(_camera, window_size);
+  const DrawParams params(_camera, window_size);
   ++_render_stamp.render_mark;
-  _culler->cull(_render_stamp.render_mark, Magnum::Frustum::fromMatrix(projection_matrix));
-
+  _culler->cull(_render_stamp.render_mark, Magnum::Frustum::fromMatrix(params.pv_transform));
 
   if (_active_fbo_effect)
   {
-    _active_fbo_effect->prepareFrame(projection_matrix, FboEffect::ProjectionType::Perspective, _camera.clip_near,
+    _active_fbo_effect->prepareFrame(params.pv_transform, FboEffect::ProjectionType::Perspective, _camera.clip_near,
                                      _camera.clip_far);
   }
   else
@@ -175,7 +174,7 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
       .bind();
   }
 
-  drawShapes(dt, projection_matrix, window_size);
+  drawShapes(dt, params);
 
   if (_active_fbo_effect)
   {
@@ -401,12 +400,10 @@ void ThirdEyeScene::initialiseShaders()
 }
 
 
-void ThirdEyeScene::drawShapes(float dt, const Magnum::Matrix4 &projection_matrix, const Magnum::Vector2 &window_size)
+void ThirdEyeScene::drawShapes(float dt, const DrawParams &params)
 {
   (void)dt;
   const auto camera_matrix = camera::matrix(_camera);
-  const auto view_matrix = camera_matrix.inverted();
-  DrawParams params{ _camera, projection_matrix, view_matrix, camera_matrix, window_size };
   // Draw opaque then transparent for proper blending.
   for (const auto &handler : _orderedMessageHandlers)
   {

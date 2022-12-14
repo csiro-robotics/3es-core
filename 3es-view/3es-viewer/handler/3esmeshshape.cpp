@@ -88,7 +88,7 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &p
     if (_culler->isVisible(render_mesh.bounds_id) && render_mesh.mesh && render_mesh.shader)
     {
       render_mesh.shader->setDrawScale(render_mesh.shape->drawScale())
-        .setProjectionMatrix(params.projection_matrix * render_mesh.transform)
+        .setModelMatrix(render_mesh.transform)
         .draw(*render_mesh.mesh);
     }
   };

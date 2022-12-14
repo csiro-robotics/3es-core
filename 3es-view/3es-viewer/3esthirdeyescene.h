@@ -33,6 +33,7 @@
 // TODO(KS): abstract away Magnum so it's not in any public headers.
 namespace tes::viewer
 {
+struct DrawParams;
 class EdlEffect;
 class FboEffect;
 
@@ -120,7 +121,7 @@ private:
   void initialiseShaders();
 
   void updateCamera(float dt);
-  void drawShapes(float dt, const Magnum::Matrix4 &projection_matrix, const Magnum::Vector2 &window_size);
+  void drawShapes(float dt, const DrawParams &params);
 
   std::shared_ptr<FboEffect> _active_fbo_effect;
 

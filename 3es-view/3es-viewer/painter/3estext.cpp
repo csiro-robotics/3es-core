@@ -195,7 +195,7 @@ void Text::draw3DText(const TextEntry &text, const DrawParams &params)
     text_transform = text_transform * Magnum::Matrix4::scaling(Magnum::Vector3(text.font_size));
   }
 
-  draw(text, params.projection_matrix * text_transform * _default_transform, *_renderer_3d, _shader_3d);
+  draw(text, params.pv_transform * text_transform * _default_transform, *_renderer_3d, _shader_3d);
 }
 
 
