@@ -24,6 +24,10 @@
 #include "painter/3esstar.h"
 #include "painter/3estext.h"
 
+#include "shaders/3esflat.h"
+#include "shaders/3esshaderlibrary.h"
+#include "shaders/3esvertexcolour.h"
+
 #include <3eslog.h>
 
 #include <Magnum/GL/Context.h>
@@ -60,6 +64,7 @@ ThirdEyeScene::ThirdEyeScene()
   _culler = std::make_shared<BoundsCuller>();
   // Initialise the font.
   initialiseFont();
+  initialiseShaders();
   initialiseHandlers();
 }
 
@@ -71,6 +76,36 @@ ThirdEyeScene::~ThirdEyeScene()
   _orderedMessageHandlers.clear();
   _painters.clear();
   _text_painter = nullptr;
+}
+
+
+const std::unordered_map<uint32_t, std::string> ThirdEyeScene::defaultHandlerNames()
+{
+  static const std::unordered_map<uint32_t, std::string> mappings = {
+    { MtNull, "null" },
+    { MtServerInfo, "server info" },
+    { MtControl, "control" },
+    { MtCollatedPacket, "collated packet" },
+    { MtMesh, "mesh" },
+    { MtCamera, "camera" },
+    { MtCategory, "category" },
+    { MtMaterial, "material" },
+    { SIdSphere, "sphere" },
+    { SIdBox, "box" },
+    { SIdCone, "cone" },
+    { SIdCylinder, "cylinder" },
+    { SIdCapsule, "capsule" },
+    { SIdPlane, "plane" },
+    { SIdStar, "star" },
+    { SIdArrow, "arrow" },
+    { SIdMeshShape, "mesh shape" },
+    { SIdMeshSet, "mesh set" },
+    { SIdPointCloud, "point cloud" },
+    { SIdText3D, "text 3D" },
+    { SIdText2D, "text 2D" },
+    { SIdPose, "pose" },
+  };
+  return mappings;
 }
 
 
@@ -183,7 +218,16 @@ void ThirdEyeScene::processMessage(PacketReader &packet)
   }
   else if (_unknown_handlers.find(packet.routingId()) == _unknown_handlers.end())
   {
-    log::error("No message handler for id ", packet.routingId());
+    const auto known_ids = defaultHandlerNames();
+    const auto search = known_ids.find(packet.routingId());
+    if (search == known_ids.end())
+    {
+      log::error("No message handler for id ", packet.routingId());
+    }
+    else
+    {
+      log::error("No message handler for ", search->second);
+    }
     _unknown_handlers.emplace(packet.routingId());
   }
 }
@@ -292,17 +336,24 @@ void ThirdEyeScene::createSampleShapes()
 }
 
 
+void ThirdEyeScene::initialiseFont()
+{
+  // TODO(KS): get resources strings passed in as it's the exe which must include the resources.
+  _text_painter = std::make_shared<painter::Text>(_font_manager);
+}
+
+
 void ThirdEyeScene::initialiseHandlers()
 {
-  _painters.emplace(SIdSphere, std::make_shared<painter::Sphere>(_culler));
-  _painters.emplace(SIdBox, std::make_shared<painter::Box>(_culler));
-  _painters.emplace(SIdCone, std::make_shared<painter::Cone>(_culler));
-  _painters.emplace(SIdCylinder, std::make_shared<painter::Cylinder>(_culler));
-  _painters.emplace(SIdCapsule, std::make_shared<painter::Capsule>(_culler));
-  _painters.emplace(SIdPlane, std::make_shared<painter::Plane>(_culler));
-  _painters.emplace(SIdStar, std::make_shared<painter::Star>(_culler));
-  _painters.emplace(SIdArrow, std::make_shared<painter::Arrow>(_culler));
-  _painters.emplace(SIdPose, std::make_shared<painter::Pose>(_culler));
+  _painters.emplace(SIdSphere, std::make_shared<painter::Sphere>(_culler, _shader_library));
+  _painters.emplace(SIdBox, std::make_shared<painter::Box>(_culler, _shader_library));
+  _painters.emplace(SIdCone, std::make_shared<painter::Cone>(_culler, _shader_library));
+  _painters.emplace(SIdCylinder, std::make_shared<painter::Cylinder>(_culler, _shader_library));
+  _painters.emplace(SIdCapsule, std::make_shared<painter::Capsule>(_culler, _shader_library));
+  _painters.emplace(SIdPlane, std::make_shared<painter::Plane>(_culler, _shader_library));
+  _painters.emplace(SIdStar, std::make_shared<painter::Star>(_culler, _shader_library));
+  _painters.emplace(SIdArrow, std::make_shared<painter::Arrow>(_culler, _shader_library));
+  _painters.emplace(SIdPose, std::make_shared<painter::Pose>(_culler, _shader_library));
 
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Category>());
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Camera>());
@@ -318,9 +369,9 @@ void ThirdEyeScene::initialiseHandlers()
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdArrow, "arrow", _painters[SIdArrow]));
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdPose, "pose", _painters[SIdPose]));
 
-  auto mesh_resources = std::make_shared<handler::MeshResource>();
+  auto mesh_resources = std::make_shared<handler::MeshResource>(_shader_library);
   _orderedMessageHandlers.emplace_back(mesh_resources);
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshShape>(_culler));
+  _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshShape>(_culler, _shader_library));
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshSet>(_culler, mesh_resources));
 
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text2D>(_text_painter));
@@ -339,10 +390,11 @@ void ThirdEyeScene::initialiseHandlers()
 }
 
 
-void ThirdEyeScene::initialiseFont()
+void ThirdEyeScene::initialiseShaders()
 {
-  // TODO(KS): get resources strings passed in as it's the exe which must include the resources.
-  _text_painter = std::make_shared<painter::Text>(_font_manager);
+  _shader_library = std::make_unique<shaders::ShaderLibrary>();
+  _shader_library->registerShader(shaders::ShaderLibrary::ID::Flat, std::make_unique<shaders::Flat>());
+  _shader_library->registerShader(shaders::ShaderLibrary::ID::VertexColour, std::make_unique<shaders::VertexColour>());
 }
 
 

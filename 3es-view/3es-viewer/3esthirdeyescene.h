@@ -47,11 +47,20 @@ class ShapePainter;
 class Text;
 }  // namespace painter
 
+namespace shaders
+{
+class ShaderLibrary;
+}  // namespace shaders
+
 class TES_VIEWER_API ThirdEyeScene
 {
 public:
   ThirdEyeScene();
   ~ThirdEyeScene();
+
+  /// Get the list of names of known message handlers, keyed by routing ID.
+  /// @return The known routing ID names.
+  static const std::unordered_map<uint32_t, std::string> defaultHandlerNames();
 
   inline std::shared_ptr<BoundsCuller> culler() const { return _culler; }
 
@@ -63,6 +72,10 @@ public:
   void clearActiveFboEffect();
   std::shared_ptr<FboEffect> activeFboEffect() { return _active_fbo_effect; }
   const std::shared_ptr<FboEffect> &activeFboEffect() const { return _active_fbo_effect; }
+
+  /// Access the shader library. This is for mesh rendering shaders.
+  /// @return The shader library.
+  std::shared_ptr<shaders::ShaderLibrary> shaderLibrary() const { return _shader_library; }
 
   /// Reset the current state, clearing all the currently visible data.
   void reset();
@@ -102,8 +115,9 @@ public:
   void createSampleShapes();
 
 private:
-  void initialiseHandlers();
   void initialiseFont();
+  void initialiseHandlers();
+  void initialiseShaders();
 
   void updateCamera(float dt);
   void drawShapes(float dt, const Magnum::Matrix4 &projection_matrix, const Magnum::Vector2 &window_size);
@@ -113,6 +127,7 @@ private:
   camera::Camera _camera;
 
   std::shared_ptr<BoundsCuller> _culler;
+  std::shared_ptr<shaders::ShaderLibrary> _shader_library;
 
   std::unordered_map<ShapeHandlerIDs, std::shared_ptr<painter::ShapePainter>> _painters;
   std::unordered_map<uint32_t, std::shared_ptr<handler::Message>> _messageHandlers;

@@ -27,56 +27,13 @@ namespace tes::viewer
 class BoundsCuller;
 }  // namespace tes::viewer
 
+namespace tes::viewer::shaders
+{
+class Shader;
+}  // namespace tes::viewer::shaders
+
 namespace tes::viewer::painter
 {
-/// A shader abstraction used with a @c ShapeCache .
-///
-/// This abstracts away the details of the shader for the @c ShapeCache such that it simply needs to call
-/// @c setProjectionMatrix() and @c draw() .
-class TES_VIEWER_API ShapeCacheShader
-{
-public:
-  /// Virtual destructor.
-  virtual ~ShapeCacheShader();
-
-  /// Set the projection matrix for the next @c draw() call.
-  /// @param projection The next projection matrix to draw with.
-  virtual void setProjectionMatrix(const Magnum::Matrix4 &projection) = 0;
-
-  /// Set a colour tint to modulate the instance colour with.
-  /// @param colour The tint colour.
-  virtual void setColour(const Magnum::Color4 &colour) = 0;
-
-  /// Draw the @p mesh with this shader with shape instances from @p buffer .
-  ///
-  /// May be called multiple times for each frame with only one call to @c setProjectionMatrix() in between.
-  ///
-  /// @param mesh The mesh to draw.
-  /// @param buffer The shape instance buffer or @c Magnum::Matrix4 and @c Magnum::Color4 pairs per instance.
-  /// @param instance_count Number of instances in @p buffer .
-  virtual void draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count) = 0;
-};
-
-/// Flat colour shader for a @p ShapeCache . Can be used for solid, transparent and line based shapes.
-class TES_VIEWER_API ShapeCacheShaderFlat : public ShapeCacheShader
-{
-public:
-  /// Constructor.
-  ShapeCacheShaderFlat();
-  /// Destructor.
-  ~ShapeCacheShaderFlat();
-
-  void setProjectionMatrix(const Magnum::Matrix4 &projection) override;
-
-  void setColour(const Magnum::Color4 &colour) override;
-
-  void draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count) override;
-
-private:
-  /// Internal shader.
-  Magnum::Shaders::Flat3D _shader;
-};
-
 /// An instanced shape rendering cache.
 ///
 /// A shape cache is designed to rendering the same mesh/shape multiple times using instanced rendering, with each shape
@@ -208,8 +165,7 @@ public:
   static constexpr size_t kListEnd = util::kNullResource;
 
   /// @overload
-  ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
-             std::shared_ptr<ShapeCacheShader> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
+  ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::Shader> shader, const Part &part,
              BoundsCalculator bounds_calculator = ShapeCache::calcSphericalBounds);
 
   /// Construct a shape cache.
@@ -217,14 +173,12 @@ public:
   /// @param parts The mesh parts to render. An overload accepts a single @c Part .
   /// @param shader The shader used to draw the mesh.
   /// @param bounds_calculator Bounds calculation function.
-  ShapeCache(std::shared_ptr<BoundsCuller> culler, const std::vector<Part> &parts,
-             std::shared_ptr<ShapeCacheShader> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
-             BoundsCalculator bounds_calculator = ShapeCache::calcSphericalBounds);
+  ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::Shader> shader,
+             const std::vector<Part> &parts, BoundsCalculator bounds_calculator = ShapeCache::calcSphericalBounds);
 
   /// @overload
-  ShapeCache(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> parts,
-             std::shared_ptr<ShapeCacheShader> &&shader = std::make_shared<ShapeCacheShaderFlat>(),
-             BoundsCalculator bounds_calculator = ShapeCache::calcSphericalBounds);
+  ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::Shader> shader,
+             std::initializer_list<Part> parts, BoundsCalculator bounds_calculator = ShapeCache::calcSphericalBounds);
 
   /// Calculate the bounds for a shape instance with the given transform.
   /// @param transform The shape instance transformation matrix.
@@ -232,7 +186,7 @@ public:
   /// @param[out] halfExtents Calculated bounds half extents.
   void calcBounds(const Magnum::Matrix4 &transform, Bounds &bounds);
 
-  inline std::shared_ptr<ShapeCacheShader> shader() const { return _shader; }
+  inline std::shared_ptr<shaders::Shader> shader() const { return _shader; }
 
   /// Set the bounds calculation function.
   /// @param bounds_calculator New bounds calculation function.
@@ -479,7 +433,7 @@ private:
   /// the number of instances per @p InstanceBuffer .
   std::array<ShapeInstance, 2048> _marshal_buffer;
   /// Shaper used to draw the shapes.
-  std::shared_ptr<ShapeCacheShader> _shader;
+  std::shared_ptr<shaders::Shader> _shader;
   /// Bounds calculation function.
   BoundsCalculator _bounds_calculator = ShapeCache::calcSphericalBounds;
 };

@@ -14,7 +14,7 @@ class TES_VIEWER_API Cone : public ShapePainter
 public:
   /// Constructor.
   /// @param culler Bounds culler
-  Cone(std::shared_ptr<BoundsCuller> culler);
+  Cone(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders);
 
   /// Solid mesh creation function.
   /// @return A solid (or transparent) mesh representation.

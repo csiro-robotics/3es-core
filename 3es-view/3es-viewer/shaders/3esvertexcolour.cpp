@@ -12,7 +12,7 @@
 namespace tes::viewer::shaders
 {
 VertexColour::VertexColour()
-  : _shader(std::make_shared<Magnum::Shaders::VertexColour3D>())
+  : _shader(std::make_shared<Magnum::Shaders::VertexColor3D>())
 {}
 
 
@@ -27,7 +27,9 @@ Shader &VertexColour::setProjectionMatrix(const Magnum::Matrix4 &projection)
 
 Shader &VertexColour::setColour(const Magnum::Color4 &colour)
 {
-  _shader->setColor(colour);
+  (void)colour;
+  // Not supported.
+  // _shader->setColor(colour);
   return *this;
 }
 
@@ -39,6 +41,10 @@ Shader &VertexColour::draw(Magnum::GL::Mesh &mesh)
 
 Shader &VertexColour::draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count)
 {
-  log::error("VertexColour shader does not support instanced rendering.") return *this;
+  (void)mesh;
+  (void)buffer;
+  (void)instance_count;
+  log::error("VertexColour shader does not support instanced rendering.");
+  return *this;
 }
 }  // namespace tes::viewer::shaders

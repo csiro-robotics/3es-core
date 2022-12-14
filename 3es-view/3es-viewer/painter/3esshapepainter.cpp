@@ -1,26 +1,29 @@
 #include "3esshapepainter.h"
 
+#include "shaders/3esshaderlibrary.h"
+
 #include <shapes/3esid.h>
 
 #include <Magnum/GL/Renderer.h>
 
 namespace tes::viewer::painter
 {
-ShapePainter::ShapePainter(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> solid_mesh,
-                           std::initializer_list<Part> wireframe_mesh, std::initializer_list<Part> transparent_mesh,
-                           BoundsCalculator bounds_calculator)
-  : ShapePainter(std::move(culler), std::vector<Part>(std::move(solid_mesh)),
+ShapePainter::ShapePainter(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders,
+                           std::initializer_list<Part> solid_mesh, std::initializer_list<Part> wireframe_mesh,
+                           std::initializer_list<Part> transparent_mesh, BoundsCalculator bounds_calculator)
+  : ShapePainter(std::move(culler), std::move(shaders), std::vector<Part>(std::move(solid_mesh)),
                  std::vector<Part>(std::move(wireframe_mesh)), std::vector<Part>(std::move(transparent_mesh)),
                  std::move(bounds_calculator))
 {}
 
-ShapePainter::ShapePainter(std::shared_ptr<BoundsCuller> culler, const std::vector<Part> &solid,
-                           const std::vector<Part> &wireframe, const std::vector<Part> &transparent,
-                           BoundsCalculator bounds_calculator)
+ShapePainter::ShapePainter(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders,
+                           const std::vector<Part> &solid, const std::vector<Part> &wireframe,
+                           const std::vector<Part> &transparent, BoundsCalculator bounds_calculator)
 {
-  _solid_cache = std::make_unique<ShapeCache>(culler, solid);
-  _wireframe_cache = std::make_unique<ShapeCache>(culler, wireframe);
-  _transparent_cache = std::make_unique<ShapeCache>(culler, transparent);
+  auto shader = shaders->lookup(shaders::ShaderLibrary::ID::Flat);
+  _solid_cache = std::make_unique<ShapeCache>(culler, shader, solid);
+  _wireframe_cache = std::make_unique<ShapeCache>(culler, shader, wireframe);
+  _transparent_cache = std::make_unique<ShapeCache>(culler, shader, transparent);
 
   _solid_cache->setBoundsCalculator(bounds_calculator);
   _wireframe_cache->setBoundsCalculator(bounds_calculator);

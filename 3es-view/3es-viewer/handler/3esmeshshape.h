@@ -23,6 +23,12 @@ namespace tes
 class MeshShape;
 }
 
+namespace tes::viewer::shaders
+{
+class Shader;
+class ShaderLibrary;
+}  // namespace tes::viewer::shaders
+
 namespace tes::viewer::handler
 {
 /// The message handler for mesh shape messages and rendering.
@@ -35,7 +41,7 @@ class TES_VIEWER_API MeshShape : public Message
 {
 public:
   using Flag = DrawableFlag;
-  MeshShape(std::shared_ptr<BoundsCuller> culler);
+  MeshShape(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shader_library);
 
   void initialise() override;
   void reset() override;
@@ -129,7 +135,8 @@ private:
   std::shared_ptr<BoundsCuller> _culler;
   /// Garbage list populated on @c reset() from background thread so main thread can release on @c beginFrame().
   std::vector<RenderMeshPtr> _garbage_list;
-  Magnum::Shaders::VertexColor3D _opaque_shader;
+  std::shared_ptr<shaders::ShaderLibrary> _shader_library;
+  std::shared_ptr<shaders::Shader> _opaque_shader;
 };
 }  // namespace tes::viewer::handler
 

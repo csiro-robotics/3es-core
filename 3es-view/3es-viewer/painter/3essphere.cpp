@@ -9,8 +9,8 @@
 
 namespace tes::viewer::painter
 {
-Sphere::Sphere(std::shared_ptr<BoundsCuller> culler)
-  : ShapePainter(std::exchange(culler, nullptr), { Part{ solidMesh() } }, { Part{ wireframeMesh() } },
+Sphere::Sphere(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders)
+  : ShapePainter(std::move(culler), std::move(shaders), { Part{ solidMesh() } }, { Part{ wireframeMesh() } },
                  { Part{ solidMesh() } }, ShapeCache::calcSphericalBounds)
 {}
 

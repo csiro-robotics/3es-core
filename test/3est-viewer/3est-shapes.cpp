@@ -70,7 +70,7 @@ struct ParentsTest
   /// @param viewer The viewer framework.
   void run(Viewer &viewer)
   {
-    _painter = std::make_unique<Painter>(viewer.tes()->culler());
+    _painter = std::make_unique<Painter>(viewer.tes()->culler(), viewer.tes()->shaderLibrary());
 
     Magnum::Matrix4 transform = {};
     Magnum::Color4 colour = Magnum::Color4(0.5f);
@@ -174,7 +174,7 @@ private:
 
 TEST_F(Shapes, Painter_Add)
 {
-  painter::Box painter(viewer().tes()->culler());
+  painter::Box painter(viewer().tes()->culler(), viewer().tes()->shaderLibrary());
 
   const Magnum::Matrix4 transform = Magnum::Matrix4::translation({ 1, 2, 3 });
   const Magnum::Color4 colour = { 3, 2, 1, 0 };
@@ -203,9 +203,10 @@ TEST_F(Shapes, Painter_Add)
   EXPECT_EQ(c, colour);
 }
 
+
 TEST_F(Shapes, Painter_Remove)
 {
-  painter::Box painter(viewer().tes()->culler());
+  painter::Box painter(viewer().tes()->culler(), viewer().tes()->shaderLibrary());
 
   const Id id(1);
   const Magnum::Matrix4 transform = Magnum::Matrix4::translation({ 1, 2, 3 });
@@ -246,11 +247,12 @@ TEST_F(Shapes, Painter_Remove)
   EXPECT_FALSE(painter.readShape(Id(3), t, c));
 }
 
+
 TEST_F(Shapes, Painter_ReAdd)
 {
   // Validate we can add a shape, remove it, then add it again all in the same frame.
   // This isn't an expected use case, but it should not break.
-  painter::Box painter(viewer().tes()->culler());
+  painter::Box painter(viewer().tes()->culler(), viewer().tes()->shaderLibrary());
 
   Magnum::Matrix4 transform = Magnum::Matrix4::translation({ 1, 2, 3 });
   Magnum::Color4 colour = { 3, 2, 1, 0 };
@@ -298,6 +300,7 @@ TEST_F(Shapes, Painter_ReAdd)
   EXPECT_EQ(c, colour);
 }
 
+
 TEST_F(Shapes, Painter_Parents)
 {
   // Test creating a shapes with a parent;
@@ -327,7 +330,7 @@ TEST_F(Shapes, Painter_Update)
   // - keep a window W where W < N
   // - make sure the window is always valid
   // - make sure expired shapes are not valid.
-  painter::Box painter(viewer().tes()->culler());
+  painter::Box painter(viewer().tes()->culler(), viewer().tes()->shaderLibrary());
 
   const FrameNumber max_frames = 20;
   const FrameNumber window = 10u;

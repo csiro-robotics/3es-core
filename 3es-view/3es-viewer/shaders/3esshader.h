@@ -6,6 +6,8 @@
 
 #include "3es-viewer.h"
 
+#include "util/3esenum.h"
+
 #include <Magnum/Magnum.h>
 
 #include <memory>
@@ -26,11 +28,41 @@ namespace tes::viewer::shaders
 class TES_VIEWER_API Shader
 {
 public:
+  /// Flags which identify supported shader features.
+  enum class Feature : unsigned
+  {
+    /// No special features.
+    None = 0u,
+    /// Instance rendering feature.
+    Instance = (1u << 0u),
+    /// Transparent rendering feature.
+    Transparent = (1u << 1u),
+    /// Colour tint feature: @c setColour().
+    Tint = (1u << 2u),
+  };
+
   /// Virtual destructor.
   virtual ~Shader();
 
-  /// Access the underlying shader.
+  /// Get the supported feature flags for this shader.
   /// @return
+  virtual Feature features() const = 0;
+
+  /// Check the supported features.
+  ///
+  /// Can be used to check a single feature, or a feature set, in which case all features must be supported.
+  ///
+  /// @param feature_flags The feature flag or set of feature flags to check for.
+  /// @return True if all the given @p feature_flags are supported.
+  bool supportsFeatures(Feature feature_flags) const;
+
+  /// Check if any of the specified feature (flags) are supported.
+  /// @param feature_flags The set of feature flags to check for
+  /// @return True if any one of the specified features are supported.
+  bool supportsFeatureAny(Feature feature_flags) const;
+
+  /// Access the underlying shader.
+  /// @return A pointer to the Magnum Graphics shader.
   virtual std::shared_ptr<Magnum::GL::AbstractShaderProgram> shader() const = 0;
 
   /// Set the projection matrix for the next @c draw() call.
@@ -56,6 +88,20 @@ public:
   /// @param instance_count Number of instances in @p buffer .
   virtual Shader &draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count) = 0;
 };
+
+TES_ENUM_FLAGS(Shader::Feature, unsigned);
+
+
+inline bool Shader::supportsFeatures(Feature feature_flags) const
+{
+  return (features() & feature_flags) == feature_flags;
+}
+
+
+inline bool Shader::supportsFeatureAny(Feature feature_flags) const
+{
+  return (features() & feature_flags) != Feature::None;
+}
 }  // namespace tes::viewer::shaders
 
 #endif  // TES_VIEWER_SHADERS_SHADER_H

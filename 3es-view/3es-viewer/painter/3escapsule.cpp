@@ -4,6 +4,7 @@
 #include "3essphere.h"
 
 #include "mesh/3esconverter.h"
+#include "shaders/3esshaderlibrary.h"
 
 #include <shapes/3essimplemesh.h>
 #include <tessellate/3escylinder.h>
@@ -21,24 +22,24 @@ constexpr float Capsule::kDefaultRadius;
 constexpr float Capsule::kDefaultHeight;
 const Vector3f Capsule::kDefaultAxis = { 0.0f, 0.0f, 1.0f };
 
-Capsule::Capsule(std::shared_ptr<BoundsCuller> culler)
-  : ShapePainter(culler, { Part{ solidMeshCylinder() } }, { Part{ wireframeMeshCylinder() } },
+Capsule::Capsule(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders)
+  : ShapePainter(culler, shaders, { Part{ solidMeshCylinder() } }, { Part{ wireframeMeshCylinder() } },
                  { Part{ solidMeshCylinder() } }, calculateBounds)
 {
   _solid_end_caps[0] =
-    std::make_unique<ShapeCache>(culler, Part{ solidMeshCapTop() }, _solid_cache->shader(), calculateBounds);
+    std::make_unique<ShapeCache>(culler, _solid_cache->shader(), Part{ solidMeshCapTop() }, calculateBounds);
   _solid_end_caps[1] =
-    std::make_unique<ShapeCache>(culler, Part{ solidMeshCapBottom() }, _solid_cache->shader(), calculateBounds);
+    std::make_unique<ShapeCache>(culler, _solid_cache->shader(), Part{ solidMeshCapBottom() }, calculateBounds);
 
   _wireframe_end_caps[0] =
-    std::make_unique<ShapeCache>(culler, Part{ wireframeMeshCap() }, _wireframe_cache->shader(), calculateBounds);
+    std::make_unique<ShapeCache>(culler, _wireframe_cache->shader(), Part{ wireframeMeshCap() }, calculateBounds);
   _wireframe_end_caps[1] =
-    std::make_unique<ShapeCache>(culler, Part{ wireframeMeshCap() }, _wireframe_cache->shader(), calculateBounds);
+    std::make_unique<ShapeCache>(culler, _wireframe_cache->shader(), Part{ wireframeMeshCap() }, calculateBounds);
 
   _transparent_end_caps[0] =
-    std::make_unique<ShapeCache>(culler, Part{ solidMeshCapTop() }, _transparent_cache->shader(), calculateBounds);
+    std::make_unique<ShapeCache>(culler, _transparent_cache->shader(), Part{ solidMeshCapTop() }, calculateBounds);
   _transparent_end_caps[1] =
-    std::make_unique<ShapeCache>(culler, Part{ solidMeshCapBottom() }, _transparent_cache->shader(), calculateBounds);
+    std::make_unique<ShapeCache>(culler, _transparent_cache->shader(), Part{ solidMeshCapBottom() }, calculateBounds);
 }
 
 

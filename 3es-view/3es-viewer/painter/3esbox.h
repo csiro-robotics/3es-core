@@ -13,7 +13,7 @@ class TES_VIEWER_API Box : public ShapePainter
 public:
   /// Constructor.
   /// @param culler Bounds culler
-  Box(std::shared_ptr<BoundsCuller> culler);
+  Box(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders);
 
   /// Solid mesh creation function.
   /// @return A solid (or transparent) mesh representation.

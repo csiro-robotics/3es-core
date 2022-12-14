@@ -10,9 +10,11 @@
 
 #include <Magnum/Shaders/Flat.h>
 
+#include <memory>
+
 namespace tes::viewer::shaders
 {
-/// Flat colour shader for a @p ShapeCache . Can be used for solid, transparent and line based shapes.
+/// Flat colour shader. Can be used for solid, transparent and line based shapes and supports instance rendering.
 class TES_VIEWER_API Flat : public Shader
 {
 public:
@@ -21,8 +23,10 @@ public:
   /// Destructor.
   ~Flat();
 
+  Feature features() const override { return Feature::Instance | Feature::Transparent | Feature::Tint; }
+
   std::shared_ptr<Magnum::GL::AbstractShaderProgram> shader() const override { return _shader; }
-  std::shared_ptr<Magnum::Shaders::Flat3D> flatShader() const { return _shader; }
+  std::shared_ptr<Magnum::Shaders::Flat3D> typedShader() const { return _shader; }
 
   Shader &setProjectionMatrix(const Magnum::Matrix4 &projection) override;
 

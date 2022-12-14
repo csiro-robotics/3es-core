@@ -10,9 +10,11 @@
 
 #include <Magnum/Shaders/VertexColor.h>
 
+#include <memory>
+
 namespace tes::viewer::shaders
 {
-/// A mesh shader which supports vertex colour.
+/// Vertex colour shader. Can be used for solid, transparent and line based shapes.
 class TES_VIEWER_API VertexColour : public Shader
 {
 public:
@@ -21,8 +23,10 @@ public:
   /// Destructor.
   ~VertexColour();
 
+  Feature features() const override { return Feature::Transparent; }
+
   std::shared_ptr<Magnum::GL::AbstractShaderProgram> shader() const override { return _shader; }
-  std::shared_ptr<Magnum::Shaders::VertexColor3D> vertexColourShader() const { return _shader; }
+  std::shared_ptr<Magnum::Shaders::VertexColor3D> typedShader() const { return _shader; }
 
   Shader &setProjectionMatrix(const Magnum::Matrix4 &projection) override;
 

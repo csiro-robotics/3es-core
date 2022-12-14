@@ -1,6 +1,8 @@
 #include "3esmeshshape.h"
 
 #include "mesh/3esconverter.h"
+#include "shaders/3esshader.h"
+#include "shaders/3esshaderlibrary.h"
 
 #include <3esconnection.h>
 #include <3escolour.h>
@@ -16,14 +18,17 @@
 
 namespace tes::viewer::handler
 {
-MeshShape::MeshShape(std::shared_ptr<BoundsCuller> culler)
+MeshShape::MeshShape(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shader_library)
   : Message(SIdMeshShape, "mesh shape")
   , _culler(std::move(culler))
+  , _shader_library(std::move(shader_library))
 {}
 
 
 void MeshShape::initialise()
-{}
+{
+  _opaque_shader = _shader_library->lookup(shaders::ShaderLibrary::ID::VertexColour);
+}
 
 
 void MeshShape::reset()
@@ -67,6 +72,11 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &p
   (void)stamp;
   std::lock_guard guard(_shapes_mutex);
 
+  if (!_opaque_shader)
+  {
+    return;
+  }
+
   const auto draw_mesh = [this, &params](RenderMesh &render_mesh) {
     // All this locking may prove very slow :S
     std::lock_guard guard2(render_mesh.mutex);
@@ -88,8 +98,7 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &p
       default:
         break;
       }
-      _opaque_shader.setTransformationProjectionMatrix(params.projection_matrix * render_mesh.transform)
-        .draw(*render_mesh.mesh);
+      _opaque_shader->setProjectionMatrix(params.projection_matrix * render_mesh.transform).draw(*render_mesh.mesh);
     }
   };
 

@@ -12,6 +12,11 @@
 #include <memory>
 #include <unordered_map>
 
+namespace tes::viewer::shaders
+{
+class ShaderLibrary;
+}  // namespace tes::viewer::shaders
+
 namespace tes::viewer::painter
 {
 /// A @c ShapePainter renders a single primitive shape type in either solid, wireframe or transparent forms. The
@@ -92,12 +97,13 @@ public:
   /// @param wireframe Mesh used for wireframe rendering (line based).
   /// @param transparent Mesh used for transparent rendering.
   /// @param bounds_calculator Bounds calculation function.
-  ShapePainter(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> solid,
-               std::initializer_list<Part> wireframe, std::initializer_list<Part> transparent,
-               BoundsCalculator bounds_calculator);
+  ShapePainter(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders,
+               std::initializer_list<Part> solid, std::initializer_list<Part> wireframe,
+               std::initializer_list<Part> transparent, BoundsCalculator bounds_calculator);
   /// @overload
-  ShapePainter(std::shared_ptr<BoundsCuller> culler, const std::vector<Part> &solid, const std::vector<Part> &wireframe,
-               const std::vector<Part> &transparent, BoundsCalculator bounds_calculator);
+  ShapePainter(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders,
+               const std::vector<Part> &solid, const std::vector<Part> &wireframe, const std::vector<Part> &transparent,
+               BoundsCalculator bounds_calculator);
   /// Destructor.
   ~ShapePainter();
 

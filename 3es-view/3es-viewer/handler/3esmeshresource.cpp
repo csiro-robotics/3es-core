@@ -4,6 +4,8 @@
 #include "3esmeshresource.h"
 
 #include "mesh/3esconverter.h"
+#include "shaders/3esshader.h"
+#include "shaders/3esshaderlibrary.h"
 #include "util/3esenum.h"
 
 #include <3esconnection.h>
@@ -16,13 +18,16 @@ namespace tes::viewer::handler
 {
 TES_ENUM_FLAGS(MeshResource::ResourceFlag, unsigned);
 
-MeshResource::MeshResource()
+MeshResource::MeshResource(std::shared_ptr<shaders::ShaderLibrary> shader_library)
   : Message(MtMesh, "mesh resource")
+  , _shader_library(std::move(shader_library))
 {}
 
 
 void MeshResource::initialise()
-{}
+{
+  _opaque_shader = _shader_library->lookup(shaders::ShaderLibrary::ID::VertexColour);
+}
 
 
 void MeshResource::reset()
@@ -174,6 +179,11 @@ unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const std:
 {
   std::lock_guard guard(_resource_lock);
 
+  if (!_opaque_shader)
+  {
+    return 0;
+  }
+
   if ((flags & DrawFlag::TwoSided) != DrawFlag::Zero)
   {
     Magnum::GL::Renderer::disable(Magnum::GL::Renderer::Feature::FaceCulling);
@@ -191,8 +201,7 @@ unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const std:
     const auto search = _resources.find(item.resource_id);
     if (search != _resources.end() && search->second.mesh)
     {
-      _opaque_shader.setTransformationProjectionMatrix(projection_matrix * item.model_matrix)
-        .draw(*search->second.mesh);
+      _opaque_shader->setProjectionMatrix(projection_matrix * item.model_matrix).draw(*search->second.mesh);
       ++drawn;
     }
   }
@@ -233,6 +242,4 @@ void MeshResource::updateResources()
     }
   }
 }
-
-
 }  // namespace tes::viewer::handler

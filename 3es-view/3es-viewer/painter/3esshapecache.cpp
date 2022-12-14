@@ -2,40 +2,13 @@
 
 #include "3esboundsculler.h"
 
+#include "shaders/3esshader.h"
+
 #include <3esdebug.h>
 
 namespace tes::viewer::painter
 {
 constexpr size_t ShapeCache::kListEnd;
-
-ShapeCacheShader::~ShapeCacheShader() = default;
-
-ShapeCacheShaderFlat::ShapeCacheShaderFlat()
-  : _shader(Magnum::Shaders::Flat3D::Flag::VertexColor | Magnum::Shaders::Flat3D::Flag::InstancedTransformation)
-{}
-
-
-ShapeCacheShaderFlat::~ShapeCacheShaderFlat() = default;
-
-
-void ShapeCacheShaderFlat::setProjectionMatrix(const Magnum::Matrix4 &projection)
-{
-  _shader.setTransformationProjectionMatrix(projection);
-}
-
-void ShapeCacheShaderFlat::setColour(const Magnum::Color4 &colour)
-{
-  _shader.setColor(colour);
-}
-
-void ShapeCacheShaderFlat::draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count)
-{
-  mesh.setInstanceCount(Magnum::Int(instance_count))
-    .addVertexBufferInstanced(buffer, 1, 0, Magnum::Shaders::Flat3D::TransformationMatrix{},
-                              Magnum::Shaders::Flat3D::Color4{});
-  _shader.draw(mesh);
-}
-
 
 void ShapeCache::calcSphericalBounds(const Magnum::Matrix4 &transform, Bounds &bounds)
 {
@@ -68,26 +41,26 @@ void ShapeCache::calcCylindricalBounds(const Magnum::Matrix4 &transform, float r
 }
 
 
-ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, const Part &part,
-                       std::shared_ptr<ShapeCacheShader> &&shader, BoundsCalculator bounds_calculator)
-  : ShapeCache(std::move(culler), { part }, std::move(shader), std::move(bounds_calculator))
+ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::Shader> shader, const Part &part,
+                       BoundsCalculator bounds_calculator)
+  : ShapeCache(std::move(culler), std::move(shader), { part }, std::move(bounds_calculator))
 {}
 
-ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, const std::vector<Part> &parts,
-                       std::shared_ptr<ShapeCacheShader> &&shader, BoundsCalculator bounds_calculator)
+ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::Shader> shader,
+                       const std::vector<Part> &parts, BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
-  , _parts(parts)
   , _shader(std::move(shader))
+  , _parts(parts)
   , _bounds_calculator(std::move(bounds_calculator))
 {
   _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
 }
 
-ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::initializer_list<Part> parts,
-                       std::shared_ptr<ShapeCacheShader> &&shader, BoundsCalculator bounds_calculator)
+ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::Shader> shader,
+                       std::initializer_list<Part> parts, BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
-  , _parts(parts)
   , _shader(std::move(shader))
+  , _parts(parts)
   , _bounds_calculator(std::move(bounds_calculator))
 {
   _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });

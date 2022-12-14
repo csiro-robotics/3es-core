@@ -42,7 +42,8 @@ list(APPEND PUBLIC_HEADERS
   shaders/3esedl.h
   shaders/3esflat.h
   shaders/3esshader.h
-  shaders/3esshadercache.h
+  shaders/3esshaderlibrary.h
+  shaders/3esvertexcolour.h
   util/3esenum.h
   util/3esresourcelist.h
 )
@@ -86,7 +87,8 @@ list(APPEND SOURCES
   shaders/3esedl.vert
   shaders/3esflat.cpp
   shaders/3esshader.cpp
-  shaders/3esshadercache.cpp
+  shaders/3esshaderlibrary.cpp
+  shaders/3esvertexcolour.cpp
   util/3esresourcelist.cpp
 )
 

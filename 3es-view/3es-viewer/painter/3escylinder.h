@@ -14,7 +14,7 @@ class TES_VIEWER_API Cylinder : public ShapePainter
 public:
   /// Constructor.
   /// @param culler Bounds culler
-  Cylinder(std::shared_ptr<BoundsCuller> culler);
+  Cylinder(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders);
 
   /// Calculate bounds for a cylinder shape.
   /// @param transform The shape transform to calculate with.

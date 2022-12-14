@@ -15,9 +15,16 @@
 #include <Magnum/Math/Color.h>
 #include <Magnum/Shaders/VertexColor.h>
 
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
+
+namespace tes::viewer::shaders
+{
+class Shader;
+class ShaderLibrary;
+}  // namespace tes::viewer::shaders
 
 namespace tes::viewer::handler
 {
@@ -82,7 +89,7 @@ public:
     TwoSided = OFTwoSided
   };
 
-  MeshResource();
+  MeshResource(std::shared_ptr<shaders::ShaderLibrary> shader_library);
 
   ResourceReference get(uint32_t id) const;
 
@@ -135,7 +142,8 @@ private:
   std::unordered_map<uint32_t, Resource> _pending;
   /// Garbage list populated on @c reset() from background thread so main thread can release on @c beginFrame().
   std::vector<std::shared_ptr<Magnum::GL::Mesh>> _garbage_list;
-  Magnum::Shaders::VertexColor3D _opaque_shader;
+  std::shared_ptr<shaders::ShaderLibrary> _shader_library;
+  std::shared_ptr<shaders::Shader> _opaque_shader;
 };
 
 

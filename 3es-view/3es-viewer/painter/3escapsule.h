@@ -20,7 +20,7 @@ class TES_VIEWER_API Capsule : public ShapePainter
 public:
   /// Constructor.
   /// @param culler Bounds culler
-  Capsule(std::shared_ptr<BoundsCuller> culler);
+  Capsule(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders);
 
   void reset() override;
 
