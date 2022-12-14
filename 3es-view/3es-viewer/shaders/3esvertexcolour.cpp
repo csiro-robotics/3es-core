@@ -20,11 +20,26 @@ VertexColour::VertexColour()
 VertexColour::~VertexColour() = default;
 
 
-Shader &VertexColour::setProjectionMatrix(const Magnum::Matrix4 &projection)
+Shader &VertexColour::setProjectionMatrix(const Magnum::Matrix4 &matrix)
 {
-  _shader->setTransformationProjectionMatrix(projection);
+  _pvm.setProjection(matrix);
   return *this;
 }
+
+
+Shader &VertexColour::setViewMatrix(const Magnum::Matrix4 &matrix)
+{
+  _pvm.setView(matrix);
+  return *this;
+}
+
+
+Shader &VertexColour::setModelMatrix(const Magnum::Matrix4 &matrix)
+{
+  _pvm.setModel(matrix);
+  return *this;
+}
+
 
 Shader &VertexColour::setColour(const Magnum::Color4 &colour)
 {
@@ -43,6 +58,7 @@ Shader &VertexColour::setDrawScale(float scale)
 
 Shader &VertexColour::draw(Magnum::GL::Mesh &mesh)
 {
+  updateTransform();
   _shader->draw(mesh);
   return *this;
 }
@@ -54,5 +70,15 @@ Shader &VertexColour::draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, s
   (void)instance_count;
   log::error("VertexColour shader does not support instanced rendering.");
   return *this;
+}
+
+
+void VertexColour::updateTransform()
+{
+  if (_pvm.dirtyPvm())
+  {
+    _shader->setTransformationProjectionMatrix(_pvm.pvm());
+    _pvm.clearDirty();
+  }
 }
 }  // namespace tes::viewer::shaders

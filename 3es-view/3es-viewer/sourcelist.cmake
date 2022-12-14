@@ -41,6 +41,8 @@ list(APPEND PUBLIC_HEADERS
   mesh/3esconverter.h
   shaders/3esedl.h
   shaders/3esflat.h
+  shaders/3espointgeom.h
+  shaders/3espvm.h
   shaders/3esshader.h
   shaders/3esshaderlibrary.h
   shaders/3esvertexcolour.h
@@ -86,6 +88,10 @@ list(APPEND SOURCES
   shaders/3esedl.frag
   shaders/3esedl.vert
   shaders/3esflat.cpp
+  shaders/3espoint.frag
+  shaders/3espoint.geom
+  shaders/3espoint.vert
+  shaders/3espointgeom.cpp
   shaders/3esshader.cpp
   shaders/3esshaderlibrary.cpp
   shaders/3esvertexcolour.cpp

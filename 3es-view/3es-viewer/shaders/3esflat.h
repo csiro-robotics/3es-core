@@ -7,6 +7,7 @@
 #include "3es-viewer.h"
 
 #include "3esshader.h"
+#include "3espvm.h"
 
 #include <Magnum/Shaders/Flat.h>
 
@@ -29,6 +30,8 @@ public:
   std::shared_ptr<Magnum::Shaders::Flat3D> typedShader() const { return _shader; }
 
   Shader &setProjectionMatrix(const Magnum::Matrix4 &projection) override;
+  Shader &setViewMatrix(const Magnum::Matrix4 &matrix) override;
+  Shader &setModelMatrix(const Magnum::Matrix4 &matrix) override;
 
   Shader &setColour(const Magnum::Color4 &colour) override;
 
@@ -42,8 +45,11 @@ public:
   Shader &draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count) override;
 
 private:
+  void updateTransform();
+
   /// Internal shader.
   std::shared_ptr<Magnum::Shaders::Flat3D> _shader;
+  Pvm _pvm;
 };
 
 }  // namespace tes::viewer::shaders

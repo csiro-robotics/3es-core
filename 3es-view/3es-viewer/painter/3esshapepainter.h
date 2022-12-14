@@ -181,12 +181,14 @@ public:
   /// Render the current opaque (solid & wireframe) shapes set.
   /// @param stamp The frame stamp to draw at.
   /// @param projection_matrix The view projection matrix.
-  virtual void drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix);
+  virtual void drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix,
+                          const Magnum::Matrix4 &view_matrix);
 
   /// Render the current transparent shapes set.
   /// @param stamp The frame stamp to draw at.
   /// @param projection_matrix The view projection matrix.
-  virtual void drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix);
+  virtual void drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix,
+                               const Magnum::Matrix4 &view_matrix);
 
   /// Commit the pending changes.
   ///

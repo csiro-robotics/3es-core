@@ -26,9 +26,7 @@ MeshShape::MeshShape(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shade
 
 
 void MeshShape::initialise()
-{
-  _opaque_shader = _shader_library->lookup(shaders::ShaderLibrary::ID::VertexColour);
-}
+{}
 
 
 void MeshShape::reset()
@@ -72,10 +70,17 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &p
   (void)stamp;
   std::lock_guard guard(_shapes_mutex);
 
-  if (!_opaque_shader)
-  {
-    return;
-  }
+  const auto update_shader_matrices = [&params](std::shared_ptr<shaders::Shader> &shader) {
+    if (shader)
+    {
+      shader->setProjectionMatrix(params.projection_matrix);
+      shader->setViewMatrix(params.view_matrix);
+    }
+  };
+  update_shader_matrices(_shader_library->lookupForDrawType(DtPoints));
+  update_shader_matrices(_shader_library->lookupForDrawType(DtLines));
+  update_shader_matrices(_shader_library->lookupForDrawType(DtTriangles));
+  update_shader_matrices(_shader_library->lookupForDrawType(DtVoxels));
 
   const auto draw_mesh = [this, &params](RenderMesh &render_mesh) {
     // All this locking may prove very slow :S

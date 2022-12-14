@@ -72,10 +72,42 @@ public:
   /// @return A pointer to the Magnum Graphics shader.
   virtual std::shared_ptr<Magnum::GL::AbstractShaderProgram> shader() const = 0;
 
-  /// Set the projection matrix for the next @c draw() call.
-  /// @param projection The next projection matrix to draw with.
+  /// Set the projection matrix for the next @c draw() call. This is only the projection matrix and must be combined
+  /// with the view and model matrices either in the shader or for the shader.
+  /// @param matrix The next projection matrix to draw with.
   /// @return @c *this
-  virtual Shader &setProjectionMatrix(const Magnum::Matrix4 &projection) = 0;
+  virtual Shader &setProjectionMatrix(const Magnum::Matrix4 &matrix) = 0;
+
+  /// Set the view matrix for the next @c draw() call. This is only the view matrix and must be combined
+  /// with the projection and model matrices either in the shader or for the shader.
+  /// @param matrix The next view matrix to draw with.
+  /// @return @c *this
+  virtual Shader &setViewMatrix(const Magnum::Matrix4 &matrix) = 0;
+  /// Set the model matrix for the next @c draw() call. This is only the model matrix and must be combined
+  /// with the projection and view matrices either in the shader or for the shader.
+  /// @param matrix The next model matrix to draw with.
+  /// @return @c *this
+  virtual Shader &setModelMatrix(const Magnum::Matrix4 &matrix) = 0;
+
+  /// Set the near and far clip plane distances for the current view.
+  /// @param near The near clip plane distance.
+  /// @param far The far clip plane distance.
+  /// @return @c *this
+  virtual Shader &setClipPlanes(float near, float far)
+  {
+    (void)near;
+    (void)far;
+    return *this;
+  }
+
+  /// Set the viewport size (pixels).
+  /// @param size The viewport size (pixels); x=>width, y=>height.
+  /// @return @c *this
+  virtual Shader &setViewportSize(const Magnum::Vector2i &size)
+  {
+    (void)size;
+    return *this;
+  }
 
   /// Set a colour tint to modulate the instance colour with.
   /// @param colour The tint colour.

@@ -242,8 +242,12 @@ void ShapeCache::commit()
 }
 
 
-void ShapeCache::draw(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
+void ShapeCache::draw(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix,
+                      const Magnum::Matrix4 &view_matrix)
 {
+  _shader->setProjectionMatrix(projection_matrix);
+  _shader->setViewMatrix(view_matrix);
+  _shader->setModelMatrix({});
   buildInstanceBuffers(stamp);
   for (auto &buffer : _instance_buffers)
   {
@@ -253,10 +257,8 @@ void ShapeCache::draw(const FrameStamp &stamp, const Magnum::Matrix4 &projection
       for (size_t i = 0; i < _parts.size(); ++i)
       {
         const auto &part = _parts[i];
-        // Note: we can't actually add the part transform in here. It can't be multiplied in the right place to be
-        // a model matrix.
-        const Magnum::Matrix4 projection = projection_matrix;  // * part.transform;
-        _shader->setProjectionMatrix(projection);
+        // TODO(KS): see if we can enable this part transform usage.
+        // _shader->setModelMatrix(part.transform);
         _shader->setColour(part.colour);
         _shader->draw(*part.mesh, buffer.buffer, buffer.count);
       }

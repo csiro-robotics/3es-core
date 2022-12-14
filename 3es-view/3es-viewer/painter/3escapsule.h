@@ -32,8 +32,10 @@ public:
   /// @param[out] bounds Bounds output.
   static void calculateBounds(const Magnum::Matrix4 &transform, Bounds &bounds);
 
-  void drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
-  void drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix) override;
+  void drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix,
+                  const Magnum::Matrix4 &view_matrix) override;
+  void drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix,
+                       const Magnum::Matrix4 &view_matrix) override;
 
   void commit() override;
 

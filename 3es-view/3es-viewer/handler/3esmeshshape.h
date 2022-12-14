@@ -138,7 +138,6 @@ protected:
   /// Garbage list populated on @c reset() from background thread so main thread can release on @c beginFrame().
   std::vector<RenderMeshPtr> _garbage_list;
   std::shared_ptr<shaders::ShaderLibrary> _shader_library;
-  std::shared_ptr<shaders::Shader> _opaque_shader;
 };
 }  // namespace tes::viewer::handler
 

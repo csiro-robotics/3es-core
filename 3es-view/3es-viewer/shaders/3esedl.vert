@@ -1,5 +1,5 @@
 R""(
-// Verion directive added by Magnum.
+// Version directive gets added by Magnum.
 in vec4 vertex;
 in vec2 uv0;
 

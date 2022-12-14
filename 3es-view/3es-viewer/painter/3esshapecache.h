@@ -258,8 +258,9 @@ public:
   /// ensure the bounds entries are marked as visibly for the @p render_mark .
   ///
   /// @param stamp The frame stamp to draw shapes for.
-  /// @param projection_matrix World to projection matrix.
-  void draw(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix);
+  /// @param projection_matrix View to projection matrix.
+  /// @param projection_matrix World to view (inverse camera) matrix.
+  void draw(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix, const Magnum::Matrix4 &view_matrix);
 
   /// Clear the shape cache, removing all shapes.
   ///

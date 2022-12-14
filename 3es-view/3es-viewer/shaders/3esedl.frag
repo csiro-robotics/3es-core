@@ -1,5 +1,5 @@
 R""(
-// Verion directive added by Magnum.
+// Version directive gets added by Magnum.
 uniform sampler2D colourTexture;
 uniform sampler2D depthTexture;
 

@@ -185,18 +185,20 @@ bool ShapePainter::readChildShape(const ChildId &child_id, bool include_parent_t
 }
 
 
-void ShapePainter::drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
+void ShapePainter::drawOpaque(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix,
+                              const Magnum::Matrix4 &view_matrix)
 {
-  _solid_cache->draw(stamp, projection_matrix);
-  _wireframe_cache->draw(stamp, projection_matrix);
+  _solid_cache->draw(stamp, projection_matrix, view_matrix);
+  _wireframe_cache->draw(stamp, projection_matrix, view_matrix);
 }
 
 
-void ShapePainter::drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix)
+void ShapePainter::drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &projection_matrix,
+                                   const Magnum::Matrix4 &view_matrix)
 {
   Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::SourceAlpha,
                                          Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
-  _transparent_cache->draw(stamp, projection_matrix);
+  _transparent_cache->draw(stamp, projection_matrix, view_matrix);
   Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::One,
                                          Magnum::GL::Renderer::BlendFunction::Zero);
 }

@@ -44,10 +44,10 @@ void Shape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &param
   switch (pass)
   {
   case DrawPass::Opaque:
-    _painter->drawOpaque(stamp, params.projection_matrix);
+    _painter->drawOpaque(stamp, params.projection_matrix, params.view_matrix);
     break;
   case DrawPass::Transparent:
-    _painter->drawTransparent(stamp, params.projection_matrix);
+    _painter->drawTransparent(stamp, params.projection_matrix, params.view_matrix);
     break;
   default:
     break;

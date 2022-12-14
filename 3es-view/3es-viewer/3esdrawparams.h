@@ -19,8 +19,10 @@ struct TES_VIEWER_API DrawParams
 {
   /// Current view camera.
   camera::Camera camera;
-  /// The current projection matrix. Includes the inverse camera transform
+  /// The current projection matrix. This does not include the view matrix.
   Magnum::Matrix4 projection_matrix;
+  /// The inverse of @p camera_matrix.
+  Magnum::Matrix4 view_matrix;
   /// Represents the @c camera transform in the world.
   Magnum::Matrix4 camera_matrix;
   /// Size of the viewport being drawn to (pixels).

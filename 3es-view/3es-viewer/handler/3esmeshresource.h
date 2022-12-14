@@ -109,8 +109,8 @@ public:
   /// @param projection_matrix Current projection matrix.
   /// @param drawables Defines what to draw.
   /// @return The number of resources successfully resolved and drawn from @p drawables.
-  unsigned draw(const Magnum::Matrix4 &projection_matrix, const std::vector<DrawItem> &drawables,
-                DrawFlag flags = DrawFlag::Zero);
+  unsigned draw(const Magnum::Matrix4 &projection_matrix, const Magnum::Matrix4 &view_matrix,
+                const std::vector<DrawItem> &drawables, DrawFlag flags = DrawFlag::Zero);
 
   enum class ResourceFlag : unsigned
   {

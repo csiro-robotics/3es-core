@@ -172,8 +172,8 @@ void MeshResource::serialise(Connection &out, ServerInfoMessage &info)
 }
 
 
-unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const std::vector<DrawItem> &drawables,
-                            DrawFlag flags)
+unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const Magnum::Matrix4 &view_matrix,
+                            const std::vector<DrawItem> &drawables, DrawFlag flags)
 {
   std::lock_guard guard(_resource_lock);
 
@@ -188,14 +188,29 @@ unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const std:
                                            Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
   }
 
+  // Update the known shader matrices.
+  const auto update_shader_matrices = [&projection_matrix, &view_matrix](std::shared_ptr<shaders::Shader> &shader) {
+    if (shader)
+    {
+      shader->setProjectionMatrix(projection_matrix);
+      shader->setViewMatrix(view_matrix);
+    }
+  };
+  update_shader_matrices(_shader_library->lookupForDrawType(DtPoints));
+  update_shader_matrices(_shader_library->lookupForDrawType(DtLines));
+  update_shader_matrices(_shader_library->lookupForDrawType(DtTriangles));
+  update_shader_matrices(_shader_library->lookupForDrawType(DtVoxels));
+
   unsigned drawn = 0;
   for (const auto &item : drawables)
   {
     const auto search = _resources.find(item.resource_id);
     if (search != _resources.end() && search->second.mesh && search->second.shader)
     {
-      search->second.shader->setDrawScale(0)
-        .setProjectionMatrix(projection_matrix * item.model_matrix)
+      search->second.shader
+        ->  //
+        setDrawScale(0)
+        .setModelMatrix(item.model_matrix)
         .draw(*search->second.mesh);
       ++drawn;
     }
