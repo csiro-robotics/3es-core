@@ -1,7 +1,7 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3espointgeom.h"
+#include "3esvoxelgeom.h"
 
 #include <3eslog.h>
 
@@ -19,95 +19,88 @@
 
 namespace tes::viewer::shaders
 {
-PointGeom::PointGeom()
-  : _shader(std::make_shared<PointGeomProgram>())
+VoxelGeom::VoxelGeom()
+  : _shader(std::make_shared<VoxelGeomProgram>())
 {
   _shader->setTint(Magnum::Color4(1, 1, 1, 1));
-  _shader->setPointSize(1.0f);
+  _shader->setVoxelScale(Magnum::Vector3(0.1f));
 }
 
 
-PointGeom::~PointGeom() = default;
+VoxelGeom::~VoxelGeom() = default;
 
 
-std::shared_ptr<Magnum::GL::AbstractShaderProgram> PointGeom::shader() const
+std::shared_ptr<Magnum::GL::AbstractShaderProgram> VoxelGeom::shader() const
 {
   return _shader;
 }
 
 
-Shader &PointGeom::setProjectionMatrix(const Magnum::Matrix4 &matrix)
+Shader &VoxelGeom::setProjectionMatrix(const Magnum::Matrix4 &matrix)
 {
   _pvm.setProjection(matrix);
   return *this;
 }
 
 
-Shader &PointGeom::setViewMatrix(const Magnum::Matrix4 &matrix)
+Shader &VoxelGeom::setViewMatrix(const Magnum::Matrix4 &matrix)
 {
   _pvm.setView(matrix);
   return *this;
 }
 
 
-Shader &PointGeom::setModelMatrix(const Magnum::Matrix4 &matrix)
+Shader &VoxelGeom::setModelMatrix(const Magnum::Matrix4 &matrix)
 {
   _pvm.setModel(matrix);
   return *this;
 }
 
 
-Shader &PointGeom::setViewportSize(const Magnum::Vector2i &size)
-{
-  _shader->setViewportSize(size);
-  return *this;
-}
-
-
-Shader &PointGeom::setColour(const Magnum::Color4 &colour)
+Shader &VoxelGeom::setColour(const Magnum::Color4 &colour)
 {
   _shader->setTint(colour);
   return *this;
 }
 
-Shader &PointGeom::setDrawScale(float scale)
+Shader &VoxelGeom::setDrawScale(float scale)
 {
-  _shader->setPointSize(scale);
+  _shader->setVoxelScale(Magnum::Vector3(scale));
   return *this;
 }
 
-Shader &PointGeom::draw(Magnum::GL::Mesh &mesh)
+Shader &VoxelGeom::draw(Magnum::GL::Mesh &mesh)
 {
   updateTransform();
   _shader->draw(mesh);
   return *this;
 }
 
-Shader &PointGeom::draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count)
+Shader &VoxelGeom::draw(Magnum::GL::Mesh &mesh, Magnum::GL::Buffer &buffer, size_t instance_count)
 {
   (void)mesh;
   (void)buffer;
   (void)instance_count;
-  log::error("PointGeom shader does not support instanced rendering.");
+  log::error("VoxelGeom shader does not support instanced rendering.");
   return *this;
 }
 
 
-void PointGeom::updateTransform()
+void VoxelGeom::updateTransform()
 {
-  if (_pvm.dirtyProjection())
+  if (_pvm.dirtyPv())
   {
-    _shader->setProjectionMatrix(_pvm.projection());
+    _shader->setProjectionViewTransform(_pvm.pv());
   }
-  if (_pvm.dirtyVm())
+  if (_pvm.dirtyModel())
   {
-    _shader->setViewModelTransform(_pvm.vm());
+    _shader->setModelMatrix(_pvm.model());
   }
   _pvm.clearDirty();
 }
 
 
-PointGeomProgram::PointGeomProgram()
+VoxelGeomProgram::VoxelGeomProgram()
 {
   namespace GL = Magnum::GL;
 
@@ -119,13 +112,13 @@ PointGeomProgram::PointGeomProgram()
   GL::Shader frag{ version, GL::Shader::Type::Fragment };
 
   const std::string vert_code =
-#include "3espoint.vert"
+#include "3esvoxel.vert"
     ;
   const std::string geom_code =
-#include "3espoint.geom"
+#include "3esvoxel.geom"
     ;
   const std::string frag_code =
-#include "3espoint.frag"
+#include "3esvoxel.frag"
     ;
   vert.addSource(vert_code);
   geom.addSource(geom_code);
@@ -153,50 +146,38 @@ PointGeomProgram::PointGeomProgram()
   // if (!GL::Context::current().isExtensionSupported<GL::Extensions::ARB::explicit_uniform_location>(version))
 #endif
   {
-    _view_model_matrix_uniform = uniformLocation("viewModelMatrix");
+    _model_matrix_uniform = uniformLocation("modelMatrix");
     _tint_uniform = uniformLocation("tint");
-    _projection_matrix_uniform = uniformLocation("projectionMatrix");
-    _screen_params_uniform = uniformLocation("screenParams");
-    _point_size_uniform = uniformLocation("pointSize");
+    _pv_matrix_uniform = uniformLocation("pvTransform");
+    _scale_uniform = uniformLocation("scale");
   }
 }
 
 
-PointGeomProgram &PointGeomProgram::setProjectionMatrix(const Magnum::Matrix4 &matrix)
+VoxelGeomProgram &VoxelGeomProgram::setProjectionViewTransform(const Magnum::Matrix4 &matrix)
 {
-  setUniform(_projection_matrix_uniform, matrix);
+  setUniform(_pv_matrix_uniform, matrix);
   return *this;
 }
 
 
-PointGeomProgram &PointGeomProgram::setViewModelTransform(const Magnum::Matrix4 &matrix)
+VoxelGeomProgram &VoxelGeomProgram::setModelMatrix(const Magnum::Matrix4 &matrix)
 {
-  setUniform(_view_model_matrix_uniform, matrix);
+  setUniform(_model_matrix_uniform, matrix);
   return *this;
 }
 
 
-PointGeomProgram &PointGeomProgram::setTint(const Magnum::Color4 &colour)
+VoxelGeomProgram &VoxelGeomProgram::setTint(const Magnum::Color4 &colour)
 {
   setUniform(_tint_uniform, colour);
   return *this;
 }
 
 
-PointGeomProgram &PointGeomProgram::setPointSize(float size)
+VoxelGeomProgram &VoxelGeomProgram::setVoxelScale(const Magnum::Vector3 &scale)
 {
-  setUniform(_point_size_uniform, size);
-  return *this;
-}
-
-
-PointGeomProgram &PointGeomProgram::setViewportSize(const Magnum::Vector2i &size)
-{
-  const Magnum::Math::Vector4<float> screen_params = Magnum::Vector4(  //
-    float(size.x()), float(size.y()),                                  //
-    1 + 1 / Magnum::Float(size.x()),                                   //
-    1 + 1 / Magnum::Float(size.y()));
-  setUniform(_screen_params_uniform, screen_params);
+  setUniform(_scale_uniform, scale);
   return *this;
 }
 }  // namespace tes::viewer::shaders

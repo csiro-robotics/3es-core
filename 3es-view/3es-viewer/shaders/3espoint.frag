@@ -1,17 +1,17 @@
 R""(
 // Version directive gets added by Magnum.
 
-in vec4 colour;
-in vec2 uv;
-
-out block
+in Geom
 {
-  colour;
-} pixel;
+  vec4 colour;
+  vec2 uv;
+} geom;
+
+out vec4 fragColour;
 
 void main()
 {
-  vec2 uvoffset = uv - vec2(0.5, 0.5);
+  vec2 uvoffset = geom.uv - vec2(0.5, 0.5);
   // float uvDistSqr = uvoffset.x * uvoffset.x + uvoffset.y * uvoffset.y;
   float uvDistSqr = dot(uvoffset, uvoffset);
 
@@ -21,6 +21,6 @@ void main()
     discard;
   }
 
-  pixel.colour = colour;
+  fragColour = geom.colour;
 }
 )""

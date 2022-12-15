@@ -73,8 +73,10 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &p
   const auto update_shader_matrices = [&params](std::shared_ptr<shaders::Shader> &shader) {
     if (shader)
     {
-      shader->setProjectionMatrix(params.projection_matrix);
-      shader->setViewMatrix(params.view_matrix);
+      shader->setProjectionMatrix(params.projection_matrix)
+        .setViewMatrix(params.view_matrix)
+        .setClipPlanes(params.camera.clip_near, params.camera.clip_far)
+        .setViewportSize(params.view_size);
     }
   };
   update_shader_matrices(_shader_library->lookupForDrawType(DtPoints));

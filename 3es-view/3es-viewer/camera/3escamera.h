@@ -53,18 +53,20 @@ inline Magnum::Matrix4 view(const Camera &camera)
 
 
 /// Generate the projection matrix.
-inline Magnum::Matrix4 projection(const Camera &camera, const Magnum::Vector2 &view_size)
+inline Magnum::Matrix4 projection(const Camera &camera, const Magnum::Vector2i &view_size)
 {
-  return Magnum::Matrix4::perspectiveProjection(Magnum::Math::Rad(camera.fov_horizontal), view_size.aspectRatio(),
-                                                camera.clip_near, camera.clip_far);
+  return Magnum::Matrix4::perspectiveProjection(Magnum::Math::Rad(camera.fov_horizontal),
+                                                Magnum::Vector2(view_size).aspectRatio(), camera.clip_near,
+                                                camera.clip_far);
 }
 
 
 /// Generate the camera projection * view matrix.
-inline Magnum::Matrix4 viewProjection(const Camera &camera, const Magnum::Vector2 &view_size)
+inline Magnum::Matrix4 viewProjection(const Camera &camera, const Magnum::Vector2i &view_size)
 {
-  Magnum::Matrix4 projection = Magnum::Matrix4::perspectiveProjection(
-    Magnum::Math::Rad(camera.fov_horizontal), view_size.aspectRatio(), camera.clip_near, camera.clip_far);
+  Magnum::Matrix4 projection =
+    Magnum::Matrix4::perspectiveProjection(Magnum::Math::Rad(camera.fov_horizontal),
+                                           Magnum::Vector2(view_size).aspectRatio(), camera.clip_near, camera.clip_far);
   Magnum::Matrix4 camera_transform = view(camera);
   return projection * camera_transform;
 }

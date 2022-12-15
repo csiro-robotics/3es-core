@@ -46,6 +46,7 @@ list(APPEND PUBLIC_HEADERS
   shaders/3esshader.h
   shaders/3esshaderlibrary.h
   shaders/3esvertexcolour.h
+  shaders/3esvoxelgeom.h
   util/3esenum.h
   util/3esresourcelist.h
 )
@@ -95,6 +96,10 @@ list(APPEND SOURCES
   shaders/3esshader.cpp
   shaders/3esshaderlibrary.cpp
   shaders/3esvertexcolour.cpp
+  shaders/3esvoxel.frag
+  shaders/3esvoxel.geom
+  shaders/3esvoxel.vert
+  shaders/3esvoxelgeom.cpp
   util/3esresourcelist.cpp
 )
 

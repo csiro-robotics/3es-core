@@ -151,8 +151,9 @@ void Text::draw2DText(const TextEntry &text, const DrawParams &params)
     return;
   }
 
+  const auto view_size = Magnum::Vector2(params.view_size);
   const auto text_transform =
-    Magnum::Matrix3::projection(params.view_size) * Magnum::Matrix3::translation(norm_position * params.view_size);
+    Magnum::Matrix3::projection(view_size) * Magnum::Matrix3::translation(norm_position * view_size);
   draw(text, text_transform, *_renderer_2d, _shader_2d);
 }
 

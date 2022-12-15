@@ -1,6 +1,6 @@
 R""(
 // Version directive gets added by Magnum.
-uniform mat4 viewModelMatrix;
+uniform mat4 modelMatrix;
 
 uniform vec4 tint;
 
@@ -14,7 +14,7 @@ out Vertex
 
 void main()
 {
-  gl_Position = viewModelMatrix * position;
+  gl_Position = modelMatrix * position;
   vert.colour = colour * tint;
 }
 )""

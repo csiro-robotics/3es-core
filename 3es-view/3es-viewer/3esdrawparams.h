@@ -28,10 +28,10 @@ struct TES_VIEWER_API DrawParams
   /// Transformation from world space to the projection: `projection_matrix * view_matrix`.
   Magnum::Matrix4 pv_transform;
   /// Size of the viewport being drawn to (pixels).
-  Magnum::Vector2 view_size;
+  Magnum::Vector2i view_size;
 
   DrawParams() = default;
-  DrawParams(const camera::Camera &camera, const Magnum::Vector2 &view_size)
+  DrawParams(const camera::Camera &camera, const Magnum::Vector2i &view_size)
     : camera(camera)
     , view_size(view_size)
   {

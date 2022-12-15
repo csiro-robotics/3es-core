@@ -4,6 +4,7 @@
 #include "3esmeshresource.h"
 
 #include "mesh/3esconverter.h"
+#include "shaders/3espointgeom.h"
 #include "shaders/3esshader.h"
 #include "shaders/3esshaderlibrary.h"
 #include "util/3esenum.h"
@@ -172,8 +173,7 @@ void MeshResource::serialise(Connection &out, ServerInfoMessage &info)
 }
 
 
-unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const Magnum::Matrix4 &view_matrix,
-                            const std::vector<DrawItem> &drawables, DrawFlag flags)
+unsigned MeshResource::draw(const DrawParams &params, const std::vector<DrawItem> &drawables, DrawFlag flags)
 {
   std::lock_guard guard(_resource_lock);
 
@@ -189,11 +189,13 @@ unsigned MeshResource::draw(const Magnum::Matrix4 &projection_matrix, const Magn
   }
 
   // Update the known shader matrices.
-  const auto update_shader_matrices = [&projection_matrix, &view_matrix](std::shared_ptr<shaders::Shader> &shader) {
+  const auto update_shader_matrices = [&params](std::shared_ptr<shaders::Shader> &shader) {
     if (shader)
     {
-      shader->setProjectionMatrix(projection_matrix);
-      shader->setViewMatrix(view_matrix);
+      shader->setProjectionMatrix(params.projection_matrix)
+        .setViewMatrix(params.view_matrix)
+        .setClipPlanes(params.camera.clip_near, params.camera.clip_far)
+        .setViewportSize(params.view_size);
     }
   };
   update_shader_matrices(_shader_library->lookupForDrawType(DtPoints));

@@ -1,8 +1,8 @@
 R""(
 // Version directive gets added by Magnum.
 
-layout (points) in;
-layout (triangle_strip, max_vertices=4) out;
+layout(points) in;
+layout(triangle_strip, max_vertices = 4) out;
 
 uniform mat4 projectionMatrix;
 
@@ -12,41 +12,21 @@ uniform mat4 projectionMatrix;
 // - z = 1.0 + 1.0/width
 // - w = 1.0 + 1.0/height
 uniform vec4 screenParams;
-// clipParams:
-// - x => near clip plane
-// - y => far clip plane
-// - z = 1/near
-// - w = 1/far
-uniform vec4 clipParams;
 
 uniform float pointSize;
 
-in vec4 colour[1];
-float depth[1];
+in Vertex
+{
+  vec4 colour;
+}
+vert[1];
 
-out block
+out Geom
 {
   vec4 colour;
   vec2 uv;
-} geom;
-
-// Convert from the vertex shader view depth to a linear depth value.
-float viewDepthToLinearDepth(float)
-{
-  float far = clipParams.x;
-  float nearInv = clipParams.z;
-  float farInv = clipParams.w;
-  return depth * ((1.0 - far * nearInv) * farInv) + far;
 }
-
-// Reciprical of viewDepthToLinearDepth)
-float linearDepthToViewDepth(float depth)
-{
-  float far = clipParams.x;
-  float nearInv = clipParams.z;
-  float farInv = clipParams.w;
-  return ((depth - far) * farInv) / (1.0 / far * nearInv);
-}
+geom;
 
 void main()
 {
@@ -55,14 +35,14 @@ void main()
 
   // Calculate shared values.
   vec4 pointPos = gl_in[0].gl_Position;
-  float depth = pointPos.w;
+  float depth = abs(pointPos.z);
   float size = max(0.5 * pointSize * depth, kMinScale * depth) * (screenParams.w - 1.0);
 
   // Calculate view plane vectors to expand into.
   vec4 right = vec4(size, 0, 0, 0);
   vec4 up = vec4(0, size, 0, 0);
 
-  geom.colour = colour[0];
+  geom.colour = vert[0].colour;
 
   // Build a triangle strip:
   // - bottom left

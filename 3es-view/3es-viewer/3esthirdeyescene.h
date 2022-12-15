@@ -81,7 +81,7 @@ public:
   /// Reset the current state, clearing all the currently visible data.
   void reset();
 
-  void render(float dt, const Magnum::Vector2 &window_size);
+  void render(float dt, const Magnum::Vector2i &window_size);
 
   /// Update to the target frame number on the next @c render() call.
   ///

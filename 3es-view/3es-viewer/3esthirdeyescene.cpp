@@ -26,7 +26,9 @@
 
 #include "shaders/3esflat.h"
 #include "shaders/3esshaderlibrary.h"
+#include "shaders/3espointgeom.h"
 #include "shaders/3esvertexcolour.h"
+#include "shaders/3esvoxelgeom.h"
 
 #include <3eslog.h>
 
@@ -132,7 +134,7 @@ void ThirdEyeScene::reset()
 }
 
 
-void ThirdEyeScene::render(float dt, const Magnum::Vector2 &window_size)
+void ThirdEyeScene::render(float dt, const Magnum::Vector2i &window_size)
 {
   using namespace Magnum::Math::Literals;
   std::unique_lock guard(_render_mutex);
@@ -396,7 +398,8 @@ void ThirdEyeScene::initialiseShaders()
   auto vertex_colour_shader = std::make_shared<shaders::VertexColour>();
   _shader_library->registerShader(shaders::ShaderLibrary::ID::VertexColour, vertex_colour_shader);
   _shader_library->registerShader(shaders::ShaderLibrary::ID::Line, vertex_colour_shader);
-  _shader_library->registerShader(shaders::ShaderLibrary::ID::PointCloud, vertex_colour_shader);
+  _shader_library->registerShader(shaders::ShaderLibrary::ID::PointCloud, std::make_shared<shaders::PointGeom>());
+  _shader_library->registerShader(shaders::ShaderLibrary::ID::Voxel, std::make_shared<shaders::VoxelGeom>());
 }
 
 

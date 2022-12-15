@@ -94,7 +94,7 @@ public:
 
   bool dirtyProjection() const;
   bool dirtyView() const;
-  bool dirtyMode() const;
+  bool dirtyModel() const;
   bool dirtyPvm() const;
   bool dirtyPv() const;
   bool dirtyVm() const;
@@ -173,7 +173,7 @@ inline bool Pvm::dirtyView() const
 }
 
 
-inline bool Pvm::dirtyMode() const
+inline bool Pvm::dirtyModel() const
 {
   return (_flags & DirtyFlag::Model) != DirtyFlag::Zero;
 }

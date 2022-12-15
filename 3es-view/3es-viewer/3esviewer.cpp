@@ -162,7 +162,7 @@ void Viewer::drawEvent()
 
   updateCamera(dt, _tes->camera());
 
-  _tes->render(dt, Magnum::Vector2(windowSize()));
+  _tes->render(dt, windowSize());
 
   swapBuffers();
   if (continuousSim())
