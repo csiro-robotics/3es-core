@@ -20,7 +20,7 @@ find_package(Magnum CONFIG REQUIRED
   Shaders
   Text
   # TgaImporter
-  Vk
+  # Vk
 )
 # find_package(MagnumExtras CONFIG REQUIRED)
 find_package(Threads)

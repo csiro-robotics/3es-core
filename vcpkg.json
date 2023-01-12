@@ -43,8 +43,7 @@
           "features": [
             "freetypefont"
           ]
-        },
-        "vulkan"
+        }
       ]
     },
     "occupancy": {
