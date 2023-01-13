@@ -12,10 +12,10 @@
 
 namespace tes::viewer
 {
-StreamThread::StreamThread(std::shared_ptr<std::istream> stream, std::shared_ptr<ThirdEyeScene> tes)
+StreamThread::StreamThread(std::shared_ptr<ThirdEyeScene> tes, std::shared_ptr<std::istream> stream)
+  : _tes(std::exchange(tes, nullptr))
+  , _stream_reader(std::make_unique<PacketStreamReader>(std::exchange(stream, nullptr)))
 {
-  _stream_reader = std::make_unique<PacketStreamReader>(std::exchange(stream, nullptr));
-  _tes = std::exchange(tes, nullptr);
   _thread = std::thread([this] { run(); });
 }
 
@@ -167,7 +167,10 @@ void StreamThread::run()
             at_frame = packet.messageId() == CIdFrame;
             break;
           case MtServerInfo:
-            processServerInfo(packet);
+            if (processServerInfo(packet, _server_info))
+            {
+              _tes->updateServerInfo(_server_info);
+            }
             if (!have_server_info)
             {
               have_server_info = true;
@@ -259,20 +262,5 @@ StreamThread::Clock::duration StreamThread::processControlMessage(PacketReader &
     break;
   }
   return {};
-}
-
-
-void StreamThread::processServerInfo(PacketReader &reader)
-{
-  ServerInfoMessage msg;
-  if (msg.read(reader))
-  {
-    _server_info = msg;
-    _tes->updateServerInfo(msg);
-  }
-  else
-  {
-    log::error("Failed to decode server info.");
-  }
 }
 }  // namespace tes::viewer

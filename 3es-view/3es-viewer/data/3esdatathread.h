@@ -5,6 +5,12 @@
 
 #include "3esframestamp.h"
 
+namespace tes
+{
+class PacketReader;
+struct ServerInfoMessage;
+}  // namespace tes
+
 namespace tes::viewer
 {
 /// Base class TES_VIEWER_API for thread objects used as message sources.
@@ -55,6 +61,12 @@ public:
   virtual void join() = 0;
 
 protected:
+  /// Process a server info message and load into @p server_info.
+  /// @param reader Reader containing a server info message.
+  /// @param server_info Structure to read into.
+  /// @return True if successfully read.
+  bool processServerInfo(PacketReader &reader, ServerInfoMessage &server_info);
+
 private:
 };
 }  // namespace tes::viewer

@@ -11,6 +11,7 @@
 #-------------------------------------------------------------------------------
 # 3es-viewer configuration options.
 #-------------------------------------------------------------------------------
+find_package(cxxopts CONFIG REQUIRED)
 find_package(Corrade CONFIG REQUIRED Containers)
 find_package(Magnum CONFIG REQUIRED
   GlfwApplication
@@ -66,6 +67,13 @@ target_include_directories(3es-viewer
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
     $<INSTALL_INTERFACE:include>
     $<INSTALL_INTERFACE:include/3es-viewer>
+)
+
+target_include_directories(3es-viewer SYSTEM
+  PRIVATE
+    # Add cxxopts include directories from the import target. It's a header only library so we don't
+    # need to link anything or propagate the dependency.
+    $<TARGET_PROPERTY:cxxopts::cxxopts,INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(3es-viewer

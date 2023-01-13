@@ -2,6 +2,7 @@
 
 #include "3esedleffect.h"
 
+#include "data/3esnetworkthread.h"
 #include "data/3esstreamthread.h"
 
 #include "painter/3esarrow.h"
@@ -14,6 +15,7 @@
 #include "painter/3esstar.h"
 
 #include <3eslog.h>
+#include <3esserver.h>
 
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
@@ -22,21 +24,24 @@
 #include <Magnum/GL/TextureFormat.h>
 #include <Magnum/GL/Version.h>
 
+#include <filesystem>
 #include <fstream>
 
+#include <cxxopts.hpp>
+
 // Things to learn about:
-// - text rendering
 // - UI
 
 // Things to implement:
 // - mesh renderer
-// - point cloud rendering
-//  - simple from vertex buffer
-//  - with point shader
-//  - voxel shader
 
 namespace tes::viewer
 {
+uint16_t Viewer::defaultPort()
+{
+  return ServerSettings().listenPort;
+}
+
 Viewer::Viewer(const Arguments &arguments)
   : Magnum::Platform::Application{ arguments, Configuration{}.setTitle("3rd Eye Scene Viewer") }
   , _tes(std::make_shared<ThirdEyeScene>())
@@ -64,23 +69,9 @@ Viewer::Viewer(const Arguments &arguments)
   _edl_effect = std::make_shared<EdlEffect>(Magnum::GL::defaultFramebuffer.viewport());
   _tes->setActiveFboEffect(_edl_effect);
 
-  if (arguments.argc > 1)
+  if (!handleStartupArgs(arguments))
   {
-    if (open(arguments.argv[1]))
-    {
-      if (_data_thread)
-      {
-        _data_thread->setLooping(true);
-      }
-    }
-    else
-    {
-      log::error("Failed to open ", arguments.argv[1]);
-    }
-  }
-  else
-  {
-    _tes->createSampleShapes();
+    exit();
   }
 }
 
@@ -100,7 +91,28 @@ bool Viewer::open(const std::filesystem::path &path)
     return false;
   }
 
-  _data_thread = std::make_shared<StreamThread>(std::make_shared<std::ifstream>(std::move(file)), _tes);
+  _data_thread = std::make_shared<StreamThread>(_tes, std::make_shared<std::ifstream>(std::move(file)));
+  return true;
+}
+
+
+bool Viewer::connect(const std::string &host, uint16_t port, bool allow_reconnect)
+{
+  auto net_thread = std::make_shared<NetworkThread>(_tes, host, port, allow_reconnect);
+  _data_thread = net_thread;
+  if (!allow_reconnect)
+  {
+    // Connection not allowed. Wait until the network thread has tried to connect...
+    const auto start_time = std::chrono::steady_clock::now();
+    // ...but don't wait forever.
+    const auto timeout = std::chrono::seconds(5);
+    while (!net_thread->connectionAttempted() && (std::chrono::steady_clock::now() - start_time) < timeout)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    return net_thread->connected();
+  }
   return true;
 }
 
@@ -388,5 +400,79 @@ void Viewer::updateCamera(float dt, camera::Camera &camera)
   }
 
   _fly.updateKeys(dt, key_translation, key_rotation, camera);
+}
+
+
+Viewer::StartupMode Viewer::parseStartupArgs(const Arguments &arguments, CommandLineOptions &opt)
+{
+  const auto program_name = std::filesystem::path(arguments.argv[0]).filename().string();
+  cxxopts::Options opt_parse(program_name, "3rd Eye Scene viewer.");
+
+  try
+  {
+    // clang-format off
+    opt_parse.add_options()
+      ("help", "Show command line help.")
+      ("file", "Start the UI and open this file for playback. Takes precedence over --host.", cxxopts::value(opt.filename))
+      ("host", "Start the UI and open a connection to this host URL/IP. Use --port to select the port number.", cxxopts::value(opt.host))
+      ("port", "The port number to use with --host", cxxopts::value(opt.port)->default_value(std::to_string(opt.port)))
+      ;
+    // clang-format on
+
+    cxxopts::ParseResult parsed = opt_parse.parse(arguments.argc, arguments.argv);
+
+    if (parsed.count("help"))
+    {
+      std::cout << opt_parse.help() << std::endl;
+      // Help already shown.
+      return StartupMode::Help;
+    }
+  }
+  catch (const cxxopts::OptionException &e)
+  {
+    std::cerr << "Argument error\n" << e.what() << std::endl;
+    return StartupMode::Error;
+  }
+
+  if (!opt.filename.empty())
+  {
+    return StartupMode::File;
+  }
+
+  if (!opt.host.empty())
+  {
+    return StartupMode::Host;
+  }
+
+  return StartupMode::Normal;
+}
+
+
+bool Viewer::handleStartupArgs(const Arguments &arguments)
+{
+  CommandLineOptions opt;
+  const auto startup_mode = parseStartupArgs(arguments, opt);
+
+  switch (startup_mode)
+  {
+  case StartupMode::Error:
+  case StartupMode::Help:
+    // Do not start UI.
+    return false;
+  case StartupMode::Normal:
+    break;
+  case StartupMode::File:
+    open(opt.filename);
+    break;
+  case StartupMode::Host: {
+    // Extract a port number if possible.
+    connect(opt.host, opt.port, true);
+    break;
+  default:
+    break;
+  }
+  }
+
+  return true;
 }
 }  // namespace tes::viewer

@@ -71,6 +71,7 @@ int PacketBuffer::addBytes(const uint8_t *bytes, size_t byteCount)
   {
     _markerFound = true;
     appendData(bytes + markerPos, byteCount - size_t(markerPos));
+    return markerPos;
   }
 
   return -1;

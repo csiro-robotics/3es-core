@@ -15,6 +15,7 @@
     "viewer": {
       "description": "Build 3es viewer client.",
       "dependencies": [
+        "cxxopts",
         "glfw3",
         "corrade",
         {

@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_STREAM_THREAD_H
-#define TES_VIEWER_STREAM_THREAD_H
+#ifndef TES_VIEWER_NETWORK_THREAD_H
+#define TES_VIEWER_NETWORK_THREAD_H
 
 #include "3es-viewer.h"
 
@@ -24,19 +24,48 @@ class CollatedPacketDecoder;
 class PacketBuffer;
 class PacketReader;
 class PacketStreamReader;
+class TcpSocket;
 }  // namespace tes
 
 namespace tes::viewer
 {
 class ThirdEyeScene;
 
-/// A @c DataThread implementation which reads and processes packets form a file.
-class TES_VIEWER_API StreamThread : public DataThread
+/// A @c DataThread implementation which reads and processes packets form a live network connection.
+class TES_VIEWER_API NetworkThread : public DataThread
 {
 public:
   using Clock = std::chrono::steady_clock;
 
-  StreamThread(std::shared_ptr<ThirdEyeScene> tes, std::shared_ptr<std::istream> stream);
+  NetworkThread(std::shared_ptr<ThirdEyeScene> tes, const std::string &host, uint16_t port,
+                bool allow_reconnect = true);
+
+  /// The host to which we'll be connecting.
+  /// @return The target host.
+  const std::string &host() const { return _host; }
+
+  /// The port to try connect on.
+  /// @return The socket port.
+  const uint16_t port() const { return _port; }
+
+  /// Is the thread allowed keep trying to connect after a connection failure, timeout or loss?
+  /// @return True if reconnection is allowed.
+  bool allowReconnect() const { return _allow_reconnect; }
+
+  /// Set whether the thread is allowed try reconnecting on connection failure, timeout or loss.
+  /// @param allow True to allow reconnection.
+  void setAllowReconnect(bool allow) { _allow_reconnect = allow; }
+
+  /// Check if a connection is active.
+  /// @return True when connected.
+  bool connected() const { return _connected; }
+
+  /// Check if at least one connection has been attempted.
+  ///
+  /// From this, coupled with @s connected(), we can infer when we've failed to connect, vs not tried yet.
+  ///
+  /// @return True if a connection has been attempted.
+  bool connectionAttempted() const { return _connection_attempted; }
 
   /// Reports whether the current stream is a live connection or a replay.
   ///
@@ -56,25 +85,26 @@ public:
   FrameNumber targetFrame() const override;
 
   /// Get the current frame number.
-  inline FrameNumber currentFrame() const override { return _currentFrame; }
+  FrameNumber currentFrame() const override { return _currentFrame; }
 
   void setLooping(bool loop) override;
   bool looping() const override;
 
   /// Request the thread to quit. The thread may then be joined.
-  inline void stop() override
+  void stop() override
   {
     _quitFlag = true;
+    _allow_reconnect = false;
     unpause();
   }
 
   /// Check if a quit has been requested.
   /// @return True when a quit has been requested.
-  inline bool stopping() const { return _quitFlag; }
+  bool stopping() const { return _quitFlag; }
 
   /// Check if playback is paused.
   /// @return True if playback is paused.
-  inline bool paused() const override { return _paused; }
+  bool paused() const override { return false; }
   /// Pause playback.
   void pause() override;
   /// Unpause and resume playback.
@@ -87,12 +117,9 @@ protected:
   /// Thread entry point.
   void run();
 
-  void skipBack(FrameNumber targetFrame);
-
 private:
-  /// Block if paused until unpaused.
-  /// @return True if we were paused and had to wait.
-  bool blockOnPause();
+  void configureSocket(TcpSocket &socket);
+  void runWith(TcpSocket &socket);
 
   /// Process a control packet.
   ///
@@ -100,30 +127,30 @@ private:
   /// frame.
   ///
   /// Handles the following messages:
-  /// - @c CIdFrame increments @p _currentFrame then calls @c ThirdEyeScene::updateToFrame() .
+  /// - @c CIdFrame increments @p _currentFrame and @c _total_frames if less than current, then calls
+  ///   @c ThirdEyeScene::updateToFrame() .
   /// - @c CIdCoordinateFrame updates @c _server_info then calls @c ThirdEyeScene::updateServerInfo() .
   /// - @c CIdFrameCount updates @c _total_frames.
   /// - @c CIdForceFrameFlush calls @c ThirdEyeScene::updateToFrame() with the @p _currentFrame.
   /// - @c CIdReset resets the @c _currentFrame and calls @c ThirdEyeScene::reset() .
-  /// - @c CIdKeyframe - NYI
-  /// - @c CIdEnd - NYI
+  /// - @c CIdKeyframe - irrelevant for a live stream.
+  /// - @c CIdEnd - irrelevant for a live stream.
   ///
   /// @param packet The packet to control. The routing Id is always @c MtControl.
-  /// @return The time to delay before the next frame, or a zero duration when not a frame message.
-  Clock::duration processControlMessage(PacketReader &packet);
+  void processControlMessage(PacketReader &packet);
 
   mutable std::mutex _data_mutex;
   std::mutex _notify_mutex;
   std::condition_variable _notify;
-  std::atomic_bool _quitFlag;
-  std::atomic_bool _paused;
-  bool _catchingUp = false;
-  bool _looping = false;
-  std::optional<FrameNumber> _target_frame;
+  std::atomic_bool _quitFlag = false;
+  std::atomic_bool _connected = false;
+  std::atomic_bool _connection_attempted = false;
+  std::atomic_bool _allow_reconnect = true;
   FrameNumberAtomic _currentFrame = 0;
   /// The total number of frames in the stream, if know. Zero when unknown.
   FrameNumber _total_frames = 0;
-  std::unique_ptr<PacketStreamReader> _stream_reader;
+  std::string _host;
+  uint16_t _port = 0;
   /// The scene manager.
   std::shared_ptr<ThirdEyeScene> _tes;
   std::thread _thread;
@@ -131,4 +158,4 @@ private:
 };
 }  // namespace tes::viewer
 
-#endif  // TES_VIEWER_STREAM_THREAD_H
+#endif  // TES_VIEWER_NETWORK_THREAD_H

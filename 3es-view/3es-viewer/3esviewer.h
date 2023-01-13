@@ -24,23 +24,50 @@ class TES_VIEWER_API Viewer : public Magnum::Platform::Application
 public:
   using Clock = std::chrono::steady_clock;
 
+  /// Get the default 3es server port.
+  /// @return The default server port for 3es.
+  static uint16_t defaultPort();
+
   explicit Viewer(const Arguments &arguments);
   ~Viewer();
 
   inline std::shared_ptr<ThirdEyeScene> tes() const { return _tes; }
 
   bool open(const std::filesystem::path &path);
+  bool connect(const std::string &host, uint16_t port, bool allow_reconnect = true);
   bool closeOrDisconnect();
 
   void setContinuousSim(bool continuous);
   bool continuousSim();
 
 private:
-  enum EdlParam
+  enum class EdlParam
   {
     LinearScale,
     ExponentialScale,
     Radius
+  };
+
+  struct CommandLineOptions
+  {
+    std::string filename;
+    std::string host;
+    uint16_t port = Viewer::defaultPort();
+  };
+
+  /// Return values from @c handleStartupArgs() which indicate what how to start.
+  enum class StartupMode
+  {
+    /// An error has occured parsing the command line options. Best to show help and quit.
+    Error,
+    /// Normal UI startup mode.
+    Normal,
+    /// Show help and exit.
+    Help,
+    /// Start the UI and open a file.
+    File,
+    /// Start the UI and open a network connection.
+    Host
   };
 
   void drawEvent() override;
@@ -54,6 +81,9 @@ private:
   bool checkEdlKeys(KeyEvent &event);
 
   void updateCamera(float dt, camera::Camera &camera);
+
+  StartupMode parseStartupArgs(const Arguments &arguments, CommandLineOptions &opt);
+  bool handleStartupArgs(const Arguments &arguments);
 
   struct KeyAxis
   {

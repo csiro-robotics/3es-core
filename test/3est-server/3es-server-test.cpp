@@ -415,6 +415,25 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     // }
   }
 
+  if (allShapes || haveOption("voxels", argc, argv))
+  {
+    static const Vector3f pts[] = { Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1), Vector3f(-0.25f, 0, 1),
+                                    Vector3f(0, -0.25f, 1), Vector3f(0, -0.25f, 1) };
+    const unsigned pointsCount = sizeof(pts) / sizeof(pts[0]);
+    static const uint32_t colours[] = { Colour::Colours[Colour::Black].c, Colour::Colours[Colour::Red].c,
+                                        Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Blue].c,
+                                        Colour::Colours[Colour::White].c };
+    MeshShape *points = new MeshShape(DtVoxels, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
+    points->setColours(colours);
+    points->setDrawScale(0.2f);
+    // points->setUniformNormal(tes::Vector3f(0.2f));
+    shapes.emplace_back(points);
+    // if (!noMove)
+    // {
+    //   movers.emplace_back(new Oscilator(mesh, 2.0f, 2.5f));
+    // }
+  }
+
   if (allShapes || haveOption("cloud", argc, argv) || haveOption("cloudpart", argc, argv))
   {
     MeshResource *cloud = createTestCloud();
