@@ -70,7 +70,12 @@ void Shape::readMessage(PacketReader &reader)
   }
   case OIdDestroy: {
     DestroyMessage msg;
-    ok = msg.read(reader) && handleDestroy(msg, reader);
+    ok = msg.read(reader);
+    if (ok)
+    {
+      // Note: It's OK to destroy IDs which haven't been created.
+      handleDestroy(msg, reader);
+    }
     break;
   }
   case OIdUpdate: {
