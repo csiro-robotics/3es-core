@@ -122,6 +122,18 @@ public:
   template <typename Iter, typename Resolver>
   void draw2D(const Iter &begin, const Iter &end, const Resolver &resolver, const DrawParams &params);
 
+  /// A convenience function for drawing a single text item.
+  ///
+  /// Uses the template overload of @c draw2D().
+  ///
+  /// @param text The text item to draw.
+  /// @param params Draw parameters.
+  void draw2D(const TextEntry &text, const DrawParams &params)
+  {
+    const auto draw_item = [&text](const int) { return text; };
+    draw2D(0, 1, draw_item, params);
+  }
+
   /// Draw a collection of 3D @c TextEntry items.
   ///
   /// See class comments for usage examples.
@@ -135,6 +147,18 @@ public:
   /// @param params Draw parameters.
   template <typename Iter, typename Resolver>
   void draw3D(const Iter &begin, const Iter &end, const Resolver &resolver, const DrawParams &params);
+
+  /// A convenience function for drawing a single text item.
+  ///
+  /// Uses the template overload of @c draw3D().
+  ///
+  /// @param text The text item to draw.
+  /// @param params Draw parameters.
+  void draw3D(const TextEntry &text, const DrawParams &params)
+  {
+    const auto draw_item = [&text](const int) { return text; };
+    draw3D(0, 1, draw_item, params);
+  }
 
 private:
   /// Common setup for drawing of 2D or 3D text.

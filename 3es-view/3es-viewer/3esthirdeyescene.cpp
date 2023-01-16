@@ -163,6 +163,7 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2i &window_size)
 
   const DrawParams params(_camera, window_size);
   ++_render_stamp.render_mark;
+
   _culler->cull(_render_stamp.render_mark, Magnum::Frustum::fromMatrix(params.pv_transform));
 
   if (_active_fbo_effect)
@@ -177,6 +178,7 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2i &window_size)
   }
 
   drawShapes(dt, params);
+  updateFpsDisplay(dt, params);
 
   if (_active_fbo_effect)
   {
@@ -420,5 +422,20 @@ void ThirdEyeScene::drawShapes(float dt, const DrawParams &params)
   {
     handler->draw(handler::Message::DrawPass::Overlay, _render_stamp, params);
   }
+}
+
+
+void ThirdEyeScene::updateFpsDisplay(float dt, const DrawParams &params)
+{
+  // Update stats.
+  _fps.push(dt);
+  // Calculate FPS.
+  const auto fps = _fps.fps();
+  // Render
+  // FIXME(KS): the transform should be adjusted to consider screen resolution and text size.
+  viewer::painter::Text::TextEntry fps_text = {};
+  fps_text.transform = Magnum::Matrix4::translation(Magnum::Vector3(0.01f, 0.015f, 0.0f));
+  fps_text.text = std::to_string(fps);
+  _text_painter->draw2D(fps_text, params);
 }
 }  // namespace tes::viewer

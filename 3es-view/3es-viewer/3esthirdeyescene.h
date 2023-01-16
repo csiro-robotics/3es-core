@@ -6,6 +6,7 @@
 #include "camera/3esfly.h"
 
 #include "3esboundsculler.h"
+#include "3esframespersecondwindow.h"
 #include "3esframestamp.h"
 #include "painter/3esshapecache.h"
 
@@ -122,6 +123,7 @@ private:
 
   void updateCamera(float dt);
   void drawShapes(float dt, const DrawParams &params);
+  void updateFpsDisplay(float dt, const DrawParams &params);
 
   std::shared_ptr<FboEffect> _active_fbo_effect;
 
@@ -149,6 +151,8 @@ private:
   bool _have_new_frame = false;
   bool _new_server_info = false;
   std::atomic_bool _reset = false;
+
+  FramesPerSecondWindow _fps;
 };
 }  // namespace tes::viewer
 

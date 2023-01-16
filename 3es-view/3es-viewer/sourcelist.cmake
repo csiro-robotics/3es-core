@@ -5,6 +5,7 @@ list(APPEND PUBLIC_HEADERS
   3esdrawparams.h
   3esedleffect.h
   3esfboeffect.h
+  3esframespersecondwindow.h
   3esframestamp.h
   3esmagnum.h
   3esmagnumcolour.h
@@ -56,6 +57,7 @@ list(APPEND SOURCES
   3esboundsculler.cpp
   3esedleffect.cpp
   3esfboeffect.cpp
+  3esframespersecondwindow.cpp
   3esframestamp.cpp
   3esthirdeyescene.cpp
   3esviewer.cpp
