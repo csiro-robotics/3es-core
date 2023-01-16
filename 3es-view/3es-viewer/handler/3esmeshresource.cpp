@@ -137,8 +137,39 @@ void MeshResource::readMessage(PacketReader &reader)
   case MmtRedefine:
     if (found)
     {
-      search->second.pending = std::shared_ptr<SimpleMesh>(search->second.current->clone());
+      // Note(KS): we can get a redefine message before we've ever rendered the item.
+      // In this case, current will be null, so we just modify the pending item.
+      // We can also get multiple redefines after having rendered at least once. In this case, both current and pending
+      // will be valid. However, the Ready flag will only be set the first time, so this becomes our cloning condition.
+      // Note: this cloning can become very expensive.
+      if (search->second.current && (search->second.flags & ResourceFlag::Ready) == ResourceFlag::Ready)
+      {
+        search->second.pending = std::shared_ptr<SimpleMesh>(search->second.current->clone());
+      }
       search->second.flags &= ~ResourceFlag::Ready;
+      MeshRedefineMessage msg = {};
+      ObjectAttributesd attributes;
+      if (!msg.read(reader, attributes))
+      {
+        log::error("Error reading mesh redefine message: ", mesh_id);
+        break;
+      }
+
+      if (!search->second.pending)
+      {
+        log::error("Error no resource created yet for mesh: ", mesh_id);
+        break;
+      }
+
+      auto resource = search->second.pending;
+      resource->setVertexCount(msg.vertexCount);
+      resource->setIndexCount(msg.indexCount);
+      resource->setDrawType(DrawType(msg.drawType));
+      Transform transform = Transform(Vector3d(attributes.position), Quaterniond(attributes.rotation),
+                                      Vector3d(attributes.scale), msg.flags & McfDoublePrecision);
+
+      resource->setTransform(transform);
+      resource->setTint(attributes.colour);
     }
     break;
   case MmtFinalise:

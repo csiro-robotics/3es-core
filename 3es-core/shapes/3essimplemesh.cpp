@@ -53,6 +53,7 @@ struct SimpleMeshImp
     copy->normals = normals;
     copy->uvs = uvs;
     copy->transform = transform;
+    copy->id = id;
     copy->tint = tint;
     copy->components = components;
     copy->drawType = drawType;
@@ -566,14 +567,16 @@ bool SimpleMesh::processVertices(const MeshComponentMessage &msg, unsigned offse
 {
   TES_UNUSED(msg);
   copyOnWrite();
-  for (unsigned i = 0; i < stream.count() && i + offset < vertexCount(); ++i)
+  const auto stream_count = stream.count();
+  const auto vertex_count = vertexCount();
+  for (unsigned i = 0; i < stream_count && i + offset < vertex_count; ++i)
   {
     for (unsigned j = 0; j < 3; ++j)
     {
       _imp->vertices[i + offset][j] = stream.get<float>(i, j);
     }
   }
-  return stream.count() + offset <= vertexCount();
+  return stream_count + offset <= vertex_count;
 }
 
 
