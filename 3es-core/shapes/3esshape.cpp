@@ -112,4 +112,5 @@ Shape *Shape::clone() const
 void Shape::onClone(Shape *copy) const
 {
   copy->_data = _data;
+  copy->_attributes = _attributes;
 }
