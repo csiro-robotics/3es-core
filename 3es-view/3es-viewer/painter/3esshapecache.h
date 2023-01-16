@@ -91,6 +91,8 @@ public:
     /// Marks a transient shape, which expires on the @c commit() call after it becomes visible.
     /// Removes shapes are also marked as @c Transient so they are removed on the next @c commit().
     Transient = 1u << 0u,
+    /// Set to hide the shape and prevent rendering thereof.
+    Hidden = 1u << 1u,
 
     // Internal use.
     /// Internal: Marks a shape as pending "creation" after the next @c commit().
@@ -184,7 +186,7 @@ public:
   /// @param transform The shape instance transformation matrix.
   /// @param[out] centre Calculated bounds centre.
   /// @param[out] halfExtents Calculated bounds half extents.
-  void calcBounds(const Magnum::Matrix4 &transform, Bounds &bounds);
+  void calcBounds(const Magnum::Matrix4 &transform, Bounds &bounds) const;
 
   inline std::shared_ptr<shaders::Shader> shader() const { return _shader; }
 
@@ -373,7 +375,7 @@ private:
   {
     /// The current shape details.
     ShapeInstance current = {};
-    /// The updates shape details. Only relevant if `flags & (ShapeFlag::Update)` is non zero.
+    /// The updates shape details. Only relevant if `flags & (ShapeFlag::Dirty)` is non zero.
     ShapeInstance updated = {};
     /// Behavioural flags.
     ShapeFlag flags = ShapeFlag::None;
@@ -408,6 +410,8 @@ private:
     unsigned count = 0;
   };
 
+  void calcBoundsForShape(const Shape &child, Bounds &bounds) const;
+
   /// Release a shape to the free list. This also releases the shape chain if this is the head of a chain.
   ///
   /// Must only be called for the head of a shape chain, not the links.
@@ -420,6 +424,7 @@ private:
   /// @param frame_number The frame number to draw shapes for.
   /// @param render_mark Visibility render mark used to determine shape instance visibility in the @c BoundsCuller .
   void buildInstanceBuffers(const FrameStamp &stamp);
+
 
   /// The bounds culler used to determine visibility.
   std::shared_ptr<BoundsCuller> _culler;

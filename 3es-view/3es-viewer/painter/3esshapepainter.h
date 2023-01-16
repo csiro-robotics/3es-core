@@ -57,6 +57,9 @@ public:
     ParentId(const ParentId &other) = default;
     ParentId(ParentId &&other) = default;
 
+    ParentId &operator=(const ParentId &other) = default;
+    ParentId &operator=(ParentId &&other) = default;
+
     inline Id shapeId() const { return _shape_id; }
 
     /// Internal ID value.
@@ -118,9 +121,28 @@ public:
   /// @param type The draw type for the shape.
   /// @param transform The shape transformation.
   /// @param colour The shape colour.
+  /// @param hidden True to prevent rendering of the shape. Normally used for parent shapes so it's transform is only
+  /// used to collectively move the children.
   /// @return An id value which can be passed to @c addChild() to add child shapes. This is transient and should
   /// only be used immediately after calling @c add() to call @c addChild() .
-  virtual ParentId add(const Id &id, Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour);
+  virtual ParentId add(const Id &id, Type type, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour,
+                       bool hidden = false);
+
+  /// Lookup a shape by @p id to retrieve it's @c ParentId.
+  ///
+  /// Only valid for parent/root shapes.
+  ///
+  /// @param id The object ID to lookup.
+  /// @param[out] type Set to the shape @c Type .
+  /// @return The parent ID for the given ID.
+  virtual ParentId lookup(const Id &id, Type &type) const;
+
+  /// @overload
+  ParentId lookup(const Id &id) const
+  {
+    Type t = Type::Solid;
+    return lookup(id, t);
+  }
 
   /// Add a sub shape part.
   ///
@@ -355,8 +377,8 @@ protected:
   using IdIndexMap = std::unordered_map<Id, CacheIndex>;
 
   virtual util::ResourceListId addShape(const Id &shape_id, Type type, const Magnum::Matrix4 &transform,
-                                        const Magnum::Color4 &colour, const ParentId &parent_id = ParentId(),
-                                        unsigned *child_index = nullptr);
+                                        const Magnum::Color4 &colour, bool hidden,
+                                        const ParentId &parent_id = ParentId(), unsigned *child_index = nullptr);
 
   ShapeCache *cacheForType(Type type);
   const ShapeCache *cacheForType(Type type) const;

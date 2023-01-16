@@ -8,6 +8,7 @@
 
 #include <iosfwd>
 #include <memory>
+#include <unordered_map>
 
 namespace tes::viewer::painter
 {
@@ -49,7 +50,20 @@ protected:
   virtual bool handleData(const DataMessage &msg, PacketReader &reader);
 
 private:
+  /// Data stored about any multi-shape entries.
+  struct MultiShapeInfo
+  {
+    /// Number of child shapes.
+    unsigned shape_count = 0;
+    /// Expect double precision attributes?
+    bool double_precision = false;
+  };
+
   std::shared_ptr<painter::ShapePainter> _painter;
+  /// Map of multi-shape attributes. We need to use some of this information when unpacking the data messages.
+  std::unordered_map<uint32_t, MultiShapeInfo> _multi_shapes;
+  /// The last transient multi-shape info. We use this when unpacking a transient multi-shape data message.
+  MultiShapeInfo _last_transient_multi_shape;
 };
 }  // namespace tes::viewer::handler
 

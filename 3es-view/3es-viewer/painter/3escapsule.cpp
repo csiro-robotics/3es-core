@@ -269,10 +269,12 @@ Magnum::GL::Mesh Capsule::wireframeMeshCap()
 
 
 util::ResourceListId Capsule::addShape(const Id &shape_id, Type type, const Magnum::Matrix4 &transform,
-                                       const Magnum::Color4 &colour, const ParentId &parent_id, unsigned *child_index)
+                                       const Magnum::Color4 &colour, bool hidden, const ParentId &parent_id,
+                                       unsigned *child_index)
 {
   // Add as is for the cylinder part.
-  util::ResourceListId index = ShapePainter::addShape(shape_id, type, transform, colour, parent_id, child_index);
+  util::ResourceListId index =
+    ShapePainter::addShape(shape_id, type, transform, colour, hidden, parent_id, child_index);
   std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(type);
   if (index == ~0u || !end_caches)
   {
@@ -284,6 +286,7 @@ util::ResourceListId Capsule::addShape(const Id &shape_id, Type type, const Magn
   const auto end_transforms = calcEndCapTransforms(transform);
   ShapeCache::ShapeFlag flags = ShapeCache::ShapeFlag::None;
   flags |= (shape_id.isTransient()) ? ShapeCache::ShapeFlag::Transient : ShapeCache::ShapeFlag::None;
+  flags |= (hidden) ? ShapeCache::ShapeFlag::Hidden : ShapeCache::ShapeFlag::None;
   for (size_t i = 0; i < end_transforms.size(); ++i)
   {
     (*end_caches)[i]->add(shape_id, end_transforms[i], colour, flags, parent_id.resourceId(), nullptr);

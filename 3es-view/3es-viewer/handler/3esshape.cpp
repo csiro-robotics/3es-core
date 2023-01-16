@@ -10,6 +10,26 @@
 
 namespace tes::viewer::handler
 {
+bool readMultiShape(const Shape &shape, painter::ShapePainter &painter,
+                    const painter::ShapePainter::ParentId &parent_id, painter::ShapePainter::Type draw_type,
+                    unsigned shape_count, PacketReader &reader, bool double_precision)
+{
+  Shape::ObjectAttributes multi_attrs = {};
+  for (unsigned i = 0; i < shape_count; ++i)
+  {
+    if (!multi_attrs.read(reader, double_precision))
+    {
+      log::error(shape.name(), " : failed to read multi shape part");
+      return false;
+    }
+    auto transform = shape.composeTransform(multi_attrs);
+    const Colour c(multi_attrs.colour);
+    painter.addChild(parent_id, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
+  }
+  return true;
+}
+
+
 Shape::Shape(uint16_t routing_id, const std::string &name, std::shared_ptr<painter::ShapePainter> painter)
   : Message(routing_id, name)
   , _painter(std::exchange(painter, nullptr))
@@ -81,6 +101,12 @@ void Shape::readMessage(PacketReader &reader)
   case OIdUpdate: {
     UpdateMessage msg;
     ok = msg.read(reader, attrs) && handleUpdate(msg, attrs, reader);
+    break;
+  }
+  case OIdData: {
+    // We only expect data messages for multi-shape messages where the create message does not contain all the shapes.
+    DataMessage msg;
+    ok = msg.read(reader) && handleData(msg, reader);
     break;
   }
   default:
@@ -201,23 +227,27 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
 
   auto transform = composeTransform(attrs);
   auto c = Colour(attrs.colour);
-  const auto parent_id = _painter->add(id, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
+  const auto multi_shape = (msg.flags & OFMultiShape) != 0;
+  const auto parent_id =
+    _painter->add(id, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()), multi_shape);
 
-  if (msg.flags & OFMultiShape)
+  if (multi_shape)
   {
     // Multi shape message.
-    uint32_t shape_count = 0;
-    ObjectAttributes multi_attrs = {};
+    uint32_t shape_count = 0;   // Total number of expected items.
+    uint16_t create_count = 0;  // Current packet items.
     reader.readElement(shape_count);
-    for (unsigned i = 0; i < shape_count; ++i)
+    reader.readElement(create_count);
+    readMultiShape(*this, *_painter, parent_id, draw_type, create_count, reader, (msg.flags & OFDoublePrecision) != 0);
+
+    const MultiShapeInfo info = { shape_count, (msg.flags & OFDoublePrecision) != 0 };
+    if (msg.id)
     {
-      if (!multi_attrs.read(reader, (msg.flags & OFDoublePrecision) != 0))
-      {
-        log::error(name(), " : failed to read multi shape part");
-      }
-      transform = composeTransform(attrs);
-      c = Colour(attrs.colour);
-      _painter->addChild(parent_id, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
+      _multi_shapes[msg.id] = info;
+    }
+    else
+    {
+      _last_transient_multi_shape = info;
     }
   }
 
@@ -279,18 +309,49 @@ bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs
 
 bool Shape::handleDestroy(const DestroyMessage &msg, PacketReader &reader)
 {
-  (void)msg;
   (void)reader;
   const Id id(msg.id);
+
+  // Remove multi-shape tracking data.
+  auto multi_shape_info = _multi_shapes.find(msg.id);
+  if (multi_shape_info != _multi_shapes.end())
+  {
+    _multi_shapes.erase(multi_shape_info);
+  }
+
+  // Remove shape.
   return _painter->remove(id);
 }
 
 
 bool Shape::handleData(const DataMessage &msg, PacketReader &reader)
 {
-  (void)msg;
-  (void)reader;
-  // Not expecting data messages.
-  return false;
+  // Handle multi-shape data messages. Assumed to be the only valid data message.
+  bool ok = true;
+
+  MultiShapeInfo info = {};
+  if (!Id(msg.id).isTransient())
+  {
+    auto search = _multi_shapes.find(msg.id);
+    if (search == _multi_shapes.end())
+    {
+      log::error("Received data message for unknown multi-shape id: ", msg.id);
+      return false;
+    }
+    info = search->second;
+  }
+  else
+  {
+    info = _last_transient_multi_shape;
+  }
+
+  // Things to resolve.
+  auto draw_type = painter::ShapePainter::Type::Solid;
+  painter::ShapePainter::ParentId parent_id = _painter->lookup(Id(msg.id), draw_type);
+
+  uint16_t block_count = 0;
+  ok = reader.readElement(block_count) == sizeof(block_count) && ok;
+  ok = ok && readMultiShape(*this, *_painter, parent_id, draw_type, block_count, reader, info.double_precision);
+  return ok;
 }
 }  // namespace tes::viewer::handler

@@ -44,9 +44,7 @@
 // - UI
 
 // Things to implement:
-// - point cloud rendering
-//  - with point shader
-//  - voxel shader
+// - point cloud message handler
 
 namespace tes::viewer
 {

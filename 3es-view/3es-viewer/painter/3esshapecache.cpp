@@ -66,7 +66,7 @@ ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<sha
   _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
 }
 
-void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Bounds &bounds)
+void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Bounds &bounds) const
 {
   _bounds_calculator(transform, bounds);
 }
@@ -77,17 +77,17 @@ util::ResourceListId ShapeCache::add(const tes::Id &shape_id, const Magnum::Matr
 {
   auto shape = _shapes.allocate();
 
-  Bounds bounds;
-  _bounds_calculator(transform, bounds);
-
-  const auto bounds_id = _culler->allocate(bounds);
   shape->flags = flags | ShapeFlag::Pending;
   shape->current.transform = transform;
   shape->current.colour = colour;
-  shape->bounds_id = bounds_id;
   shape->parent_rid = parent_rid;
   shape->next = kListEnd;
   shape->shape_id = shape_id;
+
+  Bounds bounds;
+  calcBoundsForShape(*shape, bounds);
+  const auto bounds_id = _culler->allocate(bounds);
+  shape->bounds_id = bounds_id;
 
   if (parent_rid != kListEnd)
   {
@@ -223,7 +223,7 @@ void ShapeCache::commit()
     if ((iter->flags & ShapeFlag::Dirty) != ShapeFlag::None)
     {
       iter->current = iter->updated;
-      calcBounds(iter->updated.transform, bounds);
+      calcBoundsForShape(*iter, bounds);
       _culler->update(iter->bounds_id, bounds);
     }
 
@@ -274,6 +274,35 @@ void ShapeCache::clear()
     _culler->release(shape.bounds_id);
   }
   _shapes.clear();
+}
+
+
+void ShapeCache::calcBoundsForShape(const Shape &shape, Bounds &bounds) const
+{
+  bool bounds_ready = false;
+
+  const auto shape_transform =
+    ((shape.flags & ShapeFlag::Dirty) == ShapeFlag::None) ? shape.current.transform : shape.updated.transform;
+
+  if (shape.parent_rid != kListEnd)
+  {
+    // Need to include the parent transform to calculate bounds.
+    auto parent_ref = _shapes.at(shape.parent_rid);
+    if (parent_ref.isValid())
+    {
+      // We assume the parent is updated before the child.
+      const auto parent_transform = ((parent_ref->flags & ShapeFlag::Dirty) == ShapeFlag::None) ?
+                                      parent_ref->current.transform :
+                                      parent_ref->updated.transform;
+      parent_ref.release();
+      calcBounds(parent_transform * shape_transform, bounds);
+      bounds_ready = true;
+    }
+  }
+  if (!bounds_ready)
+  {
+    calcBounds(shape_transform, bounds);
+  }
 }
 
 
@@ -337,7 +366,8 @@ void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
   // Iterate shapes and marshal/upload.
   for (auto iter = _shapes.begin(); iter != _shapes.end(); ++iter)
   {
-    if ((iter->flags & ShapeFlag::Pending) == ShapeFlag::None && culler.isVisible(iter->bounds_id))
+    if ((iter->flags & (ShapeFlag::Pending | ShapeFlag::Hidden)) == ShapeFlag::None &&
+        culler.isVisible(iter->bounds_id))
     {
       const unsigned marshal_index = _instance_buffers[cur_instance_buffer_idx].count;
       ++_instance_buffers[cur_instance_buffer_idx].count;

@@ -45,9 +45,9 @@ void ShapePainter::reset()
 
 
 ShapePainter::ParentId ShapePainter::add(const Id &id, Type type, const Magnum::Matrix4 &transform,
-                                         const Magnum::Color4 &colour)
+                                         const Magnum::Color4 &colour, bool hidden)
 {
-  util::ResourceListId index = addShape(id, type, transform, colour);
+  util::ResourceListId index = addShape(id, type, transform, colour, hidden);
   if (!id.isTransient())
   {
     // Handle re-adding a shape which is already pending removal.
@@ -73,23 +73,38 @@ ShapePainter::ParentId ShapePainter::add(const Id &id, Type type, const Magnum::
 }
 
 
+ShapePainter::ParentId ShapePainter::lookup(const Id &id, Type &type) const
+{
+  const auto search = _id_index_map.find(id);
+  if (search != _id_index_map.end())
+  {
+    type = search->second.type;
+    return ParentId(id, search->second.index);
+  }
+
+  // Transient shape lookup. We should return the last transient item added.
+  return ParentId();
+}
+
+
 ShapePainter::ChildId ShapePainter::addChild(const ParentId &parent_id, Type type, const Magnum::Matrix4 &transform,
                                              const Magnum::Color4 &colour)
 {
   unsigned child_index = 0;
-  addShape(parent_id.shapeId(), type, transform, colour, parent_id, &child_index);
+  addShape(parent_id.shapeId(), type, transform, colour, false, parent_id, &child_index);
   return ChildId(parent_id.shapeId(), child_index);
 }
 
 
 util::ResourceListId ShapePainter::addShape(const Id &shape_id, Type type, const Magnum::Matrix4 &transform,
-                                            const Magnum::Color4 &colour, const ParentId &parent_id,
+                                            const Magnum::Color4 &colour, bool hidden, const ParentId &parent_id,
                                             unsigned *child_index)
 {
   if (ShapeCache *cache = cacheForType(type))
   {
     ShapeCache::ShapeFlag flags = ShapeCache::ShapeFlag::None;
     flags |= (shape_id.isTransient()) ? ShapeCache::ShapeFlag::Transient : ShapeCache::ShapeFlag::None;
+    flags |= (hidden) ? ShapeCache::ShapeFlag::Hidden : ShapeCache::ShapeFlag::None;
     return cache->add(shape_id, transform, colour, flags, parent_id.resourceId(), child_index);
   }
   return ~0u;
