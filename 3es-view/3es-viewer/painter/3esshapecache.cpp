@@ -325,13 +325,13 @@ void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
   // Function to upload the contents of the marshalling buffer to the GPU.
   const auto upload_buffer = [this, &cur_instance_buffer_idx]() {
     // Upload current data.
-    _instance_buffers[cur_instance_buffer_idx].buffer.setData(_marshal_buffer, Magnum::GL::BufferUsage::DynamicDraw);
+    _instance_buffers[cur_instance_buffer_idx].buffer.setData(_marshal_buffer, Magnum::GL::BufferUsage::StaticDraw);
+    ++cur_instance_buffer_idx;
     // Start new buffer.
     if (cur_instance_buffer_idx >= _instance_buffers.size())
     {
       _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
     }
-    ++cur_instance_buffer_idx;
   };
 
   // Iterate shapes and marshal/upload.
