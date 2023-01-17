@@ -92,6 +92,7 @@ bool Viewer::open(const std::filesystem::path &path)
   }
 
   _data_thread = std::make_shared<StreamThread>(_tes, std::make_shared<std::ifstream>(std::move(file)));
+  _data_thread->setLooping(true);
   return true;
 }
 
