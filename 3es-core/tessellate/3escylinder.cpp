@@ -110,9 +110,9 @@ void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, cons
 
 
 void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
-           const Vector3f &axis, float height, float angle, unsigned facets, bool open)
+           const Vector3f &axis, float height, float radius, unsigned facets, bool open)
 {
-  return makeCylinder(vertices, indices, &normals, axis, height, angle, facets, open);
+  return makeCylinder(vertices, indices, &normals, axis, height, radius, facets, open);
 }
 
 void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &axis, float height,
