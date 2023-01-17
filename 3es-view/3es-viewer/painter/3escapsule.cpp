@@ -175,18 +175,17 @@ std::array<Magnum::Matrix4, 2> Capsule::calcEndCapTransforms(const Magnum::Matri
   // Modify the transform for the end caps. We change the Z scale to Z translation, then match Z scale to X/Y.
   // This makes the spherical end caps position and scale correctly.
   std::array<Magnum::Matrix4, 2> cap_transforms = { transform, transform };
-  Magnum::Vector4 z_vec = transform[2];
+  Magnum::Vector4 z_basis = transform[2];
   float x_scale = transform[0].xyz().length();
-  float z_scale = z_vec.xyz().length();
+  float z_scale = z_basis.xyz().length();
   float z_scale_inv = (z_scale > 1e-6f) ? 1.0f / z_scale : z_scale;
-  z_vec[0] *= x_scale * z_scale_inv;
-  z_vec[1] *= x_scale * z_scale_inv;
-  z_vec[2] *= x_scale * z_scale_inv;
-  cap_transforms[0][2] = z_vec;
-  cap_transforms[1][2] = z_vec;
+  z_basis *= x_scale * z_scale_inv;
+  z_basis[3] = 0;
+  cap_transforms[0][2] = z_basis;
+  cap_transforms[1][2] = z_basis;
 
   const Magnum::Matrix3 rotation = transform.rotation();
-  const Magnum::Vector3 axis = rotation * Magnum::Vector3{ 0, 0, z_scale * 0.5f * kDefaultHeight };
+  const Magnum::Vector3 axis = rotation * Magnum::Vector3{ 0, 0, 0.5f * z_scale * kDefaultHeight };
 
   cap_transforms[0][3] += Magnum::Vector4(axis, 0.0f);
   cap_transforms[1][3] -= Magnum::Vector4(axis, 0.0f);
@@ -208,7 +207,7 @@ Magnum::GL::Mesh Capsule::solidMeshCylinder()
     std::vector<tes::Vector3f> normals;
     std::vector<unsigned> indices;
 
-    tes::cylinder::solid(vertices, indices, normals, Vector3f(0, 0, 1), 1.0f, 1.0f, 24, true);
+    tes::cylinder::solid(vertices, indices, normals, Vector3f(0, 0, 1), kDefaultHeight, kDefaultRadius, 24, true);
 
     build_mesh.setVertexCount(vertices.size());
     build_mesh.setIndexCount(indices.size());
@@ -283,6 +282,11 @@ util::ResourceListId Capsule::addShape(const Id &shape_id, Type type, const Magn
 
   // Modify the transform for the end caps. We change the Z scale to Z translation, then match Z scale to X/Y.
   // This makes the spherical end caps position and scale correctly.
+  // Note we need to include the parent rotation/scale transform in this calculation.
+  // if (parent_id.isValid())
+  // {
+
+  // }
   const auto end_transforms = calcEndCapTransforms(transform);
   ShapeCache::ShapeFlag flags = ShapeCache::ShapeFlag::None;
   flags |= (shape_id.isTransient()) ? ShapeCache::ShapeFlag::Transient : ShapeCache::ShapeFlag::None;

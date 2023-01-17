@@ -49,7 +49,7 @@ public:
   class TES_VIEWER_API ParentId
   {
   public:
-    inline explicit ParentId(const Id &shape_id, const util::ResourceListId resource_id)
+    explicit ParentId(const Id &shape_id, const util::ResourceListId resource_id)
       : _shape_id(shape_id)
       , _resource_id(resource_id)
     {}
@@ -60,11 +60,15 @@ public:
     ParentId &operator=(const ParentId &other) = default;
     ParentId &operator=(ParentId &&other) = default;
 
-    inline Id shapeId() const { return _shape_id; }
+    Id shapeId() const { return _shape_id; }
 
     /// Internal ID value.
     /// @return Internal value.
-    inline util::ResourceListId resourceId() const { return _resource_id; }
+    util::ResourceListId resourceId() const { return _resource_id; }
+
+    /// Check if this id is valid.
+    /// @return True when valid.
+    bool isValid() const { return _resource_id != util::kNullResource; }
 
   private:
     Id _shape_id;
@@ -75,7 +79,7 @@ public:
   class TES_VIEWER_API ChildId
   {
   public:
-    inline ChildId(const Id shape_id, unsigned child_index)
+    ChildId(const Id shape_id, unsigned child_index)
       : _shape_id(shape_id)
       , _index(child_index)
     {}
@@ -84,8 +88,8 @@ public:
     ChildId(const ChildId &other) = default;
     ChildId(ChildId &&other) = default;
 
-    inline Id shapeId() const { return _shape_id; }
-    inline unsigned index() const { return _index; }
+    Id shapeId() const { return _shape_id; }
+    unsigned index() const { return _index; }
 
   private:
     /// The primary shape id.

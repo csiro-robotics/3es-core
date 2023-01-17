@@ -176,7 +176,7 @@ bool ShapeCache::get(util::ResourceListId id, bool apply_parent_transform, Magnu
         while (parent.isValid())
         {
           transform = parent->current.transform * transform;
-          // Should really module colour values squared to be "correct" (gamma space I think?).
+          // Should really modulate colour values squared to be "correct" (gamma space I think?).
           colour = parent->current.colour * colour;
           parent = _shapes.at(parent->parent_rid);
         }
@@ -353,14 +353,14 @@ void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
 
   // Function to upload the contents of the marshalling buffer to the GPU.
   const auto upload_buffer = [this, &cur_instance_buffer_idx]() {
-    // Upload current data.
-    _instance_buffers[cur_instance_buffer_idx].buffer.setData(_marshal_buffer, Magnum::GL::BufferUsage::StaticDraw);
-    ++cur_instance_buffer_idx;
-    // Start new buffer.
+    // Start new buffer if required.
     if (cur_instance_buffer_idx >= _instance_buffers.size())
     {
       _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
     }
+    // Upload current data.
+    _instance_buffers[cur_instance_buffer_idx].buffer.setData(_marshal_buffer, Magnum::GL::BufferUsage::StaticDraw);
+    ++cur_instance_buffer_idx;
   };
 
   // Iterate shapes and marshal/upload.
