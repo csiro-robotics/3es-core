@@ -352,16 +352,18 @@ void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
   unsigned cur_instance_buffer_idx = 0;
 
   // Function to upload the contents of the marshalling buffer to the GPU.
-  const auto upload_buffer = [this, &cur_instance_buffer_idx]() {
-    // Start new buffer if required.
-    if (cur_instance_buffer_idx >= _instance_buffers.size())
-    {
-      _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
-    }
+  const auto upload_buffer = [this, &cur_instance_buffer_idx](bool add_buffer_on_full) {
     // Upload current data.
     _instance_buffers[cur_instance_buffer_idx].buffer.setData(_marshal_buffer, Magnum::GL::BufferUsage::StaticDraw);
     ++cur_instance_buffer_idx;
+    // Start new buffer if required.
+    if (add_buffer_on_full && cur_instance_buffer_idx >= _instance_buffers.size())
+    {
+      _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
+    }
   };
+
+  const bool have_transform_modifier = bool(_transform_modifier);
 
   // Iterate shapes and marshal/upload.
   for (auto iter = _shapes.begin(); iter != _shapes.end(); ++iter)
@@ -381,10 +383,15 @@ void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
         get(iter.id(), true, _marshal_buffer[marshal_index].transform, _marshal_buffer[marshal_index].colour);
       }
 
+      if (have_transform_modifier)
+      {
+        _transform_modifier(_marshal_buffer[marshal_index].transform);
+      }
+
       // Upload if at limit.
       if (_instance_buffers[cur_instance_buffer_idx].count == _marshal_buffer.size())
       {
-        upload_buffer();
+        upload_buffer(true);
       }
     }
   }
@@ -392,7 +399,7 @@ void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
   // Upload the last buffer.
   if (_instance_buffers[cur_instance_buffer_idx].count > 0)
   {
-    upload_buffer();
+    upload_buffer(false);
   }
 }
 }  // namespace tes::viewer::painter

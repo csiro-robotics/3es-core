@@ -40,6 +40,18 @@ Capsule::Capsule(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::
     std::make_unique<ShapeCache>(culler, _transparent_cache->shader(), Part{ solidMeshCapTop() }, calculateBounds);
   _transparent_end_caps[1] =
     std::make_unique<ShapeCache>(culler, _transparent_cache->shader(), Part{ solidMeshCapBottom() }, calculateBounds);
+
+  const auto top_cap_modifier = [](Magnum::Matrix4 &transform) { return endCapTransformModifier(transform, true); };
+  const auto bottom_cap_modifier = [](Magnum::Matrix4 &transform) { return endCapTransformModifier(transform, false); };
+
+  _solid_end_caps[0]->setTransformModifier(top_cap_modifier);
+  _solid_end_caps[1]->setTransformModifier(bottom_cap_modifier);
+
+  _wireframe_end_caps[0]->setTransformModifier(top_cap_modifier);
+  _wireframe_end_caps[1]->setTransformModifier(bottom_cap_modifier);
+
+  _transparent_end_caps[0]->setTransformModifier(top_cap_modifier);
+  _transparent_end_caps[1]->setTransformModifier(bottom_cap_modifier);
 }
 
 
@@ -69,10 +81,9 @@ bool Capsule::update(const Id &id, const Magnum::Matrix4 &transform, const Magnu
 
     if (std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(search->second.type))
     {
-      const auto end_transforms = calcEndCapTransforms(transform);
-      for (size_t i = 0; i < end_transforms.size(); ++i)
+      for (size_t i = 0; i < end_caches->size(); ++i)
       {
-        (*end_caches)[i]->update(search->second.index, end_transforms[i], colour);
+        (*end_caches)[i]->update(search->second.index, transform, colour);
       }
     }
 
@@ -170,26 +181,20 @@ std::array<std::unique_ptr<ShapeCache>, 2> *Capsule::endCapCachesForType(Type ty
 }
 
 
-std::array<Magnum::Matrix4, 2> Capsule::calcEndCapTransforms(const Magnum::Matrix4 &transform)
+void Capsule::endCapTransformModifier(Magnum::Matrix4 &transform, bool positive)
 {
-  // Modify the transform for the end caps. We change the Z scale to Z translation, then match Z scale to X/Y.
-  // This makes the spherical end caps position and scale correctly.
-  std::array<Magnum::Matrix4, 2> cap_transforms = { transform, transform };
+  // Remove
   Magnum::Vector4 z_basis = transform[2];
   float x_scale = transform[0].xyz().length();
   float z_scale = z_basis.xyz().length();
   float z_scale_inv = (z_scale > 1e-6f) ? 1.0f / z_scale : z_scale;
   z_basis *= x_scale * z_scale_inv;
   z_basis[3] = 0;
-  cap_transforms[0][2] = z_basis;
-  cap_transforms[1][2] = z_basis;
+  transform[2] = z_basis;
 
   const Magnum::Matrix3 rotation = transform.rotation();
   const Magnum::Vector3 axis = rotation * Magnum::Vector3{ 0, 0, 0.5f * z_scale * kDefaultHeight };
-
-  cap_transforms[0][3] += Magnum::Vector4(axis, 0.0f);
-  cap_transforms[1][3] -= Magnum::Vector4(axis, 0.0f);
-  return cap_transforms;
+  transform[3] += Magnum::Float(positive ? 1 : -1) * Magnum::Vector4(axis, 0.0f);
 }
 
 
@@ -280,20 +285,12 @@ util::ResourceListId Capsule::addShape(const Id &shape_id, Type type, const Magn
     return index;
   }
 
-  // Modify the transform for the end caps. We change the Z scale to Z translation, then match Z scale to X/Y.
-  // This makes the spherical end caps position and scale correctly.
-  // Note we need to include the parent rotation/scale transform in this calculation.
-  // if (parent_id.isValid())
-  // {
-
-  // }
-  const auto end_transforms = calcEndCapTransforms(transform);
   ShapeCache::ShapeFlag flags = ShapeCache::ShapeFlag::None;
   flags |= (shape_id.isTransient()) ? ShapeCache::ShapeFlag::Transient : ShapeCache::ShapeFlag::None;
   flags |= (hidden) ? ShapeCache::ShapeFlag::Hidden : ShapeCache::ShapeFlag::None;
-  for (size_t i = 0; i < end_transforms.size(); ++i)
+  for (size_t i = 0; i < end_caches->size(); ++i)
   {
-    (*end_caches)[i]->add(shape_id, end_transforms[i], colour, flags, parent_id.resourceId(), nullptr);
+    (*end_caches)[i]->add(shape_id, transform, colour, flags, parent_id.resourceId(), nullptr);
   }
   return index;
 }

@@ -69,7 +69,15 @@ private:
 
   std::array<std::unique_ptr<ShapeCache>, 2> *endCapCachesForType(Type type);
 
-  static std::array<Magnum::Matrix4, 2> calcEndCapTransforms(const Magnum::Matrix4 &transform);
+  /// Transform modifier function for end cap transforms.
+  ///
+  /// This normalises the Z scale to match the X/Y scale, so we have a uniform spherical end cap, but converts the
+  /// Z scale to an axial translation.
+  ///
+  /// @param[in,out] transform The transform to modify.
+  /// @param positive True to apply a positive axial translation, false for negative. This yields the two different end
+  /// caps.
+  static void endCapTransformModifier(Magnum::Matrix4 &transform, bool positive);
 
   // We have additional shape caches which draw the separate parts of the capsule.
   // The cylinder can be scaled, but the end caps need to be translated by the Z

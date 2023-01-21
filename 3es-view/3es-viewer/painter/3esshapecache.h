@@ -79,6 +79,9 @@ public:
   /// @param transform The shape transformation matrix.
   /// @param[out] bounds Set to the calculated bounds axis aligned box.
   using BoundsCalculator = std::function<void(const Magnum::Matrix4 &transform, Bounds &bounds)>;
+  /// Signature for the modifier function applied when rendering a shape transform.
+  /// @param[in,out] transform The transform to modify.
+  using TransformModifier = std::function<void(Magnum::Matrix4 &transform)>;
 
   class const_iterator;
 
@@ -127,25 +130,25 @@ public:
     /// Tint to apply to the shape colour.
     Magnum::Color4 colour = { 1, 1, 1, 1 };
 
-    inline Part() = default;
-    inline Part(const Part &other) = default;
-    inline Part(Part &&other) = default;
-    explicit inline Part(std::shared_ptr<Magnum::GL::Mesh> mesh)
+    Part() = default;
+    Part(const Part &other) = default;
+    Part(Part &&other) = default;
+    explicit Part(std::shared_ptr<Magnum::GL::Mesh> mesh)
       : Part(std::move(mesh), Magnum::Matrix4())
     {}
-    inline Part(std::shared_ptr<Magnum::GL::Mesh> mesh, const Magnum::Matrix4 &transform)
+    Part(std::shared_ptr<Magnum::GL::Mesh> mesh, const Magnum::Matrix4 &transform)
       : mesh(std::exchange(mesh, nullptr))
       , transform(transform)
     {}
-    explicit inline Part(Magnum::GL::Mesh &&mesh)
+    explicit Part(Magnum::GL::Mesh &&mesh)
       : Part(std::make_shared<Magnum::GL::Mesh>(std::move(mesh)), Magnum::Matrix4())
     {}
-    inline Part(Magnum::GL::Mesh &&mesh, const Magnum::Matrix4 &transform)
+    Part(Magnum::GL::Mesh &&mesh, const Magnum::Matrix4 &transform)
       : Part(std::make_shared<Magnum::GL::Mesh>(std::move(mesh)), transform)
     {}
 
-    inline Part &operator=(const Part &other) = default;
-    inline Part &operator=(Part &&other) = default;
+    Part &operator=(const Part &other) = default;
+    Part &operator=(Part &&other) = default;
   };
 
 
@@ -188,14 +191,22 @@ public:
   /// @param[out] halfExtents Calculated bounds half extents.
   void calcBounds(const Magnum::Matrix4 &transform, Bounds &bounds) const;
 
-  inline std::shared_ptr<shaders::Shader> shader() const { return _shader; }
+  std::shared_ptr<shaders::Shader> shader() const { return _shader; }
 
   /// Set the bounds calculation function.
   /// @param bounds_calculator New bounds calculation function.
-  inline void setBoundsCalculator(BoundsCalculator bounds_calculator)
-  {
-    _bounds_calculator = std::move(bounds_calculator);
-  }
+  void setBoundsCalculator(BoundsCalculator bounds_calculator) { _bounds_calculator = std::move(bounds_calculator); }
+
+  /// Get the active transform modifier. May be empty.
+  /// @return The transform modifier function.
+  const TransformModifier &transformModifier() const { return _transform_modifier; }
+  /// Set the active transform modifier. May be empty.
+  ///
+  /// Applied when finalising the render transform for a shape. The @c transform passed to the @p modifier will have
+  /// the parent transform included.
+  ///
+  /// @param modifier The transform modifier function.
+  void setTransformModifier(const TransformModifier &modifier) { _transform_modifier = modifier; }
 
   /// Add a shape instance which persists over the specified @p window . Use an open window if the end frame is not yet
   /// known.
@@ -286,43 +297,42 @@ public:
     };
 
     /// Default constructor.
-    inline const_iterator() = default;
+    const_iterator() = default;
     /// Iteration constructor
     /// @param cursor Initial iterator position
     /// @param end End iterator for the internal cache data.
-    inline const_iterator(util::ResourceList<Shape>::const_iterator &&cursor,
-                          util::ResourceList<Shape>::const_iterator &&end)
+    const_iterator(util::ResourceList<Shape>::const_iterator &&cursor, util::ResourceList<Shape>::const_iterator &&end)
       : _cursor(std::move(cursor))
       , _end(std::move(end))
     {}
     /// Copy constructor.
     /// @param other Iterator to copy.
-    inline const_iterator(const const_iterator &other) = default;
+    const_iterator(const const_iterator &other) = default;
     /// Copy constructor.
     /// @param other Iterator to move.
-    inline const_iterator(const_iterator &&other) = default;
+    const_iterator(const_iterator &&other) = default;
 
     /// Copy assignment operator.
     /// @param other Iterator to copy.
     /// @return @c *this
-    inline const_iterator &operator=(const const_iterator &other) = default;
+    const_iterator &operator=(const const_iterator &other) = default;
     /// Move assignment operator.
     /// @param other Iterator to move.
     /// @return @c *this
-    inline const_iterator &operator=(const_iterator &&other) = default;
+    const_iterator &operator=(const_iterator &&other) = default;
 
     /// Equality test. Only compares the cursor.
     /// @param other Iterator to compare.
     /// @return True if the iterators are semantically equivalent.
-    inline bool operator==(const const_iterator &other) const { return _cursor == other._cursor; }
+    bool operator==(const const_iterator &other) const { return _cursor == other._cursor; }
     /// Inequality test. Only compares the cursor.
     /// @param other Iterator to compare.
     /// @return True unless the iterators are semantically equivalent.
-    inline bool operator!=(const const_iterator &other) const { return !operator==(other); }
+    bool operator!=(const const_iterator &other) const { return !operator==(other); }
 
     /// Prefix increment
     /// @return @c *this
-    inline const_iterator &operator++()
+    const_iterator &operator++()
     {
       next();
       return *this;
@@ -330,7 +340,7 @@ public:
 
     /// Postfix increment
     /// @return An iterator before incrementing.
-    inline const_iterator operator++(int)
+    const_iterator operator++(int)
     {
       auto iter = *this;
       next();
@@ -339,14 +349,14 @@ public:
 
     /// Dereference to a @c View.
     /// @return A @c View to the current item.
-    inline const View &operator*() const { return _view; }
+    const View &operator*() const { return _view; }
     /// Dereference to a @c View.
     /// @return A @c View to the current item.
-    inline const View *operator->() const { return &_view; }
+    const View *operator->() const { return &_view; }
 
     /// Get the internal resource ID of the current item.
     /// @return
-    inline util::ResourceListId rid() const { return _cursor.id(); }
+    util::ResourceListId rid() const { return _cursor.id(); }
 
   private:
     /// Iterate to the next item.
@@ -359,10 +369,10 @@ public:
 
   /// Begin iteration of the shapes in the cache.
   /// @return The starting iterator.
-  inline const_iterator begin() const { return const_iterator(_shapes.begin(), _shapes.end()); }
+  const_iterator begin() const { return const_iterator(_shapes.begin(), _shapes.end()); }
   /// End iterator.
   /// @return The end iterator.
-  inline const_iterator end() const { return const_iterator(_shapes.end(), _shapes.end()); }
+  const_iterator end() const { return const_iterator(_shapes.end(), _shapes.end()); }
 
 private:
   friend const_iterator;
@@ -395,10 +405,10 @@ private:
 
     /// Check if this is a parent shape.
     /// @return True for a parent shape.
-    inline bool isParent() const { return parent_rid == kListEnd && next != kListEnd; }
+    bool isParent() const { return parent_rid == kListEnd && next != kListEnd; }
     /// Check if this is a child shape.
     /// @return True for a child shape.
-    inline bool isChild() const { return parent_rid != kListEnd; }
+    bool isChild() const { return parent_rid != kListEnd; }
   };
 
   /// Instance buffer used to render shapes. Only valid during the @c draw() call.
@@ -442,6 +452,8 @@ private:
   std::shared_ptr<shaders::Shader> _shader;
   /// Bounds calculation function.
   BoundsCalculator _bounds_calculator = ShapeCache::calcSphericalBounds;
+  /// Optional transform modifier.
+  TransformModifier _transform_modifier = {};
 };
 
 TES_ENUM_FLAGS(ShapeCache::ShapeFlag, unsigned);
