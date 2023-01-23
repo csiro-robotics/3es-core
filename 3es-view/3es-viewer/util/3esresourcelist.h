@@ -433,6 +433,7 @@ private:
 
   inline Id firstValid() const
   {
+    std::scoped_lock<decltype(_lock)> guard(_lock);
     for (Id id = 0; id < _items.size(); ++id)
     {
       const auto &item = _items[id];
