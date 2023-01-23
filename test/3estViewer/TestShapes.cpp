@@ -2,16 +2,16 @@
 // author: Kazys Stepanas
 //
 
-#include <3esviewer/painter/3esarrow.h>
-#include <3esviewer/painter/3esbox.h>
-#include <3esviewer/painter/3escapsule.h>
-#include <3esviewer/painter/3escone.h>
-#include <3esviewer/painter/3escylinder.h>
-#include <3esviewer/painter/3esplane.h>
-#include <3esviewer/painter/3espose.h>
-#include <3esviewer/painter/3essphere.h>
-#include <3esviewer/painter/3esstar.h>
-#include <3esviewer/3esviewer.h>
+#include <3esview/painter/Arrow.h>
+#include <3esview/painter/Box.h>
+#include <3esview/painter/Capsule.h>
+#include <3esview/painter/Cone.h>
+#include <3esview/painter/Cylinder.h>
+#include <3esview/painter/Plane.h>
+#include <3esview/painter/Pose.h>
+#include <3esview/painter/Sphere.h>
+#include <3esview/painter/Star.h>
+#include <3esview/Viewer.h>
 
 #include <gtest/gtest.h>
 

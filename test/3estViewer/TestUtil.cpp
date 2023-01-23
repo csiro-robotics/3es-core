@@ -2,7 +2,7 @@
 // author: Kazys Stepanas
 //
 
-#include <3esviewer/util/3esresourcelist.h>
+#include <3esview/util/ResourceList.h>
 
 #include <gtest/gtest.h>
 
