@@ -17,7 +17,7 @@ namespace tes
 /// -------------- | -----------------------------------------------------------------------------------------------
 /// @c centre()    | The sphere centre. An alias for @p position().
 /// @c radius()    | The sphere radius.
-class _3es_coreAPI Sphere : public Shape
+class TES_CORE_API Sphere : public Shape
 {
 public:
   /// Create a sphere.

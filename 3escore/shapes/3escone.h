@@ -19,7 +19,7 @@ namespace tes
 /// @c direction() | The direction from the apex the cone flanges out.
 /// @c length()    | Scaling value for the arrow. Defines the true length when @c direction() is unit length.
 /// @c angle()     | Angle cone axis to the walls at the apex.
-class _3es_coreAPI Cone : public Shape
+class TES_CORE_API Cone : public Shape
 {
 public:
   /// Construct a cone object.

@@ -148,8 +148,8 @@ protected:
   };
 };
 
-_3es_extern template class _3es_coreAPI PacketStream<PacketHeader>;
-_3es_extern template class _3es_coreAPI PacketStream<const PacketHeader>;
+_3es_extern template class TES_CORE_API PacketStream<PacketHeader>;
+_3es_extern template class TES_CORE_API PacketStream<const PacketHeader>;
 
 template <class HEADER>
 PacketStream<HEADER>::PacketStream(HEADER *packet)

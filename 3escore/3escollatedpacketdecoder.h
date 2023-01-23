@@ -55,7 +55,7 @@ struct CollatedPacketDecoderDetail;
 ///   }
 /// }
 /// @endcode
-class _3es_coreAPI CollatedPacketDecoder
+class TES_CORE_API CollatedPacketDecoder
 {
 public:
   /// Create a new packet decoder, optionally starting with the given @p packet.

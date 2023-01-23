@@ -14,41 +14,41 @@ enum SocketError
 
 };
 
-int _3es_coreAPI create();
-void _3es_coreAPI close(int socket);
+int TES_CORE_API create();
+void TES_CORE_API close(int socket);
 
-bool _3es_coreAPI setReceiveTimeout(int socket, unsigned timeoutMs);
-unsigned _3es_coreAPI getReceiveTimeout(int socket);
+bool TES_CORE_API setReceiveTimeout(int socket, unsigned timeoutMs);
+unsigned TES_CORE_API getReceiveTimeout(int socket);
 
-bool _3es_coreAPI setSendTimeout(int socket, unsigned timeoutMs);
-unsigned _3es_coreAPI getSendTimeout(int socket);
+bool TES_CORE_API setSendTimeout(int socket, unsigned timeoutMs);
+unsigned TES_CORE_API getSendTimeout(int socket);
 
-void _3es_coreAPI enableBlocking(int socket);
-void _3es_coreAPI disableBlocking(int socket);
+void TES_CORE_API enableBlocking(int socket);
+void TES_CORE_API disableBlocking(int socket);
 
-void _3es_coreAPI timevalFromMs(timeval &tv, unsigned milliseconds);
+void TES_CORE_API timevalFromMs(timeval &tv, unsigned milliseconds);
 
-void _3es_coreAPI dumpSocketOptions(int socket);
+void TES_CORE_API dumpSocketOptions(int socket);
 
-unsigned short _3es_coreAPI getSocketPort(int socket);
+unsigned short TES_CORE_API getSocketPort(int socket);
 
-bool _3es_coreAPI isConnected(int socket);
+bool TES_CORE_API isConnected(int socket);
 
-void _3es_coreAPI setNoDelay(int socket, bool noDelay);
+void TES_CORE_API setNoDelay(int socket, bool noDelay);
 
-bool _3es_coreAPI noDelay(int socket);
+bool TES_CORE_API noDelay(int socket);
 
-bool _3es_coreAPI checkSend(int socket, int ret);
+bool TES_CORE_API checkSend(int socket, int ret);
 
-bool _3es_coreAPI checkRecv(int socket, int ret);
+bool TES_CORE_API checkRecv(int socket, int ret);
 
-int _3es_coreAPI getSendBufferSize(int socket);
+int TES_CORE_API getSendBufferSize(int socket);
 
-bool _3es_coreAPI setSendBufferSize(int socket, int bufferSize);
+bool TES_CORE_API setSendBufferSize(int socket, int bufferSize);
 
-int _3es_coreAPI getReceiveBufferSize(int socket);
+int TES_CORE_API getReceiveBufferSize(int socket);
 
-bool _3es_coreAPI setReceiveBufferSize(int socket, int bufferSize);
+bool TES_CORE_API setReceiveBufferSize(int socket, int bufferSize);
 }  // namespace tcpbase
 }  // namespace tes
 

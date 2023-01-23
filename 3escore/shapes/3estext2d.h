@@ -17,7 +17,7 @@ namespace tes
 ///
 /// Positioning is in normalised screen coordinates.
 /// Expects UTF-8 encoding.
-class _3es_coreAPI Text2D : public Shape
+class TES_CORE_API Text2D : public Shape
 {
 public:
   /// Construct a 2D text.

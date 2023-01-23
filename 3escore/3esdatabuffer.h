@@ -77,7 +77,7 @@ class DataBuffer;
 
 namespace detail
 {
-class _3es_coreAPI DataBufferAffordances
+class TES_CORE_API DataBufferAffordances
 {
 public:
   virtual ~DataBufferAffordances();
@@ -96,7 +96,7 @@ public:
 };
 
 template <typename T>
-class _3es_coreAPI DataBufferAffordancesT : public DataBufferAffordances
+class TES_CORE_API DataBufferAffordancesT : public DataBufferAffordances
 {
 public:
   static DataBufferAffordances *instance();
@@ -133,16 +133,16 @@ public:
                         void **stream_ptr) const;
 };
 
-extern template class _3es_coreAPI DataBufferAffordancesT<int8_t>;
-extern template class _3es_coreAPI DataBufferAffordancesT<uint8_t>;
-extern template class _3es_coreAPI DataBufferAffordancesT<int16_t>;
-extern template class _3es_coreAPI DataBufferAffordancesT<uint16_t>;
-extern template class _3es_coreAPI DataBufferAffordancesT<int32_t>;
-extern template class _3es_coreAPI DataBufferAffordancesT<uint32_t>;
-extern template class _3es_coreAPI DataBufferAffordancesT<int64_t>;
-extern template class _3es_coreAPI DataBufferAffordancesT<uint64_t>;
-extern template class _3es_coreAPI DataBufferAffordancesT<float>;
-extern template class _3es_coreAPI DataBufferAffordancesT<double>;
+extern template class TES_CORE_API DataBufferAffordancesT<int8_t>;
+extern template class TES_CORE_API DataBufferAffordancesT<uint8_t>;
+extern template class TES_CORE_API DataBufferAffordancesT<int16_t>;
+extern template class TES_CORE_API DataBufferAffordancesT<uint16_t>;
+extern template class TES_CORE_API DataBufferAffordancesT<int32_t>;
+extern template class TES_CORE_API DataBufferAffordancesT<uint32_t>;
+extern template class TES_CORE_API DataBufferAffordancesT<int64_t>;
+extern template class TES_CORE_API DataBufferAffordancesT<uint64_t>;
+extern template class TES_CORE_API DataBufferAffordancesT<float>;
+extern template class TES_CORE_API DataBufferAffordancesT<double>;
 }  // namespace detail
 
 /// A helper class for wrapping various input array types into data streams for data transfer.
@@ -182,7 +182,7 @@ extern template class _3es_coreAPI DataBufferAffordancesT<double>;
 /// The byte size of the entire array is calculated as <tt>count() * sizeof(dataType) * componentCount</tt>.
 ///
 /// @c componentCount() values above 16 are not supported.
-class _3es_coreAPI DataBuffer
+class TES_CORE_API DataBuffer
 {
 public:
   DataBuffer();

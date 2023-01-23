@@ -17,7 +17,7 @@ namespace tes
 /// Expects UTF-8 encoding.
 ///
 /// FIXME: add rotation support to the text, identifying the orientation axes.
-class _3es_coreAPI Text3D : public Shape
+class TES_CORE_API Text3D : public Shape
 {
 public:
   /// Construct a 3D text.

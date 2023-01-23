@@ -31,7 +31,7 @@ namespace tes
 /// @bug Use the payloadOffset in various calculations herein. It was added after this
 /// class was written, but is currently only supported as being zero, so it's not an issue
 /// yet.
-class _3es_coreAPI PacketWriter : public PacketStream<PacketHeader>
+class TES_CORE_API PacketWriter : public PacketStream<PacketHeader>
 {
 public:
   /// Creates a @c PacketWriter to write to the given @p packet. This

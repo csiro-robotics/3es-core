@@ -88,14 +88,14 @@ struct PartIndexOffset
 /// @param axis The capsule primary axis.
 /// @param[out] part_isolated_index_offsets Optional - populated with index isolation offsets. See documentation body.
 /// @param local_end_caps True to build the end caps at the capsule cylinder. Only intended for isolated construction.
-void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
+void TES_CORE_API solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
                         float height, float radius, unsigned facets, const Vector3f &axis = Vector3f(0, 0, 1),
                         std::array<PartIndexOffset, 4> *part_isolated_index_offsets = nullptr,
                         bool local_end_caps = false);
 
 /// @overload
 /// Does not calculate normals.
-void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float height, float radius,
+void TES_CORE_API solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float height, float radius,
                         unsigned facets, const Vector3f &axis = Vector3f(0, 0, 1),
                         std::array<PartIndexOffset, 4> *part_isolated_index_offsets = nullptr,
                         bool local_end_caps = false);
@@ -113,7 +113,7 @@ void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
 /// @param axis The capsule primary axis.
 /// @param[out] part_isolated_index_offsets Optional - populated with index isolation offsets. See documentation body.
 /// @param local_end_caps True to build the end caps at the capsule cylinder. Only intended for isolated construction.
-void _3es_coreAPI wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float height, float radius,
+void TES_CORE_API wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float height, float radius,
                             unsigned segments, const Vector3f &axis = Vector3f(0, 0, 1),
                             std::array<PartIndexOffset, 4> *part_isolated_index_offsets = nullptr,
                             bool local_end_caps = false);

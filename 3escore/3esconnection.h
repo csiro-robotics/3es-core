@@ -17,7 +17,7 @@ class Shape;
 struct ServerInfoMessage;
 
 /// Defines the interfaces for a client connection.
-class _3es_coreAPI Connection
+class TES_CORE_API Connection
 {
 public:
   /// Virtual destructor.

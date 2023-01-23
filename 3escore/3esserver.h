@@ -44,7 +44,7 @@ enum ServerFlag
 };
 
 /// Settings used to create the server.
-struct _3es_coreAPI ServerSettings
+struct TES_CORE_API ServerSettings
 {
   /// First port to try listening on.
   uint16_t listenPort = 33500u;
@@ -77,7 +77,7 @@ struct _3es_coreAPI ServerSettings
 /// available via @c connectionMonitor(). See that class's comments for
 /// details of synchronous and asynchronous operation. The monitor
 /// will be null if connections are not supported (generally internal only).
-class _3es_coreAPI Server : public Connection
+class TES_CORE_API Server : public Connection
 {
 public:
   /// Creates a server with the given settings.

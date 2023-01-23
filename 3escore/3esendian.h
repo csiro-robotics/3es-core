@@ -14,7 +14,7 @@ namespace tes
 /// This reverses the order of bytes in @p data.
 /// @param data The data buffer to reverse.
 /// @param size The number of bytes in @p data.
-void _3es_coreAPI endianSwap(uint8_t *data, size_t size);
+void TES_CORE_API endianSwap(uint8_t *data, size_t size);
 
 /// A 1-byte value Endian swap: noop.
 /// For completeness.

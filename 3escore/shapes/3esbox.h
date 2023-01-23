@@ -21,7 +21,7 @@ namespace tes
 /// @c position()  | The box base position.
 /// @c scale()     | The box size/scale, where (1, 1, 1) defines a unit box.
 /// @c rotation()  | Quaternion rotation to apply to the box.
-class _3es_coreAPI Box : public Shape
+class TES_CORE_API Box : public Shape
 {
 public:
   /// Construct a box object.

@@ -32,8 +32,8 @@ namespace tes
 {
 class Exception;
 
-void _3es_coreAPI logException(const Exception &e);
-void _3es_coreAPI logException(const Exception &e, const char *file, int line);
+void TES_CORE_API logException(const Exception &e);
+void TES_CORE_API logException(const Exception &e, const char *file, int line);
 }  // namespace tes
 
 #endif  // _3ESTHROW_H

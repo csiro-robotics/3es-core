@@ -16,7 +16,7 @@ struct SpinLockImp;
 /// This is a naive implementation and does not support re-locking.
 ///
 /// Best used with @c std::unique_lock as an exception and scope safe guard.
-class _3es_coreAPI SpinLock
+class TES_CORE_API SpinLock
 {
 public:
   /// Construct a spin lock (unlocked).

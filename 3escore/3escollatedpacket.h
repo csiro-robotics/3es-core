@@ -48,7 +48,7 @@ class PacketWriter;
 /// required). Such large, collated packets are sent using
 /// @c Server::send(const CollatedPacket &). Internally, the method may either send
 /// the packet as is (if small enough), or extract and reprocess each collated packet.
-class _3es_coreAPI CollatedPacket : public Connection
+class TES_CORE_API CollatedPacket : public Connection
 {
 public:
   /// Byte count overhead added by using a @p CollatedPacket.

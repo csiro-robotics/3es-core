@@ -26,7 +26,7 @@ namespace tes
 /// The @c MultiShape may optionally take ownership of the shape memory via @c takeOwnership(). In this case, the
 /// @c MultiShape copies the original array and takes ownership for the contained pointers. This means the original
 /// array may be disposed of, but not the shapes in the array - these will be cleaned up by the @c MultiShape.
-class _3es_coreAPI MultiShape : public Shape
+class TES_CORE_API MultiShape : public Shape
 {
 public:
   /// Maximum number of shapes in a multi shape packet using single precision. Halve for double precision. Packet is too

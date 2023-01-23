@@ -21,7 +21,7 @@ namespace tes
 ///
 /// The @c PointCloudShape shape supports limiting the view into the @c MeshResource
 /// by having its own set of indices (see @c setIndices()).
-class _3es_coreAPI PointCloudShape : public Shape
+class TES_CORE_API PointCloudShape : public Shape
 {
 public:
   /// Construct a point cloud shape object.

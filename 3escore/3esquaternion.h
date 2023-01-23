@@ -250,8 +250,8 @@ typedef Quaternion<float> Quaternionf;
 /// Defines a double precision quaternion.
 typedef Quaternion<double> Quaterniond;
 
-_3es_extern template class _3es_coreAPI Quaternion<float>;
-_3es_extern template class _3es_coreAPI Quaternion<double>;
+_3es_extern template class TES_CORE_API Quaternion<float>;
+_3es_extern template class TES_CORE_API Quaternion<double>;
 }  // namespace tes
 
 #include "3esquaternion.inl"

@@ -17,7 +17,7 @@ struct PointCloudImp;
 /// A @c MeshResource which defines a point cloud by its contained vertices..
 ///
 /// The @c PointCloud supports a set of vertices, normals and colours only. Indices, UVs are not supported.
-class _3es_coreAPI PointCloud : public MeshResource
+class TES_CORE_API PointCloud : public MeshResource
 {
 protected:
   /// A shallow copy constructor, supporting copy on write semantics.

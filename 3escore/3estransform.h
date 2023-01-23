@@ -23,7 +23,7 @@ namespace tes
 /// data. The flag value may be explicitly set.
 ///
 /// Derivations of the @c Transform as used to configure shapes which do not require full scaling or rotation.
-class _3es_coreAPI Transform
+class TES_CORE_API Transform
 {
 public:
   /// Single precision constructor without rotation.
@@ -183,7 +183,7 @@ private:
 /// The direction vector is converted into the @c rotation() value by calculating the @c Quaternion rotation from
 /// @c DefaultDirection to the specified direction vector. The radius and length are stored in the @c scale() with
 /// radius stored in X and Y components and length in Z.
-class _3es_coreAPI Directional : public Transform
+class TES_CORE_API Directional : public Transform
 {
 public:
   /// Default direction used as a reference orientation for generating a quaternion rotation.
@@ -274,7 +274,7 @@ public:
 ///
 /// @note Shapes supporting @c Spherical transform may also support a direct @c Transform with rotation and non-uniform
 /// scaling. For example, a @c Sphere with rotation and non-uniform scaling generates an ellipsoid.
-class _3es_coreAPI Spherical : public Transform
+class TES_CORE_API Spherical : public Transform
 {
 public:
   /// Default constructor, creating an identity transformation (single precision).

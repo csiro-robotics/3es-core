@@ -35,9 +35,9 @@ enum WMode
   WM_First
 };
 
-int _3es_coreAPI getMatMode(std::ostream &o);
-int _3es_coreAPI getQuatWMode(std::ostream &o);
-int _3es_coreAPI getV4WMode(std::ostream &o);
+int TES_CORE_API getMatMode(std::ostream &o);
+int TES_CORE_API getQuatWMode(std::ostream &o);
+int TES_CORE_API getV4WMode(std::ostream &o);
 }  // namespace tes
 
 /// @ingroup tesiostream
@@ -45,18 +45,18 @@ int _3es_coreAPI getV4WMode(std::ostream &o);
 /// @param o The stream to set the mode for.
 /// @param mode The mode to set. See @c tes::MatMode
 /// @return @c o
-std::ostream _3es_coreAPI &matmode(std::ostream &o, int mode);
+std::ostream TES_CORE_API &matmode(std::ostream &o, int mode);
 /// @ingroup tesiostream
 /// Set the @c tes::WMode used to display @c tes::Vector4 in a stream.
 /// @param o The stream to set the mode for.
 /// @param mode The mode to set. See @c tes::WMode
 /// @return @c o
-std::ostream _3es_coreAPI &v4wmode(std::ostream &o, int mode);
+std::ostream TES_CORE_API &v4wmode(std::ostream &o, int mode);
 /// @ingroup tesiostream
 /// Set the @c tes::WMode used to display @c tes::Quaternion in a stream.
 /// @param o The stream to set the mode for.
 /// @param mode The mode to set. See @c tes::WMode
 /// @return @c o
-std::ostream _3es_coreAPI &quatwmode(std::ostream &o, int mode);
+std::ostream TES_CORE_API &quatwmode(std::ostream &o, int mode);
 
 #endif  // _3ESMATHSMANIP_H_

@@ -73,7 +73,7 @@ class Resource;
 ///
 /// No method for reading @c DestroyMessage is provided as it does not apply
 /// modifications to the shape members.
-class _3es_coreAPI Shape
+class TES_CORE_API Shape
 {
 public:
   /// Create a new shape with the given @c routingId and instance @c id .

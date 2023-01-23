@@ -28,12 +28,12 @@ namespace cone
 /// @param height The height of the cone.
 /// @param angle The angle between the cone axis vector and the walls.
 /// @param facets The number of facets around the shape to tessellate with.
-void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
+void TES_CORE_API solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
                         const Vector3f &apex, const Vector3f &axis, float height, float angle, unsigned facets);
 
 /// @overload
 /// Does not calculate normals.
-void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &apex,
+void TES_CORE_API solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &apex,
                         const Vector3f &axis, float height, float angle, unsigned facets);
 
 /// Build a wireframe cone. This builds a ring around the base and connects them to the apex. The apex is the first
@@ -48,7 +48,7 @@ void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
 /// @param angle The angle between the cone axis vector and the walls.
 /// @param segments Number of segments to the base ring.
 /// @return
-void _3es_coreAPI wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &apex,
+void TES_CORE_API wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &apex,
                             const Vector3f &axis, float height, float angle, unsigned segments);
 }  // namespace cone
 }  // namespace tes

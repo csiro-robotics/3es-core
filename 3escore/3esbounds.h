@@ -107,8 +107,8 @@ private:
   Vector3<T> _maximum;  ///< Maximum extents.
 };
 
-_3es_extern template class _3es_coreAPI Bounds<float>;
-_3es_extern template class _3es_coreAPI Bounds<double>;
+_3es_extern template class TES_CORE_API Bounds<float>;
+_3es_extern template class TES_CORE_API Bounds<double>;
 
 /// Single precision bounds.
 typedef Bounds<float> Boundsf;

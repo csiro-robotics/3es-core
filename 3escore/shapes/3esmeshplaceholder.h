@@ -15,7 +15,7 @@ namespace tes
 ///
 /// This can be use to reference an existing mesh resource, primarily when using the
 /// macro interface to release a mesh set such as with the @c tesmacros.
-class _3es_coreAPI MeshPlaceholder : public MeshResource
+class TES_CORE_API MeshPlaceholder : public MeshResource
 {
 public:
   /// Create a placeholder mesh resource for the given @p id.

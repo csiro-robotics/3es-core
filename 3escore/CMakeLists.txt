@@ -101,8 +101,9 @@ tes_configure_target(3escore)
 # Define DLL export header (primarily for MSVC).
 include(GenerateExportHeader)
 generate_export_header(3escore
-      EXPORT_MACRO_NAME _3es_coreAPI
-      NO_EXPORT_MACRO_NAME _3es_coreHIDDEN
+      EXPORT_MACRO_NAME TES_CORE_API
+      NO_EXPORT_MACRO_NAME TES_CORE_HIDDEN
+      DEPRECATED_MACRO_NAME TES_CORE_DEPRECATED
       EXPORT_FILE_NAME 3escore/CoreExport.h
       STATIC_DEFINE TES_STATIC
       )

@@ -36,32 +36,32 @@ using LogFunction = std::function<void(Level level, const std::string &message)>
 /// @param level The logging level. This is provided for information purposes; any logging prefix will already be
 /// added.
 /// @param message The message to log.
-void _3es_coreAPI defaultLogger(Level level, const std::string &message);
+void TES_CORE_API defaultLogger(Level level, const std::string &message);
 
 /// Get the logging function. This is used to log all messages.
 /// @return The current loging function.
-LogFunction _3es_coreAPI logger();
+LogFunction TES_CORE_API logger();
 /// Set the logging function.
 ///
 /// Not threadsafe.
 /// @param logger
-void _3es_coreAPI setLogger(LogFunction logger);
+void TES_CORE_API setLogger(LogFunction logger);
 
 /// Log level to string
 /// @param level The level to convert.
 /// @return The level string text.
-const std::string _3es_coreAPI &toString(Level level);
+const std::string TES_CORE_API &toString(Level level);
 
 /// Get the logging prefix for a particular logging level.
 ///
 /// Of the form @c "[{toString(level)}]"
 /// @param level The level to get the prefix for.
 /// @return The message prefix.
-const std::string _3es_coreAPI &prefix(Level level);
+const std::string TES_CORE_API &prefix(Level level);
 
 /// Log the given message is is. No prefix or newlines are added.
 /// @param message Message to log.
-void _3es_coreAPI log(Level level, const std::string &message);
+void TES_CORE_API log(Level level, const std::string &message);
 
 /// @overload
 inline void log(const std::string &message)
@@ -71,7 +71,7 @@ inline void log(const std::string &message)
 
 /// Log a fatal error and terminate execution.
 /// @param message Message to log.
-void _3es_coreAPI fatal(const std::string &message);
+void TES_CORE_API fatal(const std::string &message);
 
 /// Helper function for assempling a log message.
 /// @param str Stream to append to.

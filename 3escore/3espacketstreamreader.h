@@ -24,7 +24,7 @@ struct PacketHeader;
 /// @c extractPacket() is called, provided there are sufficient bytes available.
 /// A @c PacketReader is still required to decode the contents of the resulting
 /// @c PacketHeader data.
-class _3es_coreAPI PacketStreamReader
+class TES_CORE_API PacketStreamReader
 {
 public:
   /// Construct a stream reader for the given stream.

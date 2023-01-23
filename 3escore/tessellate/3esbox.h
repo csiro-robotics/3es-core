@@ -24,12 +24,12 @@ namespace box
 /// @param[out] indices Populated with the mesh indices.
 /// @param[out] normals Populated with per vertex normals.
 /// @param scale The scale of the box along each axis where 1 makes a unit length side.
-void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
+void TES_CORE_API solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
                         const Vector3f &scale = Vector3f(1.0f));
 
 /// @overload
 /// Does not calculate normals.
-void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+void TES_CORE_API solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
                         const Vector3f &scale = Vector3f(1.0f));
 
 /// Build a line drawn/wireframe box mesh.
@@ -37,7 +37,7 @@ void _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
 /// @param[out] vertices Populated with the mesh vertices.
 /// @param[out] indices Populated with the mesh indices.
 /// @param scale The scale of the box along each axis where 1 makes a unit length side.
-void _3es_coreAPI wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+void TES_CORE_API wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
                             const Vector3f &scale = Vector3f(1.0f));
 }  // namespace box
 }  // namespace tes

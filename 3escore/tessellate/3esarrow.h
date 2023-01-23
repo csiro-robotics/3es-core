@@ -29,13 +29,13 @@ namespace arrow
 /// @param cylinderLength Length of the cylinder/shaft part. Must be less than the @p arrowLength
 /// @param axis The axis along which the arrow points.
 /// @return True if the parameterisation results in a valid shape.
-bool _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
+bool TES_CORE_API solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
                         unsigned facets, float headRadius, float cylinderRadius, float cylinderLength,
                         float arrowLength, const Vector3f axis = Vector3f(0, 0, 1));
 
 /// @overload
 /// Does not calculate normals.
-bool _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, unsigned facets,
+bool TES_CORE_API solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, unsigned facets,
                         float headRadius, float cylinderRadius, float cylinderLength, float arrowLength,
                         const Vector3f axis = Vector3f(0, 0, 1));
 
@@ -49,7 +49,7 @@ bool _3es_coreAPI solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &
 /// @param cylinderLength Length of the cylinder/shaft part. Must be less than the @p arrowLength
 /// @param axis The axis along which the arrow points.
 /// @return True if the parameterisation results in a valid shape.
-bool _3es_coreAPI wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, unsigned facets,
+bool TES_CORE_API wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, unsigned facets,
                             float headRadius, float cylinderRadius, float cylinderLength, float arrowLength,
                             const Vector3f axis = Vector3f(0, 0, 1));
 }  // namespace arrow

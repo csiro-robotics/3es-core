@@ -48,8 +48,8 @@ inline Vector4<T> toVector(const Colour &c)
 {
   return Vector4<T>(T(c.rf()), T(c.gf()), T(c.bf()), T(c.af()));
 }
-template Vector4<float> _3es_coreAPI toVector(const Colour &c);
-template Vector4<double> _3es_coreAPI toVector(const Colour &c);
+template Vector4<float> TES_CORE_API toVector(const Colour &c);
+template Vector4<double> TES_CORE_API toVector(const Colour &c);
 
 
 /// Convert a @c Colour to a 4-component vector.
@@ -57,7 +57,7 @@ template Vector4<double> _3es_coreAPI toVector(const Colour &c);
 /// RGBA channels are mapped to XYZA respectively. Values are scaled [0, 1] depending on the input value [0, 255].
 /// @param c The colour to convert.
 /// @return The floating point representation of the colour.
-inline Vector4f _3es_coreAPI toVectorf(const Colour &c)
+inline Vector4f TES_CORE_API toVectorf(const Colour &c)
 {
   return toVector<float>(c);
 }
@@ -67,7 +67,7 @@ inline Vector4f _3es_coreAPI toVectorf(const Colour &c)
 /// RGBA channels are mapped to XYZA respectively. Values are scaled [0, 1] depending on the input value [0, 255].
 /// @param c The colour to convert.
 /// @return The floating point (double) representation of the colour.
-inline Vector4d _3es_coreAPI toVectord(const Colour &c)
+inline Vector4d TES_CORE_API toVectord(const Colour &c)
 {
   return toVector<double>(c);
 }
@@ -90,8 +90,8 @@ inline Colour toColour(const Vector4<T> &v)
 }
 
 
-template Colour _3es_coreAPI toColour(const Vector4<float> &v);
-template Colour _3es_coreAPI toColour(const Vector4<double> &v);
+template Colour TES_CORE_API toColour(const Vector4<float> &v);
+template Colour TES_CORE_API toColour(const Vector4<double> &v);
 
 
 /// Calculate the next power of 2 equal to or greater than @p v.

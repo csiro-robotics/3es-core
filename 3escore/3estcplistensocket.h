@@ -16,7 +16,7 @@ struct TcpListenSocketDetail;
 /// Represents a TCP server socket, listening for connections.
 /// Each new connection is serviced by it's own @c TcpSocket,
 /// spawned from this class.
-class _3es_coreAPI TcpListenSocket
+class TES_CORE_API TcpListenSocket
 {
 public:
   /// Constructor.

@@ -22,7 +22,7 @@ struct ObjectAttributes;
 ///
 /// @todo Update to support double precision vertices and normals including quantised transfer.
 /// The mesh creation already does respect the @c transform() flag @c Transform::preferDoublePrecision() .
-class _3es_coreAPI MeshResource : public Resource
+class TES_CORE_API MeshResource : public Resource
 {
 public:
   /// Virtual destructor.

@@ -28,7 +28,7 @@ class PacketWriter;
 ///
 /// @c isNull() will return @c true once all packets have been generated and there is no more data to pack for the
 /// @c Resource. Note the @c Resource must outlive the packing process.
-class _3es_coreAPI ResourcePacker
+class TES_CORE_API ResourcePacker
 {
 public:
   /// Constructor.

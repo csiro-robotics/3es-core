@@ -16,7 +16,7 @@ struct PacketHeader;
 /// This class accepts responsibility for collating incoming byte streams.
 /// Data is buffered until full packets have arrived, which must be extracted
 /// using @c extractPacket().
-class _3es_coreAPI PacketBuffer
+class TES_CORE_API PacketBuffer
 {
 public:
   /// Constructors 2Kb buffer.

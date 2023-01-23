@@ -17,7 +17,7 @@ namespace tes
 ///
 /// Storage is designed to allow colours to be written as unsigned
 /// hexadecimal integers as 0xRRGGBBAA regardless of the target Endian.
-class _3es_coreAPI Colour
+class TES_CORE_API Colour
 {
 public:
 #ifdef __GNUC__

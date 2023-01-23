@@ -19,7 +19,7 @@ namespace tes
 /// @c axis()      | Defines the cylinder primary axis. Affects @c rotation().
 /// @c length()    | The length of the cylinder body.
 /// @c radius()    | Radius of the cylinder walls.
-class _3es_coreAPI Cylinder : public Shape
+class TES_CORE_API Cylinder : public Shape
 {
 public:
   /// Construct a cylinder object.

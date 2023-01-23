@@ -67,7 +67,7 @@ class Server;
 /// server->connectionMonitor()->stop();  // Safe even if Synchronous
 /// server->connectionMonitor()->join();  // Safe even if Synchronous
 /// @endcode
-class _3es_coreAPI ConnectionMonitor
+class TES_CORE_API ConnectionMonitor
 {
 protected:
   /// Protected virtual destructor.

@@ -32,7 +32,7 @@ struct TransferProgress;
 ///
 /// These steps are followed for each connected client all these functions must be
 /// reentrant.
-class _3es_coreAPI Resource
+class TES_CORE_API Resource
 {
 public:
   /// Virtual destructor (empty).

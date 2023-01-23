@@ -60,12 +60,12 @@ struct IntArgT
   INT i;
 };
 
-template struct _3es_coreAPI IntArgT<int>;
+template struct TES_CORE_API IntArgT<int>;
 typedef IntArgT<int> IntArg;
-template struct _3es_coreAPI IntArgT<unsigned>;
+template struct TES_CORE_API IntArgT<unsigned>;
 typedef IntArgT<unsigned> UIntArg;
 #ifdef TES_64
-template struct _3es_coreAPI IntArgT<size_t>;
+template struct TES_CORE_API IntArgT<size_t>;
 typedef IntArgT<size_t> SizeTArg;
 #else   // TES_64
 typedef UIntArg SizeTArg;

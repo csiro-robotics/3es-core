@@ -18,7 +18,7 @@ class MeshResource;
 
 /// Represents a mesh shape. Requires a @c MeshResource parts to get represent mesh topology.
 /// The shape never owns the @c MeshResource parts and they must outlive the shape.
-class _3es_coreAPI MeshSet : public Shape
+class TES_CORE_API MeshSet : public Shape
 {
 public:
   /// Create a shape with a @c partCount parts. Use @c setPart() to populate.

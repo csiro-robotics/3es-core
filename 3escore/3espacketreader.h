@@ -15,7 +15,7 @@ namespace tes
 /// @bug Use the payloadOffset in various calculations herein. It was added after this
 /// class was written, but is currently only supported as being zero, so it's not an issue
 /// yet.
-class _3es_coreAPI PacketReader : public PacketStream<const PacketHeader>
+class TES_CORE_API PacketReader : public PacketStream<const PacketHeader>
 {
 public:
   /// Creates a new packet reader for the given packet and its CRC.

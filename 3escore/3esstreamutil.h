@@ -24,7 +24,7 @@ namespace streamutil
 /// @param stream The file stream to initialise. Must support writing.
 /// @param serverInfo Optional server info to write. When null it is assumed that this has already been written.
 /// @return True on success, false due to any failure.
-bool _3es_coreAPI initialiseStream(std::ostream &stream, const ServerInfoMessage *serverInfo = nullptr);
+bool TES_CORE_API initialiseStream(std::ostream &stream, const ServerInfoMessage *serverInfo = nullptr);
 
 /// Finalise a data stream previously initialised with @c initialiseStream(). The @p stream must be seekable for
 /// read/write so that the initial @c CIdFrameCount @c ControlMessage can be found and fixed.
@@ -36,7 +36,7 @@ bool _3es_coreAPI initialiseStream(std::ostream &stream, const ServerInfoMessage
 /// over the existing @c ServerInfoMessage near the start of the stream. This handles cases where the info may not
 /// be known at the start.
 /// @return True on success, false due to any failure.
-bool _3es_coreAPI finaliseStream(std::iostream &stream, unsigned frameCount,
+bool TES_CORE_API finaliseStream(std::iostream &stream, unsigned frameCount,
                                  const ServerInfoMessage *serverInfo = nullptr);
 }  // namespace streamutil
 }  // namespace tes

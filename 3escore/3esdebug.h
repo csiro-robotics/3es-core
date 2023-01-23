@@ -21,11 +21,11 @@
 namespace tes
 {
 /// Trigger a programmatic breakpoint. Behaviour varies between platforms.
-void _3es_coreAPI debugBreak();
+void TES_CORE_API debugBreak();
 
 /// Called on assertion failures. Prints @p msg and triggers a programmatic breakpoint.
 /// @param msg The assertion message to display.
-void _3es_coreAPI assertionFailure(const char *msg = "");
+void TES_CORE_API assertionFailure(const char *msg = "");
 }  // namespace tes
 
 #endif  // _3ESDEBUG_H_

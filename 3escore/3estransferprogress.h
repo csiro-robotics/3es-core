@@ -15,7 +15,7 @@ namespace tes
 /// The semantics of @c progress and @p phase depend on usage.
 ///
 /// Most notably used with @c Resource.
-struct _3es_coreAPI TransferProgress
+struct TES_CORE_API TransferProgress
 {
   /// Progress value for the current phase.
   int64_t progress;

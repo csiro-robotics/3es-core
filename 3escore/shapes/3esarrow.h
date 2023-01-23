@@ -19,7 +19,7 @@ namespace tes
 /// @c direction() | The arrow direction vector. Must be unit length.
 /// @c length()    | Length of the arrow from base to tip.
 /// @c radius()    | Radius of the arrow body. The arrow head will be slightly larger.
-class _3es_coreAPI Arrow : public Shape
+class TES_CORE_API Arrow : public Shape
 {
 public:
   /// Construct an arrow object.

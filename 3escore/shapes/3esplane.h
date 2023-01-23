@@ -20,7 +20,7 @@ namespace tes
 /// @c position()  | Where to display a planar section.
 /// @c normal()    | The plane normal.
 /// @c scale()     | Defines the size of the plane rectangle (X,Y) and @c normalLength() (Z).
-class _3es_coreAPI Plane : public Shape
+class TES_CORE_API Plane : public Shape
 {
 public:
   /// Create a plane.

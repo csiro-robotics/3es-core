@@ -19,7 +19,7 @@ namespace tes
 /// @c axis()      | Defines the capsule primary axis. Affects @c rotation().
 /// @c length()    | The length of the cylindrical part of the capsule. The end caps increase the extents further.
 /// @c radius()    | Radius of the capsule cylinder and end caps.
-class _3es_coreAPI Capsule : public Shape
+class TES_CORE_API Capsule : public Shape
 {
 public:
   /// Construct a capsule object.

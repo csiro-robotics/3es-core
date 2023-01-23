@@ -15,7 +15,7 @@ namespace tes
 /// A pose is represented by a set of axis arrows or lines, coloured RBG corresponding to XYZ.
 ///
 /// Setting the shape colour tints the axis colours.
-class _3es_coreAPI Pose : public Shape
+class TES_CORE_API Pose : public Shape
 {
 public:
   /// Construct a box object.

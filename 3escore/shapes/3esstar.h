@@ -18,7 +18,7 @@ namespace tes
 /// -------------- | -----------------------------------------------------------------------------------------------
 /// @c centre()    | The star centre. An alias for @p position().
 /// @c radius()    | The star radius.
-class _3es_coreAPI Star : public Shape
+class TES_CORE_API Star : public Shape
 {
 public:
   /// Create a star.

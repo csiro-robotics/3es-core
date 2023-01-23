@@ -16,7 +16,7 @@ namespace tes
 struct SimpleMeshImp;
 
 /// An encapsulated definition of a mesh. It manages all its own vertices, indices, etc.
-class _3es_coreAPI SimpleMesh : public MeshResource
+class TES_CORE_API SimpleMesh : public MeshResource
 {
 public:
   /// Flags indicating which components are present. @c Vertex flag is

@@ -291,8 +291,8 @@ public:
   inline Vector3<T> zyx() const { return Vector3<T>(x, y, x); }
 };
 
-_3es_extern template class _3es_coreAPI Vector3<float>;
-_3es_extern template class _3es_coreAPI Vector3<double>;
+_3es_extern template class TES_CORE_API Vector3<float>;
+_3es_extern template class TES_CORE_API Vector3<double>;
 
 
 //---------------------------------------------------------------------------

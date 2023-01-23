@@ -31,7 +31,7 @@ enum Feature
 /// This is simply <tt>1 << feature</tt>.
 /// @param feature The feature of interest.
 /// @return The flag for @p feature.
-uint64_t _3es_coreAPI featureFlag(Feature feature);
+uint64_t TES_CORE_API featureFlag(Feature feature);
 
 /// Convert a feature flag back to a @c feature.
 ///
@@ -40,12 +40,12 @@ uint64_t _3es_coreAPI featureFlag(Feature feature);
 /// @return The @c Feature associated with @p flag or @c TFeatureInvalid if no
 ///   valid feature bits are set.
 /// @see @c featureFlag()
-Feature _3es_coreAPI featureForFlag(uint64_t flag);
+Feature TES_CORE_API featureForFlag(uint64_t flag);
 
 /// Check if a particular @c Feature is available.
 /// @param feature The feature to check for.
 /// @return True if the feature is available or enabled.
-bool _3es_coreAPI checkFeature(Feature feature);
+bool TES_CORE_API checkFeature(Feature feature);
 
 /// Check for a feature by its flag.
 ///
@@ -54,7 +54,7 @@ bool _3es_coreAPI checkFeature(Feature feature);
 ///
 /// @param featureFlag The feature flag to check for.
 /// @return True if the feature is available.
-bool _3es_coreAPI checkFeatureFlag(uint64_t featureFlag);
+bool TES_CORE_API checkFeatureFlag(uint64_t featureFlag);
 
 /// Check if a set of features are available. Use @c featureFlag() to convert from
 /// @c Feature to a feature flag.
@@ -62,7 +62,7 @@ bool _3es_coreAPI checkFeatureFlag(uint64_t featureFlag);
 /// Only valid feature flags are checked. Always true if @p featureFlags is zero.
 /// @param featureFlags Set of features to check for.
 /// @return True if all features in @p featureFlags are available.
-bool _3es_coreAPI checkFeatures(uint64_t featureFlags);
+bool TES_CORE_API checkFeatures(uint64_t featureFlags);
 }  // namespace tes
 
 #endif  // _3ESFEATURE_H_

@@ -13,7 +13,7 @@ namespace tes
 struct TcpSocketDetail;
 
 /// A TCP/IP communication socket implementation.
-class _3es_coreAPI TcpSocket
+class TES_CORE_API TcpSocket
 {
 public:
   /// Value used to signify an indefinite timeout.

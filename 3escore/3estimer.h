@@ -9,7 +9,7 @@
 namespace tes
 {
 /// A timing information structure.
-struct _3es_coreAPI Timing
+struct TES_CORE_API Timing
 {
   /// Number of seconds elapsed.
   long long s;
@@ -40,7 +40,7 @@ struct _3es_coreAPI Timing
 ///
 /// A timer may be restarted by calling @c start() and @c mark() again. A timer
 /// cannot be paused.
-class _3es_coreAPI Timer
+class TES_CORE_API Timer
 {
 public:
   /// Constructor. Verifies data size.
@@ -155,7 +155,7 @@ private:
 /// @param bufferLen The number of bytes available in @p buffer.
 /// @param t Timer to convert to a string.
 /// @return A pointer to @c buffer.
-char _3es_coreAPI *timeValueString(char *buffer, size_t bufferLen, Timer &t);
+char TES_CORE_API *timeValueString(char *buffer, size_t bufferLen, Timer &t);
 
 /// @overload
 /// @par Note
@@ -164,7 +164,7 @@ char _3es_coreAPI *timeValueString(char *buffer, size_t bufferLen, Timer &t);
 /// Most notably this occurs under Visual Studio when using a different
 /// Visual Studio between libraries including mixing debug and release
 /// runtime libraries.
-std::string _3es_coreAPI timeValueString(Timer &t);
+std::string TES_CORE_API timeValueString(Timer &t);
 
 
 /// Converts a time value int a time string indicating the time elapsed.
@@ -195,7 +195,7 @@ std::string _3es_coreAPI timeValueString(Timer &t);
 /// @param ms The number of milliseconds elapsed (must be < 1000).
 /// @param us The number of micro seconds elapsed (must be < 1000).
 /// @return A pointer to @c buffer.
-char _3es_coreAPI *timeValueString(char *buffer, size_t bufferLen, unsigned int s, unsigned int ms = 0u,
+char TES_CORE_API *timeValueString(char *buffer, size_t bufferLen, unsigned int s, unsigned int ms = 0u,
                                    unsigned int us = 0u);
 
 /// @overload
@@ -205,19 +205,19 @@ char _3es_coreAPI *timeValueString(char *buffer, size_t bufferLen, unsigned int 
 /// Most notably this occurs under Visual Studio when using a different
 /// Visual Studio between libraries including mixing debug and release
 /// runtime libraries.
-std::string _3es_coreAPI timeValueString(unsigned int s, unsigned int ms = 0, unsigned int us = 0u);
+std::string TES_CORE_API timeValueString(unsigned int s, unsigned int ms = 0, unsigned int us = 0u);
 
 /// @overload
-const char _3es_coreAPI *timeValueString(char *buffer, size_t bufferLen, double seconds);
+const char TES_CORE_API *timeValueString(char *buffer, size_t bufferLen, double seconds);
 
 /// @overload
-std::string _3es_coreAPI timeValueString(double seconds);
+std::string TES_CORE_API timeValueString(double seconds);
 
 /// @overload
-const char _3es_coreAPI *timeValueString(char *buffer, size_t bufferLen, long double seconds);
+const char TES_CORE_API *timeValueString(char *buffer, size_t bufferLen, long double seconds);
 
 /// @overload
-std::string _3es_coreAPI timeValueString(long double seconds);
+std::string TES_CORE_API timeValueString(long double seconds);
 }  // namespace tes
 
 #endif  // __TIMER_

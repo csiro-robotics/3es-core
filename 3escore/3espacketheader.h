@@ -11,11 +11,11 @@
 namespace tes
 {
 /// Marker value identifying a packet header in local Endian.
-extern const uint32_t _3es_coreAPI PacketMarker;
+extern const uint32_t TES_CORE_API PacketMarker;
 /// Expected packet major version local Endian.
-extern const uint16_t _3es_coreAPI PacketVersionMajor;
+extern const uint16_t TES_CORE_API PacketVersionMajor;
 /// Expected packet minor version local Endian.
-extern const uint16_t _3es_coreAPI PacketVersionMinor;
+extern const uint16_t TES_CORE_API PacketVersionMinor;
 
 /// Flag values for @c PacketHeader objects.
 enum PacketFlag
@@ -29,7 +29,7 @@ enum PacketFlag
 ///
 /// A two byte CRC value is to appear immediately after the @p PacketHeader header and
 /// payload.
-struct _3es_coreAPI PacketHeader
+struct TES_CORE_API PacketHeader
 {
   uint32_t marker;        ///< Marker bytes. Identifies the packet start.
   uint16_t versionMajor;  ///< PacketHeader major version number. May be used to control decoding.

@@ -20,7 +20,7 @@ namespace tes
 /// A @c Shape which uses vertices and indices to render.
 ///
 /// @c Use @c MeshSet for large data sets.
-class _3es_coreAPI MeshShape : public Shape
+class TES_CORE_API MeshShape : public Shape
 {
 public:
   /// Provides a @c MeshResource wrapper around a @c MeshShape object. This

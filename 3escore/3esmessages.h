@@ -215,7 +215,7 @@ enum DataStreamType
 
 /// Information about the server. This is sent to clients on connection.
 /// Defines global settings for this server.
-struct _3es_coreAPI ServerInfoMessage
+struct TES_CORE_API ServerInfoMessage
 {
   /// Specifies the time unit in a @c CIdFrame @c ControlMessage.
   /// Each unit in the value is scaled by this time unit.
@@ -271,10 +271,10 @@ struct _3es_coreAPI ServerInfoMessage
 
 /// Initialise @p info to the defaults.
 /// @param info The structure to initialise. Must not be null.
-void _3es_coreAPI initDefaultServerInfo(ServerInfoMessage *info);
+void TES_CORE_API initDefaultServerInfo(ServerInfoMessage *info);
 
 /// A system control message.
-struct _3es_coreAPI ControlMessage
+struct TES_CORE_API ControlMessage
 {
   /// Flags particular to this type of control message.
   uint32_t controlFlags;
@@ -309,7 +309,7 @@ struct _3es_coreAPI ControlMessage
 };
 
 /// Category name message.
-struct _3es_coreAPI CategoryNameMessage
+struct TES_CORE_API CategoryNameMessage
 {
   /// ID for this message.
   enum
@@ -379,7 +379,7 @@ struct _3es_coreAPI CategoryNameMessage
 };
 
 /// A packet collation message header.
-struct _3es_coreAPI CollatedPacketMessage
+struct TES_CORE_API CollatedPacketMessage
 {
   /// Message flags. See @c CollatedPacketFlag.
   uint16_t flags;
@@ -416,7 +416,7 @@ struct _3es_coreAPI CollatedPacketMessage
 /// Contains core object attributes. This includes details
 /// of the model transform and colour.
 template <typename real>
-struct _3es_coreAPI ObjectAttributes
+struct TES_CORE_API ObjectAttributes
 {
   uint32_t colour;   ///< Initial object colour.
   real position[3];  ///< Object position.
@@ -543,15 +543,15 @@ struct _3es_coreAPI ObjectAttributes
   }
 };
 
-template struct _3es_coreAPI ObjectAttributes<float>;
-template struct _3es_coreAPI ObjectAttributes<double>;
+template struct TES_CORE_API ObjectAttributes<float>;
+template struct TES_CORE_API ObjectAttributes<double>;
 using ObjectAttributesf = ObjectAttributes<float>;
 using ObjectAttributesd = ObjectAttributes<double>;
 
 /// Defines an object creation message. This is the message header and is immediately followed by @c ObjectAttributes
 /// in either single or double precision depending on the @c OFDoublePrecision flag. Any type type specific payload
 /// follows.
-struct _3es_coreAPI CreateMessage
+struct TES_CORE_API CreateMessage
 {
   /// ID for this message.
   enum
@@ -600,7 +600,7 @@ struct _3es_coreAPI CreateMessage
 /// additional creation data piecewise. Not supported for transient shapes.
 ///
 /// This is the message header and the payload follows.
-struct _3es_coreAPI DataMessage
+struct TES_CORE_API DataMessage
 {
   /// ID for this message.
   enum
@@ -635,7 +635,7 @@ struct _3es_coreAPI DataMessage
 
 /// A update message is identical in header to a @c CreateMessage. It's payload
 /// may vary and in many cases it will have no further payload.
-struct _3es_coreAPI UpdateMessage
+struct TES_CORE_API UpdateMessage
 {
   /// ID for this message.
   enum
@@ -677,7 +677,7 @@ struct _3es_coreAPI UpdateMessage
 };
 
 /// Message to destroy an exiting object by id and type.
-struct _3es_coreAPI DestroyMessage
+struct TES_CORE_API DestroyMessage
 {
   /// ID for this message.
   enum
@@ -713,7 +713,7 @@ struct _3es_coreAPI DestroyMessage
 /// The message structure for a @c MtCamera routing message.
 ///
 /// Note, we only expect message id zero.
-struct _3es_coreAPI CameraMessage
+struct TES_CORE_API CameraMessage
 {
   /// Reserved @c cameraId for recording the camera properties during playback.
   static constexpr uint8_t kRecordedCameraID = 255u;
