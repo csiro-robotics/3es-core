@@ -1,5 +1,5 @@
-#ifndef _3ESFRAMEDISPLAY_H
-#define _3ESFRAMEDISPLAY_H
+#ifndef TES_REC_FRAME_DISPLAY_H
+#define TES_REC_FRAME_DISPLAY_H
 
 #include <atomic>
 #include <cinttypes>
@@ -44,4 +44,4 @@ private:
 };
 }  // namespace tes
 
-#endif  // _3ESFRAMEDISPLAY_H
+#endif  // TES_REC_FRAME_DISPLAY_H

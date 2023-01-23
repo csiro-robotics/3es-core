@@ -1,3 +1,5 @@
+#include "FrameDisplay.h"
+
 #include <3escore/CollatedPacketDecoder.h>
 #include <3escore/Endian.h>
 #include <3escore/Messages.h>
@@ -5,8 +7,6 @@
 #include <3escore/Packetwriter.h>
 #include <3escore/StreamUtil.h>
 #include <3escore/TcpSocket.h>
-
-#include "3esframedisplay.h"
 
 #include <chrono>
 #include <csignal>
