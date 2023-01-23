@@ -21,10 +21,10 @@ Edl::Edl()
   GL::Shader frag{ version, GL::Shader::Type::Fragment };
 
   const std::string vert_code =
-#include "3esedl.vert"
+#include "Edl.vert"
     ;
   const std::string frag_code =
-#include "3esedl.frag"
+#include "Edl.frag"
     ;
   vert.addSource(vert_code);
   frag.addSource(frag_code);

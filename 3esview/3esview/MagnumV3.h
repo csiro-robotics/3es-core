@@ -1,7 +1,7 @@
 #ifndef TES_VIEWER_MAGNUM_V3_H
 #define TES_VIEWER_MAGNUM_V3_H
 
-#include "3esview/Viewer.h"
+#include "3esview/ViewConfig.h"
 
 #include <3escore/Vector3.h>
 

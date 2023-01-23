@@ -4,12 +4,12 @@
 #include <3esview/shaders/Shader.h>
 #include <3esview/shaders/ShaderLibrary.h>
 
-#include <3esview/Connection.h>
-#include <3esview/Colour.h>
-#include <3esview/Debug.h>
-#include <3esview/Log.h>
-#include <3esview/PacketReader.h>
-#include <3esview/shapes/MeshShape.h>
+#include <3escore/Connection.h>
+#include <3escore/Colour.h>
+#include <3escore/Debug.h>
+#include <3escore/Log.h>
+#include <3escore/PacketReader.h>
+#include <3escore/shapes/MeshShape.h>
 
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/Math/Color.h>

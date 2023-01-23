@@ -6,8 +6,9 @@
 
 #include <3esview/ViewConfig.h>
 
+#include "Message.h"
+
 #include <3esview/BoundsCuller.h>
-#include <3esview/Message.h>
 
 #include <3escore/shapes/SimpleMesh.h>
 

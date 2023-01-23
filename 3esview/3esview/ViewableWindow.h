@@ -1,7 +1,7 @@
 #ifndef TES_VIEWER_VIEWABLE_WINDOW_H
 #define TES_VIEWER_VIEWABLE_WINDOW_H
 
-#include "3esview/Viewer.h"
+#include "3esview/ViewConfig.h"
 
 #include "FrameStamp.h"
 

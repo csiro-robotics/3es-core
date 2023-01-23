@@ -112,13 +112,13 @@ VoxelGeomProgram::VoxelGeomProgram()
   GL::Shader frag{ version, GL::Shader::Type::Fragment };
 
   const std::string vert_code =
-#include "3esvoxel.vert"
+#include "Voxel.vert"
     ;
   const std::string geom_code =
-#include "3esvoxel.geom"
+#include "Voxel.geom"
     ;
   const std::string frag_code =
-#include "3esvoxel.frag"
+#include "Voxel.frag"
     ;
   vert.addSource(vert_code);
   geom.addSource(geom_code);

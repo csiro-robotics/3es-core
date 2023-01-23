@@ -119,13 +119,13 @@ PointGeomProgram::PointGeomProgram()
   GL::Shader frag{ version, GL::Shader::Type::Fragment };
 
   const std::string vert_code =
-#include "3espoint.vert"
+#include "Point.vert"
     ;
   const std::string geom_code =
-#include "3espoint.geom"
+#include "Point.geom"
     ;
   const std::string frag_code =
-#include "3espoint.frag"
+#include "Point.frag"
     ;
   vert.addSource(vert_code);
   geom.addSource(geom_code);

@@ -5,7 +5,7 @@
 
 #include "DataThread.h"
 
-#include <3esviewer/FrameStamp.h>
+#include <3esview/FrameStamp.h>
 
 #include <3escore/Messages.h>
 

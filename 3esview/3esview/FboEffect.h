@@ -1,7 +1,7 @@
 #ifndef TES_VIEWER_FBO_EFFECT_H
 #define TES_VIEWER_FBO_EFFECT_H
 
-#include "3esview/Viewer.h"
+#include "3esview/ViewConfig.h"
 
 #include <Magnum/Magnum.h>
 
