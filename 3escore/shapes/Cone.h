@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESCONE_H_
-#define _3ESCONE_H_
+#ifndef TES_CORE_SHAPES_CONE_H
+#define TES_CORE_SHAPES_CONE_H
 
 #include <3escore/CoreConfig.h>
 
@@ -156,4 +156,4 @@ inline Vector3d Cone::direction() const
 }
 }  // namespace tes
 
-#endif  // _3ESCONE_H_
+#endif  // TES_CORE_SHAPES_CONE_H

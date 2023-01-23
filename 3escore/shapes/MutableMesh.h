@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESMUTABLE_MESH_H_
-#define _3ESMUTABLE_MESH_H_
+#ifndef TES_CORE_SHAPES_MUTABLE_MESH_H
+#define TES_CORE_SHAPES_MUTABLE_MESH_H
 
 #include "SimpleMesh.h"
 
@@ -76,4 +76,4 @@ private:
 };
 }  // namespace tes
 
-#endif  // _3ESMUTABLE_MESH_H_
+#endif  // TES_CORE_SHAPES_MUTABLE_MESH_H

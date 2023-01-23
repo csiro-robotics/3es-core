@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESCOMPRESSIONLEVEL_H_
-#define _3ESCOMPRESSIONLEVEL_H_
+#ifndef TES_CORE_COMPRESSION_LEVEL_H
+#define TES_CORE_COMPRESSION_LEVEL_H
 
 #include "CoreConfig.h"
 
@@ -23,4 +23,4 @@ enum CompressionLevel
 };
 }  // namespace tes
 
-#endif  // _3ESCOMPRESSIONLEVEL_H_
+#endif  // TES_CORE_COMPRESSION_LEVEL_H

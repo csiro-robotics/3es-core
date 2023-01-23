@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESBOUNDS_H
-#define _3ESBOUNDS_H
+#ifndef TES_CORE_BOUNDS_H
+#define TES_CORE_BOUNDS_H
 
 #include "CoreConfig.h"
 
@@ -242,4 +242,4 @@ inline Bounds<T> &Bounds<T>::operator=(const Bounds<T> &other)
 }  // namespace tes
 
 
-#endif  // _3ESBOUNDS_H
+#endif  // TES_CORE_BOUNDS_H

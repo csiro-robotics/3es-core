@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESCYLINDER_H_
-#define _3ESCYLINDER_H_
+#ifndef TES_CORE_SHAPES_CYLINDER_H
+#define TES_CORE_SHAPES_CYLINDER_H
 
 #include <3escore/CoreConfig.h>
 
@@ -155,4 +155,4 @@ inline Vector3d Cylinder::axis() const
 }
 }  // namespace tes
 
-#endif  // _3ESCYLINDER_H_
+#endif  // TES_CORE_SHAPES_CYLINDER_H

@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESCRC_H_
-#define _3ESCRC_H_
+#ifndef TES_CORE_CRC_H
+#define TES_CORE_CRC_H
 
 #include "CoreConfig.h"
 
@@ -29,4 +29,4 @@ uint16_t TES_CORE_API crc16(const uint8_t *message, size_t byteCount);
 uint32_t TES_CORE_API crc32(const uint8_t *message, size_t byteCount);
 }  // namespace tes
 
-#endif  // _3ESCRC_H_
+#endif  // TES_CORE_CRC_H

@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESRESOURCE_H_
-#define _3ESRESOURCE_H_
+#ifndef TES_CORE_RESOURCE_H
+#define TES_CORE_RESOURCE_H
 
 #include "CoreConfig.h"
 
@@ -104,4 +104,4 @@ public:
 };
 }  // namespace tes
 
-#endif  // _3ESRESOURCE_H_
+#endif  // TES_CORE_RESOURCE_H

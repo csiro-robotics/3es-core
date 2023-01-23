@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef TCPSOCKET_H_
-#define TCPSOCKET_H_
+#ifndef TES_CORE_TCP_SOCKET_H
+#define TES_CORE_TCP_SOCKET_H
 
 #include "CoreConfig.h"
 
@@ -140,4 +140,4 @@ private:
 };
 }  // namespace tes
 
-#endif  // TCPSOCKET_H_
+#endif  // TES_CORE_TCP_SOCKET_H

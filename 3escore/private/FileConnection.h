@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESFILECONNECTION_H_
-#define _3ESFILECONNECTION_H_
+#ifndef TES_CORE_PRIVATE_FILE_CONNECTION_H
+#define TES_CORE_PRIVATE_FILE_CONNECTION_H
 
 #include "../Server.h"
 
@@ -48,4 +48,4 @@ private:
 };
 }  // namespace tes
 
-#endif  // _3ESFILECONNECTION_H_
+#endif  // TES_CORE_PRIVATE_FILE_CONNECTION_H

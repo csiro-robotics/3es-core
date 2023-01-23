@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESTCPCONNECTION_H_
-#define _3ESTCPCONNECTION_H_
+#ifndef TES_CORE_PRIVATE_TCP_CONNECTION_H
+#define TES_CORE_PRIVATE_TCP_CONNECTION_H
 
 #include "../Server.h"
 
@@ -41,4 +41,4 @@ private:
 };
 }  // namespace tes
 
-#endif  // _3ESTCPCONNECTION_H_
+#endif  // TES_CORE_PRIVATE_TCP_CONNECTION_H

@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESBASECONNECTION_H_
-#define _3ESBASECONNECTION_H_
+#ifndef TES_CORE_PRIVATE_BASE_CONNECTION_H
+#define TES_CORE_PRIVATE_BASE_CONNECTION_H
 
 #include "../Server.h"
 
@@ -113,9 +113,9 @@ protected:
 
   void ensurePacketBufferCapacity(size_t size);
 
-  Lock _packetLock;   ///< Lock for using @c _packet
-  Lock _sendLock;     ///< Lock for @c writePacket() and @c flushCollatedPacket()
-  Lock _resourceLock; ///< Lock for @c _resources
+  Lock _packetLock;    ///< Lock for using @c _packet
+  Lock _sendLock;      ///< Lock for @c writePacket() and @c flushCollatedPacket()
+  Lock _resourceLock;  ///< Lock for @c _resources
   PacketWriter *_packet;
   std::vector<uint8_t> _packetBuffer;
   ResourcePacker *_currentResource;  ///< Current resource being transmitted.
@@ -129,4 +129,4 @@ protected:
 };
 }  // namespace tes
 
-#endif  // _3ESBASECONNECTION_H_
+#endif  // TES_CORE_PRIVATE_BASE_CONNECTION_H

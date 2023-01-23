@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESTESSELATEBOX_H_
-#define _3ESTESSELATEBOX_H_
+#ifndef TES_CORE_TESSELATE_BOX_H
+#define TES_CORE_TESSELATE_BOX_H
 
 #include <3escore/CoreConfig.h>
 
@@ -43,4 +43,4 @@ void TES_CORE_API wireframe(std::vector<Vector3f> &vertices, std::vector<unsigne
 }  // namespace box
 }  // namespace tes
 
-#endif  // _3ESTESSELATEBOX_H_
+#endif  // TES_CORE_TESSELATE_BOX_H

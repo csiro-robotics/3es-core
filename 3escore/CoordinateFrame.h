@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESCOORDINATEFRAME_H_
-#define _3ESCOORDINATEFRAME_H_
+#ifndef TES_CORE_COORDINATE_FRAME_H
+#define TES_CORE_COORDINATE_FRAME_H
 
 #include "CoreConfig.h"
 
@@ -43,4 +43,4 @@ enum CoordinateFrame
 };
 }  // namespace tes
 
-#endif  // _3ESCOORDINATEFRAME_H_
+#endif  // TES_CORE_COORDINATE_FRAME_H

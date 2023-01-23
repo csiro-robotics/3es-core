@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESSERVER_H_
-#define _3ESSERVER_H_
+#ifndef TES_CORE_SERVER_H
+#define TES_CORE_SERVER_H
 
 #include "CoreConfig.h"
 
@@ -152,4 +152,4 @@ public:
 };
 }  // namespace tes
 
-#endif  // _3ESSERVER_H_
+#endif  // TES_CORE_SERVER_H

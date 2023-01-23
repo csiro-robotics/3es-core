@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESSPINLOCK_H_
-#define _3ESSPINLOCK_H_
+#ifndef TES_CORE_SPIN_LOCK_H
+#define TES_CORE_SPIN_LOCK_H
 
 #include "CoreConfig.h"
 
@@ -40,4 +40,4 @@ private:
 };
 }  // namespace tes
 
-#endif  // _3ESSPINLOCK_H_
+#endif  // TES_CORE_SPIN_LOCK_H

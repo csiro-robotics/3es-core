@@ -3,8 +3,8 @@
 //
 // Copyright (c) Kazys Stepanas 2014
 //
-#ifndef _3ESCOLOUR_H_
-#define _3ESCOLOUR_H_
+#ifndef TES_CORE_COLOUR_H
+#define TES_CORE_COLOUR_H
 
 #include "CoreConfig.h"
 
@@ -600,4 +600,4 @@ inline Colour operator-(const Colour &a, const Colour &b)
 }
 }  // namespace tes
 
-#endif  // _3ESCOLOUR_H_
+#endif  // TES_CORE_COLOUR_H

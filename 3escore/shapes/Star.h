@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESSTAR_H_
-#define _3ESSTAR_H_
+#ifndef TES_CORE_SHAPES_STAR_H
+#define TES_CORE_SHAPES_STAR_H
 
 #include <3escore/CoreConfig.h>
 
@@ -96,4 +96,4 @@ inline Vector3d Star::centre() const
 }
 }  // namespace tes
 
-#endif  // _3ESSTAR_H_
+#endif  // TES_CORE_SHAPES_STAR_H

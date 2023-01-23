@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESPACKETWRITER_H_
-#define _3ESPACKETWRITER_H_
+#ifndef TES_CORE_PACKET_WRITER_H
+#define TES_CORE_PACKET_WRITER_H
 
 #include "CoreConfig.h"
 
@@ -228,4 +228,4 @@ inline uint8_t *PacketWriter::payloadWritePtr()
 }
 }  // namespace tes
 
-#endif  // _3ESPACKETWRITER_H_
+#endif  // TES_CORE_PACKET_WRITER_H

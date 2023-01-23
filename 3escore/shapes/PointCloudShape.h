@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESPOINTS_H_
-#define _3ESPOINTS_H_
+#ifndef TES_CORE_SHAPES_POINTS_H
+#define TES_CORE_SHAPES_POINTS_H
 
 #include <3escore/CoreConfig.h>
 
@@ -196,4 +196,4 @@ PointCloudShape &PointCloudShape::setIndices(I iter, const UIntArg &indexCount)
 }
 }  // namespace tes
 
-#endif  // _3ESPOINTS_H_
+#endif  // TES_CORE_SHAPES_POINTS_H

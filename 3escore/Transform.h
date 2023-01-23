@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESTRANSFORM_H
-#define _3ESTRANSFORM_H
+#ifndef TES_CORE_TRANSFORM_H
+#define TES_CORE_TRANSFORM_H
 
 #include "CoreConfig.h"
 
@@ -319,4 +319,4 @@ inline bool Transform::isEqual(const Transform &other, const double epsilon) con
 }
 }  // namespace tes
 
-#endif  // _3ESTRANSFORM_H
+#endif  // TES_CORE_TRANSFORM_H

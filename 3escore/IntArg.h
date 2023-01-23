@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESINTARG_H_
-#define _3ESINTARG_H_
+#ifndef TES_CORE_INT_ARG_H
+#define TES_CORE_INT_ARG_H
 
 #include "CoreConfig.h"
 
@@ -141,4 +141,4 @@ TES_INTARG_OPERATORS_SELF(tes::SizeTArg);
 
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
 
-#endif  // _3ESINTARG_H_
+#endif  // TES_CORE_INT_ARG_H

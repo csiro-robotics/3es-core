@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESSTREAMUTIL_H_
-#define _3ESSTREAMUTIL_H_
+#ifndef TES_CORE_STREAM_UTIL_H
+#define TES_CORE_STREAM_UTIL_H
 
 #include "CoreConfig.h"
 
@@ -41,4 +41,4 @@ bool TES_CORE_API finaliseStream(std::iostream &stream, unsigned frameCount,
 }  // namespace streamutil
 }  // namespace tes
 
-#endif  // _3ESSTREAMUTIL_H_
+#endif  // TES_CORE_STREAM_UTIL_H

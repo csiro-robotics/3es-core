@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESPOSE_H_
-#define _3ESPOSE_H_
+#ifndef TES_CORE_SHAPES_POSE_H
+#define TES_CORE_SHAPES_POSE_H
 
 #include <3escore/CoreConfig.h>
 
@@ -41,4 +41,4 @@ inline Pose::Pose(const Pose &other)
 {}
 }  // namespace tes
 
-#endif  // _3ESPOSE_H_
+#endif  // TES_CORE_SHAPES_POSE_H

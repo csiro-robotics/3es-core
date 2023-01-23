@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESASSERTRANGE_H_
-#define _3ESASSERTRANGE_H_
+#ifndef TES_CORE_ASSERT_RANGE_H
+#define TES_CORE_ASSERT_RANGE_H
 
 #include "CoreConfig.h"
 
@@ -58,4 +58,4 @@ struct AssertRange<unsigned, size_t>
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
 }  // namespace tes
 
-#endif  // _3ESASSERTRANGE_H_
+#endif  // TES_CORE_ASSERT_RANGE_H

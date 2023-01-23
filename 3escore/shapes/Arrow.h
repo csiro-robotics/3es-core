@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESARROW_H_
-#define _3ESARROW_H_
+#ifndef TES_CORE_SHAPES_ARROW_H
+#define TES_CORE_SHAPES_ARROW_H
 
 #include <3escore/CoreConfig.h>
 
@@ -162,4 +162,4 @@ inline Vector3d Arrow::direction() const
 }
 }  // namespace tes
 
-#endif  // _3ESARROW_H_
+#endif  // TES_CORE_SHAPES_ARROW_H

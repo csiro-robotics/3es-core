@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESSIMPLEMESH_H_
-#define _3ESSIMPLEMESH_H_
+#ifndef TES_CORE_SHAPES_SIMPLEMESH_H
+#define TES_CORE_SHAPES_SIMPLEMESH_H
 
 #include <3escore/CoreConfig.h>
 
@@ -166,4 +166,4 @@ inline void SimpleMesh::addComponents(unsigned components)
 }
 }  // namespace tes
 
-#endif  // _3ESSIMPLEMESH_H_
+#endif  // TES_CORE_SHAPES_SIMPLEMESH_H

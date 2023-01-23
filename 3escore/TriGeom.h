@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESTRIANGLE_H_
-#define _3ESTRIANGLE_H_
+#ifndef TES_CORE_TRI_GEOM_H
+#define TES_CORE_TRI_GEOM_H
 
 #include "Vector4.h"
 
@@ -139,4 +139,4 @@ bool intersectAABB(const Vector3d tri[3], const Vector3d aabb[2]);
 
 #include "TriGeom.inl"
 
-#endif  // _3ESTRIANGLE_H
+#endif  // TES_CORE_TRI_GEOM_H

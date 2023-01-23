@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESTEXT3D_H_
-#define _3ESTEXT3D_H_
+#ifndef TES_CORE_SHAPES_TEXT3D_H
+#define TES_CORE_SHAPES_TEXT3D_H
 
 #include <3escore/CoreConfig.h>
 
@@ -126,4 +126,4 @@ inline Text3D &Text3D::setFontSize(double size)
 }
 }  // namespace tes
 
-#endif  // _3ESTEXT3D_H_
+#endif  // TES_CORE_SHAPES_TEXT3D_H

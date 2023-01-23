@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESMATHS_H_
-#define _3ESMATHS_H_
+#ifndef TES_CORE_MATHS_H
+#define TES_CORE_MATHS_H
 
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
@@ -49,4 +49,4 @@ inline unsigned nextLog2(unsigned v)
 }
 }  // namespace tes
 
-#endif  // 3ESMATHS_H_
+#endif  // TES_CORE_MATHS_H

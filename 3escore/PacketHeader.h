@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESPACKET_H_
-#define _3ESPACKET_H_
+#ifndef TES_CORE_PACKET_H
+#define TES_CORE_PACKET_H
 
 #include "CoreConfig.h"
 
@@ -46,4 +46,4 @@ struct TES_CORE_API PacketHeader
 };
 }  // namespace tes
 
-#endif  // _3ESPACKET_H_
+#endif  // TES_CORE_PACKET_H

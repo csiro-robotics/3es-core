@@ -1,6 +1,6 @@
 
-#ifndef __INSEXTTIMER_
-#define __INSEXTTIMER_
+#ifndef TES_CORE_TIMER_H
+#define TES_CORE_TIMER_H
 
 #include "CoreConfig.h"
 
@@ -220,4 +220,4 @@ const char TES_CORE_API *timeValueString(char *buffer, size_t bufferLen, long do
 std::string TES_CORE_API timeValueString(long double seconds);
 }  // namespace tes
 
-#endif  // __TIMER_
+#endif  // TES_CORE_TIMER_H

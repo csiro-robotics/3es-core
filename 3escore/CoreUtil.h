@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESCOREUTIL_H_
-#define _3ESCOREUTIL_H_
+#ifndef TES_CORE_CORE_UTIL_H
+#define TES_CORE_CORE_UTIL_H
 
 #include "CoreConfig.h"
 
@@ -148,4 +148,4 @@ INT int_cast(SRC_INT val)
 }
 }  // namespace tes
 
-#endif  // _3ESCOREUTIL_H_
+#endif  // TES_CORE_CORE_UTIL_H

@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESDEBUG_H_
-#define _3ESDEBUG_H_
+#ifndef TES_CORE_DEBUG_H
+#define TES_CORE_DEBUG_H
 
 #include "CoreConfig.h"
 
@@ -28,4 +28,4 @@ void TES_CORE_API debugBreak();
 void TES_CORE_API assertionFailure(const char *msg = "");
 }  // namespace tes
 
-#endif  // _3ESDEBUG_H_
+#endif  // TES_CORE_DEBUG_H

@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESMATRIX3_H
-#define _3ESMATRIX3_H
+#ifndef TES_CORE_MATRIX3_H
+#define TES_CORE_MATRIX3_H
 
 #include "CoreConfig.h"
 
@@ -302,4 +302,4 @@ Vector3<T> operator*(const Matrix3<T> &a, const Vector3<T> &v);
 
 #include "Matrix3.inl"
 
-#endif  // _3ESMATRIX3_H
+#endif  // TES_CORE_MATRIX3_H

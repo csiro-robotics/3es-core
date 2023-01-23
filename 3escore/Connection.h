@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESCONNECTION_H_
-#define _3ESCONNECTION_H_
+#ifndef TES_CORE_CONNECTION_H
+#define TES_CORE_CONNECTION_H
 
 #include "CoreConfig.h"
 
@@ -128,4 +128,4 @@ public:
 };
 }  // namespace tes
 
-#endif  // _3ESCONNECTION_H_
+#endif  // TES_CORE_CONNECTION_H

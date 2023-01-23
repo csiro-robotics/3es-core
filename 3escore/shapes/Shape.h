@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESSHAPE_H_
-#define _3ESSHAPE_H_
+#ifndef TES_CORE_SHAPES_SHAPE_H
+#define TES_CORE_SHAPES_SHAPE_H
 
 #include <3escore/CoreConfig.h>
 
@@ -618,4 +618,4 @@ inline Colour Shape::colour() const
 #pragma warning(pop)
 #endif  // WIN32
 
-#endif  // _3ESSHAPE_H_
+#endif  // TES_CORE_SHAPES_SHAPE_H

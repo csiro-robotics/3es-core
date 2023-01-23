@@ -4,8 +4,8 @@
 // This file contains utility macros and defines mostly used to avoid compiler
 // warnings.
 //
-#ifndef _3ESMETA_H_
-#define _3ESMETA_H_
+#ifndef TES_CORE_META_H
+#define TES_CORE_META_H
 
 // Do not include 3es-core for now. That would be circular.
 
@@ -22,4 +22,4 @@
 #define TES_FALLTHROUGH
 #endif  // TES_FALLTHROUGH
 
-#endif  // _3ESMETA_H_
+#endif  // TES_CORE_META_H

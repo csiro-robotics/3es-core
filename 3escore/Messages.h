@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESMESSAGES_H_
-#define _3ESMESSAGES_H_
+#ifndef TES_CORE_MESSAGES_H
+#define TES_CORE_MESSAGES_H
 
 #include "CoreConfig.h"
 
@@ -805,4 +805,4 @@ struct TES_CORE_API CameraMessage
 };
 }  // namespace tes
 
-#endif  // _3ESMESSAGES_H_
+#endif  // TES_CORE_MESSAGES_H

@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESTCPCONNECTIONMONITOR_H_
-#define _3ESTCPCONNECTIONMONITOR_H_
+#ifndef TES_CORE_PRIVATE_TCP_CONNECTION_MONITOR_H
+#define TES_CORE_PRIVATE_TCP_CONNECTION_MONITOR_H
 
 #include <3escore/CoreConfig.h>
 
@@ -169,4 +169,4 @@ private:
 };
 }  // namespace tes
 
-#endif  // _3ESTCPCONNECTIONMONITOR_H_
+#endif  // TES_CORE_PRIVATE_TCP_CONNECTION_MONITOR_H

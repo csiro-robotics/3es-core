@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef _3ESTHROW_H
-#define _3ESTHROW_H
+#ifndef TES_CORE_THROW_H
+#define TES_CORE_THROW_H
 
 #include "CoreConfig.h"
 
@@ -36,4 +36,4 @@ void TES_CORE_API logException(const Exception &e);
 void TES_CORE_API logException(const Exception &e, const char *file, int line);
 }  // namespace tes
 
-#endif  // _3ESTHROW_H
+#endif  // TES_CORE_THROW_H

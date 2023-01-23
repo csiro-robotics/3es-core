@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESBOX_H_
-#define _3ESBOX_H_
+#ifndef TES_CORE_SHAPES_BOX_H
+#define TES_CORE_SHAPES_BOX_H
 
 #include <3escore/CoreConfig.h>
 
@@ -48,4 +48,4 @@ inline Box::Box(const Box &other)
 {}
 }  // namespace tes
 
-#endif  // _3ESBOX_H_
+#endif  // TES_CORE_SHAPES_BOX_H

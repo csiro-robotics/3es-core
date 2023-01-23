@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESHEADERSTREAM_H_
-#define _3ESHEADERSTREAM_H_
+#ifndef TES_CORE_HEADER_STREAM_H
+#define TES_CORE_HEADER_STREAM_H
 
 #include "CoreConfig.h"
 
@@ -245,4 +245,4 @@ inline const uint8_t *PacketStream<HEADER>::payload() const
 }
 }  // namespace tes
 
-#endif  // _3ESHEADERSTREAM_H_
+#endif  // TES_CORE_HEADER_STREAM_H

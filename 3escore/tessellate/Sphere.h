@@ -1,12 +1,11 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESTESSELATESPHERE_H_
-#define _3ESTESSELATESPHERE_H_
+#ifndef TES_CORE_TESSELATE_SPHERE_H
+#define TES_CORE_TESSELATE_SPHERE_H
 
 #include <3escore/CoreConfig.h>
 
-//
 #include <3escore/Vector3.h>
 #include <3escore/VectorHash.h>
 
@@ -86,4 +85,4 @@ void TES_CORE_API wireframe(std::vector<Vector3f> &vertices, std::vector<unsigne
 }  // namespace sphere
 }  // namespace tes
 
-#endif  // _3ESTESSELATESPHERE_H_
+#endif  // TES_CORE_TESSELATE_SPHERE_H

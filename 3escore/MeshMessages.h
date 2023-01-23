@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESMESHHANDLERMESSAGES_H_
-#define _3ESMESHHANDLERMESSAGES_H_
+#ifndef TES_CORE_MESH_MESSAGES_H
+#define TES_CORE_MESH_MESSAGES_H
 
 #include "CoreConfig.h"
 
@@ -404,4 +404,4 @@ struct MeshFinaliseMessage
 };
 }  // namespace tes
 
-#endif  // _3ESMESHHANDLERMESSAGES_H_
+#endif  // TES_CORE_MESH_MESSAGES_H

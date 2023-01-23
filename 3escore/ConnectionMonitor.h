@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESCONNECTIONMONITOR_H_
-#define _3ESCONNECTIONMONITOR_H_
+#ifndef TES_CORE_CONNECTION_MONITOR_H
+#define TES_CORE_CONNECTION_MONITOR_H
 
 #include "CoreConfig.h"
 
@@ -184,4 +184,4 @@ public:
 };
 }  // namespace tes
 
-#endif  // _3ESCONNECTIONMONITOR_H_
+#endif  // TES_CORE_CONNECTION_MONITOR_H

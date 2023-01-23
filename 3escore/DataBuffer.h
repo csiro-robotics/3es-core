@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESDATABUFFER_H
-#define _3ESDATABUFFER_H
+#ifndef TES_CORE_DATA_BUFFER_H
+#define TES_CORE_DATA_BUFFER_H
 
 #include "CoreConfig.h"
 
@@ -418,4 +418,4 @@ unsigned readStream(PacketReader &packet, DataBuffer &stream);
 
 #include "DataBuffer.inl"
 
-#endif  // _3ESDATABUFFER_H
+#endif  // TES_CORE_DATA_BUFFER_H

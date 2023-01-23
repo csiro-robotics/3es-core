@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESTCPSERVER_H_
-#define _3ESTCPSERVER_H_
+#ifndef TES_CORE_PRIVATE_TCP_SERVER_H
+#define TES_CORE_PRIVATE_TCP_SERVER_H
 
 #include "../Server.h"
 
@@ -104,4 +104,4 @@ private:
 };
 }  // namespace tes
 
-#endif  // _3ESTCPSERVER_H_
+#endif  // TES_CORE_PRIVATE_TCP_SERVER_H

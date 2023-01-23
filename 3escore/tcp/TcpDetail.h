@@ -2,8 +2,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESTCPDETAIL_H_
-#define _3ESTCPDETAIL_H_
+#ifndef TES_CORE_TCP_TCP_DETAIL_H
+#define TES_CORE_TCP_TCP_DETAIL_H
 
 #include <3escore/CoreConfig.h>
 
@@ -46,4 +46,4 @@ struct TcpListenSocketDetail
 };
 }  // namespace tes
 
-#endif  // _3ESTCPDETAIL_H_
+#endif  // TES_CORE_TCP_TCP_DETAIL_H

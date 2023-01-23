@@ -1,11 +1,12 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESCOLLATEDPACKETDECODER_H_
-#define _3ESCOLLATEDPACKETDECODER_H_
+#ifndef TES_CORE_COLLATED_PACKET_DECODER_H
+#define TES_CORE_COLLATED_PACKET_DECODER_H
 
 #include "CoreConfig.h"
 
+//
 #include "Connection.h"
 #include "PacketHeader.h"
 
@@ -106,4 +107,4 @@ private:
 };
 }  // namespace tes
 
-#endif  // _3ESCOLLATEDPACKETDECODER_H_
+#endif  // TES_CORE_COLLATED_PACKET_DECODER_H

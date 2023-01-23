@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESENDIAN_H_
-#define _3ESENDIAN_H_
+#ifndef TES_CORE_ENDIAN_H
+#define TES_CORE_ENDIAN_H
 
 #include "CoreConfig.h"
 
@@ -292,4 +292,4 @@ inline int8_t networkEndianSwapValue(const int8_t &data)
 }
 }  // namespace tes
 
-#endif  // _3ESENDIAN_H_
+#endif  // TES_CORE_ENDIAN_H

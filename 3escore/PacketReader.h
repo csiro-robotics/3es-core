@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESPACKETREADER_H_
-#define _3ESPACKETREADER_H_
+#ifndef TES_CORE_PACKET_READER_H
+#define TES_CORE_PACKET_READER_H
 
 #include "CoreConfig.h"
 
@@ -135,4 +135,4 @@ inline PacketReader &PacketReader::operator>>(T &val)
 }
 }  // namespace tes
 
-#endif  // _3ESPACKETREADER_H_
+#endif  // TES_CORE_PACKET_READER_H

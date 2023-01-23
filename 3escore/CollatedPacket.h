@@ -1,11 +1,12 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESCOLLATEDPACKET_H_
-#define _3ESCOLLATEDPACKET_H_
+#ifndef TES_CORE_COLLATEDPACKET_H
+#define TES_CORE_COLLATEDPACKET_H
 
 #include "CoreConfig.h"
 
+//
 #include "Connection.h"
 #include "PacketHeader.h"
 
@@ -276,4 +277,4 @@ inline unsigned CollatedPacket::availableBytes() const
 }
 }  // namespace tes
 
-#endif  // _3ESCOLLATEDPACKET_H_
+#endif  // TES_CORE_COLLATEDPACKET_H

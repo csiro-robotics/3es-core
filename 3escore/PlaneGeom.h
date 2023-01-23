@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESPLANE_H_
-#define _3ESPLANE_H_
+#ifndef TES_CORE_PLANE_GEOM_H
+#define TES_CORE_PLANE_GEOM_H
 
 #include "Vector4.h"
 
@@ -91,4 +91,4 @@ inline int classifyPoint(const Vector4<T> &plane, const Vector3<T> &point, T eps
 }  // namespace planegeom
 }  // namespace tes
 
-#endif  // _3ESSPLANE_H_
+#endif  // TES_CORE_PLANE_GEOM_H

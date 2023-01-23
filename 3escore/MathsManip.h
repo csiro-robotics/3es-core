@@ -3,8 +3,8 @@
 // ABN 41 687 119 230
 //
 // Author: Kazys Stepanas
-#ifndef _3ESMATHSMANIP_H_
-#define _3ESMATHSMANIP_H_
+#ifndef TES_CORE_MATHS_MANIP_H
+#define TES_CORE_MATHS_MANIP_H
 
 #include "CoreConfig.h"
 
@@ -59,4 +59,4 @@ std::ostream TES_CORE_API &v4wmode(std::ostream &o, int mode);
 /// @return @c o
 std::ostream TES_CORE_API &quatwmode(std::ostream &o, int mode);
 
-#endif  // _3ESMATHSMANIP_H_
+#endif  // TES_CORE_MATHS_MANIP_H

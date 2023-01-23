@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESMULTISHAPE_H_
-#define _3ESMULTISHAPE_H_
+#ifndef TES_CORE_SHAPES_MULTI_SHAPE_H
+#define TES_CORE_SHAPES_MULTI_SHAPE_H
 
 #include <3escore/CoreConfig.h>
 
@@ -102,4 +102,4 @@ inline unsigned MultiShape::blockCountLimit() const
 }
 }  // namespace tes
 
-#endif  // _3ESMULTISHAPE_H_
+#endif  // TES_CORE_SHAPES_MULTI_SHAPE_H

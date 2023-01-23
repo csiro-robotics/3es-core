@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESSHAPEID_H
-#define _3ESSHAPEID_H
+#ifndef TES_CORE_SHAPES_SHAPE_ID_H
+#define TES_CORE_SHAPES_SHAPE_ID_H
 
 #include <3escore/CoreConfig.h>
 
@@ -85,4 +85,4 @@ inline Id operator+(const Id &id, size_t inc)
 }
 }  // namespace tes
 
-#endif  // _3ESSHAPEID_H
+#endif  // TES_CORE_SHAPES_SHAPE_ID_H

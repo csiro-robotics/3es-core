@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef _3ESEXCEPTION_H
-#define _3ESEXCEPTION_H
+#ifndef TES_CORE_EXCEPTION_H
+#define TES_CORE_EXCEPTION_H
 
 #include "CoreConfig.h"
 
@@ -35,4 +35,4 @@ private:
 };
 }  // namespace tes
 
-#endif  // _3ESEXCEPTION_H
+#endif  // TES_CORE_EXCEPTION_H

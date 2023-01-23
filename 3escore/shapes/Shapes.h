@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESSHAPES_H_
-#define _3ESSHAPES_H_
+#ifndef TES_CORE_SHAPES_SHAPES_H
+#define TES_CORE_SHAPES_SHAPES_H
 
 #include "Arrow.h"
 #include "Box.h"
@@ -21,4 +21,4 @@
 #include "Text2d.h"
 #include "Text3d.h"
 
-#endif  // _3ESSHAPES_H_
+#endif  // TES_CORE_SHAPES_SHAPES_H

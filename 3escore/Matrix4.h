@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESMATRIX4_H_
-#define _3ESMATRIX4_H_
+#ifndef TES_CORE_MATRIX4_H
+#define TES_CORE_MATRIX4_H
 
 #include "CoreConfig.h"
 
@@ -390,4 +390,4 @@ Vector4<T> operator*(const Matrix4<T> &a, const Vector4<T> &v);
 
 #include "Matrix4.inl"
 
-#endif  // _3ESMATRIX4_H_
+#endif  // TES_CORE_MATRIX4_H

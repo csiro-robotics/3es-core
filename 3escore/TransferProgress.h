@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESTRANSFERPROGRESS_H_
-#define _3ESTRANSFERPROGRESS_H_
+#ifndef TES_CORE_TRANSFER`PROGRESS_H
+#define TES_CORE_TRANSFER`PROGRESS_H
 
 #include "CoreConfig.h"
 
@@ -36,4 +36,4 @@ struct TES_CORE_API TransferProgress
 };
 }  // namespace tes
 
-#endif  // _3ESTRANSFERPROGRESS_H_
+#endif  // TES_CORE_TRANSFER_PROGRESS_H

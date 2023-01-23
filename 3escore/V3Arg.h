@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESV3ARG_H_
-#define _3ESV3ARG_H_
+#ifndef TES_CORE_V3_ARG_H
+#define TES_CORE_V3_ARG_H
 
 #include "CoreConfig.h"
 
@@ -69,4 +69,4 @@ struct V3Arg
 };
 }  // namespace tes
 
-#endif  // _3ESV3ARG_H_
+#endif  // TES_CORE_V3_ARG_H

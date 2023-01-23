@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESPLANE_H_
-#define _3ESPLANE_H_
+#ifndef TES_CORE_SHAPES_PLANE_H
+#define TES_CORE_SHAPES_PLANE_H
 
 #include <3escore/CoreConfig.h>
 
@@ -132,4 +132,4 @@ inline double Plane::normalLength() const
 }
 }  // namespace tes
 
-#endif  // _3ESPLANE_H_
+#endif  // TES_CORE_SHAPES_PLANE_H

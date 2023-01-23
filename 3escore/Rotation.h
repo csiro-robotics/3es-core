@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESROTATION_H
-#define _3ESROTATION_H
+#ifndef TES_CORE_ROTATION_H
+#define TES_CORE_ROTATION_H
 
 #include "CoreConfig.h"
 
@@ -135,4 +135,4 @@ template Matrix4<double> TES_CORE_API quaternionToTransform(const Quaternion<dou
 
 #include "Rotation.inl"
 
-#endif  // _3ESROTATION_H
+#endif  // TES_CORE_ROTATION_H

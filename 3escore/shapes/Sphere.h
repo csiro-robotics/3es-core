@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESSPHERE_H_
-#define _3ESSPHERE_H_
+#ifndef TES_CORE_SHAPES_SPHERE_H
+#define TES_CORE_SHAPES_SPHERE_H
 
 #include <3escore/CoreConfig.h>
 
@@ -94,4 +94,4 @@ inline Vector3d Sphere::centre() const
 }
 }  // namespace tes
 
-#endif  // _3ESSPHERE_H_
+#endif  // TES_CORE_SHAPES_SPHERE_H

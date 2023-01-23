@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESID_H
-#define _3ESID_H
+#ifndef TES_CORE_SHAPES_ID_H
+#define TES_CORE_SHAPES_ID_H
 
 #include <3escore/CoreConfig.h>
 
@@ -110,4 +110,4 @@ struct hash<tes::Id>
 };
 }  // namespace std
 
-#endif  // _3ESID_H
+#endif  // TES_CORE_SHAPES_ID_H

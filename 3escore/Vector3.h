@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef _3ESVECTOR3_H_
-#define _3ESVECTOR3_H_
+#ifndef TES_CORE_VECTOR3_H
+#define TES_CORE_VECTOR3_H
 
 #include "CoreConfig.h"
 
@@ -532,4 +532,4 @@ template <typename T>
 const Vector3<T> Vector3<T>::axisz(0, 0, 1);
 }  // namespace tes
 
-#endif  // _3ESVECTOR3_H_
+#endif  // TES_CORE_VECTOR3_H
