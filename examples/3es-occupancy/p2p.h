@@ -4,10 +4,11 @@
 #ifndef P2P_H
 #define P2P_H
 
-#include "3es-occupancy.h"
+#include "Occupancy.h"
+
+#include <3escore/Vector3.h>
 
 #include <octomap/octomap.h>
-#include "3esvector3.h"
 
 #include <cstddef>
 

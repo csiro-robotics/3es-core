@@ -1,7 +1,7 @@
 //
 // author Kazys Stepanas
 //
-#include "3es-occupancy.h"
+#include "Occupancy.h"
 
 #include <unordered_map>
 #include <unordered_set>

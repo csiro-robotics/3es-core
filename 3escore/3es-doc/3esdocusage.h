@@ -14,7 +14,7 @@ single frame events.
 @section secusecases Example Use Cases
 @subsection subusecase0 Geometry Processing Visualisation
 3<sup>rd</sup> Eye Scene can be used to debug and visualise geometry processing algorithms. The C++ example
-"3es-sphere-view" shows 3es being used to visualise the progressive tesselation of a sphere from an icosahedron. This is
+"3esSphereView" shows 3es being used to visualise the progressive tesselation of a sphere from an icosahedron. This is
 a non-real time algorithm, so the term "frame" is used to loosely decribe a single step in the algorithm. Each frame
 outlines the face being considered in red and the tesselation to be effected in cyan. Once each face has been processed,
 the higher resolution sphere is shown before starting on the next iteration.

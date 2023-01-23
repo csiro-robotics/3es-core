@@ -1,7 +1,7 @@
 //
 // author Kazys Stepanas
 //
-#include "occupancyloader.h"
+#include "OccupancyLoader.h"
 
 #ifdef _MSC_VER
 // std::equal with parameters that may be unsafe warning under Visual Studio.
@@ -16,14 +16,14 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif // __GNUC__
+#endif  // __GNUC__
 
 #define TINYPLY_IMPLEMENTATION
 #include "3rd-party/tinyply.h"
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
-#endif // __GNUC__
+#endif  // __GNUC__
 
 struct TrajectoryPoint
 {

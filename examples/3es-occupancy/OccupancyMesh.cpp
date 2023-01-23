@@ -1,7 +1,7 @@
 //
 // author Kazys Stepanas
 //
-#include "occupancymesh.h"
+#include "OccupancyMesh.h"
 
 #include "p2p.h"
 

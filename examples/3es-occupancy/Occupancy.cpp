@@ -1,15 +1,15 @@
 //
 // author Kazys Stepanas
 //
-#include "3es-occupancy.h"
+#include "Occupancy.h"
 
 #include <3escore/Vector3.h>
 
 #include <3escore/Colour.h>
 #include <3escore/ServerMacros.h>
 
-#include "occupancyloader.h"
-#include "occupancymesh.h"
+#include "OccupancyLoader.h"
+#include "OccupancyMesh.h"
 #include "p2p.h"
 
 #include <csignal>
@@ -393,7 +393,7 @@ int populateMap(const Options &opt)
 void usage(const Options &opt)
 {
   printf("Usage:\n");
-  printf("3es-occupancy [options] <cloud.ply> <trajectory.ply>\n");
+  printf("3esOccupancy [options] <cloud.ply> <trajectory.ply>\n");
   printf("\nGenerates an Octomap occupancy map from a PLY based point cloud and accompanying trajectory file.\n\n");
   printf(
     "The trajectory marks the scanner trajectory with timestamps loosely corresponding to cloud point timestamps. ");

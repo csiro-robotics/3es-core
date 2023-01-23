@@ -19,7 +19,7 @@ if(DEFINED OCTOMAP_INCLUDE_DIR AND NOT DEFINED OCTOMAP_INCLUDE_DIRS)
 endif(DEFINED OCTOMAP_INCLUDE_DIR AND NOT DEFINED OCTOMAP_INCLUDE_DIRS)
 
 if(NOT DEFINED OCTOMAP_INCLUDE_DIRS)
-  message(STATUS "Octomap not found. Skipping 3es-occupancy example.")
+  message(STATUS "Octomap not found. Skipping 3esOccupancy example.")
   return()
 endif(NOT DEFINED OCTOMAP_INCLUDE_DIRS)
 
@@ -39,10 +39,10 @@ list(APPEND SOURCES
   3rd-party/tinyply.h
 )
 
-add_executable(3es-occupancy ${SOURCES})
-tes_configure_target(3es-occupancy)
+add_executable(3esOccupancy ${SOURCES})
+tes_configure_target(3esOccupancy)
 
-target_link_libraries(3es-occupancy
+target_link_libraries(3esOccupancy
   PRIVATE
     3escore
     octomap-static

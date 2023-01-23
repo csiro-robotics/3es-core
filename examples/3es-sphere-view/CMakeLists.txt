@@ -1,6 +1,6 @@
-add_executable(3es-sphere-view SphereView.cpp)
-tes_configure_target(3es-sphere-view)
-target_link_libraries(3es-sphere-view
+add_executable(3esSphereView SphereView.cpp)
+tes_configure_target(3esSphereView)
+target_link_libraries(3esSphereView
   PRIVATE
     3escore
 )
