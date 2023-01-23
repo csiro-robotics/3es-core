@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_DRAW_PARAMS_H
-#define TES_VIEWER_DRAW_PARAMS_H
+#ifndef TES_VIEW_DRAW_PARAMS_H
+#define TES_VIEW_DRAW_PARAMS_H
 
 #include "3esview/ViewConfig.h"
 
@@ -12,7 +12,7 @@
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Vector2.h>
 
-namespace tes::viewer
+namespace tes::view
 {
 /// Render related parameters passed to the @c Message::draw() function.
 struct TES_VIEWER_API DrawParams
@@ -41,6 +41,6 @@ struct TES_VIEWER_API DrawParams
     pv_transform = projection_matrix * view_matrix;
   }
 };
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-#endif  // TES_VIEWER_DRAW_PARAMS_H
+#endif  // TES_VIEW_DRAW_PARAMS_H

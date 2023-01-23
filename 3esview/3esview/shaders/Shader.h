@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_SHADERS_SHADER_H
-#define TES_VIEWER_SHADERS_SHADER_H
+#ifndef TES_VIEW_SHADERS_SHADER_H
+#define TES_VIEW_SHADERS_SHADER_H
 
 #include <3esview/ViewConfig.h>
 
@@ -19,7 +19,7 @@ class Buffer;
 class Mesh;
 }  // namespace Magnum::GL
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 /// A shader abstraction which provides a common interfaces for magnum shaders.
 ///
@@ -154,6 +154,6 @@ inline bool Shader::supportsFeatureAny(Feature feature_flags) const
 {
   return (features() & feature_flags) != Feature::None;
 }
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders
 
-#endif  // TES_VIEWER_SHADERS_SHADER_H
+#endif  // TES_VIEW_SHADERS_SHADER_H

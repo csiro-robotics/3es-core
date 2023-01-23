@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_DATA_THREAD_H
-#define TES_VIEWER_DATA_THREAD_H
+#ifndef TES_VIEW_DATA_THREAD_H
+#define TES_VIEW_DATA_THREAD_H
 
 #include <3esview/ViewConfig.h>
 
@@ -11,7 +11,7 @@ class PacketReader;
 struct ServerInfoMessage;
 }  // namespace tes
 
-namespace tes::viewer
+namespace tes::view
 {
 /// Base class TES_VIEWER_API for thread objects used as message sources.
 ///
@@ -69,6 +69,6 @@ protected:
 
 private:
 };
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-#endif  // TES_VIEWER_DATA_THREAD_H
+#endif  // TES_VIEW_DATA_THREAD_H

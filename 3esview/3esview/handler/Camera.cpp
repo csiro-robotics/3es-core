@@ -13,7 +13,7 @@
 
 #include <array>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 Camera::Camera()
   : Message(MtCamera, "camera")
@@ -334,4 +334,4 @@ void Camera::calculateCameraAxes(float pitch, float yaw, const Magnum::Vector3 &
   camera_fwd *= Magnum::Float((negate_fwd) ? -1 : 1);
   camera_up *= Magnum::Float((negate_up) ? -1 : 1);
 }
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler

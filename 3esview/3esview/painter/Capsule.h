@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_PAINTER_CAPSULE_H
-#define TES_VIEWER_PAINTER_CAPSULE_H
+#ifndef TES_VIEW_PAINTER_CAPSULE_H
+#define TES_VIEW_PAINTER_CAPSULE_H
 
 #include <3esview/ViewConfig.h>
 
@@ -12,7 +12,7 @@ namespace tes
 class SimpleMesh;
 }
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 /// Capsule painter.
 class TES_VIEWER_API Capsule : public ShapePainter
@@ -91,6 +91,6 @@ private:
   static constexpr float kDefaultHeight = 1.0f;
   static const Vector3f kDefaultAxis;
 };
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter
 
-#endif  // TES_VIEWER_PAINTER_CAPSULE_H
+#endif  // TES_VIEW_PAINTER_CAPSULE_H

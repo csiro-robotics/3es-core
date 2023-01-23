@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_SHADERS_VERTEX_COLOUR_H
-#define TES_VIEWER_SHADERS_VERTEX_COLOUR_H
+#ifndef TES_VIEW_SHADERS_VERTEX_COLOUR_H
+#define TES_VIEW_SHADERS_VERTEX_COLOUR_H
 
 #include <3esview/ViewConfig.h>
 
@@ -13,7 +13,7 @@
 
 #include <memory>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 /// Vertex colour shader. Can be used for solid, transparent and line based shapes.
 class TES_VIEWER_API VertexColour : public Shader
@@ -48,6 +48,6 @@ private:
   Pvm _pvm;
 };
 
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders
 
-#endif  // TES_VIEWER_SHADERS_VERTEX_COLOUR_H
+#endif  // TES_VIEW_SHADERS_VERTEX_COLOUR_H

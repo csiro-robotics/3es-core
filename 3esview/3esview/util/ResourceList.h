@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_UTIL_RESOURCE_LIST_H
-#define TES_VIEWER_UTIL_RESOURCE_LIST_H
+#ifndef TES_VIEW_UTIL_RESOURCE_LIST_H
+#define TES_VIEW_UTIL_RESOURCE_LIST_H
 
 #include <3esview/ViewConfig.h>
 
@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-namespace tes::viewer::util
+namespace tes::view::util
 {
 using ResourceListId = size_t;
 /// A @c ResourceList marker value for null items. Internally used to identify the end of the free list or other linked
@@ -594,6 +594,6 @@ void ResourceList<T>::clear()
   _free_head = _free_tail = kNullResource;
   _item_count = 0;
 }
-}  // namespace tes::viewer::util
+}  // namespace tes::view::util
 
-#endif  // TES_VIEWER_UTIL_RESOURCE_LIST_H
+#endif  // TES_VIEW_UTIL_RESOURCE_LIST_H

@@ -15,7 +15,7 @@
 
 #include <vector>
 
-namespace tes::viewer::mesh
+namespace tes::view::mesh
 {
 struct VertexP
 {
@@ -326,4 +326,4 @@ Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, tes::Bounds<Mag
   }
   return convert<VertexP>(mesh_resource, primitive, bounds, options);
 }
-}  // namespace tes::viewer::mesh
+}  // namespace tes::view::mesh

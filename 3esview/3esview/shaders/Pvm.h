@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_SHADERS_PVM_H
-#define TES_VIEWER_SHADERS_PVM_H
+#ifndef TES_VIEW_SHADERS_PVM_H
+#define TES_VIEW_SHADERS_PVM_H
 
 #include <3esview/ViewConfig.h>
 
@@ -11,7 +11,7 @@
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Matrix4.h>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 /// A helper for tracking projection, view and model matrices for shaders.
 ///
@@ -225,6 +225,6 @@ inline void Pvm::clearDirty()
 {
   _flags = DirtyFlag::Zero;
 }
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders
 
-#endif  // TES_VIEWER_SHADERS_PVM_H
+#endif  // TES_VIEW_SHADERS_PVM_H

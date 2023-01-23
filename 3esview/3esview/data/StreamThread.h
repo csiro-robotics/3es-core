@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_STREAM_THREAD_H
-#define TES_VIEWER_STREAM_THREAD_H
+#ifndef TES_VIEW_STREAM_THREAD_H
+#define TES_VIEW_STREAM_THREAD_H
 
 #include <3esview/ViewConfig.h>
 
@@ -26,7 +26,7 @@ class PacketReader;
 class PacketStreamReader;
 }  // namespace tes
 
-namespace tes::viewer
+namespace tes::view
 {
 class ThirdEyeScene;
 
@@ -129,6 +129,6 @@ private:
   std::thread _thread;
   ServerInfoMessage _server_info = {};
 };
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-#endif  // TES_VIEWER_STREAM_THREAD_H
+#endif  // TES_VIEW_STREAM_THREAD_H

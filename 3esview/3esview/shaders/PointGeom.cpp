@@ -17,7 +17,7 @@
 #include <Corrade/Containers/Reference.h>
 #include <Corrade/Utility/Assert.h>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 PointGeom::PointGeom()
   : _shader(std::make_shared<PointGeomProgram>())
@@ -199,4 +199,4 @@ PointGeomProgram &PointGeomProgram::setViewportSize(const Magnum::Vector2i &size
   setUniform(_screen_params_uniform, screen_params);
   return *this;
 }
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders

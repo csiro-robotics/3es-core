@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_SHADERS_SHADER_LIBRARY_H
-#define TES_VIEWER_SHADERS_SHADER_LIBRARY_H
+#ifndef TES_VIEW_SHADERS_SHADER_LIBRARY_H
+#define TES_VIEW_SHADERS_SHADER_LIBRARY_H
 
 #include <3esview/ViewConfig.h>
 
@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 class Shader;
 
@@ -116,6 +116,6 @@ private:
   /// Shaders by @c ID.
   std::vector<std::shared_ptr<Shader>> _core_shaders;
 };
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders
 
-#endif  // TES_VIEWER_SHADERS_SHADER_LIBRARY_H
+#endif  // TES_VIEW_SHADERS_SHADER_LIBRARY_H

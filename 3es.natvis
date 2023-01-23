@@ -145,9 +145,9 @@
 
 
   <!-- 3es types -->
-  <Type Name="tes::viewer::util::ResourceList&lt;*&gt;::ResourceRefBase&lt;*,*&gt;">
-    <AlternativeType Name="tes::viewer::util::ResourceList&lt;*&gt;::ResourceRef"/>
-    <AlternativeType Name="tes::viewer::util::ResourceList&lt;*&gt;::ResourceConstRef"/>
+  <Type Name="tes::view::util::ResourceList&lt;*&gt;::ResourceRefBase&lt;*,*&gt;">
+    <AlternativeType Name="tes::view::util::ResourceList&lt;*&gt;::ResourceRef"/>
+    <AlternativeType Name="tes::view::util::ResourceList&lt;*&gt;::ResourceConstRef"/>
     <DisplayString>id={_id} l={_resource_list}</DisplayString>
     <Expand>
       <Item Name="_id">_id</Item>
@@ -156,9 +156,9 @@
     </Expand>
   </Type>
 
-  <Type Name="tes::viewer::util::ResourceList&lt;*&gt;::BaseIterator&lt;*,*&gt;">
-    <AlternativeType Name="tes::viewer::util::ResourceList&lt;*&gt;::iterator"/>
-    <AlternativeType Name="tes::viewer::util::ResourceList&lt;*&gt;::const_iterator"/>
+  <Type Name="tes::view::util::ResourceList&lt;*&gt;::BaseIterator&lt;*,*&gt;">
+    <AlternativeType Name="tes::view::util::ResourceList&lt;*&gt;::iterator"/>
+    <AlternativeType Name="tes::view::util::ResourceList&lt;*&gt;::const_iterator"/>
     <DisplayString>id={_id} l={_resource_list}</DisplayString>
     <Expand>
       <Item Name="_id">_id</Item>

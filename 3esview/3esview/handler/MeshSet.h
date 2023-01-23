@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_HANDLER_MESH_SET_H
-#define TES_VIEWER_HANDLER_MESH_SET_H
+#ifndef TES_VIEW_HANDLER_MESH_SET_H
+#define TES_VIEW_HANDLER_MESH_SET_H
 
 #include <3esview/ViewConfig.h>
 
@@ -13,7 +13,7 @@
 #include <Magnum/Math/Color.h>
 #include <Magnum/GL/Mesh.h>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 /// The message handler for mesh sets which reference and render @c MeshResource items.
 class TES_VIEWER_API MeshSet : public Message
@@ -93,6 +93,6 @@ private:
   std::vector<MeshItem> _transients;
   std::unordered_map<uint32_t, MeshItem> _shapes;
 };
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler
 
-#endif  // TES_VIEWER_HANDLER_MESH_SET_H
+#endif  // TES_VIEW_HANDLER_MESH_SET_H

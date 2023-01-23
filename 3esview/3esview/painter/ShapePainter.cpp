@@ -6,7 +6,7 @@
 
 #include <Magnum/GL/Renderer.h>
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 ShapePainter::ShapePainter(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders,
                            std::initializer_list<Part> solid_mesh, std::initializer_list<Part> wireframe_mesh,
@@ -269,4 +269,4 @@ const ShapeCache *ShapePainter::cacheForType(Type type) const
   }
   return nullptr;
 }
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter

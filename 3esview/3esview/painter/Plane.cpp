@@ -8,7 +8,7 @@
 
 #include <mutex>
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 Plane::Plane(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders)
   : ShapePainter(std::move(culler), std::move(shaders), { Part{ solidMesh() } }, { Part{ wireframeMesh() } },
@@ -98,4 +98,4 @@ void Plane::drawTransparent(const FrameStamp &stamp, const Magnum::Matrix4 &proj
   ShapePainter::drawTransparent(stamp, projection_matrix, view_matrix);
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::FaceCulling);
 }
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter

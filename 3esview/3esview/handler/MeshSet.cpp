@@ -12,7 +12,7 @@
 #include <3escore/PacketReader.h>
 #include <3escore/shapes/MeshSet.h>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 MeshSet::MeshSet(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<MeshResource> resources)
   : Message(SIdMeshSet, "mesh set")
@@ -322,7 +322,7 @@ bool MeshSet::create(const std::shared_ptr<tes::MeshSet> &shape)
     drawable.resource_id = shape->partResource(i)->id();
     drawable.transform = composeTransform(shape->attributes()) * composeTransform(shape->partTransform(i));
     const auto colour = shape->colour() * shape->partColour(i);
-    drawable.colour = tes::viewer::convert(colour);
+    drawable.colour = tes::view::convert(colour);
     drawable.owner = shape;
     drawable.flags = DrawableFlag::Pending;
     if (transient)
@@ -389,4 +389,4 @@ void MeshSet::beginFrameForDrawable(Drawable &drawable)
     }
   }
 }
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler

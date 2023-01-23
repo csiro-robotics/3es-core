@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_HANDLER_CAMERA_H
-#define TES_VIEWER_HANDLER_CAMERA_H
+#ifndef TES_VIEW_HANDLER_CAMERA_H
+#define TES_VIEW_HANDLER_CAMERA_H
 
 #include <3esview/ViewConfig.h>
 
@@ -17,7 +17,7 @@
 #include <mutex>
 #include <vector>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 class TES_VIEWER_API Camera : public Message
 {
@@ -80,6 +80,6 @@ private:
   CameraSet _pending_cameras;
   ServerInfoMessage _server_info = {};
 };
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler
 
-#endif  // TES_VIEWER_HANDLER_CAMERA_H
+#endif  // TES_VIEW_HANDLER_CAMERA_H

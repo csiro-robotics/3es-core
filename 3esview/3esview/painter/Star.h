@@ -1,12 +1,12 @@
 
-#ifndef TES_VIEWER_PAINTER_STAR_H
-#define TES_VIEWER_PAINTER_STAR_H
+#ifndef TES_VIEW_PAINTER_STAR_H
+#define TES_VIEW_PAINTER_STAR_H
 
 #include <3esview/ViewConfig.h>
 
 #include "ShapePainter.h"
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 /// Star painter.
 class TES_VIEWER_API Star : public ShapePainter
@@ -31,6 +31,6 @@ public:
 
 private:
 };
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter
 
-#endif  // TES_VIEWER_PAINTER_STAR_H
+#endif  // TES_VIEW_PAINTER_STAR_H

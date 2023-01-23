@@ -7,7 +7,7 @@
 
 #include <array>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 namespace
 {
@@ -88,4 +88,4 @@ void ShaderLibrary::registerShader(const std::string &name, std::shared_ptr<Shad
 {
   _shaders.emplace(name, shader);
 }
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders

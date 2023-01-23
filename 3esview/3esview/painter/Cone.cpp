@@ -7,7 +7,7 @@
 
 #include <mutex>
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 Cone::Cone(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders)
   : ShapePainter(std::move(culler), std::move(shaders), { Part{ solidMesh() } }, { Part{ wireframeMesh() } },
@@ -95,4 +95,4 @@ Magnum::GL::Mesh Cone::wireframeMesh()
 
   return mesh::convert(build_mesh);
 }
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter

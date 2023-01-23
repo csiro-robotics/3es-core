@@ -1,12 +1,12 @@
 
-#ifndef TES_VIEWER_PAINTER_CONE_H
-#define TES_VIEWER_PAINTER_CONE_H
+#ifndef TES_VIEW_PAINTER_CONE_H
+#define TES_VIEW_PAINTER_CONE_H
 
 #include <3esview/ViewConfig.h>
 
 #include "ShapePainter.h"
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 /// Cone painter.
 class TES_VIEWER_API Cone : public ShapePainter
@@ -26,6 +26,6 @@ public:
 
 private:
 };
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter
 
-#endif  // TES_VIEWER_PAINTER_CONE_H
+#endif  // TES_VIEW_PAINTER_CONE_H

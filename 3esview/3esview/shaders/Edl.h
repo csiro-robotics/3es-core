@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_SHADERS_EDL_H
-#define TES_VIEWER_SHADERS_EDL_H
+#ifndef TES_VIEW_SHADERS_EDL_H
+#define TES_VIEW_SHADERS_EDL_H
 
 #include <3esview/ViewConfig.h>
 
@@ -71,4 +71,4 @@ private:
 };
 }  // namespace tes::shaders
 
-#endif  // TES_VIEWER_SHADERS_EDL_H
+#endif  // TES_VIEW_SHADERS_EDL_H

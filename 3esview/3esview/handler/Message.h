@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_HANDLER_MESSAGE_H
-#define TES_VIEWER_HANDLER_MESSAGE_H
+#ifndef TES_VIEW_HANDLER_MESSAGE_H
+#define TES_VIEW_HANDLER_MESSAGE_H
 
 #include <3esview/ViewConfig.h>
 
@@ -21,7 +21,7 @@ namespace tes
 class Connection;
 }  // namespace tes
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 /// The base class for a 3es message handler.
 ///
@@ -150,6 +150,6 @@ protected:
 };
 
 TES_ENUM_FLAGS(Message::DrawableFlag, unsigned);
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler
 
-#endif  // TES_VIEWER_HANDLER_MESSAGE_H
+#endif  // TES_VIEW_HANDLER_MESSAGE_H

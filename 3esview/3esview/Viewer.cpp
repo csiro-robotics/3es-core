@@ -35,7 +35,7 @@
 // Things to implement:
 // - mesh renderer
 
-namespace tes::viewer
+namespace tes::view
 {
 uint16_t Viewer::defaultPort()
 {
@@ -476,4 +476,4 @@ bool Viewer::handleStartupArgs(const Arguments &arguments)
 
   return true;
 }
-}  // namespace tes::viewer
+}  // namespace tes::view

@@ -14,7 +14,7 @@
 #include <thread>
 #include <vector>
 
-namespace tes::viewer
+namespace tes::view
 {
 struct Resource
 {
@@ -255,5 +255,5 @@ TEST(Util, ResourceList_Threads)
     EXPECT_EQ(resource.value, expected_value);
     ++expected_value;
   }
-}  // namespace tes::viewer
-}  // namespace tes::viewer
+}  // namespace tes::view
+}  // namespace tes::view

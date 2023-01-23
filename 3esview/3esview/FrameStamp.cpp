@@ -1,5 +1,5 @@
 #include "FrameStamp.h"
 
-namespace tes::viewer
+namespace tes::view
 {
-}  // namespace tes::viewer
+}  // namespace tes::view

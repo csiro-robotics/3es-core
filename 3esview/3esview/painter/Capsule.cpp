@@ -16,7 +16,7 @@
 #include <cassert>
 #include <mutex>
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 constexpr float Capsule::kDefaultRadius;
 constexpr float Capsule::kDefaultHeight;
@@ -312,4 +312,4 @@ void Capsule::buildEndCapSolid(SimpleMesh &mesh, bool bottomCap)
   mesh.setNormals(0, normals.data(), normals.size());
   mesh.setIndices(0, indices.data(), indices.size());
 }
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter

@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_SHADERS_FLAT_H
-#define TES_VIEWER_SHADERS_FLAT_H
+#ifndef TES_VIEW_SHADERS_FLAT_H
+#define TES_VIEW_SHADERS_FLAT_H
 
 #include <3esview/ViewConfig.h>
 
@@ -13,7 +13,7 @@
 
 #include <memory>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 /// Flat colour shader. Can be used for solid, transparent and line based shapes and supports instance rendering.
 class TES_VIEWER_API Flat : public Shader
@@ -52,6 +52,6 @@ private:
   Pvm _pvm;
 };
 
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders
 
-#endif  // TES_VIEWER_SHADERS_FLAT_H
+#endif  // TES_VIEW_SHADERS_FLAT_H

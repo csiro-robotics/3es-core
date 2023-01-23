@@ -10,7 +10,7 @@
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Color.h>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 VertexColour::VertexColour()
   : _shader(std::make_shared<Magnum::Shaders::VertexColor3D>())
@@ -81,4 +81,4 @@ void VertexColour::updateTransform()
     _pvm.clearDirty();
   }
 }
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders

@@ -16,7 +16,7 @@
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Quaternion.h>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 MeshShape::MeshShape(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shader_library)
   : Message(SIdMeshShape, "mesh shape")
@@ -422,4 +422,4 @@ void MeshShape::updateRenderResources(RenderMesh &render_mesh)
     render_mesh.shader = _shader_library->lookupForDrawType(render_mesh.shape->drawType());
   }
 }
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler

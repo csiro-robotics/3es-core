@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_VIEWER_H
-#define TES_VIEWER_VIEWER_H
+#ifndef TES_VIEW_VIEWER_H
+#define TES_VIEW_VIEWER_H
 
 #include "3esview/ViewConfig.h"
 
@@ -8,7 +8,7 @@
 
 #include <filesystem>
 
-namespace tes::viewer
+namespace tes::view
 {
 namespace shaders
 {
@@ -109,6 +109,6 @@ private:
   std::vector<KeyAxis> _move_keys;
   std::vector<KeyAxis> _rotate_keys;
 };
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-#endif  // TES_VIEWER_VIEWER_H
+#endif  // TES_VIEW_VIEWER_H

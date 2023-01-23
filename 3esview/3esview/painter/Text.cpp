@@ -21,7 +21,7 @@
 #include <cctype>
 #include <limits>
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 constexpr unsigned Text::kMaxTextLength;
 
@@ -222,4 +222,4 @@ void Text::draw(const TextEntry &text, const Matrix &full_projection_matrix, Ren
     // .setSmoothness(0.025f / _transformationRotatingText.uniformScaling())
     .draw(renderer.mesh());
 }
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter

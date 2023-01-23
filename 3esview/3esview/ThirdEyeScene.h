@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_THIRD_EYE_SCENE_H
-#define TES_VIEWER_THIRD_EYE_SCENE_H
+#ifndef TES_VIEW_THIRD_EYE_SCENE_H
+#define TES_VIEW_THIRD_EYE_SCENE_H
 
 #include "3esview/ViewConfig.h"
 
@@ -32,7 +32,7 @@
 #include <vector>
 
 // TODO(KS): abstract away Magnum so it's not in any public headers.
-namespace tes::viewer
+namespace tes::view
 {
 struct DrawParams;
 class EdlEffect;
@@ -154,6 +154,6 @@ private:
 
   FramesPerSecondWindow _fps;
 };
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-#endif  // TES_VIEWER_THIRD_EYE_SCENE_H
+#endif  // TES_VIEW_THIRD_EYE_SCENE_H

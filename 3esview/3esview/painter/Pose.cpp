@@ -7,7 +7,7 @@
 
 #include <mutex>
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 Pose::Pose(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders)
   : ShapePainter(std::move(culler), std::move(shaders), { Part{ solidMesh() } }, { Part{ wireframeMesh() } },
@@ -139,4 +139,4 @@ Magnum::GL::Mesh Pose::wireframeMesh()
 
   return mesh::convert(build_mesh);
 }
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter

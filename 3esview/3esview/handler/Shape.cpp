@@ -8,7 +8,7 @@
 #include <3escore/Log.h>
 #include <3escore/PacketReader.h>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 bool readMultiShape(const Shape &shape, painter::ShapePainter &painter,
                     const painter::ShapePainter::ParentId &parent_id, painter::ShapePainter::Type draw_type,
@@ -354,4 +354,4 @@ bool Shape::handleData(const DataMessage &msg, PacketReader &reader)
   ok = ok && readMultiShape(*this, *_painter, parent_id, draw_type, block_count, reader, info.double_precision);
   return ok;
 }
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler

@@ -1,11 +1,11 @@
-#ifndef TES_VIEWER_FRAMES_PER_SECOND_WINDOW_H
-#define TES_VIEWER_FRAMES_PER_SECOND_WINDOW_H
+#ifndef TES_VIEW_FRAMES_PER_SECOND_WINDOW_H
+#define TES_VIEW_FRAMES_PER_SECOND_WINDOW_H
 
 #include "3esview/ViewConfig.h"
 
 #include <vector>
 
-namespace tes::viewer
+namespace tes::view
 {
 /// A simple frames per second tracking, over N frames
 class TES_VIEWER_API FramesPerSecondWindow
@@ -33,6 +33,6 @@ private:
   unsigned _count = 0;
 };
 
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-#endif  // TES_VIEWER_FRAMES_PER_SECOND_WINDOW_H
+#endif  // TES_VIEW_FRAMES_PER_SECOND_WINDOW_H

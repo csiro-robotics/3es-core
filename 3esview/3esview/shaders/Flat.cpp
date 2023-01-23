@@ -7,7 +7,7 @@
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Color.h>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 Flat::Flat()
   : _shader(std::make_shared<Magnum::Shaders::Flat3D>(Magnum::Shaders::Flat3D::Flag::VertexColor |
@@ -73,4 +73,4 @@ void Flat::updateTransform()
     _pvm.clearDirty();
   }
 }
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders

@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_SHADERS_POINT_GEOM_H
-#define TES_VIEWER_SHADERS_POINT_GEOM_H
+#ifndef TES_VIEW_SHADERS_POINT_GEOM_H
+#define TES_VIEW_SHADERS_POINT_GEOM_H
 
 #include <3esview/ViewConfig.h>
 
@@ -14,7 +14,7 @@
 
 #include <memory>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 class PointGeomProgram;
 
@@ -109,6 +109,6 @@ private:
   Int _screen_params_uniform = 3;
   Int _point_size_uniform = 4;
 };
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders
 
-#endif  // TES_VIEWER_SHADERS_POINT_GEOM_H
+#endif  // TES_VIEW_SHADERS_POINT_GEOM_H

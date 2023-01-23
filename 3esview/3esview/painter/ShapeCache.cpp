@@ -5,7 +5,7 @@
 
 #include <3escore/Debug.h>
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 constexpr size_t ShapeCache::kListEnd;
 
@@ -401,4 +401,4 @@ void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
     upload_buffer(false);
   }
 }
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter

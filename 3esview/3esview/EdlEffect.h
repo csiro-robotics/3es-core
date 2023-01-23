@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_EDL_EFFECT_H
-#define TES_VIEWER_EDL_EFFECT_H
+#ifndef TES_VIEW_EDL_EFFECT_H
+#define TES_VIEW_EDL_EFFECT_H
 
 #include "3esview/ViewConfig.h"
 
@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace tes::viewer
+namespace tes::view
 {
 struct EdlEffectDetail;
 
@@ -51,6 +51,6 @@ private:
 
   std::unique_ptr<EdlEffectDetail> _imp;
 };
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-#endif  // TES_VIEWER_EDL_EFFECT_H
+#endif  // TES_VIEW_EDL_EFFECT_H

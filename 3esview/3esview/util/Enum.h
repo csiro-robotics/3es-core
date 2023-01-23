@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_UTIL_ENUM_H
-#define TES_VIEWER_UTIL_ENUM_H
+#ifndef TES_VIEW_UTIL_ENUM_H
+#define TES_VIEW_UTIL_ENUM_H
 
 #include <3esview/ViewConfig.h>
 
@@ -35,4 +35,4 @@
   }
 
 
-#endif  // TES_VIEWER_UTIL_ENUM_H
+#endif  // TES_VIEW_UTIL_ENUM_H

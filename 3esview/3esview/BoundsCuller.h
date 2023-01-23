@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_BOUNDS_CULLER_H
-#define TES_VIEWER_BOUNDS_CULLER_H
+#ifndef TES_VIEW_BOUNDS_CULLER_H
+#define TES_VIEW_BOUNDS_CULLER_H
 
 #include "3esview/ViewConfig.h"
 
@@ -16,7 +16,7 @@
 #include <mutex>
 #include <vector>
 
-namespace tes::viewer
+namespace tes::view
 {
 using BoundsId = util::ResourceListId;
 
@@ -167,6 +167,6 @@ inline bool BoundsCuller::isVisible(BoundsId id, unsigned render_mark) const
   auto bounds = _bounds.at(id);
   return bounds.isValid() && bounds->visible_mark == render_mark;
 }
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-#endif  // TES_VIEWER_BOUNDS_CULLER_H
+#endif  // TES_VIEW_BOUNDS_CULLER_H

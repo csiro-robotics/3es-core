@@ -10,7 +10,7 @@
 #include <cinttypes>
 #include <fstream>
 
-namespace tes::viewer
+namespace tes::view
 {
 StreamThread::StreamThread(std::shared_ptr<ThirdEyeScene> tes, std::shared_ptr<std::istream> stream)
   : _tes(std::exchange(tes, nullptr))
@@ -263,4 +263,4 @@ StreamThread::Clock::duration StreamThread::processControlMessage(PacketReader &
   }
   return {};
 }
-}  // namespace tes::viewer
+}  // namespace tes::view

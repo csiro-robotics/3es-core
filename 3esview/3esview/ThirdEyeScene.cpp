@@ -46,7 +46,7 @@
 // Things to implement:
 // - point cloud message handler
 
-namespace tes::viewer
+namespace tes::view
 {
 ThirdEyeScene::ThirdEyeScene()
 {
@@ -431,9 +431,9 @@ void ThirdEyeScene::updateFpsDisplay(float dt, const DrawParams &params)
   const auto fps = _fps.fps();
   // Render
   // FIXME(KS): the transform should be adjusted to consider screen resolution and text size.
-  viewer::painter::Text::TextEntry fps_text = {};
+  painter::Text::TextEntry fps_text = {};
   fps_text.transform = Magnum::Matrix4::translation(Magnum::Vector3(0.01f, 0.015f, 0.0f));
   fps_text.text = std::to_string(fps);
   _text_painter->draw2D(fps_text, params);
 }
-}  // namespace tes::viewer
+}  // namespace tes::view

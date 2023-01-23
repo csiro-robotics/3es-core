@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_MAGNUM_COLOUR_H
-#define TES_VIEWER_MAGNUM_COLOUR_H
+#ifndef TES_VIEW_MAGNUM_COLOUR_H
+#define TES_VIEW_MAGNUM_COLOUR_H
 
 #include "3esview/ViewConfig.h"
 
@@ -8,7 +8,7 @@
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Color.h>
 
-namespace tes::viewer
+namespace tes::view
 {
 inline tes::Colour convert(const Magnum::Color3 &c)
 {
@@ -24,6 +24,6 @@ inline Magnum::Color4 convert(const tes::Colour &c)
 {
   return Magnum::Color4(Magnum::Float(c.rf()), Magnum::Float(c.gf()), Magnum::Float(c.bf()), Magnum::Float(c.af()));
 }
-};  // namespace tes::viewer
+};  // namespace tes::view
 
-#endif  // TES_VIEWER_MAGNUM_COLOUR_H
+#endif  // TES_VIEW_MAGNUM_COLOUR_H

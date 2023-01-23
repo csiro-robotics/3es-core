@@ -24,7 +24,7 @@
 #include <vector>
 
 
-namespace tes::viewer
+namespace tes::view
 {
 class Shapes : public testing::Test
 {
@@ -425,4 +425,4 @@ TEST_F(Shapes, Painter_Star)
   ParentsTest<painter::Star> test;
   test.run(viewer());
 }
-}  // namespace tes::viewer
+}  // namespace tes::view

@@ -1,5 +1,5 @@
 #include "ResourceList.h"
 
-namespace tes::viewer::util
+namespace tes::view::util
 {
-}  // namespace tes::viewer::util
+}  // namespace tes::view::util

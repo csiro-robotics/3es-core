@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_HANDLER_TEXT2D_H
-#define TES_VIEWER_HANDLER_TEXT2D_H
+#ifndef TES_VIEW_HANDLER_TEXT2D_H
+#define TES_VIEW_HANDLER_TEXT2D_H
 
 #include <3esview/ViewConfig.h>
 
@@ -17,7 +17,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 class TES_VIEWER_API Text2D : public Message
 {
@@ -42,6 +42,6 @@ private:
   std::unordered_map<uint32_t, TextEntry> _text;
   std::shared_ptr<painter::Text> _painter;
 };
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler
 
-#endif  // TES_VIEWER_HANDLER_TEXT2D_H
+#endif  // TES_VIEW_HANDLER_TEXT2D_H

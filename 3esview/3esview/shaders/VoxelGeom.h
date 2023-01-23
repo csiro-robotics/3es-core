@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_SHADERS_VOXEL_GEOM_H
-#define TES_VIEWER_SHADERS_VOXEL_GEOM_H
+#ifndef TES_VIEW_SHADERS_VOXEL_GEOM_H
+#define TES_VIEW_SHADERS_VOXEL_GEOM_H
 
 #include <3esview/ViewConfig.h>
 
@@ -14,7 +14,7 @@
 
 #include <memory>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 class VoxelGeomProgram;
 
@@ -104,6 +104,6 @@ private:
   Int _pv_matrix_uniform = 2;
   Int _scale_uniform = 3;
 };
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders
 
-#endif  // TES_VIEWER_SHADERS_VOXEL_GEOM_H
+#endif  // TES_VIEW_SHADERS_VOXEL_GEOM_H

@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_SHAPE_CACHE_H
-#define TES_VIEWER_SHAPE_CACHE_H
+#ifndef TES_VIEW_SHAPE_CACHE_H
+#define TES_VIEW_SHAPE_CACHE_H
 
 #include <3esview/ViewConfig.h>
 
@@ -21,17 +21,17 @@
 #include <memory>
 #include <vector>
 
-namespace tes::viewer
+namespace tes::view
 {
 class BoundsCuller;
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 class Shader;
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 /// An instanced shape rendering cache.
 ///
@@ -473,6 +473,6 @@ inline void ShapeCache::const_iterator::next()
     _view = {};
   }
 }
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter
 
-#endif  // TES_VIEWER_SHAPE_CACHE_H
+#endif  // TES_VIEW_SHAPE_CACHE_H

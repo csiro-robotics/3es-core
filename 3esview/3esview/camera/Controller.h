@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_CAMERA_CONTROLLER_H
-#define TES_VIEWER_CAMERA_CONTROLLER_H
+#ifndef TES_VIEW_CAMERA_CONTROLLER_H
+#define TES_VIEW_CAMERA_CONTROLLER_H
 
 #include <3esview/ViewConfig.h>
 
@@ -85,4 +85,4 @@ protected:
 };
 }  // namespace tes::camera
 
-#endif  // TES_VIEWER_CAMERA_CONTROLLER_H
+#endif  // TES_VIEW_CAMERA_CONTROLLER_H

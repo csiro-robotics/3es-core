@@ -1,6 +1,6 @@
 
-#ifndef TES_VIEWER_HANDLER_SHAPE_H
-#define TES_VIEWER_HANDLER_SHAPE_H
+#ifndef TES_VIEW_HANDLER_SHAPE_H
+#define TES_VIEW_HANDLER_SHAPE_H
 
 #include <3esview/ViewConfig.h>
 
@@ -10,12 +10,12 @@
 #include <memory>
 #include <unordered_map>
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 class ShapePainter;
 }
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 /// A common message handler for all primitive shapes, rendered using a @c painter::ShapePainter.
 class TES_VIEWER_API Shape : public Message
@@ -65,6 +65,6 @@ private:
   /// The last transient multi-shape info. We use this when unpacking a transient multi-shape data message.
   MultiShapeInfo _last_transient_multi_shape;
 };
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler
 
-#endif  // TES_VIEWER_HANDLER_SHAPE_H
+#endif  // TES_VIEW_HANDLER_SHAPE_H

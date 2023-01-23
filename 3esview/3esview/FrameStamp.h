@@ -1,12 +1,12 @@
-#ifndef TES_VIEWER_FRAME_STAMP_H
-#define TES_VIEWER_FRAME_STAMP_H
+#ifndef TES_VIEW_FRAME_STAMP_H
+#define TES_VIEW_FRAME_STAMP_H
 
 #include "3esview/ViewConfig.h"
 
 #include <cinttypes>
 #include <atomic>
 
-namespace tes::viewer
+namespace tes::view
 {
 using FrameNumber = uint32_t;
 using RenderStamp = uint32_t;
@@ -26,6 +26,6 @@ struct TES_VIEWER_API FrameStamp
   /// A monotonic increasing value, changing with every rendering of the scene.
   RenderStamp render_mark = 0;
 };
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-#endif  // TES_VIEWER_FRAME_STAMP_H
+#endif  // TES_VIEW_FRAME_STAMP_H

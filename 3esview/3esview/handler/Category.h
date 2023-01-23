@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_HANDLER_CATEGORY_H
-#define TES_VIEWER_HANDLER_CATEGORY_H
+#ifndef TES_VIEW_HANDLER_CATEGORY_H
+#define TES_VIEW_HANDLER_CATEGORY_H
 
 #include <3esview/ViewConfig.h>
 
@@ -11,7 +11,7 @@
 #include <mutex>
 #include <unordered_map>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 class TES_VIEWER_API Category : public Message
 {
@@ -54,6 +54,6 @@ private:
   mutable std::mutex _mutex;
   CategoryMap _category_map;
 };
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler
 
-#endif  // TES_VIEWER_HANDLER_CATEGORY_H
+#endif  // TES_VIEW_HANDLER_CATEGORY_H

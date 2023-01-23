@@ -17,7 +17,7 @@
 #include <Corrade/Containers/Reference.h>
 #include <Corrade/Utility/Assert.h>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 VoxelGeom::VoxelGeom()
   : _shader(std::make_shared<VoxelGeomProgram>())
@@ -180,4 +180,4 @@ VoxelGeomProgram &VoxelGeomProgram::setVoxelScale(const Magnum::Vector3 &scale)
   setUniform(_scale_uniform, scale);
   return *this;
 }
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders

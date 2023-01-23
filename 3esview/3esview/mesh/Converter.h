@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_MESH_CONVERTER_H
-#define TES_VIEWER_MESH_CONVERTER_H
+#ifndef TES_VIEW_MESH_CONVERTER_H
+#define TES_VIEW_MESH_CONVERTER_H
 
 #include <3esview/ViewConfig.h>
 
@@ -13,7 +13,7 @@ namespace tes
 class MeshResource;
 }
 
-namespace tes::viewer::mesh
+namespace tes::view::mesh
 {
 /// Options to adjust the behaviour of @c convert() functions.
 struct TES_VIEWER_API ConvertOptions
@@ -34,6 +34,6 @@ inline Magnum::GL::Mesh convert(const tes::MeshResource &mesh_resource, const Co
   tes::Bounds<Magnum::Float> bounds;
   return convert(mesh_resource, bounds, options);
 }
-}  // namespace tes::viewer::mesh
+}  // namespace tes::view::mesh
 
-#endif  // TES_VIEWER_MESH_CONVERTER_H
+#endif  // TES_VIEW_MESH_CONVERTER_H

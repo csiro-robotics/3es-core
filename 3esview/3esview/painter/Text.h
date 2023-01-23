@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEWER_PAINTER_TEXT_H
-#define TES_VIEWER_PAINTER_TEXT_H
+#ifndef TES_VIEW_PAINTER_TEXT_H
+#define TES_VIEW_PAINTER_TEXT_H
 
 #include <3esview/ViewConfig.h>
 
@@ -27,12 +27,12 @@ class AbstractFont;
 class DistanceFieldGlyphCache;
 }  // namespace Magnum::Text
 
-namespace tes::viewer
+namespace tes::view
 {
 struct DrawParams;
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 /// This class renders 2D and 3D text using an immediate mode style rendering.
 ///
@@ -247,6 +247,6 @@ void Text::draw3D(const Iter &begin, const Iter &end, const Resolver &resolver, 
   }
   endDraw3D();
 }
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter
 
-#endif  // TES_VIEWER_PAINTER_TEXT_H
+#endif  // TES_VIEW_PAINTER_TEXT_H

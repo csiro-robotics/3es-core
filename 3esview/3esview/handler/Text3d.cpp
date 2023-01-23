@@ -17,7 +17,7 @@
 #include <cctype>
 #include <limits>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 Text3D::Text3D(std::shared_ptr<painter::Text> painter)
   : Message(SIdText3D, "text 3D")
@@ -169,4 +169,4 @@ void Text3D::serialise(Connection &out, ServerInfoMessage &info)
     write_shape(id, text);
   }
 }
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler

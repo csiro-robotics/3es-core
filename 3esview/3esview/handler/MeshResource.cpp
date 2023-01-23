@@ -15,7 +15,7 @@
 
 #include <Magnum/GL/Renderer.h>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 TES_ENUM_FLAGS(MeshResource::ResourceFlag, unsigned);
 
@@ -286,4 +286,4 @@ void MeshResource::updateResources()
     }
   }
 }
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler

@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_FBO_EFFECT_H
-#define TES_VIEWER_FBO_EFFECT_H
+#ifndef TES_VIEW_FBO_EFFECT_H
+#define TES_VIEW_FBO_EFFECT_H
 
 #include "3esview/ViewConfig.h"
 
@@ -13,7 +13,7 @@ class Framebuffer;
 }
 }  // namespace Magnum
 
-namespace tes::viewer
+namespace tes::view
 {
 /// Base class for any full screen, frame buffer object rendering effect.
 class TES_VIEWER_API FboEffect
@@ -43,6 +43,6 @@ public:
   /// @param viewport The new viewport dimensions.
   virtual void viewportChange(const Magnum::Range2Di &viewport) = 0;
 };
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-#endif  // TES_VIEWER_FBO_EFFECT_H
+#endif  // TES_VIEW_FBO_EFFECT_H

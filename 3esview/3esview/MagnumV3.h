@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_MAGNUM_V3_H
-#define TES_VIEWER_MAGNUM_V3_H
+#ifndef TES_VIEW_MAGNUM_V3_H
+#define TES_VIEW_MAGNUM_V3_H
 
 #include "3esview/ViewConfig.h"
 
@@ -8,7 +8,7 @@
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Vector3.h>
 
-namespace tes::viewer
+namespace tes::view
 {
 inline tes::Vector3<Magnum::Float> convert(const Magnum::Vector3 &v)
 {
@@ -20,6 +20,6 @@ inline Magnum::Vector3 convert(const tes::Vector3<T> &v)
 {
   return Magnum::Vector3(Magnum::Float(v.x), Magnum::Float(v.y), Magnum::Float(v.z));
 }
-};  // namespace tes::viewer
+};  // namespace tes::view
 
-#endif  // TES_VIEWER_MAGNUM_V3_H
+#endif  // TES_VIEW_MAGNUM_V3_H

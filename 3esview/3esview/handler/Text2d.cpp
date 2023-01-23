@@ -17,7 +17,7 @@
 #include <cctype>
 #include <limits>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 Text2D::Text2D(std::shared_ptr<painter::Text> painter)
   : Message(SIdText2D, "text 2D")
@@ -160,4 +160,4 @@ void Text2D::serialise(Connection &out, ServerInfoMessage &info)
     write_shape(id, text);
   }
 }
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler

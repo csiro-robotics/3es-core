@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_PAINTER_SHAPE_PAINTER_H
-#define TES_VIEWER_PAINTER_SHAPE_PAINTER_H
+#ifndef TES_VIEW_PAINTER_SHAPE_PAINTER_H
+#define TES_VIEW_PAINTER_SHAPE_PAINTER_H
 
 #include <3esview/ViewConfig.h>
 
@@ -12,12 +12,12 @@
 #include <memory>
 #include <unordered_map>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 class ShaderLibrary;
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 /// A @c ShapePainter renders a single primitive shape type in either solid, wireframe or transparent forms. The
 /// painter also associated 3rd Eye Scene shape @c Id objects with renderable objects. The painter effects the @c Id
@@ -398,6 +398,6 @@ protected:
   /// Ids pending removal on next @c commit() .
   std::vector<Id> _pending_removal;
 };
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter
 
-#endif  // TES_VIEWER_PAINTER_SHAPE_PAINTER_H
+#endif  // TES_VIEW_PAINTER_SHAPE_PAINTER_H

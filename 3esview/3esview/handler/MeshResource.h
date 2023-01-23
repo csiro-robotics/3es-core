@@ -1,8 +1,8 @@
 //
 // Author: Kazys Stepanas
 //
-#ifndef TES_VIEW_3ES_VIEWER_HANDLER_MESHRESOURCE_H
-#define TES_VIEW_3ES_VIEWER_HANDLER_MESHRESOURCE_H
+#ifndef TES_VIEW_HANDLER_MESH_RESOURCE_H
+#define TES_VIEW_HANDLER_MESH_RESOURCE_H
 
 #include <3esview/ViewConfig.h>
 
@@ -21,13 +21,13 @@
 #include <unordered_map>
 #include <vector>
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 class Shader;
 class ShaderLibrary;
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 class TES_VIEWER_API MeshResource : public Message
 {
@@ -160,6 +160,6 @@ inline MeshResource::ResourceReference MeshResource::get(uint32_t id) const
   }
   return ResourceReference();
 }
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler
 
-#endif  // TES_VIEW_3ES_VIEWER_HANDLER_MESHRESOURCE_H
+#endif  // TES_VIEW_HANDLER_MESH_RESOURCE_H

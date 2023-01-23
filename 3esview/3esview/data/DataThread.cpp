@@ -6,7 +6,7 @@
 #include <3escore/Messages.h>
 #include <3escore/PacketReader.h>
 
-namespace tes::viewer
+namespace tes::view
 {
 DataThread::~DataThread() = default;
 
@@ -23,4 +23,4 @@ bool DataThread::processServerInfo(PacketReader &reader, ServerInfoMessage &serv
   log::error("Failed to decode server info.");
   return false;
 }
-}  // namespace tes::viewer
+}  // namespace tes::view

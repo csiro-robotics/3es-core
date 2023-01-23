@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_VIEWABLE_WINDOW_H
-#define TES_VIEWER_VIEWABLE_WINDOW_H
+#ifndef TES_VIEW_VIEWABLE_WINDOW_H
+#define TES_VIEW_VIEWABLE_WINDOW_H
 
 #include "3esview/ViewConfig.h"
 
@@ -10,7 +10,7 @@
 #include <cassert>
 #include <limits>
 
-namespace tes::viewer
+namespace tes::view
 {
 /// Defines a viewable window in terms of a frame number and frame count or number of frames to stay visible for.
 ///
@@ -123,6 +123,6 @@ inline bool operator>=(const ViewableWindow &window, FrameNumber frame)
   return window.startFrame() <= frame;
 }
 
-}  // namespace tes::viewer
+}  // namespace tes::view
 
-#endif  // TES_VIEWER_VIEWABLE_WINDOW_H
+#endif  // TES_VIEW_VIEWABLE_WINDOW_H

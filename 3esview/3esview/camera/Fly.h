@@ -1,5 +1,5 @@
-#ifndef TES_VIEWER_CAMERA_FLY
-#define TES_VIEWER_CAMERA_FLY
+#ifndef TES_VIEW_CAMERA_FLY
+#define TES_VIEW_CAMERA_FLY
 
 #include <3esview/ViewConfig.h>
 
@@ -57,4 +57,4 @@ private:
 };
 }  // namespace tes::camera
 
-#endif  // TES_VIEWER_CAMERA_FLY
+#endif  // TES_VIEW_CAMERA_FLY

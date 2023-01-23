@@ -3,7 +3,7 @@
 #include <Magnum/Math/Intersection.h>
 
 
-namespace tes::viewer
+namespace tes::view
 {
 constexpr BoundsId BoundsCuller::kInvalidId;
 
@@ -56,4 +56,4 @@ void BoundsCuller::cull(unsigned mark, const Magnum::Math::Frustum<Magnum::Float
   _last_mark = mark;
 }
 
-}  // namespace tes::viewer
+}  // namespace tes::view

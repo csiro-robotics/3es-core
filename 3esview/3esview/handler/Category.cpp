@@ -10,7 +10,7 @@
 
 #include <array>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 Category::Category()
   : Message(MtCategory, "category")
@@ -166,4 +166,4 @@ bool Category::updateCategory(const CategoryInfo &info)
   _category_map[info.id] = info;
   return true;
 }
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler

@@ -2,7 +2,7 @@
 
 #include <numeric>
 
-namespace tes::viewer
+namespace tes::view
 {
 FramesPerSecondWindow::FramesPerSecondWindow(unsigned window_size)
   : _window(window_size, 0.0f)
@@ -30,4 +30,4 @@ float FramesPerSecondWindow::fps() const
   const float average_frame_time = averageFrameTime();
   return (average_frame_time > 0) ? 1.0f / average_frame_time : average_frame_time;
 }
-}  // namespace tes::viewer
+}  // namespace tes::view

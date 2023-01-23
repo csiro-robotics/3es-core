@@ -3,7 +3,7 @@
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Quaternion.h>
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 Message::Message(uint16_t routing_id, const std::string &name)
   : _routing_id(routing_id)
@@ -45,4 +45,4 @@ void Message::decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttribu
   attrs.scale[1] = transform[1].xyz().length();
   attrs.scale[2] = transform[2].xyz().length();
 }
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler

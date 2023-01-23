@@ -1,6 +1,6 @@
 
-#ifndef TES_VIEWER_HANDLER_MESH_SHAPE_H
-#define TES_VIEWER_HANDLER_MESH_SHAPE_H
+#ifndef TES_VIEW_HANDLER_MESH_SHAPE_H
+#define TES_VIEW_HANDLER_MESH_SHAPE_H
 
 #include <3esview/ViewConfig.h>
 
@@ -24,13 +24,13 @@ namespace tes
 class MeshShape;
 }
 
-namespace tes::viewer::shaders
+namespace tes::view::shaders
 {
 class Shader;
 class ShaderLibrary;
-}  // namespace tes::viewer::shaders
+}  // namespace tes::view::shaders
 
-namespace tes::viewer::handler
+namespace tes::view::handler
 {
 /// The message handler for mesh shape messages and rendering.
 ///
@@ -140,6 +140,6 @@ protected:
   std::vector<RenderMeshPtr> _garbage_list;
   std::shared_ptr<shaders::ShaderLibrary> _shader_library;
 };
-}  // namespace tes::viewer::handler
+}  // namespace tes::view::handler
 
-#endif  // TES_VIEWER_HANDLER_MESH_SHAPE_H
+#endif  // TES_VIEW_HANDLER_MESH_SHAPE_H

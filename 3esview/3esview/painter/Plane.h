@@ -1,12 +1,12 @@
 
-#ifndef TES_VIEWER_PAINTER_PLANE_H
-#define TES_VIEWER_PAINTER_PLANE_H
+#ifndef TES_VIEW_PAINTER_PLANE_H
+#define TES_VIEW_PAINTER_PLANE_H
 
 #include <3esview/ViewConfig.h>
 
 #include "ShapePainter.h"
 
-namespace tes::viewer::painter
+namespace tes::view::painter
 {
 /// Plane painter.
 class TES_VIEWER_API Plane : public ShapePainter
@@ -31,6 +31,6 @@ public:
 
 private:
 };
-}  // namespace tes::viewer::painter
+}  // namespace tes::view::painter
 
-#endif  // TES_VIEWER_PAINTER_PLANE_H
+#endif  // TES_VIEW_PAINTER_PLANE_H
