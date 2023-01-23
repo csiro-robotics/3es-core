@@ -1,7 +1,7 @@
 #ifndef TES_VIEWER_FRAME_STAMP_H
 #define TES_VIEWER_FRAME_STAMP_H
 
-#include "3es-viewer.h"
+#include "3esview/Viewer.h"
 
 #include <cinttypes>
 #include <atomic>

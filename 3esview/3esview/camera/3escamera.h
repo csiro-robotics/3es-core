@@ -1,7 +1,7 @@
 #ifndef TES_VIEWER_CAMERA_CAMERA_H
 #define TES_VIEWER_CAMERA_CAMERA_H
 
-#include <3es-viewer.h>
+#include <3esview/ViewConfig.h>
 
 #include <3escoordinateframe.h>
 

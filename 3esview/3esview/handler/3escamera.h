@@ -4,7 +4,7 @@
 #ifndef TES_VIEWER_HANDLER_CAMERA_H
 #define TES_VIEWER_HANDLER_CAMERA_H
 
-#include "3es-viewer.h"
+#include <3esview/ViewConfig.h>
 
 #include "3esmessage.h"
 #include "camera/3escamera.h"

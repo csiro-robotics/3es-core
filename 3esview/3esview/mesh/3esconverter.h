@@ -1,7 +1,7 @@
 #ifndef TES_VIEWER_MESH_CONVERTER_H
 #define TES_VIEWER_MESH_CONVERTER_H
 
-#include "3es-viewer.h"
+#include <3esview/ViewConfig.h>
 
 #include <3escolour.h>
 #include <3esbounds.h>

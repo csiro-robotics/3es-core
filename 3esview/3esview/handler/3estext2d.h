@@ -4,7 +4,7 @@
 #ifndef TES_VIEWER_HANDLER_TEXT2D_H
 #define TES_VIEWER_HANDLER_TEXT2D_H
 
-#include "3es-viewer.h"
+#include <3esview/ViewConfig.h>
 
 #include "3esmessage.h"
 #include "painter/3estext.h"

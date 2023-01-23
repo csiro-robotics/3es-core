@@ -1,7 +1,7 @@
 #ifndef TES_VIEWER_SHADERS_EDL_H
 #define TES_VIEWER_SHADERS_EDL_H
 
-#include "3es-viewer.h"
+#include <3esview/ViewConfig.h>
 
 #include <Magnum/GL/AbstractShaderProgram.h>
 #include <Magnum/GL/Texture.h>

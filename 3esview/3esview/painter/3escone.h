@@ -2,7 +2,7 @@
 #ifndef TES_VIEWER_PAINTER_CONE_H
 #define TES_VIEWER_PAINTER_CONE_H
 
-#include "3es-viewer.h"
+#include <3esview/ViewConfig.h>
 
 #include "3esshapepainter.h"
 

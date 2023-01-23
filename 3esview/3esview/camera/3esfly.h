@@ -1,6 +1,7 @@
 #ifndef TES_VIEWER_CAMERA_FLY
 #define TES_VIEWER_CAMERA_FLY
-#include "3es-viewer.h"
+
+#include <3esview/ViewConfig.h>
 
 #include "3escontroller.h"
 

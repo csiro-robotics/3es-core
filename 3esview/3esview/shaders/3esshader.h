@@ -4,7 +4,7 @@
 #ifndef TES_VIEWER_SHADERS_SHADER_H
 #define TES_VIEWER_SHADERS_SHADER_H
 
-#include "3es-viewer.h"
+#include <3esview/ViewConfig.h>
 
 #include "util/3esenum.h"
 

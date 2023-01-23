@@ -4,7 +4,7 @@
 #ifndef TES_VIEWER_DRAW_PARAMS_H
 #define TES_VIEWER_DRAW_PARAMS_H
 
-#include "3es-viewer.h"
+#include "3esview/ViewConfig.h"
 
 #include "camera/3escamera.h"
 

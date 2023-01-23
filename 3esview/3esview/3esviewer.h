@@ -1,7 +1,7 @@
 #ifndef TES_VIEWER_VIEWER_H
 #define TES_VIEWER_VIEWER_H
 
-#include "3es-viewer.h"
+#include "3esview/Viewer.h"
 
 #include "camera/3esfly.h"
 #include "3esthirdeyescene.h"

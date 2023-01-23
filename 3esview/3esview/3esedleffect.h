@@ -1,7 +1,7 @@
 #ifndef TES_VIEWER_EDL_EFFECT_H
 #define TES_VIEWER_EDL_EFFECT_H
 
-#include "3es-viewer.h"
+#include "3esview/Viewer.h"
 
 #include "3esfboeffect.h"
 

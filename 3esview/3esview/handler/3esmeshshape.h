@@ -2,7 +2,7 @@
 #ifndef TES_VIEWER_HANDLER_MESH_SHAPE_H
 #define TES_VIEWER_HANDLER_MESH_SHAPE_H
 
-#include "3es-viewer.h"
+#include <3esview/ViewConfig.h>
 
 #include "3esboundsculler.h"
 #include "3esmessage.h"

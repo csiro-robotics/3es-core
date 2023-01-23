@@ -1,7 +1,7 @@
 #ifndef TES_VIEWER_HANDLER_MESSAGE_H
 #define TES_VIEWER_HANDLER_MESSAGE_H
 
-#include "3es-viewer.h"
+#include <3esview/ViewConfig.h>
 
 #include "3esdrawparams.h"
 #include "3esframestamp.h"

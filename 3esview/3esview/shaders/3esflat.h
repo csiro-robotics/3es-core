@@ -4,7 +4,7 @@
 #ifndef TES_VIEWER_SHADERS_FLAT_H
 #define TES_VIEWER_SHADERS_FLAT_H
 
-#include "3es-viewer.h"
+#include <3esview/ViewConfig.h>
 
 #include "3esshader.h"
 #include "3espvm.h"
