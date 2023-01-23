@@ -16,7 +16,7 @@
 #include <octomap/octomap.h>
 
 #ifdef TES_ENABLE
-#include <shapes/3esmeshresource.h>
+#include <3escore/shapes/MeshResource.h>
 #endif  // TES_ENABLE
 
 typedef std::unordered_map<octomap::OcTreeKey, uint32_t, octomap::OcTreeKey::KeyHash> KeyToIndexMap;

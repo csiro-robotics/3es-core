@@ -5,9 +5,10 @@
 
 #include <cinttypes>
 
-#include "3esintarg.h"
-#include "3esv3arg.h"
 #include "3est-common.h"
+
+#include <3escore/IntArg.h>
+#include <3escore/V3Arg.h>
 
 namespace tes
 {

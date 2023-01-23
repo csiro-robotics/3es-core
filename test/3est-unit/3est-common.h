@@ -4,7 +4,7 @@
 // Test utility and helper functions.
 //
 
-#include <3esvector3.h>
+#include <3escore/Vector3.h>
 
 #include <unordered_map>
 #include <vector>

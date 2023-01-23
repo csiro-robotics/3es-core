@@ -3,7 +3,7 @@
 //
 #include "3es-occupancy.h"
 
-#include <3esvector3.h>
+#include <3escore/Vector3.h>
 
 struct OccupancyLoaderDetail;
 

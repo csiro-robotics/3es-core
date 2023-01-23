@@ -4,25 +4,24 @@
 
 #include "3est-common.h"
 
-#include <3esconnectionmonitor.h>
-#include <3escoordinateframe.h>
-#include <3esmaths.h>
-#include <3esmathsstream.h>
-#include <3esmessages.h>
-#include <3espacketbuffer.h>
-#include <3espacketreader.h>
-#include <3espacketwriter.h>
-#include <3esserver.h>
-#include <3esserverutil.h>
-#include <3estcplistensocket.h>
-#include <3estcpsocket.h>
-#include <shapes/3espointcloud.h>
-#include <shapes/3esshapes.h>
-#include <shapes/3essimplemesh.h>
-#include <tessellate/3essphere.h>
-
-#include <3escollatedpacket.h>
-#include <3escollatedpacketdecoder.h>
+#include <3escore/CollatedPacket.h>
+#include <3escore/CollatedPacketDecoder.h>
+#include <3escore/ConnectionMonitor.h>
+#include <3escore/CoordinateFrame.h>
+#include <3escore/Maths.h>
+#include <3escore/MathsStream.h>
+#include <3escore/Messages.h>
+#include <3escore/PacketBuffer.h>
+#include <3escore/PacketReader.h>
+#include <3escore/PacketWriter.h>
+#include <3escore/Server.h>
+#include <3escore/ServerUtil.h>
+#include <3escore/shapes/PointCloud.h>
+#include <3escore/shapes/Shapes.h>
+#include <3escore/shapes/SimpleMesh.h>
+#include <3escore/TcpListenSocket.h>
+#include <3escore/TcpSocket.h>
+#include <3escore/tessellate/Sphere.h>
 
 #include <gtest/gtest.h>
 
@@ -31,7 +30,6 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
-#include "3escollatedpacketdecoder.h"
 
 namespace tes
 {

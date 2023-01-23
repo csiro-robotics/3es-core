@@ -3,9 +3,9 @@
 //
 #include "3est-common.h"
 
-#include <shapes/3esshapes.h>
-#include <shapes/3essimplemesh.h>
-#include <tessellate/3essphere.h>
+#include <3escore/shapes/Shapes.h>
+#include <3escore/shapes/SimpleMesh.h>
+#include <3escore/tessellate/Sphere.h>
 
 #include <gtest/gtest.h>
 

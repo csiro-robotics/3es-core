@@ -2,8 +2,8 @@
 // author: Kazys Stepanas
 //
 #define TES_ENABLE
-#include <3esservermacros.h>
-#include <3esvectorhash.h>
+#include <3escore/ServerMacros.h>
+#include <3escore/VectorHash.h>
 
 #include <algorithm>
 #include <chrono>

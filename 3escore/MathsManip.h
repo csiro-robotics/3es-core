@@ -59,4 +59,4 @@ std::ostream TES_CORE_API &v4wmode(std::ostream &o, int mode);
 /// @return @c o
 std::ostream TES_CORE_API &quatwmode(std::ostream &o, int mode);
 
-#endif  // TES_CORE_MATHS_MANIP_H
+#endif  // TES_CORE_MATHS_4MANIP_H

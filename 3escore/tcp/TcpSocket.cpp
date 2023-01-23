@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "TcpSocket.h"
+#include <3escore/TcpSocket.h>
 
 #include "TcpBase.h"
 

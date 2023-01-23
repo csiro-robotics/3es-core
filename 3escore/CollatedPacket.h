@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef TES_CORE_COLLATEDPACKET_H
-#define TES_CORE_COLLATEDPACKET_H
+#ifndef TES_CORE_COLLATED_PACKET_H
+#define TES_CORE_COLLATED_PACKET_H
 
 #include "CoreConfig.h"
 
@@ -277,4 +277,4 @@ inline unsigned CollatedPacket::availableBytes() const
 }
 }  // namespace tes
 
-#endif  // TES_CORE_COLLATEDPACKET_H
+#endif  // TES_CORE_COLLATED_PACKET_H

@@ -1,9 +1,9 @@
 //
 // author: Kazys Stepanas
 //
-#include "TcpListenSocket.h"
+#include <3escore/TcpListenSocket.h>
 
-#include "TcpSocket.h"
+#include <3escore/TcpSocket.h>
 
 #include "TcpDetail.h"
 

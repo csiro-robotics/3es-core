@@ -3,10 +3,10 @@
 //
 #include "3es-occupancy.h"
 
-#include "3esvector3.h"
+#include <3escore/Vector3.h>
 
-#include <3escolour.h>
-#include <3esservermacros.h>
+#include <3escore/Colour.h>
+#include <3escore/ServerMacros.h>
 
 #include "occupancyloader.h"
 #include "occupancymesh.h"
@@ -235,7 +235,10 @@ int populateMap(const Options &opt)
       TES_STMT(rays.push_back(origin));
       TES_STMT(rays.push_back(sample));
     }
-    TES_IF(opt.samples & Samples_Points) { TES_STMT(samples.push_back(sample)); }
+    TES_IF(opt.samples & Samples_Points)
+    {
+      TES_STMT(samples.push_back(sample));
+    }
 
     if (firstBatchTimestamp < 0)
     {
@@ -443,7 +446,10 @@ void initialiseDebugCategories(const Options &opt)
   {
     TES_CATEGORY(g_tesServer, "Free", CAT_FreeCells, CAT_Populate, (opt.rays & Rays_Lines) == 0);
   }
-  TES_IF(opt.samples) { TES_CATEGORY(g_tesServer, "Occupied", CAT_OccupiedCells, CAT_Populate, true); }
+  TES_IF(opt.samples)
+  {
+    TES_CATEGORY(g_tesServer, "Occupied", CAT_OccupiedCells, CAT_Populate, true);
+  }
   TES_CATEGORY(g_tesServer, "Info", CAT_Info, 0, true);
 }
 

@@ -1,8 +1,8 @@
 //
 // author: Kazys Stepanas
 //
-#ifndef TES_CORE_TRANSFER`PROGRESS_H
-#define TES_CORE_TRANSFER`PROGRESS_H
+#ifndef TES_CORE_TRANSFER_PROGRESS_H
+#define TES_CORE_TRANSFER_PROGRESS_H
 
 #include "CoreConfig.h"
 

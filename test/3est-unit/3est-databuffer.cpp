@@ -3,10 +3,10 @@
 //
 #include "3est-common.h"
 
-#include <3espacketreader.h>
-#include <3espacketwriter.h>
-#include <3esdatabuffer.h>
-#include <tessellate/3essphere.h>
+#include <3escore/DataBuffer.h>
+#include <3escore/PacketReader.h>
+#include <3escore/PacketWriter.h>
+#include <3escore/tessellate/Sphere.h>
 
 #include <gtest/gtest.h>
 

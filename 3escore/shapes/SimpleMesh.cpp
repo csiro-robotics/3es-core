@@ -3,8 +3,8 @@
 //
 #include "SimpleMesh.h"
 
-#include "Rotation.h"
-#include "SpinLock.h"
+#include <3escore/Rotation.h>
+#include <3escore/SpinLock.h>
 
 #include <mutex>
 #include <vector>

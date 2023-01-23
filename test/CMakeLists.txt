@@ -19,5 +19,5 @@ else(GTEST_FOUND)
 endif(GTEST_FOUND)
 
 if(TES_BUILD_VIEWER)
-  add_subdirectory(3est-viewer)
+  # add_subdirectory(3est-viewer)
 endif(TES_BUILD_VIEWER)

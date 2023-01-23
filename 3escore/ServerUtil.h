@@ -6,7 +6,7 @@
 
 #include "CoreConfig.h"
 
-#include <3espacketwriter.h>
+#include "PacketWriter.h"
 
 namespace tes
 {

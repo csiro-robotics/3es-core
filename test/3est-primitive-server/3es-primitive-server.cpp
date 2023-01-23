@@ -7,22 +7,22 @@
 // received data in JSON format. The JSON may be parsed and compared to validate equivalents of what is sent and what
 // is received.
 
-#include <3esconnection.h>
-#include <3esconnectionmonitor.h>
-#include <3escoordinateframe.h>
-#include <3esfeature.h>
-#include <3esmaths.h>
-#include <3esserver.h>
-#include <shapes/3esshapes.h>
-#include <tessellate/3essphere.h>
+#include <3escore/Connection.h>
+#include <3escore/ConnectionMonitor.h>
+#include <3escore/CoordinateFrame.h>
+#include <3escore/Feature.h>
+#include <3escore/Maths.h>
+#include <3escore/Server.h>
+#include <3escore/shapes/Shapes.h>
+#include <3escore/tessellate/sphere.h>
 
 #define TES_ENABLE
-#include <3esservermacros.h>
+#include <3escore/ServerMacros.h>
 
-#include <3estimer.h>
-#include <3esvector3.h>
-#include <shapes/3espointcloud.h>
-#include <shapes/3essimplemesh.h>
+#include <3escore/Timer.h>
+#include <3escore/Vector3.h>
+#include <3escore/shapes/PointCloud.h>
+#include <3escore/shapes/SimpleMesh.h>
 
 #include <chrono>
 #include <cmath>
