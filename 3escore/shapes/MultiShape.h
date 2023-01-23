@@ -6,10 +6,11 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "IntArg.h"
-#include "QuaternionArg.h"
 #include "Shape.h"
-#include "V3Arg.h"
+
+#include <3escore/IntArg.h>
+#include <3escore/QuaternionArg.h>
+#include <3escore/V3Arg.h>
 
 #include <algorithm>
 

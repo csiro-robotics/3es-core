@@ -6,14 +6,16 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "Debug.h"
-#include "MeshMessages.h"
 #include "MeshResource.h"
 #include "Shape.h"
-#include "DataBuffer.h"
 
-#include <vector>
+//
+#include <3escore/DataBuffer.h>
+#include <3escore/Debug.h>
+#include <3escore/MeshMessages.h>
+
 #include <utility>
+#include <vector>
 
 namespace tes
 {

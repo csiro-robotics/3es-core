@@ -3,9 +3,10 @@
 //
 #include "TcpServer.h"
 
-#include "PacketWriter.h"
 #include "TcpConnection.h"
 #include "TcpConnectionMonitor.h"
+
+#include <3escore/PacketWriter.h>
 
 #include <algorithm>
 #include <mutex>

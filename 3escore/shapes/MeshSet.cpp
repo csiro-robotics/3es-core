@@ -3,9 +3,10 @@
 //
 #include "MeshSet.h"
 
-#include "MeshMessages.h"
 #include "MeshPlaceholder.h"
-#include "Rotation.h"
+
+#include <3escore/MeshMessages.h>
+#include <3escore/Rotation.h>
 
 #include <algorithm>
 

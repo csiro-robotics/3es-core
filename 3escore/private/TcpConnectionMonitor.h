@@ -6,8 +6,7 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "ConnectionMonitor.h"
-
+#include <3escore/ConnectionMonitor.h>
 #include <3escore/SpinLock.h>
 
 #include <atomic>

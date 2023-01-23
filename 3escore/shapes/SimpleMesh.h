@@ -6,10 +6,11 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "Colour.h"
-#include "IntArg.h"
-#include "MeshMessages.h"
 #include "MeshResource.h"
+
+#include <3escore/Colour.h>
+#include <3escore/IntArg.h>
+#include <3escore/MeshMessages.h>
 
 namespace tes
 {

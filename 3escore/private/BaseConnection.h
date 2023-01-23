@@ -4,12 +4,12 @@
 #ifndef _3ESBASECONNECTION_H_
 #define _3ESBASECONNECTION_H_
 
-#include "../3esserver.h"
+#include "../Server.h"
 
-#include <3esconnection.h>
-#include <3esmessages.h>
-#include <3espacketwriter.h>
-#include <3esspinlock.h>
+#include <3escore/Connection.h>
+#include <3escore/Messages.h>
+#include <3escore/PacketWriter.h>
+#include <3escore/SpinLock.h>
 
 #include <atomic>
 #include <list>

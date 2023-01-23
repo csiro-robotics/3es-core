@@ -4,9 +4,9 @@
 #ifndef _3ESMUTABLE_MESH_H_
 #define _3ESMUTABLE_MESH_H_
 
-#include <3escore/CoreConfig.h>
+#include "SimpleMesh.h"
 
-#include "shapes/SimpleMesh.h"
+#include <3escore/CoreConfig.h>
 
 namespace tes
 {

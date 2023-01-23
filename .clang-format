@@ -74,8 +74,7 @@ NamespaceIndentation: None
 # PenaltyReturnTypeOnItsOwnLine: <int>
 PointerAlignment: Right
 ReflowComments: true
-# Disable sort includes - later versions do no respect line breaks to signify sorting groups.
-SortIncludes: false
+SortIncludes: true
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: true
@@ -94,4 +93,3 @@ SpacesInSquareBrackets: false
 Standard: Cpp11
 TabWidth: 2
 UseTab: Never
-

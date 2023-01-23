@@ -4,7 +4,7 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "CompressionLevel.h"
+#include <3escore/CompressionLevel.h>
 
 #ifdef TES_ZLIB
 #include <cstring>

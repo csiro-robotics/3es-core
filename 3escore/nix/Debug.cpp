@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "Debug.h"
+#include "../Debug.h"
 
 #include <csignal>
 #include <cstdio>

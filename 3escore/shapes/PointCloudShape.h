@@ -6,9 +6,11 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "IntArg.h"
 #include "MeshSet.h"
 #include "Shape.h"
+
+//
+#include <3escore/IntArg.h>
 
 namespace tes
 {

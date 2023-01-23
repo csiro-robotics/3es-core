@@ -3,11 +3,13 @@
 //
 #include "MutableMesh.h"
 
-#include "Connection.h"
-#include "PacketWriter.h"
-#include "Rotation.h"
 #include "SimpleMesh.h"
-#include "Transform.h"
+
+//
+#include <3escore/Connection.h>
+#include <3escore/PacketWriter.h>
+#include <3escore/Rotation.h>
+#include <3escore/Transform.h>
 
 #include <vector>
 

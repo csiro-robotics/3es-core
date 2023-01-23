@@ -3,10 +3,9 @@
 //
 #include "PointCloud.h"
 
-#include "SpinLock.h"
-
-#include "MeshMessages.h"
-#include "Rotation.h"
+#include <3escore/MeshMessages.h>
+#include <3escore/Rotation.h>
+#include <3escore/SpinLock.h>
 
 #include <algorithm>
 #include <cstring>

@@ -6,7 +6,7 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "Vector3.h"
+#include <3escore/Vector3.h>
 
 #include <vector>
 

@@ -5,7 +5,9 @@
 
 #include "Cone.h"
 #include "Cylinder.h"
-#include "Quaternion.h"
+
+//
+#include <3escore/Quaternion.h>
 
 #include <algorithm>
 

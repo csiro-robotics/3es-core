@@ -3,10 +3,10 @@
 //
 #include "MeshResource.h"
 
-#include "MeshMessages.h"
-#include "Rotation.h"
-#include "TransferProgress.h"
-#include "Transform.h"
+#include <3escore/MeshMessages.h>
+#include <3escore/Rotation.h>
+#include <3escore/TransferProgress.h>
+#include <3escore/Transform.h>
 
 #include <algorithm>
 #include <vector>

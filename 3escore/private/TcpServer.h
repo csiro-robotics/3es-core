@@ -4,10 +4,11 @@
 #ifndef _3ESTCPSERVER_H_
 #define _3ESTCPSERVER_H_
 
-#include "../3esserver.h"
+#include "../Server.h"
 
-#include <3esmeshmessages.h>
-#include <3esspinlock.h>
+//
+#include <3escore/MeshMessages.h>
+#include <3escore/SpinLock.h>
 
 #include <atomic>
 #include <functional>

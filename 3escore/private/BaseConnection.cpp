@@ -3,15 +3,13 @@
 //
 #include "BaseConnection.h"
 
-#include <Resource.h>
-#include <ResourcePacker.h>
-
-#include <shapes/Shape.h>
-
-#include <CollatedPacket.h>
-#include <Endian.h>
-#include <Rotation.h>
-#include <TcpSocket.h>
+#include <3escore/CollatedPacket.h>
+#include <3escore/Endian.h>
+#include <3escore/Resource.h>
+#include <3escore/ResourcePacker.h>
+#include <3escore/Rotation.h>
+#include <3escore/shapes/Shape.h>
+#include <3escore/TcpSocket.h>
 
 #include <algorithm>
 #include <mutex>

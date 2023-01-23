@@ -3,7 +3,7 @@
 //
 #include "TcpConnection.h"
 
-#include <TcpSocket.h>
+#include <3escore/TcpSocket.h>
 
 using namespace tes;
 

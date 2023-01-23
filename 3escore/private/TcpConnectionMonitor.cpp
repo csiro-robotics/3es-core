@@ -7,8 +7,8 @@
 #include "TcpConnection.h"
 #include "TcpServer.h"
 
-#include <TcpListenSocket.h>
-#include <TcpSocket.h>
+#include <3escore/TcpListenSocket.h>
+#include <3escore/TcpSocket.h>
 
 #include <chrono>
 #include <cstdio>

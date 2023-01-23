@@ -6,9 +6,10 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "IntArg.h"
-#include "Matrix4.h"
 #include "Shape.h"
+
+#include <3escore/IntArg.h>
+#include <3escore/Matrix4.h>
 
 #include <cstdint>
 

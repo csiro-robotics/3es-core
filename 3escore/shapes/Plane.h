@@ -8,7 +8,7 @@
 
 #include "Shape.h"
 
-#include <3esrotation.h>
+#include <3escore/Rotation.h>
 
 namespace tes
 {
