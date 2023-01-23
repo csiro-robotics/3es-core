@@ -1,7 +1,7 @@
 
-add_executable(3est-tessellate Tessellate.cpp)
-tes_configure_target(3est-tessellate)
-target_link_libraries(3est-tessellate
+add_executable(3estTessellate Tessellate.cpp)
+tes_configure_target(3estTessellate)
+target_link_libraries(3estTessellate
   PRIVATE
     3escore
 )
