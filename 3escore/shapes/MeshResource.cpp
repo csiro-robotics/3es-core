@@ -1,12 +1,12 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esmeshresource.h"
+#include "MeshResource.h"
 
-#include "3esmeshmessages.h"
-#include "3esrotation.h"
-#include "3estransferprogress.h"
-#include "3estransform.h"
+#include "MeshMessages.h"
+#include "Rotation.h"
+#include "TransferProgress.h"
+#include "Transform.h"
 
 #include <algorithm>
 #include <vector>

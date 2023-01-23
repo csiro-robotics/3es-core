@@ -6,9 +6,9 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "3escolour.h"
-#include "3esintarg.h"
-#include "3esmeshresource.h"
+#include "Colour.h"
+#include "IntArg.h"
+#include "MeshResource.h"
 
 namespace tes
 {

@@ -6,7 +6,7 @@
 
 #include "CoreConfig.h"
 
-#include "3esvector3.h"
+#include "Vector3.h"
 
 namespace tes
 {
@@ -254,6 +254,6 @@ _3es_extern template class TES_CORE_API Quaternion<float>;
 _3es_extern template class TES_CORE_API Quaternion<double>;
 }  // namespace tes
 
-#include "3esquaternion.inl"
+#include "Quaternion.inl"
 
 #endif  // _3ESQUATERNION_H_

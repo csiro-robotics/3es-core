@@ -1,11 +1,11 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esmeshset.h"
+#include "MeshSet.h"
 
-#include "3esmeshmessages.h"
-#include "3esmeshplaceholder.h"
-#include "3esrotation.h"
+#include "MeshMessages.h"
+#include "MeshPlaceholder.h"
+#include "Rotation.h"
 
 #include <algorithm>
 

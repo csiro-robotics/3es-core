@@ -1,10 +1,10 @@
 //
 // author: Kazys Stepanas
 //
-#include "3espacketwriter.h"
+#include "PacketWriter.h"
 
-#include "3escrc.h"
-#include "3esendian.h"
+#include "Crc.h"
+#include "Endian.h"
 
 #include <cstring>
 #include <utility>

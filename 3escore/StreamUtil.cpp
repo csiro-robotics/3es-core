@@ -1,10 +1,10 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esstreamutil.h"
+#include "StreamUtil.h"
 
-#include "3esmessages.h"
-#include "3espacketwriter.h"
+#include "Messages.h"
+#include "PacketWriter.h"
 
 #include <iostream>
 #include <vector>

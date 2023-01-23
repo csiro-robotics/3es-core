@@ -6,10 +6,10 @@
 
 #include "CoreConfig.h"
 
-#include "3escolour.h"
-#include "3esvector4.h"
-#include "3esexception.h"
-#include "3esthrow.h"
+#include "Colour.h"
+#include "Vector4.h"
+#include "Exception.h"
+#include "Throw.h"
 
 #include <limits>
 

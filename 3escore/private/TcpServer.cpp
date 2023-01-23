@@ -1,11 +1,11 @@
 //
 // author: Kazys Stepanas
 //
-#include "3estcpserver.h"
+#include "TcpServer.h"
 
-#include "3espacketwriter.h"
-#include "3estcpconnection.h"
-#include "3estcpconnectionmonitor.h"
+#include "PacketWriter.h"
+#include "TcpConnection.h"
+#include "TcpConnectionMonitor.h"
 
 #include <algorithm>
 #include <mutex>

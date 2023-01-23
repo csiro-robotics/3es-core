@@ -1,6 +1,6 @@
 //
 // author: Kazys Stepanas
 //
-#include "3escapsule.h"
+#include "Capsule.h"
 
 using namespace tes;

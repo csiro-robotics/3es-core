@@ -18,18 +18,18 @@
 
 #include "CoreConfig.h"
 
-#include "3esconnectionmonitor.h"
-#include "3esserver.h"
-#include "3esserverutil.h"
+#include "ConnectionMonitor.h"
+#include "Server.h"
+#include "ServerUtil.h"
 
-#include "3escolour.h"
-#include "3escoordinateframe.h"
-#include "3esdatabuffer.h"
-#include "3esfeature.h"
-#include "3esmeshmessages.h"
-#include "3esmessages.h"
-#include "3estransform.h"
-#include "shapes/3esshapes.h"
+#include "Colour.h"
+#include "CoordinateFrame.h"
+#include "DataBuffer.h"
+#include "Feature.h"
+#include "MeshMessages.h"
+#include "Messages.h"
+#include "Transform.h"
+#include "shapes/Shapes.h"
 
 #include <array>
 

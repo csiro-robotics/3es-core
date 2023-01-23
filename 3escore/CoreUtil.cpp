@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3escoreutil.h"
+#include "CoreUtil.h"
 
 namespace
 {

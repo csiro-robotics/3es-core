@@ -6,11 +6,11 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "3esdebug.h"
-#include "3esmeshmessages.h"
-#include "3esmeshresource.h"
-#include "3esshape.h"
-#include "3esdatabuffer.h"
+#include "Debug.h"
+#include "MeshMessages.h"
+#include "MeshResource.h"
+#include "Shape.h"
+#include "DataBuffer.h"
 
 #include <vector>
 #include <utility>

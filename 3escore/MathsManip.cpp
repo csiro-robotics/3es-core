@@ -3,7 +3,7 @@
 // ABN 41 687 119 230
 //
 // Author: Kazys Stepanas
-#include "3esmathsmanip.h"
+#include "MathsManip.h"
 
 namespace
 {

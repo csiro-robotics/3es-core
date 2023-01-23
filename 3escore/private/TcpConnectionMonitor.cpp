@@ -1,14 +1,14 @@
 //
 // author: Kazys Stepanas
 //
-#include "3estcpconnectionmonitor.h"
+#include "TcpConnectionMonitor.h"
 
-#include "3esfileconnection.h"
-#include "3estcpconnection.h"
-#include "3estcpserver.h"
+#include "FileConnection.h"
+#include "TcpConnection.h"
+#include "TcpServer.h"
 
-#include <3estcplistensocket.h>
-#include <3estcpsocket.h>
+#include <TcpListenSocket.h>
+#include <TcpSocket.h>
 
 #include <chrono>
 #include <cstdio>
@@ -95,8 +95,7 @@ bool TcpConnectionMonitor::start(Mode mode)
     }
     break;
 
-  case Asynchronous:
-  {
+  case Asynchronous: {
     delete _thread;  // Pointer may linger after quit.
     _thread = new std::thread(std::bind(&TcpConnectionMonitor::monitorThread, this));
     // Wait for the thread to start. We look for _running or an _errorCode.

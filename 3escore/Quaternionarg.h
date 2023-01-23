@@ -6,7 +6,7 @@
 
 #include "CoreConfig.h"
 
-#include "3esquaternion.h"
+#include "Quaternion.h"
 
 namespace tes
 {

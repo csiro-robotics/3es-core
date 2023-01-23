@@ -6,7 +6,7 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "shapes/3essimplemesh.h"
+#include "shapes/SimpleMesh.h"
 
 namespace tes
 {

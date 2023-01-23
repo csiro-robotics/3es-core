@@ -6,9 +6,9 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "3esintarg.h"
-#include "3esmeshset.h"
-#include "3esshape.h"
+#include "IntArg.h"
+#include "MeshSet.h"
+#include "Shape.h"
 
 namespace tes
 {

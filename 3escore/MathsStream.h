@@ -8,14 +8,14 @@
 
 #include "CoreConfig.h"
 
-#include "3escolour.h"
-#include "3esmatrix3.h"
-#include "3esmatrix4.h"
-#include "3esquaternion.h"
-#include "3esvector3.h"
-#include "3esvector4.h"
+#include "Colour.h"
+#include "Matrix3.h"
+#include "Matrix4.h"
+#include "Quaternion.h"
+#include "Vector3.h"
+#include "Vector4.h"
 
-#include "3esmathsmanip.h"
+#include "MathsManip.h"
 
 #include <iostream>
 

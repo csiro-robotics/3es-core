@@ -6,9 +6,9 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "3esconnectionmonitor.h"
+#include "ConnectionMonitor.h"
 
-#include <3esspinlock.h>
+#include <3escore/SpinLock.h>
 
 #include <atomic>
 #include <thread>

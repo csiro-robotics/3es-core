@@ -6,9 +6,9 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "3esresource.h"
-#include "3estransform.h"
-#include "3esdatabuffer.h"
+#include "DataBuffer.h"
+#include "Resource.h"
+#include "Transform.h"
 
 namespace tes
 {

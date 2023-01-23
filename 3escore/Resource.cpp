@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esresource.h"
+#include "Resource.h"
 
 using namespace tes;
 

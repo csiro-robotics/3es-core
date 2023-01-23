@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esrotation.h"
+#include "Rotation.h"
 
 namespace tes
 {

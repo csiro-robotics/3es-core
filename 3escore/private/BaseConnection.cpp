@@ -1,17 +1,17 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esbaseconnection.h"
+#include "BaseConnection.h"
 
-#include <3esresource.h>
-#include <3esresourcepacker.h>
+#include <Resource.h>
+#include <ResourcePacker.h>
 
-#include <shapes/3esshape.h>
+#include <shapes/Shape.h>
 
-#include <3escollatedpacket.h>
-#include <3esendian.h>
-#include <3esrotation.h>
-#include <3estcpsocket.h>
+#include <CollatedPacket.h>
+#include <Endian.h>
+#include <Rotation.h>
+#include <TcpSocket.h>
 
 #include <algorithm>
 #include <mutex>

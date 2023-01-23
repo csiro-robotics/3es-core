@@ -6,10 +6,10 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "3esintarg.h"
-#include "3esquaternionarg.h"
-#include "3esshape.h"
-#include "3esv3arg.h"
+#include "IntArg.h"
+#include "QuaternionArg.h"
+#include "Shape.h"
+#include "V3Arg.h"
 
 #include <algorithm>
 

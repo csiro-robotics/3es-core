@@ -6,7 +6,7 @@
 
 #include "CoreConfig.h"
 
-#include "3espacketstream.h"
+#include "PacketStream.h"
 
 namespace tes
 {

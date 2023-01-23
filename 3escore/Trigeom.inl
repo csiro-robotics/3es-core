@@ -1,9 +1,9 @@
 //
 // author: Kazys Stepanas
 //
-#include "3estrigeom.h"
+#include "TriGeom.h"
 
-#include "3esplanegeom.h"
+#include "PlaneGeom.h"
 
 #include <algorithm>
 #ifndef _USE_MATH_DEFINES

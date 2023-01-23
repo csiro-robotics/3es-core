@@ -6,8 +6,8 @@
 
 #include "CoreConfig.h"
 
-#include "3esendian.h"
-#include "3espacketheader.h"
+#include "Endian.h"
+#include "PacketHeader.h"
 
 namespace tes
 {

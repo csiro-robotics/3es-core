@@ -2,7 +2,7 @@
 // author: Kazys Stepanas
 //
 //
-#include "3esfeature.h"
+#include "Feature.h"
 
 namespace tes
 {

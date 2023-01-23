@@ -6,9 +6,9 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "3esintarg.h"
-#include "3esmatrix4.h"
-#include "3esshape.h"
+#include "IntArg.h"
+#include "Matrix4.h"
+#include "Shape.h"
 
 #include <cstdint>
 

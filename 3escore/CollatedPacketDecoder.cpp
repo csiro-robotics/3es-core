@@ -1,14 +1,14 @@
 //
 // author: Kazys Stepanas
 //
-#include "3escollatedpacketdecoder.h"
+#include "CollatedPacketDecoder.h"
 
-#include "3esmessages.h"
-#include "3espacketbuffer.h"
-#include "3espacketheader.h"
-#include "3espacketreader.h"
+#include "Messages.h"
+#include "PacketBuffer.h"
+#include "PacketHeader.h"
+#include "PacketReader.h"
 
-#include "private/3escollatedpacketzip.h"
+#include "private/CollatedPacketZip.h"
 
 #include <vector>
 

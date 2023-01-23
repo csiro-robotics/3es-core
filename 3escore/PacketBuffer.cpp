@@ -1,10 +1,10 @@
 //
 // author: Kazys Stepanas
 //
-#include "3espacketbuffer.h"
+#include "PacketBuffer.h"
 
-#include "3espacketheader.h"
-#include "3espacketreader.h"
+#include "PacketHeader.h"
+#include "PacketReader.h"
 
 #include <algorithm>
 #include <cstring>

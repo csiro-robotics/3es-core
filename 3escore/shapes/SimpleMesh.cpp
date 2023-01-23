@@ -1,10 +1,10 @@
 //
 // author: Kazys Stepanas
 //
-#include "3essimplemesh.h"
+#include "SimpleMesh.h"
 
-#include "3esrotation.h"
-#include "3esspinlock.h"
+#include "Rotation.h"
+#include "SpinLock.h"
 
 #include <mutex>
 #include <vector>

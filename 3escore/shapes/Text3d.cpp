@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3estext3d.h"
+#include "Text3d.h"
 
 #include <utility>
 

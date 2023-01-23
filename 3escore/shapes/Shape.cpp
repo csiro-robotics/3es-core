@@ -1,9 +1,9 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esshape.h"
+#include "Shape.h"
 
-#include <3espacketwriter.h>
+#include <3escore/PacketWriter.h>
 
 #include <cstdio>
 

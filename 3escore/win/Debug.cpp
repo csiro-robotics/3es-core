@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esdebug.h"
+#include "Debug.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

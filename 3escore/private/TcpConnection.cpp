@@ -1,9 +1,9 @@
 //
 // author: Kazys Stepanas
 //
-#include "3estcpconnection.h"
+#include "TcpConnection.h"
 
-#include <3estcpsocket.h>
+#include <TcpSocket.h>
 
 using namespace tes;
 

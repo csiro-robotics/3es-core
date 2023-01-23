@@ -4,7 +4,7 @@
 #ifndef _3ESTRIANGLE_H_
 #define _3ESTRIANGLE_H_
 
-#include "3esvector4.h"
+#include "Vector4.h"
 
 namespace tes
 {
@@ -137,6 +137,6 @@ bool intersectAABB(const Vector3d tri[3], const Vector3d aabb[2]);
 }  // namespace trigeom
 }  // namespace tes
 
-#include "3estrigeom.inl"
+#include "TriGeom.inl"
 
 #endif  // _3ESTRIANGLE_H

@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3escrc.h"
+#include "Crc.h"
 
 namespace tes
 {

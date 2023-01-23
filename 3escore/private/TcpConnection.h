@@ -4,9 +4,9 @@
 #ifndef _3ESTCPCONNECTION_H_
 #define _3ESTCPCONNECTION_H_
 
-#include "../3esserver.h"
+#include "../Server.h"
 
-#include "3esbaseconnection.h"
+#include "BaseConnection.h"
 
 namespace tes
 {

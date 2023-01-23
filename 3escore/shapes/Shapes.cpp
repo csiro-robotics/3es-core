@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esshapes.h"
+#include "Shapes.h"
 
 using namespace tes;
 

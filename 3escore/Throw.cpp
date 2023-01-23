@@ -1,10 +1,10 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3esthrow.h"
+#include "Throw.h"
 
-#include "3esexception.h"
-#include "3eslog.h"
+#include "Exception.h"
+#include "Log.h"
 
 #include <iostream>
 

@@ -1,13 +1,13 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esmeshshape.h"
+#include "MeshShape.h"
 
-#include "3esmeshresource.h"
-#include "3esmeshset.h"
+#include "MeshResource.h"
+#include "MeshSet.h"
 
-#include <3escoreutil.h>
-#include <3espacketwriter.h>
+#include <3escore/CoreUtil.h>
+#include <3escore/PacketWriter.h>
 
 #include <algorithm>
 

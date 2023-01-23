@@ -3,7 +3,7 @@
 //
 // Copyright (c) Kazys Stepanas 2014
 //
-#include "3escolour.h"
+#include "Colour.h"
 
 #include <algorithm>
 

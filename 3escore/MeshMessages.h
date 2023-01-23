@@ -6,10 +6,10 @@
 
 #include "CoreConfig.h"
 
-#include "3esmessages.h"
+#include "Messages.h"
 
-#include "3espacketreader.h"
-#include "3espacketwriter.h"
+#include "PacketReader.h"
+#include "PacketWriter.h"
 
 /// @ingroup tescpp
 /// @defgroup meshmsg MeshResource Messages

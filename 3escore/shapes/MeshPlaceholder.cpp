@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esmeshplaceholder.h"
+#include "MeshPlaceholder.h"
 
 using namespace tes;
 

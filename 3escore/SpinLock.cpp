@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esspinlock.h"
+#include "SpinLock.h"
 
 #include <atomic>
 #include <thread>

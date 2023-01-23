@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esmatrix3.h"
+#include "Matrix3.h"
 
 namespace tes
 {

@@ -1,7 +1,7 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3esexception.h"
+#include "Exception.h"
 
 #include <sstream>
 
@@ -29,8 +29,7 @@ Exception::Exception(const char *msg, const char *filename, int line_number)
 
 Exception::Exception(Exception &&other) noexcept
   : _message(std::move(other._message))
-{
-}
+{}
 
 
 Exception::~Exception() = default;

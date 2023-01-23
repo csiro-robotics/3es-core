@@ -1,9 +1,9 @@
 //
 // author: Kazys Stepanas
 //
-#include "3espacketheader.h"
+#include "PacketHeader.h"
 
-#include "3esendian.h"
+#include "Endian.h"
 
 namespace tes
 {

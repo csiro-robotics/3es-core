@@ -6,7 +6,7 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "3esmeshresource.h"
+#include "MeshResource.h"
 
 namespace tes
 {

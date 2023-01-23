@@ -1,11 +1,11 @@
 //
 // author: Kazys Stepanas
 //
-#include "3estcpsocket.h"
+#include "TcpSocket.h"
 
-#include "3estcpbase.h"
+#include "TcpBase.h"
 
-#include "3estcpdetail.h"
+#include "TcpDetail.h"
 
 #include <cerrno>
 #include <cstdio>

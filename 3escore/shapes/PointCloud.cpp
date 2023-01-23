@@ -1,12 +1,12 @@
 //
 // author: Kazys Stepanas
 //
-#include "3espointcloud.h"
+#include "PointCloud.h"
 
-#include "3esspinlock.h"
+#include "SpinLock.h"
 
-#include "3esmeshmessages.h"
-#include "3esrotation.h"
+#include "MeshMessages.h"
+#include "Rotation.h"
 
 #include <algorithm>
 #include <cstring>

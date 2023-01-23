@@ -1,17 +1,17 @@
 //
 // Author Kazys Stepanas
-#include "3escollatedpacket.h"
+#include "CollatedPacket.h"
 
-#include "3escompressionlevel.h"
-#include "3escrc.h"
-#include "3esendian.h"
-#include "3esmaths.h"
-#include "3esmessages.h"
-#include "3espacketwriter.h"
+#include "CompressionLevel.h"
+#include "Crc.h"
+#include "Endian.h"
+#include "Maths.h"
+#include "Messages.h"
+#include "PacketWriter.h"
 
-#include "private/3escollatedpacketzip.h"
+#include "private/CollatedPacketZip.h"
 
-#include "shapes/3esshape.h"
+#include "shapes/Shape.h"
 
 #include <algorithm>
 #include <cstring>

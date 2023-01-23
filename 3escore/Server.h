@@ -6,8 +6,8 @@
 
 #include "CoreConfig.h"
 
-#include "3escompressionlevel.h"
-#include "3esconnection.h"
+#include "CompressionLevel.h"
+#include "Connection.h"
 
 #include <cstdint>
 

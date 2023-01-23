@@ -1,13 +1,13 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esmutablemesh.h"
+#include "MutableMesh.h"
 
-#include "3esconnection.h"
-#include "3espacketwriter.h"
-#include "3esrotation.h"
-#include "3essimplemesh.h"
-#include "3estransform.h"
+#include "Connection.h"
+#include "PacketWriter.h"
+#include "Rotation.h"
+#include "SimpleMesh.h"
+#include "Transform.h"
 
 #include <vector>
 

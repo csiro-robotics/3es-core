@@ -6,10 +6,10 @@
 
 #include "CoreConfig.h"
 
-#include "3esmatrix3.h"
-#include "3esmatrix4.h"
-#include "3esquaternion.h"
-#include "3esvector3.h"
+#include "Matrix3.h"
+#include "Matrix4.h"
+#include "Quaternion.h"
+#include "Vector3.h"
 
 namespace tes
 {
@@ -133,6 +133,6 @@ template Matrix4<double> TES_CORE_API quaternionToTransform(const Quaternion<dou
 // Matrix4<T> &orthoNormalise(Matrix4<T> &m);
 }  // namespace tes
 
-#include "3esrotation.inl"
+#include "Rotation.inl"
 
 #endif  // _3ESROTATION_H

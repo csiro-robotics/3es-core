@@ -1,10 +1,10 @@
 //
 // author: Kazys Stepanas
 //
-#include "3escapsule.h"
+#include "Capsule.h"
 
-#include "3escylinder.h"
-#include "3essphere.h"
+#include "Cylinder.h"
+#include "Sphere.h"
 
 #include <algorithm>
 

@@ -6,10 +6,10 @@
 
 #include "CoreConfig.h"
 
-#include "3esmatrix4.h"
-#include "3esquaternion.h"
-#include "3esrotation.h"
-#include "3esvector3.h"
+#include "Matrix4.h"
+#include "Quaternion.h"
+#include "Rotation.h"
+#include "Vector3.h"
 
 namespace tes
 {

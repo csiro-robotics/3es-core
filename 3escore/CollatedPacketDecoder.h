@@ -6,8 +6,8 @@
 
 #include "CoreConfig.h"
 
-#include "3esconnection.h"
-#include "3espacketheader.h"
+#include "Connection.h"
+#include "PacketHeader.h"
 
 namespace tes
 {

@@ -4,7 +4,7 @@
 #ifndef _3ESPLANE_H_
 #define _3ESPLANE_H_
 
-#include "3esvector4.h"
+#include "Vector4.h"
 
 namespace tes
 {

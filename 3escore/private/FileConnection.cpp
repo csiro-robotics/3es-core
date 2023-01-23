@@ -1,9 +1,9 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esfileconnection.h"
+#include "FileConnection.h"
 
-#include "3esstreamutil.h"
+#include "StreamUtil.h"
 
 #include <mutex>
 

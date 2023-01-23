@@ -1,6 +1,6 @@
 //
 // author: Kazys Stepanas
 //
-#include "3escone.h"
+#include "Cone.h"
 
 using namespace tes;

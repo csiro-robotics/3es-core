@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3estext2d.h"
+#include "Text2d.h"
 
 #include <utility>
 

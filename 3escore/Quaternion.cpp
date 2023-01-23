@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esquaternion.h"
+#include "Quaternion.h"
 
 namespace tes
 {

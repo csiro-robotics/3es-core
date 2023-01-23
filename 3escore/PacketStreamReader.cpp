@@ -1,9 +1,9 @@
 //
 // author: Kazys Stepanas
 //
-#include "3espacketstreamreader.h"
+#include "PacketStreamReader.h"
 
-#include "3espacketreader.h"
+#include "PacketReader.h"
 
 namespace tes
 {

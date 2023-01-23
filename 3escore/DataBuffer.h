@@ -6,13 +6,13 @@
 
 #include "CoreConfig.h"
 
-#include "3escolour.h"
-#include "3escoreutil.h"
-#include "3esdebug.h"
-#include "3esmessages.h"
-#include "3espacketreader.h"
-#include "3espacketwriter.h"
-#include "3esvector3.h"
+#include "Colour.h"
+#include "CoreUtil.h"
+#include "Debug.h"
+#include "Messages.h"
+#include "PacketReader.h"
+#include "PacketWriter.h"
+#include "Vector3.h"
 
 #include <algorithm>
 #include <array>
@@ -21,13 +21,19 @@
 #include <utility>
 #include <vector>
 
-#define STREAM_TYPE_INFO(_type, _type_name)             \
-  template <>                                           \
-  class DataBufferTypeInfo<_type>                       \
-  {                                                     \
-  public:                                               \
-    static DataStreamType type() { return _type_name; } \
-    static size_t size() { return sizeof(_type); }      \
+#define STREAM_TYPE_INFO(_type, _type_name) \
+  template <>                               \
+  class DataBufferTypeInfo<_type>           \
+  {                                         \
+  public:                                   \
+    static DataStreamType type()            \
+    {                                       \
+      return _type_name;                    \
+    }                                       \
+    static size_t size()                    \
+    {                                       \
+      return sizeof(_type);                 \
+    }                                       \
   }
 
 
@@ -410,6 +416,6 @@ unsigned readStream(PacketReader &packet, DataBuffer &stream);
 
 }  // namespace tes
 
-#include "3esdatabuffer.inl"
+#include "DataBuffer.inl"
 
 #endif  // _3ESDATABUFFER_H

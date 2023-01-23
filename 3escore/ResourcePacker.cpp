@@ -1,11 +1,11 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esresourcepacker.h"
+#include "ResourcePacker.h"
 
-#include "3espacketwriter.h"
-#include "3esresource.h"
-#include "3estransferprogress.h"
+#include "PacketWriter.h"
+#include "Resource.h"
+#include "TransferProgress.h"
 
 #include <algorithm>
 #include <cstdio>

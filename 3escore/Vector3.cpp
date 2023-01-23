@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esvector3.h"
+#include "Vector3.h"
 
 namespace tes
 {

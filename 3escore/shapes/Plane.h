@@ -6,7 +6,7 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "3esshape.h"
+#include "Shape.h"
 
 #include <3esrotation.h>
 

@@ -1,7 +1,6 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esplane.h"
+#include "Plane.h"
 
 using namespace tes;
-

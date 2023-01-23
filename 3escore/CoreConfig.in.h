@@ -7,7 +7,7 @@
 
 #include "CoreExport.h"
 
-#include "3esmeta.h"
+#include <3escore/Meta.h>
 
 #ifdef TES_STATIC
 /// Macro for defining extern templates. Only use extern for static library.

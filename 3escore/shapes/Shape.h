@@ -6,10 +6,10 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "3escolour.h"
-#include "3esid.h"
-#include "3esmessages.h"
-#include "3estransform.h"
+#include "Colour.h"
+#include "Id.h"
+#include "Messages.h"
+#include "Transform.h"
 
 #include <cstdint>
 

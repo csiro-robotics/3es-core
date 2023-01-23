@@ -1,11 +1,11 @@
 //
 // author: Kazys Stepanas
 //
-#include "3esarrow.h"
+#include "Arrow.h"
 
-#include "3escone.h"
-#include "3escylinder.h"
-#include "3esquaternion.h"
+#include "Cone.h"
+#include "Cylinder.h"
+#include "Quaternion.h"
 
 #include <algorithm>
 

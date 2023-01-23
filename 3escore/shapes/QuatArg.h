@@ -6,8 +6,8 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "3esquaternion.h"
-#include "3esv3arg.h"
+#include "Quaternion.h"
+#include "V3Arg.h"
 
 namespace tes
 {

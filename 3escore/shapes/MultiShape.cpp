@@ -1,4 +1,4 @@
-#include "3esmultishape.h"
+#include "MultiShape.h"
 
 using namespace tes;
 

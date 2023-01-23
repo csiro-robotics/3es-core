@@ -1,12 +1,12 @@
 //
 // author: Kazys Stepanas
 //
-#include "3espointcloudshape.h"
+#include "PointCloudshape.h"
 
-#include "3esmeshplaceholder.h"
+#include "MeshPlaceholder.h"
 
-#include <3escoreutil.h>
-#include <3espacketwriter.h>
+#include <3escore/CoreUtil.h>
+#include <3escore/PacketWriter.h>
 
 #include <algorithm>
 

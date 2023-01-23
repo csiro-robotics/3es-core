@@ -6,7 +6,7 @@
 
 #include "CoreConfig.h"
 
-#include "3esvector3.h"
+#include "Vector3.h"
 
 namespace tes
 {
@@ -300,6 +300,6 @@ template <typename T>
 Vector3<T> operator*(const Matrix3<T> &a, const Vector3<T> &v);
 }  // namespace tes
 
-#include "3esmatrix3.inl"
+#include "Matrix3.inl"
 
 #endif  // _3ESMATRIX3_H

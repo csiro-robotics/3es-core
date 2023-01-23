@@ -1,11 +1,11 @@
 //
 // author: Kazys Stepanas
 //
-#include "3estcplistensocket.h"
+#include "TcpListenSocket.h"
 
-#include "3estcpsocket.h"
+#include "TcpSocket.h"
 
-#include "3estcpdetail.h"
+#include "TcpDetail.h"
 
 #include <QHostAddress>
 
