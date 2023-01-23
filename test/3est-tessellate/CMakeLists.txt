@@ -1,5 +1,5 @@
 
-add_executable(3est-tessellate 3es-tessellate.cpp)
+add_executable(3est-tessellate Tessellate.cpp)
 tes_configure_target(3est-tessellate)
 target_link_libraries(3est-tessellate
   PRIVATE

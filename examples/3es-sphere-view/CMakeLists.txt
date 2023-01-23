@@ -1,4 +1,4 @@
-add_executable(3es-sphere-view 3es-sphere-view.cpp)
+add_executable(3es-sphere-view SphereView.cpp)
 tes_configure_target(3es-sphere-view)
 target_link_libraries(3es-sphere-view
   PRIVATE

@@ -1,4 +1,4 @@
-add_executable(3est-primitive-server 3es-primitive-server.cpp)
+add_executable(3est-primitive-server PrimitiveServer.cpp)
 tes_configure_target(3est-primitive-server)
 target_link_libraries(3est-primitive-server
   PRIVATE

@@ -1,4 +1,4 @@
-add_executable(3est-bandwidth 3est-bandwidth.cpp)
+add_executable(3est-bandwidth Bandwidth.cpp)
 tes_configure_target(3est-bandwidth)
 target_link_libraries(3est-bandwidth
   PRIVATE

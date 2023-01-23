@@ -28,13 +28,13 @@ find_package(Boost COMPONENTS "thread")
 link_directories("${Boost_LIBRARY_DIRS}")
 
 list(APPEND SOURCES
-  3es-occupancy.h
-  3es-occupancy.cpp
-  debugids.h
-  occupancyloader.cpp
-  occupancyloader.h
-  occupancymesh.cpp
-  occupancymesh.h
+  DebugIds.h
+  Occupancy.cpp
+  Occupancy.h
+  OccupancyLoader.cpp
+  OccupancyLoader.h
+  OccupancyMesh.cpp
+  OccupancyMesh.h
   p2p.h
   3rd-party/tinyply.h
 )

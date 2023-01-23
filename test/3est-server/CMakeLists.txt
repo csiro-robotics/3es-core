@@ -1,5 +1,5 @@
 
-add_executable(3est-server 3es-server-test.cpp)
+add_executable(3est-server ServerTest.cpp)
 tes_configure_target(3est-server)
 target_link_libraries(3est-server
   PRIVATE
