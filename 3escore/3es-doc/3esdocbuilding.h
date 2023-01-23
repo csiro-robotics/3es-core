@@ -126,18 +126,18 @@ the 3es server.
 
 
 @section docbuildintegratecpp Integrating C++ Server Code Into Your Build Tree
-An alternative way of using the C++ code is to put the 3es-core code into your own build tree. There are several ways to
+An alternative way of using the C++ code is to put the 3escore code into your own build tree. There are several ways to
 do this, but the following section describes how to do so assuming you are also using CMake for your own build tree.
--# Copy the 3es-core code directories into your build tree (optionally in a sub-directory).
+-# Copy the 3escore code directories into your build tree (optionally in a sub-directory).
 -# Copy the cmake directory (or just cmake/3es.cmake) into into the same directory. You should have three new directores
-all in the same parent directory: 3es-core and cmake.
--# Edit your project's CMakeLists.txt file to add <tt>add_subdirectory(3es-core)</tt>.
+all in the same parent directory: 3escore and cmake.
+-# Edit your project's CMakeLists.txt file to add <tt>add_subdirectory(3escore)</tt>.
 -# Include 3es server into your own executable or library using the CMake commands listed below.
 
 @code{.cmake}
   # After your add_library() or add_executable() command:
-  target_include_directories(mylibrary $<TARGET_PROPERTY:3es-core,INCLUDE_DIRECTORIES>)
-  target_link_libraries(mylibrary 3es-core)
+  target_include_directories(mylibrary $<TARGET_PROPERTY:3escore,INCLUDE_DIRECTORIES>)
+  target_link_libraries(mylibrary 3escore)
 @endcode
 
 Note: replace "mylibrary" with the name of your executable or library as passed to @c add_library() or @c

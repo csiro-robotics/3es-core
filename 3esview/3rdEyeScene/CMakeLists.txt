@@ -61,7 +61,7 @@ target_include_directories(3rdEyeScene
 
 target_link_libraries(3rdEyeScene
   PRIVATE
-    3es-core
+    3escore
     $<$<BOOL:CMAKE_THREAD_LIBS_INIT>:${CMAKE_THREAD_LIBS_INIT}>
     3es-viewer
     Corrade::Containers

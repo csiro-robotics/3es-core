@@ -17,7 +17,7 @@ function(register_target TARGET INCLUDES_VAR LIBRARIES_VAR)
   if(TARGET ${TARGET})
     # Resolve include directories
     get_target_property(TARGET_INCLUDE_DIRS ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)
-    set(TARGET_INCLUDE_DIRS "${TARGET_INCLUDE_DIRS}" CACHE PATH "3es-core include directories")
+    set(TARGET_INCLUDE_DIRS "${TARGET_INCLUDE_DIRS}" CACHE PATH "3escore include directories")
 
     # Append to existing include directories
     list(APPEND ${INCLUDES_VAR} ${TARGET_INCLUDE_DIRS})
@@ -69,4 +69,4 @@ function(register_target TARGET INCLUDES_VAR LIBRARIES_VAR)
   endif(TARGET ${TARGET})
 endfunction(register_target)
 
-register_target(3es::3es-core 3ES_INCLUDE_DIRS 3ES_LIBRARIES)
+register_target(3es::3escore 3ES_INCLUDE_DIRS 3ES_LIBRARIES)

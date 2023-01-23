@@ -19,7 +19,7 @@ endif(TES_BUILD_VIEWER)
 
 # Setup project details.
 project(3es)
-include(3es-core/cmake/3es-version.cmake)
+include(3escore/cmake/3es-version.cmake)
 set(ConfigPackageLocation lib/cmake/3es)
 
 # C++ standards setup.
@@ -50,12 +50,12 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(3esTarget)
 
 # Include sub projects.
-add_subdirectory(3es-core)
+add_subdirectory(3escore)
 if(TES_BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif(TES_BUILD_EXAMPLES)
 if(TES_BUILD_VIEWER)
-  add_subdirectory(3es-view)
+  add_subdirectory(3esview)
 endif(TES_BUILD_VIEWER)
 
 add_subdirectory(utils)

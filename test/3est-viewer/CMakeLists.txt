@@ -8,7 +8,7 @@ add_executable(3est-viewer ${SOURCES})
 tes_configure_unit_test_target(3est-viewer)
 target_link_libraries(3est-viewer
   PRIVATE
-    3es-core
+    3escore
     3es-viewer
     GTest::Main
 )

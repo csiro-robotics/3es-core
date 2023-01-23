@@ -44,7 +44,7 @@ tes_configure_target(3es-occupancy)
 
 target_link_libraries(3es-occupancy
   PRIVATE
-    3es-core
+    3escore
     octomap-static
     octomath-static
 )

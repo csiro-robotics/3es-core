@@ -12,7 +12,7 @@ add_executable(3est-unit ${SOURCES})
 tes_configure_unit_test_target(3est-unit)
 target_link_libraries(3est-unit
   PRIVATE
-    3es-core
+    3escore
     GTest::Main
 )
 

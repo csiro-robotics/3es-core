@@ -85,7 +85,7 @@ public:
   /// - @c DtTriangles `->` @c ID::VertexColour
   /// - @c DtVoxels `->` @c ID::Voxel
   ///
-  /// @param draw_type The 3es-core mesh messages draw type.
+  /// @param draw_type The 3escore mesh messages draw type.
   /// @return A shader for drawing the specified type or null if no shader is available for that type.
   std::shared_ptr<Shader> lookupForDrawType(DrawType draw_type);
 

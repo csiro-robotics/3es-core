@@ -78,7 +78,7 @@ target_include_directories(3es-viewer SYSTEM
 
 target_link_libraries(3es-viewer
   PUBLIC
-    3es-core
+    3escore
     $<$<BOOL:CMAKE_THREAD_LIBS_INIT>:${CMAKE_THREAD_LIBS_INIT}>
   PRIVATE
     # Should only use BUILD_INTERFACE when building a shared library.

@@ -4,8 +4,8 @@
 #-------------------------------------------------------------------------------
 set(TES_CORE_ONLY Off)
 # Project setup if this is being built as a stand alone project.
-if(NOT DEFINED CMAKE_PROJECT_NAME OR CMAKE_PROJECT_NAME STREQUAL "3es-core")
-  project(3es-core)
+if(NOT DEFINED CMAKE_PROJECT_NAME OR CMAKE_PROJECT_NAME STREQUAL "3escore")
+  project(3escore)
 
   cmake_minimum_required(VERSION 3.5)
 
@@ -15,7 +15,7 @@ if(NOT DEFINED CMAKE_PROJECT_NAME OR CMAKE_PROJECT_NAME STREQUAL "3es-core")
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
   set(TES_CORE_ONLY On)
-endif(NOT DEFINED CMAKE_PROJECT_NAME OR CMAKE_PROJECT_NAME STREQUAL "3es-core")
+endif(NOT DEFINED CMAKE_PROJECT_NAME OR CMAKE_PROJECT_NAME STREQUAL "3escore")
 
 if(NOT ConfigPackageLocation)
   set(ConfigPackageLocation lib/cmake/3es)
@@ -24,11 +24,11 @@ endif(NOT ConfigPackageLocation)
 #-------------------------------------------------------------------------------
 # Version setup
 #-------------------------------------------------------------------------------
-# 3es-core version. These are referenced when configuring 3es-core.h
+# 3escore version. These are referenced when configuring 3es-core.h
 include(cmake/3es-version.cmake)
 
 #-------------------------------------------------------------------------------
-# 3es-core configuration options.
+# 3escore configuration options.
 #-------------------------------------------------------------------------------
 option(TES_ASSERT_ENABLE_DEBUG "Enable assertions in debug builds." ON)
 option(TES_ASSERT_ENABLE_RELEASE "Enable assertions in release builds." ON)
@@ -64,7 +64,7 @@ find_package(Threads)
 #-------------------------------------------------------------------------------
 # Configuration header setup.
 #-------------------------------------------------------------------------------
-# Setup information for configuring the 3es-core configuration header.
+# Setup information for configuring the 3escore configuration header.
 # Set TES_32 and TES_64 to 1 or 0 depending on CMAKE_SIZEOF_VOID_P denoting 32- or 64-bit pointers.
 math(EXPR TES_32 "(${CMAKE_SIZEOF_VOID_P} & 4) >> 2")
 math(EXPR TES_64 "(${CMAKE_SIZEOF_VOID_P} & 8) >> 3")
@@ -87,58 +87,58 @@ set(PUBLIC_HEADERS
 )
 
 #-------------------------------------------------------------------------------
-# Define the source files for the 3es-core library.
+# Define the source files for the 3escore library.
 #-------------------------------------------------------------------------------
 include(sourcelist.cmake)
 
 #-------------------------------------------------------------------------------
 # Library setup.
 #-------------------------------------------------------------------------------
-# Define the 3es-core library.
-add_library(3es-core ${PUBLIC_HEADERS} ${PUBLIC_SHAPE_HEADERS} ${PUBLIC_TESSELLATE_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
-tes_configure_target(3es-core)
+# Define the 3escore library.
+add_library(3escore ${PUBLIC_HEADERS} ${PUBLIC_SHAPE_HEADERS} ${PUBLIC_TESSELLATE_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
+tes_configure_target(3escore)
 
 # Define DLL export header (primarily for MSVC).
 include(GenerateExportHeader)
-generate_export_header(3es-core
+generate_export_header(3escore
       EXPORT_MACRO_NAME _3es_coreAPI
       NO_EXPORT_MACRO_NAME _3es_coreHIDDEN
       EXPORT_FILE_NAME 3es-core-export.h
       STATIC_DEFINE TES_STATIC
       )
 
-# set_target_properties(3es-core PROPERTIES FOLDER core)
+# set_target_properties(3escore PROPERTIES FOLDER core)
 
 # Include directories
-target_include_directories(3es-core
+target_include_directories(3escore
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
-    $<INSTALL_INTERFACE:include/3es-core>
+    $<INSTALL_INTERFACE:include/3escore>
 )
 
-target_link_libraries(3es-core
+target_link_libraries(3escore
   PUBLIC
     $<$<BOOL:CMAKE_THREAD_LIBS_INIT>:${CMAKE_THREAD_LIBS_INIT}>
     $<$<CXX_COMPILER_ID:MSVC>:Ws2_32.lib>
 )
 
 if(ZLIB_FOUND AND NOT TES_ZLIB_OFF)
-  target_include_directories(3es-core PRIVATE SYSTEM "${ZLIB_INCLUDE_DIRS}")
-  target_link_libraries(3es-core PUBLIC ${ZLIB_LIBRARIES})
+  target_include_directories(3escore PRIVATE SYSTEM "${ZLIB_INCLUDE_DIRS}")
+  target_link_libraries(3escore PUBLIC ${ZLIB_LIBRARIES})
 endif(ZLIB_FOUND AND NOT TES_ZLIB_OFF)
 
 # Need to explicitly define some compile flags because the target name starts with a number.
 if(BUILD_SHARED_LIBS)
-  target_compile_definitions(3es-core PRIVATE -D_3es_core_EXPORTS)
+  target_compile_definitions(3escore PRIVATE -D_3es_core_EXPORTS)
 else(BUILD_SHARED_LIBS)
-  target_compile_definitions(3es-core PUBLIC -DTES_STATIC)
+  target_compile_definitions(3escore PUBLIC -DTES_STATIC)
 endif(BUILD_SHARED_LIBS)
 
 # Link dependencies
 if(TES_SOCKETS STREQUAL "Qt")
-  target_link_libraries(3es-core PRIVATE Qt5::Network)
-  target_include_directories(3es-core PRIVATE "${Qt5Network_INCLUDE_DIRS}")
+  target_link_libraries(3escore PRIVATE Qt5::Network)
+  target_include_directories(3escore PRIVATE "${Qt5Network_INCLUDE_DIRS}")
 endif()
 
 #-------------------------------------------------------------------------------
@@ -193,9 +193,9 @@ endif(TES_BUILD_DOXYGEN)
 # Installation.
 #-------------------------------------------------------------------------------
 # Header installation
-install(FILES ${PUBLIC_HEADERS} DESTINATION include/3es-core COMPONENT Devel)
-install(FILES ${PUBLIC_SHAPE_HEADERS} DESTINATION include/3es-core/shapes COMPONENT Devel)
-install(FILES ${PUBLIC_TESSELLATE_HEADERS} DESTINATION include/3es-core/tessellate COMPONENT Devel)
+install(FILES ${PUBLIC_HEADERS} DESTINATION include/3escore COMPONENT Devel)
+install(FILES ${PUBLIC_SHAPE_HEADERS} DESTINATION include/3escore/shapes COMPONENT Devel)
+install(FILES ${PUBLIC_TESSELLATE_HEADERS} DESTINATION include/3escore/tessellate COMPONENT Devel)
 
 # Setup import scripts.
 include(CMakePackageConfigHelpers)

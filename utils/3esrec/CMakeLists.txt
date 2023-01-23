@@ -1,5 +1,5 @@
 add_executable(3esrec 3esrec.cpp 3esframedisplay.cpp 3esframedisplay.h)
 set_target_properties(3esrec PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-target_link_libraries(3esrec 3es-core)
-target_include_directories(3esrec PRIVATE $<TARGET_PROPERTY:3es-core,INCLUDE_DIRECTORIES>)
+target_link_libraries(3esrec 3escore)
+target_include_directories(3esrec PRIVATE $<TARGET_PROPERTY:3escore,INCLUDE_DIRECTORIES>)
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" PREFIX source FILES ${SOURCES})
