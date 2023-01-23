@@ -29,11 +29,11 @@ find_package(Threads)
 #-------------------------------------------------------------------------------
 # Configuration header setup.
 #-------------------------------------------------------------------------------
-configure_file(3es-viewer.in.h "${CMAKE_CURRENT_BINARY_DIR}/3es-viewer.h")
+configure_file(ViewConfig.in.h "${CMAKE_CURRENT_BINARY_DIR}/3esview/ViewConfig.h")
 set(PUBLIC_HEADERS
   # Generated files.
-  "${CMAKE_CURRENT_BINARY_DIR}/3es-viewer.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/3es-viewer-export.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/3esview/ViewConfig.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/3esview/ViewExport.h"
 )
 
 #-------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ include(GenerateExportHeader)
 generate_export_header(3esview
       EXPORT_MACRO_NAME TES_VIEWER_API
       NO_EXPORT_MACRO_NAME TES_VIEWER_HIDDEN
-      EXPORT_FILE_NAME 3es-viewer-export.h
+      EXPORT_FILE_NAME ViewExport.h
       STATIC_DEFINE TES_VIEWER_STATIC
       )
 
@@ -63,6 +63,7 @@ generate_export_header(3esview
 target_include_directories(3esview
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/3esview>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
     $<INSTALL_INTERFACE:include>
@@ -178,6 +179,6 @@ include(InstallRequiredSystemLibraries)
 #-------------------------------------------------------------------------------
 # IDE source sorting
 #-------------------------------------------------------------------------------
-source_group("source" FILES "${CMAKE_CURRENT_BINARY_DIR}/3es-viewer.h")
+source_group("source" FILES "${CMAKE_CURRENT_BINARY_DIR}/3esview/ViewConfig.h")
 source_group("source" REGULAR_EXPRESSION ".*$")
 # source_group("source\\private" REGULAR_EXPRESSION "/private/.*$")
