@@ -4,7 +4,7 @@
 #ifndef _3ESDEBUG_H_
 #define _3ESDEBUG_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #if TES_ASSERT_ENABLE
 #define TES_ASSERT2(x, msg)                          \

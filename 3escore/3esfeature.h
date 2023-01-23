@@ -5,7 +5,7 @@
 #ifndef _3ESFEATURE_H_
 #define _3ESFEATURE_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <cinttypes>
 

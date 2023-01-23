@@ -4,7 +4,7 @@
 #ifndef _3ESHEADERSTREAM_H_
 #define _3ESHEADERSTREAM_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3esendian.h"
 #include "3espacketheader.h"

@@ -4,7 +4,7 @@
 #ifndef _3ESTRANSFERPROGRESS_H_
 #define _3ESTRANSFERPROGRESS_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <cstdint>
 

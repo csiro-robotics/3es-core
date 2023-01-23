@@ -4,7 +4,7 @@
 #ifndef _3ESCOORDINATEFRAME_H_
 #define _3ESCOORDINATEFRAME_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 namespace tes
 {

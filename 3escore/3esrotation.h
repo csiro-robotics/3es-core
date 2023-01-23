@@ -4,7 +4,7 @@
 #ifndef _3ESROTATION_H
 #define _3ESROTATION_H
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3esmatrix3.h"
 #include "3esmatrix4.h"

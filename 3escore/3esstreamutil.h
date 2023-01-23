@@ -4,7 +4,7 @@
 #ifndef _3ESSTREAMUTIL_H_
 #define _3ESSTREAMUTIL_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <iosfwd>
 

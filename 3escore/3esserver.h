@@ -4,7 +4,7 @@
 #ifndef _3ESSERVER_H_
 #define _3ESSERVER_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3escompressionlevel.h"
 #include "3esconnection.h"

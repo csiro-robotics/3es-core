@@ -4,7 +4,7 @@
 #ifndef _3ESV3ARG_H_
 #define _3ESV3ARG_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3esvector3.h"
 

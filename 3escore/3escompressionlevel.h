@@ -4,7 +4,7 @@
 #ifndef _3ESCOMPRESSIONLEVEL_H_
 #define _3ESCOMPRESSIONLEVEL_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 namespace tes
 {

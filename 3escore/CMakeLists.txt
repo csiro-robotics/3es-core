@@ -103,7 +103,7 @@ include(GenerateExportHeader)
 generate_export_header(3escore
       EXPORT_MACRO_NAME _3es_coreAPI
       NO_EXPORT_MACRO_NAME _3es_coreHIDDEN
-      EXPORT_FILE_NAME CoreExport.h
+      EXPORT_FILE_NAME 3escore/CoreExport.h
       STATIC_DEFINE TES_STATIC
       )
 
@@ -113,6 +113,7 @@ generate_export_header(3escore
 target_include_directories(3escore
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/3escore>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
     $<INSTALL_INTERFACE:include/3escore>
 )

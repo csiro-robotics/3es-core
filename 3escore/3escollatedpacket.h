@@ -4,7 +4,7 @@
 #ifndef _3ESCOLLATEDPACKET_H_
 #define _3ESCOLLATEDPACKET_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3esconnection.h"
 #include "3espacketheader.h"

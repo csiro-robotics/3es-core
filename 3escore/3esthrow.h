@@ -4,7 +4,7 @@
 #ifndef _3ESTHROW_H
 #define _3ESTHROW_H
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #if TES_EXCEPTIONS
 // Return statement present to prevent compilation errors when switching TES_EXCEPTIONS.

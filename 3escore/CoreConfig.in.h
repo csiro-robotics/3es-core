@@ -2,10 +2,11 @@
 // Project configuration header. This is a generated header; do not modify
 // it directly. Instead, modify the config.h.in version and run CMake again.
 //
-#ifndef _3ES_CORE_H_
-#define _3ES_CORE_H_
+#ifndef TES_CORE_CONFIG_H
+#define TES_CORE_CONFIG_H
 
-#include "3es-core-export.h"
+#include "CoreExport.h"
+
 #include "3esmeta.h"
 
 #ifdef TES_STATIC
@@ -42,7 +43,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif  // _CRT_SECURE_NO_WARNINGS
-//#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
+// #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
 #endif  // _MSC_VER
 
 // Include standard headers to ensure we effect the configuration above.
@@ -81,4 +82,4 @@
 #define TES_ZU "%u"
 #endif  // TES_64
 
-#endif  // _3ES_CORE_H_
+#endif  // TES_CORE_CONFIG_H

@@ -4,7 +4,7 @@
 #ifndef _3ESCONNECTION_H_
 #define _3ESCONNECTION_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <cstddef>
 #include <cstdint>

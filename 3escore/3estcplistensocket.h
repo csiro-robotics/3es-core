@@ -4,7 +4,7 @@
 #ifndef _3ESTCPLISTENSOCKET_H_
 #define _3ESTCPLISTENSOCKET_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <cinttypes>
 

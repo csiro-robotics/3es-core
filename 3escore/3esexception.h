@@ -4,7 +4,7 @@
 #ifndef _3ESEXCEPTION_H
 #define _3ESEXCEPTION_H
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <string>
 

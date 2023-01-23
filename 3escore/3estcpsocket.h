@@ -4,7 +4,7 @@
 #ifndef TCPSOCKET_H_
 #define TCPSOCKET_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <cstddef>
 

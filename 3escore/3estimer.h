@@ -2,7 +2,7 @@
 #ifndef __INSEXTTIMER_
 #define __INSEXTTIMER_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <string>
 

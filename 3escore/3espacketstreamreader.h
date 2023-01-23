@@ -4,7 +4,7 @@
 #ifndef TES_CORE_PACKET_STREAM_READER_H
 #define TES_CORE_PACKET_STREAM_READER_H
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3espacketheader.h"
 

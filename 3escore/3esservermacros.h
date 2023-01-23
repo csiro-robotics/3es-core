@@ -16,7 +16,7 @@
 // Temporarily disable the macro interface until new MeshShape API is resolved
 #ifdef TES_ENABLE
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3esconnectionmonitor.h"
 #include "3esserver.h"

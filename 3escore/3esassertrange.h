@@ -4,7 +4,7 @@
 #ifndef _3ESASSERTRANGE_H_
 #define _3ESASSERTRANGE_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3esdebug.h"
 

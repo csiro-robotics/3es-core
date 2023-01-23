@@ -4,7 +4,7 @@
 #ifndef _3ESDATABUFFER_H
 #define _3ESDATABUFFER_H
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3escolour.h"
 #include "3escoreutil.h"

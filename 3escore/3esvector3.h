@@ -4,7 +4,7 @@
 #ifndef _3ESVECTOR3_H_
 #define _3ESVECTOR3_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <cmath>
 #include <cstdlib>

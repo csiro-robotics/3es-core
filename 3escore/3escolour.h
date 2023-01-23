@@ -6,7 +6,7 @@
 #ifndef _3ESCOLOUR_H_
 #define _3ESCOLOUR_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <array>
 #include <cstdint>
@@ -152,17 +152,11 @@ public:
 
   /// Lighten the colour by 1.5
   /// @return A lighter colour.
-  inline Colour lighten() const
-  {
-    return adjust(1.5f);
-  }
+  inline Colour lighten() const { return adjust(1.5f); }
 
   /// Darken the colour by 0.5
   /// @return A darker colour.
-  inline Colour darken() const
-  {
-    return adjust(0.5f);
-  }
+  inline Colour darken() const { return adjust(0.5f); }
 
   /// Convert RGB to HSV form.
   /// @param[out] h The hue value [0, 360].

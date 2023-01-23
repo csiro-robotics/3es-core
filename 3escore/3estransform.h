@@ -4,7 +4,7 @@
 #ifndef _3ESTRANSFORM_H
 #define _3ESTRANSFORM_H
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3esmatrix4.h"
 #include "3esquaternion.h"

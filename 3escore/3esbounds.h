@@ -4,7 +4,7 @@
 #ifndef _3ESBOUNDS_H
 #define _3ESBOUNDS_H
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3esvector3.h"
 

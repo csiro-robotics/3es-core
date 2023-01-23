@@ -6,7 +6,7 @@
 #ifndef _3ESMATHSMANIP_H_
 #define _3ESMATHSMANIP_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <iomanip>
 #include <iostream>

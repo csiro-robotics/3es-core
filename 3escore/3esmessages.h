@@ -4,7 +4,7 @@
 #ifndef _3ESMESSAGES_H_
 #define _3ESMESSAGES_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3espacketreader.h"
 #include "3espacketwriter.h"

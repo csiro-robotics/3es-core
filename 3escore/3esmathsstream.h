@@ -6,7 +6,7 @@
 #ifndef _3ESMATHSSTREAM_H_
 #define _3ESMATHSSTREAM_H_
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include "3escolour.h"
 #include "3esmatrix3.h"

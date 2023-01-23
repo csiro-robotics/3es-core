@@ -1,7 +1,7 @@
 #ifndef TES_CORE_LOG_H
 #define TES_CORE_LOG_H
 
-#include "3es-core.h"
+#include "CoreConfig.h"
 
 #include <functional>
 #include <sstream>
