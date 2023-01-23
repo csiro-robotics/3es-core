@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "3est-common.h"
+#include "TestCommon.h"
 
 #include <3escore/DataBuffer.h>
 #include <3escore/PacketReader.h>

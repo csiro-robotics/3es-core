@@ -2,7 +2,7 @@
 // author: Kazys Stepanas
 //
 
-#include "3est-common.h"
+#include "TestCommon.h"
 
 #include <3escore/CollatedPacket.h>
 #include <3escore/CollatedPacketDecoder.h>

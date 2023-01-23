@@ -5,7 +5,7 @@
 
 #include <cinttypes>
 
-#include "3est-common.h"
+#include "TestCommon.h"
 
 #include <3escore/IntArg.h>
 #include <3escore/V3Arg.h>
