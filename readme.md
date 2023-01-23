@@ -30,7 +30,7 @@
 
 ### Building with vcpkg
 
-Building with VCPKG is supported in order to fetch the dependencies. This affects both 3es-core and 3es-viewer.
+Building with VCPKG is supported in order to fetch the dependencies. This affects both 3escore and 3esviewer.
 
 ```shell
 # Must cmake configure from the source directory so vcpkg can find the vcpkg.json manifest.

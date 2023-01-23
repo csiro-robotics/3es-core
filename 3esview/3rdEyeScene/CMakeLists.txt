@@ -63,7 +63,7 @@ target_link_libraries(3rdEyeScene
   PRIVATE
     3escore
     $<$<BOOL:CMAKE_THREAD_LIBS_INIT>:${CMAKE_THREAD_LIBS_INIT}>
-    3es-viewer
+    3esview
     Corrade::Containers
     Magnum::Application
     Magnum::Magnum

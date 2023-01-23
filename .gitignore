@@ -4,7 +4,7 @@
 **/Library/
 *.userprefs
 .vs/
-data/
+/data/
 
 build*/
 .vscode/

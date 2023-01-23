@@ -9,7 +9,7 @@
 # include(cmake/3es-version.cmake)
 
 #-------------------------------------------------------------------------------
-# 3es-viewer configuration options.
+# 3esview configuration options.
 #-------------------------------------------------------------------------------
 find_package(cxxopts CONFIG REQUIRED)
 find_package(Corrade CONFIG REQUIRED Containers)
@@ -37,46 +37,46 @@ set(PUBLIC_HEADERS
 )
 
 #-------------------------------------------------------------------------------
-# Define the source files for the 3es-viewer library.
+# Define the source files for the 3esview library.
 #-------------------------------------------------------------------------------
 include(sourcelist.cmake)
 
 #-------------------------------------------------------------------------------
 # Library setup.
 #-------------------------------------------------------------------------------
-# Define the 3es-viewer library.
-add_library(3es-viewer ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
-tes_configure_target(3es-viewer)
+# Define the 3esview library.
+add_library(3esview ${PUBLIC_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
+tes_configure_target(3esview)
 
 # Define DLL export header (primarily for MSVC).
 include(GenerateExportHeader)
-generate_export_header(3es-viewer
+generate_export_header(3esview
       EXPORT_MACRO_NAME TES_VIEWER_API
       NO_EXPORT_MACRO_NAME TES_VIEWER_HIDDEN
       EXPORT_FILE_NAME 3es-viewer-export.h
       STATIC_DEFINE TES_VIEWER_STATIC
       )
 
-# set_target_properties(3es-viewer PROPERTIES FOLDER view)
+# set_target_properties(3esview PROPERTIES FOLDER view)
 
 # Include directories
-target_include_directories(3es-viewer
+target_include_directories(3esview
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
     $<INSTALL_INTERFACE:include>
-    $<INSTALL_INTERFACE:include/3es-viewer>
+    $<INSTALL_INTERFACE:include/3esview>
 )
 
-target_include_directories(3es-viewer SYSTEM
+target_include_directories(3esview SYSTEM
   PRIVATE
     # Add cxxopts include directories from the import target. It's a header only library so we don't
     # need to link anything or propagate the dependency.
     $<TARGET_PROPERTY:cxxopts::cxxopts,INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(3es-viewer
+target_link_libraries(3esview
   PUBLIC
     3escore
     $<$<BOOL:CMAKE_THREAD_LIBS_INIT>:${CMAKE_THREAD_LIBS_INIT}>
@@ -142,8 +142,8 @@ target_link_libraries(3es-viewer
 # Installation.
 #-------------------------------------------------------------------------------
 # Header installation
-# install(FILES ${PUBLIC_HEADERS} DESTINATION include/3es-viewer COMPONENT Devel)
-# install(FILES ${PUBLIC_SHAPE_HEADERS} DESTINATION include/3es-viewer/shapes COMPONENT Devel)
+# install(FILES ${PUBLIC_HEADERS} DESTINATION include/3esview COMPONENT Devel)
+# install(FILES ${PUBLIC_SHAPE_HEADERS} DESTINATION include/3esview/shapes COMPONENT Devel)
 
 # Setup import scripts.
 include(CMakePackageConfigHelpers)

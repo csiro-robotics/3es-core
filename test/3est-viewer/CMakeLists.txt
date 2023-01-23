@@ -9,7 +9,7 @@ tes_configure_unit_test_target(3est-viewer)
 target_link_libraries(3est-viewer
   PRIVATE
     3escore
-    3es-viewer
+    3esview
     GTest::Main
 )
 

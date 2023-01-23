@@ -5,7 +5,7 @@
 
 #include "3esdatathread.h"
 
-#include "3es-viewer/3esframestamp.h"
+#include "3esviewer/3esframestamp.h"
 
 #include <3esmessages.h>
 
