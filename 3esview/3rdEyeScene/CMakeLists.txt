@@ -29,10 +29,10 @@ find_package(Threads)
 # Configuration header setup.
 #-------------------------------------------------------------------------------
 
-configure_file(3es-client.in.h "${CMAKE_CURRENT_BINARY_DIR}/3es-client.h")
+configure_file(ClientConfig.in.h "${CMAKE_CURRENT_BINARY_DIR}/3rdEyeScene/ClientConfig.h")
 set(PUBLIC_HEADERS
   # Generated files.
-  "${CMAKE_CURRENT_BINARY_DIR}/3es-client.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/3rdEyeScene/ClientConfig.h"
 )
 
 #-------------------------------------------------------------------------------
@@ -55,7 +55,8 @@ tes_configure_target(3rdEyeScene)
 target_include_directories(3rdEyeScene
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/3rdEyeScene>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
     $<INSTALL_INTERFACE:include/3rdEyeScene>
 )
 
@@ -122,6 +123,6 @@ target_link_libraries(3rdEyeScene
 #-------------------------------------------------------------------------------
 # IDE source sorting
 #-------------------------------------------------------------------------------
-source_group("source" FILES "${CMAKE_CURRENT_BINARY_DIR}/3es-client.h")
+source_group("source" FILES "${CMAKE_CURRENT_BINARY_DIR}/3rdEyeScene/ClientConfig.h")
 source_group("source" REGULAR_EXPRESSION ".*$")
 # source_group("source\\private" REGULAR_EXPRESSION "/private/.*$")

@@ -3,7 +3,7 @@ list(APPEND PUBLIC_HEADERS
 )
 
 list(APPEND SOURCES
-  3esmain.cpp
+  Main.cpp
 )
 
 list(APPEND PRIVATE_SOURCES
