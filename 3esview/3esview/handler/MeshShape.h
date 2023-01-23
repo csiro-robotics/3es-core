@@ -4,10 +4,11 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esboundsculler.h"
-#include "3esmessage.h"
+#include "Message.h"
 
-#include <shapes/3esid.h>
+#include <3esview/BoundsCuller.h>
+
+#include <3escore/shapes/Id.h>
 
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/Shaders/VertexColor.h>

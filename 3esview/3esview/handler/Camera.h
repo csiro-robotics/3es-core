@@ -6,10 +6,11 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esmessage.h"
-#include "camera/3escamera.h"
+#include "Message.h"
 
-#include <3esmessages.h>
+#include <3esview/camera/Camera.h>
+
+#include <3escore/Messages.h>
 
 #include <array>
 #include <limits>

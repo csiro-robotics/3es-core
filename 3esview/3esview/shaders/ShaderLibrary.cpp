@@ -1,9 +1,9 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3esshaderlibrary.h"
+#include "ShaderLibrary.h"
 
-#include <3eslog.h>
+#include <3escore/log.h>
 
 #include <array>
 

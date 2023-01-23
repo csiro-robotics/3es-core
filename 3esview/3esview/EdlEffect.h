@@ -3,7 +3,7 @@
 
 #include "3esview/Viewer.h"
 
-#include "3esfboeffect.h"
+#include "FboEffect.h"
 
 #include <Magnum/Math/Range.h>
 #include <Magnum/Math/Vector2.h>

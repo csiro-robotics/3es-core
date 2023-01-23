@@ -1,16 +1,16 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3esmeshset.h"
+#include "MeshSet.h"
 
-#include "3esmagnumcolour.h"
-#include "3esmeshresource.h"
+#include "MeshResource.h"
 
-#include <3esconnection.h>
+#include <3esview/MagnumColour.h>
 
-#include <3eslog.h>
-#include <3espacketreader.h>
-#include <shapes/3esmeshset.h>
+#include <3escore/Connection.h>
+#include <3escore/Log.h>
+#include <3escore/PacketReader.h>
+#include <3escore/shapes/MeshSet.h>
 
 namespace tes::viewer::handler
 {

@@ -6,7 +6,7 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "util/3esenum.h"
+#include <3esview/util/Enum.h>
 
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Matrix4.h>

@@ -5,7 +5,7 @@
 #ifndef TES_VIEWER_CONFIG_H
 #define TES_VIEWER_CONFIG_H
 
-#include "3es-viewer-export.h"
+#include "ViewExport.h"
 
 #include <3escore/CoreConfig.h>
 

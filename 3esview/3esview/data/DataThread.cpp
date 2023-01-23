@@ -1,10 +1,10 @@
-#include "3esdatathread.h"
+#include "DataThread.h"
 
-#include "3esthirdeyescene.h"
+#include <3esview/ThirdEyeScene.h>
 
-#include <3eslog.h>
-#include <3esmessages.h>
-#include <3espacketreader.h>
+#include <3escore/Log.h>
+#include <3escore/Messages.h>
+#include <3escore/PacketReader.h>
 
 namespace tes::viewer
 {

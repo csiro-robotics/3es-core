@@ -3,17 +3,16 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esdrawparams.h"
-#include "3esframestamp.h"
-#include "camera/3escamera.h"
-#include "util/3esenum.h"
+#include <3esview/camera/Camera.h>
+#include <3esview/DrawParams.h>
+#include <3esview/FrameStamp.h>
+#include <3esview/util/Enum.h>
 
+#include <3escore/Messages.h>
 
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Vector2.h>
-
-#include <3esmessages.h>
 
 #include <string>
 

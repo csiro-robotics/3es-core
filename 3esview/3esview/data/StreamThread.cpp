@@ -1,11 +1,11 @@
-#include "3esstreamthread.h"
+#include "StreamThread.h"
 
-#include "3esthirdeyescene.h"
+#include <3esview/ThirdEyeScene.h>
 
-#include <3escollatedpacketdecoder.h>
-#include <3espacketreader.h>
-#include <3espacketstreamreader.h>
-#include <3eslog.h>
+#include <3escore/CollatedPacketDecoder.h>
+#include <3escore/Log.h>
+#include <3escore/PacketReader.h>
+#include <3escore/PacketStreamReader.h>
 
 #include <cinttypes>
 #include <fstream>

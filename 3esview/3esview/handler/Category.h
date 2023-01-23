@@ -6,7 +6,7 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esmessage.h"
+#include "Message.h"
 
 #include <mutex>
 #include <unordered_map>

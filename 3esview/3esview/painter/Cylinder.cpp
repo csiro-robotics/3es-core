@@ -1,9 +1,9 @@
-#include "3escylinder.h"
+#include "Cylinder.h"
 
-#include "mesh/3esconverter.h"
+#include <3esview/mesh/Converter.h>
 
-#include <shapes/3essimplemesh.h>
-#include <tessellate/3escylinder.h>
+#include <3escore/shapes/SimpleMesh.h>
+#include <3escore/tessellate/Cylinder.h>
 
 #include <mutex>
 

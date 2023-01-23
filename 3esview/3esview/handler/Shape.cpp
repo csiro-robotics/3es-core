@@ -1,12 +1,12 @@
-#include "3esshape.h"
+#include "Shape.h"
 
-#include "painter/3esshapepainter.h"
+#include <3esview/painter/ShapePainter.h>
 
-#include <3esconnection.h>
-#include <3escolour.h>
-#include <3esdebug.h>
-#include <3eslog.h>
-#include <3espacketreader.h>
+#include <3escore/Colour.h>
+#include <3escore/Connection.h>
+#include <3escore/Debug.h>
+#include <3escore/Log.h>
+#include <3escore/PacketReader.h>
 
 namespace tes::viewer::handler
 {

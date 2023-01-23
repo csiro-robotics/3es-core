@@ -1,7 +1,7 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3esshader.h"
+#include "Shader.h"
 
 namespace tes::viewer::shaders
 {

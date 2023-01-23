@@ -1,12 +1,12 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3escategory.h"
+#include "Category.h"
 
-#include <3eslog.h>
-#include <3esconnection.h>
-#include <3esmessages.h>
-#include <3espacketwriter.h>
+#include <3escore/Connection.h>
+#include <3escore/Log.h>
+#include <3escore/Messages.h>
+#include <3escore/PacketWriter.h>
 
 #include <array>
 

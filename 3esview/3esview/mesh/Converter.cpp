@@ -1,7 +1,7 @@
-#include "3esconverter.h"
+#include "Converter.h"
 
-#include <3esmeshmessages.h>
-#include <shapes/3esmeshresource.h>
+#include <3escore/MeshMessages.h>
+#include <3escore/shapes/MeshResource.h>
 
 #include <Magnum/Magnum.h>
 

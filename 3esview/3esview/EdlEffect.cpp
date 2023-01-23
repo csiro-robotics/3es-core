@@ -1,6 +1,6 @@
-#include "3esedleffect.h"
+#include "EdlEffect.h"
 
-#include "shaders/3esedl.h"
+#include "shaders/Edl.h"
 
 #include <Magnum/GL/Framebuffer.h>
 #include <Magnum/GL/Mesh.h>

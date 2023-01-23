@@ -3,7 +3,7 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3escontroller.h"
+#include "Controller.h"
 
 namespace tes::camera
 {

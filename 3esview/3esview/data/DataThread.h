@@ -3,7 +3,7 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esframestamp.h"
+#include <3esview/FrameStamp.h>
 
 namespace tes
 {

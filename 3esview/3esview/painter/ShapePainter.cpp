@@ -1,8 +1,8 @@
-#include "3esshapepainter.h"
+#include "ShapePainter.h"
 
-#include "shaders/3esshaderlibrary.h"
+#include "3esview/shaders/ShaderLibrary.h"
 
-#include <shapes/3esid.h>
+#include <3escore/shapes/Id.h>
 
 #include <Magnum/GL/Renderer.h>
 

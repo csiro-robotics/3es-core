@@ -6,9 +6,9 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esmeshresource.h"
+#include "MeshResource.h"
 
-#include <shapes/3esmeshset.h>
+#include <3escore/shapes/MeshSet.h>
 
 #include <Magnum/Math/Color.h>
 #include <Magnum/GL/Mesh.h>

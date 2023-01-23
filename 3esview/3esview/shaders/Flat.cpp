@@ -1,7 +1,7 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3esflat.h"
+#include "Flat.h"
 
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/Math/Matrix4.h>

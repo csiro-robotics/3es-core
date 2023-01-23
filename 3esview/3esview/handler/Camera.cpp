@@ -1,12 +1,12 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3escamera.h"
+#include "Camera.h"
 
-#include <3eslog.h>
-#include <3escoordinateframe.h>
-#include <3esconnection.h>
-#include <3espacketwriter.h>
+#include <3escore/Connection.h>
+#include <3escore/CoordinateFrame.h>
+#include <3escore/Log.h>
+#include <3escore/PacketWriter.h>
 
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Vector3.h>

@@ -3,14 +3,14 @@
 
 #include "3esview/Viewer.h"
 
-#include "camera/3esfly.h"
+#include "camera/Fly.h"
 
-#include "3esboundsculler.h"
-#include "3esframespersecondwindow.h"
-#include "3esframestamp.h"
-#include "painter/3esshapecache.h"
+#include "BoundsCuller.h"
+#include "FramesPerSecondWindow.h"
+#include "FrameStamp.h"
+#include "painter/ShapeCache.h"
 
-#include <3esmessages.h>
+#include <3escore/Messages.h>
 
 #include <Corrade/PluginManager/Manager.h>
 

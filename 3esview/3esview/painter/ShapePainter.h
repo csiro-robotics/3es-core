@@ -3,9 +3,9 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esshapecache.h"
+#include "ShapeCache.h"
 
-#include <shapes/3esid.h>
+#include <3escore/shapes/Id.h>
 
 #include <Magnum/GL/Mesh.h>
 

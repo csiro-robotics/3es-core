@@ -3,9 +3,9 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esshapepainter.h"
+#include "ShapePainter.h"
 
-#include <3esvector3.h>
+#include <3escore/Vector3.h>
 
 namespace tes
 {

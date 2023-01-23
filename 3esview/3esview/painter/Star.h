@@ -4,7 +4,7 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esshapepainter.h"
+#include "ShapePainter.h"
 
 namespace tes::viewer::painter
 {

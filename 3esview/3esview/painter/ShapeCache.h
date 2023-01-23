@@ -3,12 +3,11 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esboundsculler.h"
-#include "3esviewablewindow.h"
-#include "util/3esresourcelist.h"
-#include "util/3esenum.h"
+#include <3esview/BoundsCuller.h>
+#include <3esview/util/Resourcelist.h>
+#include <3esview/util/Enum.h>
 
-#include <shapes/3esid.h>
+#include <3escore/shapes/Id.h>
 
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/Magnum.h>

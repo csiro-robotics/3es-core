@@ -3,7 +3,7 @@
 
 #include "3esview/Viewer.h"
 
-#include <3esvector3.h>
+#include <3escore/Vector3.h>
 
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Vector3.h>

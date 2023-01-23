@@ -3,11 +3,11 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esdatathread.h"
+#include "DataThread.h"
 
-#include "3es-viewer/3esframestamp.h"
+#include <3esvieW/FrameStamp.h>
 
-#include <3esmessages.h>
+#include <3escore/Messages.h>
 
 #include <array>
 #include <atomic>

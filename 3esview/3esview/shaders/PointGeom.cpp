@@ -1,9 +1,9 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3espointgeom.h"
+#include "PointGeom.h"
 
-#include <3eslog.h>
+#include <3escore/Log.h>
 
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/Extensions.h>

@@ -1,4 +1,4 @@
-#include "3esframespersecondwindow.h"
+#include "FramesPerSecondWindow.h"
 
 #include <numeric>
 

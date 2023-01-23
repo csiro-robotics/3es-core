@@ -1,9 +1,9 @@
-#include "3escone.h"
+#include "Cone.h"
 
-#include "mesh/3esconverter.h"
+#include <3esview/mesh/Converter.h>
 
-#include <shapes/3essimplemesh.h>
-#include <tessellate/3escone.h>
+#include <3escore/shapes/SimpleMesh.h>
+#include <3escore/tessellate/Cone.h>
 
 #include <mutex>
 

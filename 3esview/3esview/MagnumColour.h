@@ -3,7 +3,7 @@
 
 #include "3esview/Viewer.h"
 
-#include <3escolour.h>
+#include <3escore/Colour.h>
 
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Color.h>

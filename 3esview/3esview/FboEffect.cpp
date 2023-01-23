@@ -1,4 +1,4 @@
-#include "3esfboeffect.h"
+#include "FboEffect.h"
 
 namespace tes::viewer
 {

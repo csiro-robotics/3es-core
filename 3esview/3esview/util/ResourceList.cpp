@@ -1,4 +1,4 @@
-#include "3esresourcelist.h"
+#include "ResourceList.h"
 
 namespace tes::viewer::util
 {

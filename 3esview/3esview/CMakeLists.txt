@@ -53,7 +53,7 @@ include(GenerateExportHeader)
 generate_export_header(3esview
       EXPORT_MACRO_NAME TES_VIEWER_API
       NO_EXPORT_MACRO_NAME TES_VIEWER_HIDDEN
-      EXPORT_FILE_NAME ViewExport.h
+      EXPORT_FILE_NAME 3esview/ViewExport.h
       STATIC_DEFINE TES_VIEWER_STATIC
       )
 
@@ -64,7 +64,6 @@ target_include_directories(3esview
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/3esview>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
     $<INSTALL_INTERFACE:include>
     $<INSTALL_INTERFACE:include/3esview>

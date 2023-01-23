@@ -6,10 +6,10 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esboundsculler.h"
-#include "3esmessage.h"
+#include <3esview/BoundsCuller.h>
+#include <3esview/Message.h>
 
-#include <shapes/3essimplemesh.h>
+#include <3escore/shapes/SimpleMesh.h>
 
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/Math/Color.h>

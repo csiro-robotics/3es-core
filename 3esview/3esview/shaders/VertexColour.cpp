@@ -1,9 +1,9 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3esvertexcolour.h"
+#include "VertexColour.h"
 
-#include <3eslog.h>
+#include <3escore/Log.h>
 
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/GL/Renderer.h>

@@ -3,11 +3,11 @@
 
 #include "3esview/ViewConfig.h"
 
-#include "3esframestamp.h"
-#include "3esmagnumv3.h"
-#include "util/3esresourcelist.h"
+#include "FrameStamp.h"
+#include "MagnumV3.h"
+#include "util/ResourceList.h"
 
-#include <3esbounds.h>
+#include <3escore/Bounds.h>
 
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Frustum.h>

@@ -3,7 +3,7 @@
 
 #include <3esview/ViewConfig.h>
 
-#include <3escoordinateframe.h>
+#include <3escore/CoordinateFrame.h>
 
 #include <Magnum/Magnum.h>
 #include <Magnum/Math/Matrix4.h>

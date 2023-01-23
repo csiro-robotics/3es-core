@@ -1,10 +1,9 @@
-#include "3esshapecache.h"
+#include "ShapeCache.h"
 
-#include "3esboundsculler.h"
+#include <3esview/BoundsCuller.h>
+#include <3esview/shaders/Shader.h>
 
-#include "shaders/3esshader.h"
-
-#include <3esdebug.h>
+#include <3escore/Debug.h>
 
 namespace tes::viewer::painter
 {

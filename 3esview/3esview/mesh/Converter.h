@@ -3,8 +3,8 @@
 
 #include <3esview/ViewConfig.h>
 
-#include <3escolour.h>
-#include <3esbounds.h>
+#include <3escore/Colour.h>
+#include <3escore/Bounds.h>
 
 #include <Magnum/GL/Mesh.h>
 

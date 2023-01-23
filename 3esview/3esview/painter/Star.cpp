@@ -1,8 +1,8 @@
-#include "3esstar.h"
+#include "Star.h"
 
-#include "mesh/3esconverter.h"
+#include <3esview/mesh/Converter.h>
 
-#include <shapes/3essimplemesh.h>
+#include <3escore/shapes/SimpleMesh.h>
 
 #include <Magnum/GL/Renderer.h>
 

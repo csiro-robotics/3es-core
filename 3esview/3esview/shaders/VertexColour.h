@@ -6,8 +6,8 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esshader.h"
-#include "3espvm.h"
+#include "Shader.h"
+#include "Pvm.h"
 
 #include <Magnum/Shaders/VertexColor.h>
 

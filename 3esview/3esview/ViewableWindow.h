@@ -3,9 +3,9 @@
 
 #include "3esview/Viewer.h"
 
-#include "3esframestamp.h"
+#include "FrameStamp.h"
 
-#include <3esdebug.h>
+#include <3escore/Debug.h>
 
 #include <cassert>
 #include <limits>

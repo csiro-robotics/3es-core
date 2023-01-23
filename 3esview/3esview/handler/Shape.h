@@ -4,7 +4,7 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esmessage.h"
+#include "Message.h"
 
 #include <iosfwd>
 #include <memory>

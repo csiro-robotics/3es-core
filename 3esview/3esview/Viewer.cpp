@@ -1,21 +1,21 @@
-#include "3esviewer.h"
+#include "Viewer.h"
 
-#include "3esedleffect.h"
+#include "EdlEffect.h"
 
-#include "data/3esnetworkthread.h"
-#include "data/3esstreamthread.h"
+#include "data/NetworkThread.h"
+#include "data/StreamThread.h"
 
-#include "painter/3esarrow.h"
-#include "painter/3esbox.h"
-#include "painter/3escapsule.h"
-#include "painter/3escylinder.h"
-#include "painter/3esplane.h"
-#include "painter/3espose.h"
-#include "painter/3essphere.h"
-#include "painter/3esstar.h"
+#include "painter/Arrow.h"
+#include "painter/Box.h"
+#include "painter/Capsule.h"
+#include "painter/Cylinder.h"
+#include "painter/Plane.h"
+#include "painter/Pose.h"
+#include "painter/Sphere.h"
+#include "painter/Star.h"
 
-#include <3eslog.h>
-#include <3esserver.h>
+#include <3escore/Log.h>
+#include <3escore/Server.h>
 
 #include <Magnum/GL/Context.h>
 #include <Magnum/GL/DefaultFramebuffer.h>

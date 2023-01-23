@@ -6,7 +6,7 @@
 
 #include "3esview/ViewConfig.h"
 
-#include "camera/3escamera.h"
+#include "camera/Camera.h"
 
 #include <Magnum/Math/Matrix3.h>
 #include <Magnum/Math/Matrix4.h>

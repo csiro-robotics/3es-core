@@ -6,8 +6,9 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "3esmessage.h"
-#include "painter/3estext.h"
+#include "Message.h"
+
+#include <3esview/painter/Text.h>
 
 #include <memory>
 #include <mutex>

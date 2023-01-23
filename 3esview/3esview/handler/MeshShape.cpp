@@ -1,15 +1,15 @@
-#include "3esmeshshape.h"
+#include "MeshShape.h"
 
-#include "mesh/3esconverter.h"
-#include "shaders/3esshader.h"
-#include "shaders/3esshaderlibrary.h"
+#include <3esview/mesh/Converter.h>
+#include <3esview/shaders/Shader.h>
+#include <3esview/shaders/ShaderLibrary.h>
 
-#include <3esconnection.h>
-#include <3escolour.h>
-#include <3esdebug.h>
-#include <3eslog.h>
-#include <3espacketreader.h>
-#include <shapes/3esmeshshape.h>
+#include <3esview/Connection.h>
+#include <3esview/Colour.h>
+#include <3esview/Debug.h>
+#include <3esview/Log.h>
+#include <3esview/PacketReader.h>
+#include <3esview/shapes/MeshShape.h>
 
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/Math/Color.h>

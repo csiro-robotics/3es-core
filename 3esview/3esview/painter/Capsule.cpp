@@ -1,14 +1,14 @@
-#include "3escapsule.h"
+#include "Capsule.h"
 
-#include "3escylinder.h"
-#include "3essphere.h"
+#include "Cylinder.h"
+#include "Sphere.h"
 
-#include "mesh/3esconverter.h"
-#include "shaders/3esshaderlibrary.h"
+#include <3esview/mesh/Converter.h>
+#include <3esview/shaders/ShaderLibrary.h>
 
-#include <shapes/3essimplemesh.h>
-#include <tessellate/3escylinder.h>
-#include <tessellate/3essphere.h>
+#include <3escore/shapes/SimpleMesh.h>
+#include <3escore/tessellate/Cylinder.h>
+#include <3escore/tessellate/Sphere.h>
 
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/Math/Matrix3.h>

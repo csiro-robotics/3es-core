@@ -1,9 +1,9 @@
-#include "3esbox.h"
+#include "Box.h"
 
-#include "mesh/3esconverter.h"
+#include <3esview/mesh/Converter.h>
 
-#include <shapes/3essimplemesh.h>
-#include <tessellate/3esbox.h>
+#include <3escore/shapes/SimpleMesh.h>
+#include <3escore/tessellate/Box.h>
 
 #include <mutex>
 

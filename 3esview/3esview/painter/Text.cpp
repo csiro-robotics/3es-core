@@ -1,12 +1,12 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3estext.h"
+#include "Text.h"
 
-#include "3esdrawparams.h"
-#include "3esmagnumcolour.h"
+#include <3esview/DrawParams.h>
+#include <3esview/MagnumColour.h>
 
-#include <3eslog.h>
+#include <3escore/Log.h>
 
 #include <Corrade/Utility/Resource.h>
 

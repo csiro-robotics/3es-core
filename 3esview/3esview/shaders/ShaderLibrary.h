@@ -6,7 +6,7 @@
 
 #include <3esview/ViewConfig.h>
 
-#include <3esmeshmessages.h>
+#include <3escore/MeshMessages.h>
 
 #include <string>
 #include <memory>

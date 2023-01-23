@@ -1,13 +1,13 @@
-#include "3esnetworkthread.h"
+#include "NetworkThread.h"
 
-#include "3esthirdeyescene.h"
+#include <3esview/ThirdEyeScene.h>
 
-#include <3escollatedpacketdecoder.h>
-#include <3espacketbuffer.h>
-#include <3espacketreader.h>
-#include <3espacketstreamreader.h>
-#include <3eslog.h>
-#include <3estcpsocket.h>
+#include <3escore/CollatedPacketDecoder.h>
+#include <3escore/Log.h>
+#include <3escore/PacketBuffer.h>
+#include <3escore/PacketReader.h>
+#include <3escore/PacketStreamReader.h>
+#include <3escore/TcpSocket.h>
 
 #include <cinttypes>
 #include <vector>

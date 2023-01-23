@@ -1,17 +1,17 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3esmeshresource.h"
+#include "MeshResource.h"
 
-#include "mesh/3esconverter.h"
-#include "shaders/3espointgeom.h"
-#include "shaders/3esshader.h"
-#include "shaders/3esshaderlibrary.h"
-#include "util/3esenum.h"
+#include <3esview/mesh/Converter.h>
+#include <3esview/shaders/PointGeom.h>
+#include <3esview/shaders/Shader.h>
+#include <3esview/shaders/ShaderLibrary.h>
+#include <3esview/util/Enum.h>
 
-#include <3esconnection.h>
-#include <3esmeshmessages.h>
-#include <3eslog.h>
+#include <3escore/Connection.h>
+#include <3escore/Log.h>
+#include <3escore/MeshMessages.h>
 
 #include <Magnum/GL/Renderer.h>
 

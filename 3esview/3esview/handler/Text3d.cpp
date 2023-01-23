@@ -1,13 +1,13 @@
 //
 // Author: Kazys Stepanas
 //
-#include "3estext3d.h"
+#include "Text3d.h"
 
-#include "3esmagnumcolour.h"
+#include <3esview/MagnumColour.h>
 
-#include <3esconnection.h>
-#include <3eslog.h>
-#include <shapes/3estext3d.h>
+#include <3escore/Connection.h>
+#include <3escore/Log.h>
+#include <3escore/shapes/Text3d.h>
 
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Quaternion.h>

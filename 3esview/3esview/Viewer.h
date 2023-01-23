@@ -3,8 +3,8 @@
 
 #include "3esview/Viewer.h"
 
-#include "camera/3esfly.h"
-#include "3esthirdeyescene.h"
+#include "camera/Fly.h"
+#include "ThirdEyeScene.h"
 
 #include <filesystem>
 
