@@ -8,9 +8,9 @@ set(SOURCES
   TestShapes.cpp
 )
 
-add_executable(3est-unit ${SOURCES})
-tes_configure_unit_test_target(3est-unit)
-target_link_libraries(3est-unit
+add_executable(3estUnit ${SOURCES})
+tes_configure_unit_test_target(3estUnit)
+target_link_libraries(3estUnit
   PRIVATE
     3escore
     GTest::Main
