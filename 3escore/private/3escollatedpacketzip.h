@@ -2,7 +2,7 @@
 // author: Kazys Stepanas
 //
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #include "3escompressionlevel.h"
 

@@ -4,7 +4,7 @@
 #ifndef _3ESQUATARG_H
 #define _3ESQUATARG_H
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #include "3esquaternion.h"
 #include "3esv3arg.h"

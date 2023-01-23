@@ -4,7 +4,8 @@
 #ifndef _3ESBOX_H_
 #define _3ESBOX_H_
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
+
 #include "3esshape.h"
 
 namespace tes

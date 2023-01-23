@@ -4,7 +4,7 @@
 #ifndef _3ESMESHSHAPE_H_
 #define _3ESMESHSHAPE_H_
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #include "3esdebug.h"
 #include "3esmeshmessages.h"

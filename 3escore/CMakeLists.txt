@@ -24,7 +24,7 @@ endif(NOT ConfigPackageLocation)
 #-------------------------------------------------------------------------------
 # Version setup
 #-------------------------------------------------------------------------------
-# 3escore version. These are referenced when configuring 3es-core.h
+# 3escore version. These are referenced when configuring CoreConfig.h
 include(cmake/3es-version.cmake)
 
 #-------------------------------------------------------------------------------
@@ -79,11 +79,11 @@ if(NOT DEFINED TES_IS_BIG_ENDIAN)
   endif(IS_BIG_ENDIAN)
 endif(NOT DEFINED TES_IS_BIG_ENDIAN)
 
-configure_file(3es-core.in.h "${CMAKE_CURRENT_BINARY_DIR}/3es-core.h")
+configure_file(CoreConfig.in.h "${CMAKE_CURRENT_BINARY_DIR}/3escore/CoreConfig.h")
 set(PUBLIC_HEADERS
   # Generated files.
-  "${CMAKE_CURRENT_BINARY_DIR}/3es-core.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/3es-core-export.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/3escore/CoreConfig.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/3escore/CoreExport.h"
 )
 
 #-------------------------------------------------------------------------------
@@ -103,7 +103,7 @@ include(GenerateExportHeader)
 generate_export_header(3escore
       EXPORT_MACRO_NAME _3es_coreAPI
       NO_EXPORT_MACRO_NAME _3es_coreHIDDEN
-      EXPORT_FILE_NAME 3es-core-export.h
+      EXPORT_FILE_NAME CoreExport.h
       STATIC_DEFINE TES_STATIC
       )
 
@@ -235,7 +235,7 @@ include(InstallRequiredSystemLibraries)
 #-------------------------------------------------------------------------------
 # IDE source sorting
 #-------------------------------------------------------------------------------
-source_group("source" FILES "${CMAKE_CURRENT_BINARY_DIR}/3es-core.h")
+source_group("source" FILES "${CMAKE_CURRENT_BINARY_DIR}/3escore/CoreConfig.h")
 source_group("source" REGULAR_EXPRESSION ".*$")
 source_group("source\\private" REGULAR_EXPRESSION "/private/.*$")
 source_group("source\\qt" REGULAR_EXPRESSION "/qt/.*$")

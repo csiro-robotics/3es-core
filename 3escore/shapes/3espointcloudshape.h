@@ -4,7 +4,7 @@
 #ifndef _3ESPOINTS_H_
 #define _3ESPOINTS_H_
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #include "3esintarg.h"
 #include "3esmeshset.h"

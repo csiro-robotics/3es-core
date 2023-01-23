@@ -4,7 +4,7 @@
 #ifndef _3ESID_H
 #define _3ESID_H
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #include <cinttypes>
 #include <functional>
@@ -68,38 +68,23 @@ public:
 #endif  // TES_64
   }
 
-  inline uint16_t category() const
-  {
-    return _category;
-  }
-  inline void setCategory(uint16_t category)
-  {
-    _category = category;
-  }
+  inline uint16_t category() const { return _category; }
+  inline void setCategory(uint16_t category) { _category = category; }
 
   /// Check if this ID represents a transient shape. By convention, a transient
   /// shape has a zero ID value, and we cannot address this ID.
   /// @return
-  inline bool isTransient() const
-  {
-    return _id == 0;
-  }
+  inline bool isTransient() const { return _id == 0; }
 
   /// Test for equality.
   /// @param other Object to compare to.
   /// @return True if the id values are identical.
-  inline bool operator==(const Id &other) const
-  {
-    return _id == other._id && _category == other._category;
-  }
+  inline bool operator==(const Id &other) const { return _id == other._id && _category == other._category; }
 
   /// Test for in equality.
   /// @param other Object to compare to.
   /// @return True if the id values are not identical.
-  inline bool operator!=(const Id &other) const
-  {
-    return !operator==(other);
-  }
+  inline bool operator!=(const Id &other) const { return !operator==(other); }
 
 private:
   uint32_t _id;

@@ -4,7 +4,7 @@
 #ifndef _3ESSHAPEID_H
 #define _3ESSHAPEID_H
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #include <cinttypes>
 

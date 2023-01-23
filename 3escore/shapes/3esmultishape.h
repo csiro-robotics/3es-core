@@ -4,7 +4,7 @@
 #ifndef _3ESMULTISHAPE_H_
 #define _3ESMULTISHAPE_H_
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #include "3esintarg.h"
 #include "3esquaternionarg.h"

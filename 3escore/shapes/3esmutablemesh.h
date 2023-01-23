@@ -4,7 +4,7 @@
 #ifndef _3ESMUTABLE_MESH_H_
 #define _3ESMUTABLE_MESH_H_
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #include "shapes/3essimplemesh.h"
 

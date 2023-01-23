@@ -5,6 +5,6 @@
 #ifndef TES_3RD_EYE_SCENE_CONFIG_H
 #define TES_3RD_EYE_SCENE_CONFIG_H
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #endif  // TES_3RD_EYE_SCENE_CONFIG_H

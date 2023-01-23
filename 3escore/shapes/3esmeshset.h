@@ -4,7 +4,8 @@
 #ifndef _3ESMESH_H_
 #define _3ESMESH_H_
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
+
 #include "3esintarg.h"
 #include "3esmatrix4.h"
 #include "3esshape.h"

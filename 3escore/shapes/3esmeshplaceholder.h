@@ -4,7 +4,8 @@
 #ifndef _3ESMESHPLACEHOLDER_H_
 #define _3ESMESHPLACEHOLDER_H_
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
+
 #include "3esmeshresource.h"
 
 namespace tes

@@ -1,7 +1,7 @@
 #ifndef _3ES_OCCUPANCY_H_
 #define _3ES_OCCUPANCY_H_
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #define TES_ENABLE
 #ifdef TES_ENABLE

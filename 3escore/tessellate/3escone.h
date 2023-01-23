@@ -4,7 +4,7 @@
 #ifndef _3ESTESSELATECONE_H_
 #define _3ESTESSELATECONE_H_
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #include "3esvector3.h"
 

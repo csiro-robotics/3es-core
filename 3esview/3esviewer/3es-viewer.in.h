@@ -7,6 +7,6 @@
 
 #include "3es-viewer-export.h"
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #endif  // TES_VIEWER_CONFIG_H

@@ -1,7 +1,7 @@
 #ifndef _3ESTCPBASE_H
 #define _3ESTCPBASE_H
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 struct timeval;
 

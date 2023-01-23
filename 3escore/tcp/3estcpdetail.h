@@ -5,7 +5,7 @@
 #ifndef _3ESTCPDETAIL_H_
 #define _3ESTCPDETAIL_H_
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #ifdef WIN32
 #include <winsock2.h>

@@ -4,7 +4,7 @@
 #ifndef _3ESTCPCONNECTIONMONITOR_H_
 #define _3ESTCPCONNECTIONMONITOR_H_
 
-#include "3es-core.h"
+#include <3escore/CoreConfig.h>
 
 #include "3esconnectionmonitor.h"
 
