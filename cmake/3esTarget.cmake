@@ -70,10 +70,12 @@ function(tes_target_install TARGET)
   )
 
   get_target_property(_target_type ${TARGET} TYPE)
-  # Install PDB files (MSVC) in part to avoid unsupressable linker warnings.
-  if(_target_type STREQUAL "EXECUTABLE" OR _target_type STREQUAL "MODULE" OR _target_type STREQUAL "SHARED")
-    install(FILES $<TARGET_PDB_FILE:${TARGET}> DESTINATION bin OPTIONAL)
-  endif()
+  if(MSVC)
+    # Install PDB files (MSVC) in part to avoid unsupressable linker warnings.
+    if(_target_type STREQUAL "EXECUTABLE" OR _target_type STREQUAL "MODULE" OR _target_type STREQUAL "SHARED")
+      install(FILES $<TARGET_PDB_FILE:${TARGET}> DESTINATION bin OPTIONAL)
+    endif()
+  endif(MSVC)
 endfunction(tes_target_install)
 
 # tes_configure_version(TARGET)

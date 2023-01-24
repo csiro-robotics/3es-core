@@ -103,7 +103,7 @@ list(APPEND SOURCES
   shaders/Voxel.frag
   shaders/Voxel.geom
   shaders/Voxel.vert
-  shaders/Voxelgeom.cpp
+  shaders/VoxelGeom.cpp
   util/ResourceList.cpp
 )
 

@@ -32,7 +32,7 @@ list(APPEND PUBLIC_HEADERS
   PacketHeader.h
   PacketReader.h
   PacketStream.h
-  PacketStreamreader.h
+  PacketStreamReader.h
   PacketWriter.h
   PlaneGeom.h
   Quaternion.h
@@ -83,7 +83,7 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/Pose.h
   shapes/Shape.h
   shapes/Shapes.h
-  shapes/Simplemesh.h
+  shapes/SimpleMesh.h
   shapes/Sphere.h
   shapes/Star.h
   shapes/Text2d.h
@@ -125,7 +125,7 @@ list(APPEND SOURCES
   Resource.cpp
   ResourcePacker.cpp
   Rotation.cpp
-  Spinlock.cpp
+  SpinLock.cpp
   StreamUtil.cpp
   Throw.cpp
   Timer.cpp
