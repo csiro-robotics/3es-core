@@ -16,9 +16,9 @@ namespace tes::view
 {
 NetworkThread::NetworkThread(std::shared_ptr<ThirdEyeScene> tes, const std::string &host, uint16_t port,
                              bool allow_reconnect)
-  : _host(host)
+  : _allow_reconnect(allow_reconnect)
+  , _host(host)
   , _port(port)
-  , _allow_reconnect(allow_reconnect)
 {
   _tes = std::exchange(tes, nullptr);
   _thread = std::thread([this] { run(); });
@@ -79,7 +79,6 @@ void NetworkThread::join()
 
 void NetworkThread::run()
 {
-  Clock::time_point next_frame_start = Clock::now();
   auto socket = std::make_unique<TcpSocket>();
 
   do

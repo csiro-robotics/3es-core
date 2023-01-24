@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "PointCloudshape.h"
+#include "PointCloudShape.h"
 
 #include "MeshPlaceholder.h"
 

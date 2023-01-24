@@ -15,7 +15,7 @@
 #include <3escore/PacketWriter.h>
 #include <3escore/Server.h>
 #include <3escore/ServerUtil.h>
-#include <3escore/shapes/Pointcloud.h>
+#include <3escore/shapes/PointCloud.h>
 #include <3escore/shapes/Shapes.h>
 #include <3escore/shapes/SimpleMesh.h>
 #include <3escore/TcpSocket.h>

@@ -16,7 +16,6 @@
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Quaternion.h>
 #include <Magnum/Text/AbstractFont.h>
-#include <Magnum/Text/DistanceFieldGlyphCache.h>
 
 #include <cctype>
 #include <limits>
@@ -37,11 +36,11 @@ Text::Text(Corrade::PluginManager::Manager<Magnum::Text::AbstractFont> &font_man
   {
     std::string printable_characters;
     printable_characters.reserve(std::numeric_limits<char>::max());
-    for (int c = 0; c < std::numeric_limits<char>::max(); ++c)
+    for (char c = 0; c < std::numeric_limits<char>::max(); ++c)
     {
       if (std::isprint(c))
       {
-        printable_characters.append(1, c);
+        printable_characters.append(1, char(c));
       }
     }
 
@@ -66,13 +65,14 @@ Text::Text(Corrade::PluginManager::Manager<Magnum::Text::AbstractFont> &font_man
   // TODO(KS): this is only set for CoordiateFrame::XYZ. Do we need anything else? really adding the CoordinateFrame
   // transform to the projection matrix should be enough. We just need to line up the matrix so it defaults to -Y
   // facing, Z up.
-  _default_transform = Magnum::Matrix4({
-                                         Magnum::Vector4{ 1, 0, 0, 0 },  //
-                                         Magnum::Vector4{ 0, 0, 1, 0 },  //
-                                         Magnum::Vector4{ 0, 1, 0, 0 },  //
-                                         Magnum::Vector4{ 0, 0, 0, 1 }   //
-                                       })
-                         .transposed();
+  _default_transform =
+    Magnum::Matrix4{
+      Magnum::Vector4{ 1, 0, 0, 0 },  //
+      Magnum::Vector4{ 0, 0, 1, 0 },  //
+      Magnum::Vector4{ 0, 1, 0, 0 },  //
+      Magnum::Vector4{ 0, 0, 0, 1 }   //
+    }
+      .transposed();
 }
 
 

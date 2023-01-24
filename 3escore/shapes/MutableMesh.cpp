@@ -118,7 +118,7 @@ unsigned MutableMesh::pendingIndexCount() const
 
 unsigned MutableMesh::setVertices(const UIntArg &at, const Vector3f *v, const UIntArg &count)
 {
-  if ((_imp->mesh.components() | SimpleMesh::Vertex) == 0)
+  if ((_imp->mesh.components() & SimpleMesh::Vertex) == 0)
   {
     // Unsupported component.
     return 0;
@@ -148,7 +148,7 @@ unsigned MutableMesh::setVertices(const UIntArg &at, const Vector3f *v, const UI
 
 unsigned MutableMesh::setIndices(const UIntArg &at, const uint32_t *idx, const UIntArg &count)
 {
-  if ((_imp->mesh.components() | SimpleMesh::Index) == 0)
+  if ((_imp->mesh.components() & SimpleMesh::Index) == 0)
   {
     // Unsupported component.
     return 0;
@@ -175,7 +175,7 @@ unsigned MutableMesh::setIndices(const UIntArg &at, const uint32_t *idx, const U
 
 unsigned MutableMesh::setNormals(const UIntArg &at, const Vector3f *n, const UIntArg &count)
 {
-  if ((_imp->mesh.components() | SimpleMesh::Normal) == 0)
+  if ((_imp->mesh.components() & SimpleMesh::Normal) == 0)
   {
     // Unsupported component.
     return 0;
@@ -205,7 +205,7 @@ unsigned MutableMesh::setNormals(const UIntArg &at, const Vector3f *n, const UIn
 
 unsigned MutableMesh::setColours(const UIntArg &at, const uint32_t *c, const UIntArg &count)
 {
-  if ((_imp->mesh.components() | SimpleMesh::Colour) == 0)
+  if ((_imp->mesh.components() & SimpleMesh::Colour) == 0)
   {
     // Unsupported component.
     return 0;
@@ -233,7 +233,7 @@ unsigned MutableMesh::setColours(const UIntArg &at, const uint32_t *c, const UIn
 
 unsigned MutableMesh::setUvs(const UIntArg &at, const float *uvs, const UIntArg &count)
 {
-  if ((_imp->mesh.components() | SimpleMesh::Uv) == 0)
+  if ((_imp->mesh.components() & SimpleMesh::Uv) == 0)
   {
     // Unsupported component.
     return 0;

@@ -57,6 +57,16 @@ public:
   template <typename Q>
   Matrix3(const Matrix3<Q> &other);
 
+  /// Move assignment.
+  /// @param other Matrix to assign from.
+  /// @return @c *this
+  Matrix3<T> &operator=(Matrix3<T> &&other) = default;
+
+  /// Copy assignment.
+  /// @param other Matrix to assign from.
+  /// @return @c *this
+  Matrix3<T> &operator=(const Matrix3<T> &other) = default;
+
   /// Per element constructor, specifying each row in order.
   /// @param rc00 Element at row/column 00
   /// @param rc01 Element at row/column 01

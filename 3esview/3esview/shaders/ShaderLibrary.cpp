@@ -3,7 +3,7 @@
 //
 #include "ShaderLibrary.h"
 
-#include <3escore/log.h>
+#include <3escore/Log.h>
 
 #include <array>
 
@@ -56,7 +56,7 @@ std::shared_ptr<Shader> ShaderLibrary::lookup(const std::string &name) const
 }
 
 
-std::shared_ptr<Shader> ShaderLibrary::lookupForDrawType(DrawType draw_type)
+std::shared_ptr<Shader> ShaderLibrary::lookupForDrawType(DrawType draw_type) const
 {
   switch (draw_type)
   {

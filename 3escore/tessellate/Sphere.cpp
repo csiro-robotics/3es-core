@@ -174,8 +174,8 @@ void solidLatLong(std::vector<Vector3f> &vertices, std::vector<unsigned> &indice
 
   std::array<Vector3f, 2> radials;
   Vector3f v;
-  float segmentAngle = 2.0f * float(M_PI) / segments;
-  float ringStepAngle = 0.5f * float(M_PI) / hemisphereRingCount;
+  float segmentAngle = 2.0f * float(M_PI) / float(segments);
+  float ringStepAngle = 0.5f * float(M_PI) / float(hemisphereRingCount);
 
   if (axis.dot(Vector3f(1, 0, 0)) < 1e-3f)
   {
@@ -210,11 +210,11 @@ void solidLatLong(std::vector<Vector3f> &vertices, std::vector<unsigned> &indice
   // Create vertices for the rings.
   for (unsigned r = 0; r < hemisphereRingCount; ++r)
   {
-    float ringHeight = std::sin(r * ringStepAngle);
+    float ringHeight = std::sin(float(r) * ringStepAngle);
     float ringRadius = std::sqrt(1 - ringHeight * ringHeight);
     for (unsigned i = 0; i < segments; ++i)
     {
-      float angle = i * segmentAngle;
+      float angle = float(i) * segmentAngle;
       v = ringRadius * std::cos(angle) * radials[0] + ringRadius * std::sin(angle) * radials[1];
       v += ringHeight * axis;
       vertices.emplace_back(v);
@@ -380,21 +380,21 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
   // Build a circle around the Z axis.
   for (int i = 0; i < ring_vertex_count; ++i)
   {
-    float angle = i * 2.0f * float(M_PI) / (float)ring_vertex_count;
+    float angle = float(i) * 2.0f * float(M_PI) / (float)ring_vertex_count;
     vertices.emplace_back(origin + radius * Vector3f(std::cos(angle), std::sin(angle), 0));
   }
 
   // Build a circle around the Y axis.
   for (int i = 0; i < ring_vertex_count; ++i)
   {
-    float angle = i * 2.0f * float(M_PI) / (float)ring_vertex_count;
+    float angle = float(i) * 2.0f * float(M_PI) / (float)ring_vertex_count;
     vertices.emplace_back(origin + radius * Vector3f(std::cos(angle), 0, std::sin(angle)));
   }
 
   // Build a circle around the X axis.
   for (int i = 0; i < ring_vertex_count; ++i)
   {
-    float angle = i * 2.0f * float(M_PI) / (float)ring_vertex_count;
+    float angle = float(i) * 2.0f * float(M_PI) / (float)ring_vertex_count;
     vertices.emplace_back(origin + radius * Vector3f(0, std::cos(angle), std::sin(angle)));
   }
 

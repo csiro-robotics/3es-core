@@ -406,7 +406,6 @@ void ThirdEyeScene::initialiseShaders()
 void ThirdEyeScene::drawShapes(float dt, const DrawParams &params)
 {
   (void)dt;
-  const auto camera_matrix = camera::matrix(_camera);
   // Draw opaque then transparent for proper blending.
   for (const auto &handler : _orderedMessageHandlers)
   {

@@ -14,9 +14,10 @@
 #include <chrono>
 #include <condition_variable>
 #include <iosfwd>
-#include <optional>
 #include <memory>
 #include <mutex>
+#include <optional>
+#include <thread>
 
 namespace tes
 {
@@ -46,7 +47,7 @@ public:
 
   /// The port to try connect on.
   /// @return The socket port.
-  const uint16_t port() const { return _port; }
+  uint16_t port() const { return _port; }
 
   /// Is the thread allowed keep trying to connect after a connection failure, timeout or loss?
   /// @return True if reconnection is allowed.

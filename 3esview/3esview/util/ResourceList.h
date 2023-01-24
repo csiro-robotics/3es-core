@@ -3,6 +3,7 @@
 
 #include <3esview/ViewConfig.h>
 
+#include <atomic>
 #include <mutex>
 #include <utility>
 #include <vector>
@@ -158,16 +159,16 @@ public:
     {
       if (this != &other)
       {
-        std::swap(other._id, _id);
-        std::swap(other._resource_list, _resource_list);
+        std::swap(other._id, Super::_id);
+        std::swap(other._resource_list, Super::_resource_list);
       }
       return *this;
     }
 
     /// Dereference the resource.
     /// @return The references resource entry.
-    inline T &operator*() { return _resource_list->_items[_id].resource; }
-    inline T *operator->() { return &_resource_list->_items[_id].resource; }
+    inline T &operator*() { return Super::_resource_list->_items[Super::_id].resource; }
+    inline T *operator->() { return &Super::_resource_list->_items[Super::_id].resource; }
   };
 
   using ResourceConstRef = ResourceRefBase<const T, const ResourceList<T>>;
@@ -296,6 +297,8 @@ public:
   class iterator : public BaseIterator<ResourceList<T>>
   {
   public:
+    using Super = BaseIterator<ResourceList<T>>;
+
     iterator() {}
     iterator(ResourceList<T> *owner, Id id)
       : BaseIterator<ResourceList<T>>(owner, id)
@@ -305,14 +308,14 @@ public:
 
     /// Dereference the resource.
     /// @return The references resource entry.
-    inline T &operator*() { return _owner->_items[_id].resource; }
+    inline T &operator*() { return Super::_owner->_items[Super::_id].resource; }
     /// @overload
-    inline const T &operator*() const { return _owner->_items[_id].resource; }
+    inline const T &operator*() const { return Super::_owner->_items[Super::_id].resource; }
     /// Dereference the resource.
     /// @return The references resource entry.
-    inline T *operator->() { return &_owner->_items[_id].resource; }
+    inline T *operator->() { return &Super::_owner->_items[Super::_id].resource; }
     /// @overload
-    inline const T *operator->() const { return &_owner->_items[_id].resource; }
+    inline const T *operator->() const { return &Super::_owner->_items[Super::_id].resource; }
 
     iterator &operator=(const iterator &other) = default;
     iterator &operator=(iterator &&other) = default;
@@ -320,7 +323,7 @@ public:
     template <typename R>
     bool operator==(const BaseIterator<R> &other) const
     {
-      return _owner == other.owner() && _id == other.id();
+      return Super::_owner == other.owner() && Super::_id == other.id();
     }
 
     template <typename R>
@@ -331,27 +334,27 @@ public:
 
     iterator &operator++()
     {
-      next();
+      Super::next();
       return *this;
     }
 
     iterator operator++(int)
     {
       iterator current = *this;
-      next();
+      Super::next();
       return current;
     }
 
     iterator &operator--()
     {
-      prev();
+      Super::prev();
       return *this;
     }
 
     iterator operator--(int)
     {
       iterator current = *this;
-      prev();
+      Super::prev();
       return current;
     }
 
@@ -361,6 +364,8 @@ public:
   class const_iterator : public BaseIterator<const ResourceList<T>>
   {
   public:
+    using Super = BaseIterator<const ResourceList<T>>;
+
     const_iterator() {}
     const_iterator(const ResourceList<T> *owner, Id id)
       : BaseIterator<const ResourceList<T>>(owner, id)
@@ -373,15 +378,15 @@ public:
 
     /// Dereference the resource.
     /// @return The references resource entry.
-    inline const T &operator*() const { return _owner->_items[_id].resource; }
+    inline const T &operator*() const { return Super::_owner->_items[Super::_id].resource; }
     /// Dereference the resource.
     /// @return The references resource entry.
-    inline const T *operator->() const { return &_owner->_items[_id].resource; }
+    inline const T *operator->() const { return &Super::_owner->_items[Super::_id].resource; }
 
     const_iterator &operator=(const iterator &other)
     {
-      _owner = other._owner;
-      _id = other._id;
+      Super::_owner = other._owner;
+      Super::_id = other._id;
       return *this;
     }
     const_iterator &operator=(const const_iterator &other) = default;
@@ -390,7 +395,7 @@ public:
     template <typename R>
     bool operator==(const BaseIterator<R> &other) const
     {
-      return _owner == other.owner() && _id == other.id();
+      return Super::_owner == other.owner() && Super::_id == other.id();
     }
 
     template <typename R>
@@ -401,27 +406,27 @@ public:
 
     const_iterator &operator++()
     {
-      next();
+      Super::next();
       return *this;
     }
 
     const_iterator operator++(int)
     {
       const_iterator current = *this;
-      next();
+      Super::next();
       return current;
     }
 
     const_iterator &operator--()
     {
-      prev();
+      Super::prev();
       return *this;
     }
 
     const_iterator operator--(int)
     {
       const_iterator current = *this;
-      prev();
+      Super::prev();
       return current;
     }
   };

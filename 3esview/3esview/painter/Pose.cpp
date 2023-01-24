@@ -123,10 +123,10 @@ Magnum::GL::Mesh Pose::wireframeMesh()
     const std::array<Vector3f, 6> vertices = {
       Vector3f(0, 0, 0), Vector3f(1, 0, 0), Vector3f(0, 0, 0), Vector3f(0, 1, 0), Vector3f(0, 0, 0), Vector3f(0, 0, 1),
     };
-    const std::array<uint32_t, 6> colours = {
-      Colour(255, 0, 0).c, Colour(255, 0, 0).c, Colour(0, 255, 0).c,
-      Colour(0, 255, 0).c, Colour(0, 0, 255).c, Colour(0, 0, 255).c,
-    };
+    // const std::array<uint32_t, 6> colours = {
+    //   Colour(255, 0, 0).c, Colour(255, 0, 0).c, Colour(0, 255, 0).c,
+    //   Colour(0, 255, 0).c, Colour(0, 0, 255).c, Colour(0, 0, 255).c,
+    // };
     const std::array<unsigned, 6> indices = { 0, 1, 2, 3, 4, 5 };
 
     build_mesh.setVertexCount(vertices.size());

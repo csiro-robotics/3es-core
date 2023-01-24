@@ -13,11 +13,14 @@
 namespace tes::view
 {
 StreamThread::StreamThread(std::shared_ptr<ThirdEyeScene> tes, std::shared_ptr<std::istream> stream)
-  : _tes(std::exchange(tes, nullptr))
-  , _stream_reader(std::make_unique<PacketStreamReader>(std::exchange(stream, nullptr)))
+  : _stream_reader(std::make_unique<PacketStreamReader>(std::exchange(stream, nullptr)))
+  , _tes(std::exchange(tes, nullptr))
 {
   _thread = std::thread([this] { run(); });
 }
+
+
+StreamThread::~StreamThread() = default;
 
 
 bool StreamThread::isLiveStream() const
@@ -91,12 +94,8 @@ void StreamThread::run()
   // Last position in the stream we can seek to.
   std::istream::pos_type last_seekable_position = 0;
   std::istream::pos_type last_keyframe_position = 0;
-  uint64_t bytes_read = 0;
   bool at_frame = false;
-  bool was_paused = _paused;
   bool have_server_info = false;
-  // HACK: when restoring keyframes to precise frames we don't do the main update. Needs to be cleaned up.
-  bool skip_update = false;
   CollatedPacketDecoder packer_decoder;
 
   while (!_quitFlag)

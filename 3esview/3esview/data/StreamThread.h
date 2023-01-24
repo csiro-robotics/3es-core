@@ -5,7 +5,7 @@
 
 #include "DataThread.h"
 
-#include <3esvieW/FrameStamp.h>
+#include <3esview/FrameStamp.h>
 
 #include <3escore/Messages.h>
 
@@ -14,9 +14,10 @@
 #include <chrono>
 #include <condition_variable>
 #include <iosfwd>
-#include <optional>
 #include <memory>
 #include <mutex>
+#include <optional>
+#include <thread>
 
 namespace tes
 {
@@ -37,6 +38,7 @@ public:
   using Clock = std::chrono::steady_clock;
 
   StreamThread(std::shared_ptr<ThirdEyeScene> tes, std::shared_ptr<std::istream> stream);
+  ~StreamThread();
 
   /// Reports whether the current stream is a live connection or a replay.
   ///

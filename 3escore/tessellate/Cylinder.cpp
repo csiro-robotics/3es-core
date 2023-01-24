@@ -138,7 +138,7 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
   ringsStart[0] = unsigned(vertices.size());
   for (unsigned i = 0; i < segments; ++i)
   {
-    const float circleAngle = i * 2.0f * float(M_PI) / (float)segments;
+    const float circleAngle = float(i) * 2.0f * float(M_PI) / (float)segments;
     vertices.emplace_back(radius * std::cos(circleAngle) * radials[0] +  //
                           radius * std::sin(circleAngle) * radials[1]);
   }

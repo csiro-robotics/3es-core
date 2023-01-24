@@ -60,7 +60,7 @@ public:
   std::shared_ptr<T> lookup(ID id) const
   {
     return std::dynamic_pointer_cast<T>(lookup(id));
-  };
+  }
 
   /// Lookup a shader by name.
   /// @param name The shader name to lookup
@@ -75,7 +75,7 @@ public:
   std::shared_ptr<T> lookup(const std::string &name) const
   {
     return std::dynamic_pointer_cast<T>(lookup(name));
-  };
+  }
 
   /// Lookup a shader by a primitive @c DrawType.
   ///
@@ -87,14 +87,14 @@ public:
   ///
   /// @param draw_type The 3escore mesh messages draw type.
   /// @return A shader for drawing the specified type or null if no shader is available for that type.
-  std::shared_ptr<Shader> lookupForDrawType(DrawType draw_type);
+  std::shared_ptr<Shader> lookupForDrawType(DrawType draw_type) const;
 
   /// @overload
   template <typename T>
-  std::shared_ptr<T> lookupForDrawType(DrawType draw_type) const
+  std::shared_ptr<T> lookupForDrawTypeAs(DrawType draw_type) const
   {
     return std::dynamic_pointer_cast<T>(lookupForDrawType(draw_type));
-  };
+  }
 
   /// Register a shader by known @c ID. This replaces any existing shader with that @c ID.
   ///

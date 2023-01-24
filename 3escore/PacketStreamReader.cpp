@@ -5,13 +5,15 @@
 
 #include "PacketReader.h"
 
+#include <cstring>
+
 namespace tes
 {
 PacketStreamReader::PacketStreamReader(std::shared_ptr<std::istream> stream)
   : _stream(std::exchange(stream, nullptr))
 {
   auto packetMarker = networkEndianSwapValue(tes::PacketMarker);
-  memcpy(_markerBytes.data(), &packetMarker, sizeof(packetMarker));
+  std::memcpy(_markerBytes.data(), &packetMarker, sizeof(packetMarker));
   _buffer.reserve(_chunkSize);
 }
 
@@ -113,13 +115,11 @@ bool PacketStreamReader::checkMarker(std::vector<uint8_t> &buffer, size_t i)
 {
   if (_buffer[i] == _markerBytes[0])
   {
-    bool markerFound = true;
     for (unsigned j = 1; j < unsigned(_markerBytes.size()) && i + j < buffer.size(); ++j)
     {
       if (_buffer[i + j] != _markerBytes[j])
       {
         return false;
-        break;
       }
     }
   }

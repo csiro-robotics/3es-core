@@ -48,8 +48,8 @@ ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<sha
 ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::Shader> shader,
                        const std::vector<Part> &parts, BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
-  , _shader(std::move(shader))
   , _parts(parts)
+  , _shader(std::move(shader))
   , _bounds_calculator(std::move(bounds_calculator))
 {
   _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
@@ -58,8 +58,8 @@ ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<sha
 ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::Shader> shader,
                        std::initializer_list<Part> parts, BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
-  , _shader(std::move(shader))
   , _parts(parts)
+  , _shader(std::move(shader))
   , _bounds_calculator(std::move(bounds_calculator))
 {
   _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
@@ -116,7 +116,6 @@ bool ShapeCache::endShape(util::ResourceListId id)
   {
     // End shapes while valid to the end of the chain.
     // The first item, specified by @p id, must not be part of a chain.
-    util::ResourceListId remove_next = id;
     auto shape = _shapes.at(id);
     // Only remove valid shapes which are not parented (we can only remove parent shapes).
     if (shape.isValid() && shape->parent_rid == kListEnd)

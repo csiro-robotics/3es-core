@@ -14,7 +14,7 @@
 
 #include <Corrade/PluginManager/Manager.h>
 
-#include <Magnum/GL/FrameBuffer.h>
+#include <Magnum/GL/Framebuffer.h>
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/GL/Renderbuffer.h>
 #include <Magnum/GL/Texture.h>

@@ -15,8 +15,9 @@
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Vector2.h>
 #include <Magnum/Shaders/DistanceFieldVector.h>
-#include <Magnum/Text/Renderer.h>
 #include <Magnum/Text/AbstractFont.h>
+#include <Magnum/Text/DistanceFieldGlyphCache.h>
+#include <Magnum/Text/Renderer.h>
 
 #include <memory>
 #include <functional>

@@ -85,8 +85,6 @@ void Camera::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &para
 
 void Camera::readMessage(PacketReader &reader)
 {
-  bool ok = false;
-
   tes::CameraMessage msg = {};
   if (!msg.read(reader))
   {
@@ -238,6 +236,8 @@ void Camera::getWorldAxes(tes::CoordinateFrame frame, Magnum::Vector3 *side, Mag
     ref_side = { 0, 0, 1 };
     ref_dir = { 0, 1, 0 };
     ref_up = { -1, 0, 0 };
+    break;
+  default:
     break;
   }
 

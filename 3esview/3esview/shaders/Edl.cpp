@@ -125,8 +125,6 @@ Edl &Edl::setClipParams(Magnum::Float near, Magnum::Float far, bool perspective,
     }
   }
 
-  float z = params.z();
-  float w = params.w();
   setUniform(_projectionParamsUniform, params);
   return *this;
 }

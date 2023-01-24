@@ -70,7 +70,7 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &p
   (void)stamp;
   std::lock_guard guard(_shapes_mutex);
 
-  const auto update_shader_matrices = [&params](std::shared_ptr<shaders::Shader> &shader) {
+  const auto update_shader_matrices = [&params](std::shared_ptr<shaders::Shader> &&shader) {
     if (shader)
     {
       shader->setProjectionMatrix(params.projection_matrix)
@@ -110,7 +110,6 @@ void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &p
 void MeshShape::readMessage(PacketReader &reader)
 {
   TES_ASSERT(reader.routingId() == routingId());
-  ObjectAttributes attrs = {};
   bool ok = false;
   bool logged = false;
   switch (reader.messageId())

@@ -252,8 +252,8 @@ public:
     /// @param cache The shape to iterate.
     /// @param begin True to begin iterator, false to create an @c end iterator.
     const_iterator(Type cache_type, const ShapeCache *cache, bool begin = true)
-      : _cache_type(cache_type)
-      , _cache(cache)
+      : _cache(cache)
+      , _cache_type(cache_type)
     {
       if (_cache)
       {
@@ -382,7 +382,13 @@ protected:
 
   virtual util::ResourceListId addShape(const Id &shape_id, Type type, const Magnum::Matrix4 &transform,
                                         const Magnum::Color4 &colour, bool hidden,
-                                        const ParentId &parent_id = ParentId(), unsigned *child_index = nullptr);
+                                        const ParentId &parent_id, unsigned *child_index);
+
+  util::ResourceListId addShape(const Id &shape_id, Type type, const Magnum::Matrix4 &transform,
+                                const Magnum::Color4 &colour, bool hidden)
+  {
+    return addShape(shape_id, type, transform, colour, hidden, ParentId(), nullptr);
+  }
 
   ShapeCache *cacheForType(Type type);
   const ShapeCache *cacheForType(Type type) const;

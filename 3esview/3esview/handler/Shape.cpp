@@ -170,8 +170,6 @@ void Shape::serialise(Connection &out, ServerInfoMessage &info)
 
         for (uint32_t i = 0; i < child_count; ++i)
         {
-          auto child = shape.getChild(i);
-
           decomposeTransform(transform, attrs);
           attrs.colour = Colour(colour.x(), colour.y(), colour.z(), colour.w()).c;
           ok = attrs.write(writer) && ok;

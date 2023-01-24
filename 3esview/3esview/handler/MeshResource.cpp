@@ -220,7 +220,7 @@ unsigned MeshResource::draw(const DrawParams &params, const std::vector<DrawItem
   }
 
   // Update the known shader matrices.
-  const auto update_shader_matrices = [&params](std::shared_ptr<shaders::Shader> &shader) {
+  const auto update_shader_matrices = [&params](std::shared_ptr<shaders::Shader> &&shader) {
     if (shader)
     {
       shader->setProjectionMatrix(params.projection_matrix)

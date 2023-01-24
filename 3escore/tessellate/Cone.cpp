@@ -140,7 +140,7 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
   // Build a circle around the axis.
   for (unsigned i = 0; i < segments; ++i)
   {
-    const float circleAngle = i * 2.0f * float(M_PI) / (float)segments;
+    const float circleAngle = float(i) * 2.0f * float(M_PI) / (float)segments;
     vertices.emplace_back(baseRadius * std::cos(circleAngle) * radials[0] +
                           baseRadius * std::sin(circleAngle) * radials[1] + apex - axis * height);
   }

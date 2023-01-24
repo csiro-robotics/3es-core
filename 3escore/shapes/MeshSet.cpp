@@ -9,6 +9,7 @@
 #include <3escore/Rotation.h>
 
 #include <algorithm>
+#include <cstring>
 
 using namespace tes;
 
@@ -22,7 +23,6 @@ MeshSet::MeshSet(const Id &id, const UIntArg &partCount)
   _parts = new Part[partCount.i];
   if (partCount)
   {
-    memset(_parts, 0, sizeof(*_parts) * partCount.i);
     for (unsigned i = 0; i < partCount; ++i)
     {
       _parts[i].transform = Transform::identity();
@@ -75,7 +75,7 @@ bool MeshSet::writeCreate(PacketWriter &stream) const
   uint32_t partId;
   uint16_t numberOfParts = uint16_t(partCount());
 
-  memset(&attr, 0, sizeof(attr));
+  std::memset(&attr, 0, sizeof(attr));
 
   stream.writeElement(numberOfParts);
 
@@ -135,7 +135,7 @@ bool MeshSet::readCreate(PacketReader &stream)
 
   bool ok = true;
 
-  memset(&attr, 0, sizeof(attr));
+  std::memset(&attr, 0, sizeof(attr));
 
   ok = ok && stream.readElement(numberOfParts) == sizeof(numberOfParts);
 
@@ -146,7 +146,10 @@ bool MeshSet::readCreate(PacketReader &stream)
     _parts = new Part[numberOfParts];
     _ownPartResources = true;
 
-    memset(_parts, 0, sizeof(*_parts) * numberOfParts);
+    for (unsigned i = 0; i < numberOfParts; ++i)
+    {
+      _parts[i] = Part();
+    }
 
     _partCount = numberOfParts;
   }
@@ -219,7 +222,7 @@ void MeshSet::onClone(MeshSet *copy) const
     }
   }
   copy->_ownPartResources = false;
-  memcpy(copy->_parts, _parts, sizeof(*_parts) * _partCount);
+  std::copy(_parts, _parts + _partCount, copy->_parts);
 }
 
 

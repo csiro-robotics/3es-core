@@ -82,6 +82,16 @@ public:
           const T &rc13, const T &rc20, const T &rc21, const T &rc22, const T &rc23, const T &rc30, const T &rc31,
           const T &rc32, const T &rc33);
 
+  /// Move assignment.
+  /// @param other Matrix to assign from.
+  /// @return @c *this
+  Matrix4<T> &operator=(Matrix4<T> &&other) = default;
+
+  /// Copy assignment.
+  /// @param other Matrix to assign from.
+  /// @return @c *this
+  Matrix4<T> &operator=(const Matrix4<T> &other) = default;
+
   /// Row/column access. Not bounds checked.
   /// @param r The row to access [0, 3]
   /// @param c The column to access [0, 3].

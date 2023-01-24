@@ -333,7 +333,6 @@ TEST_F(Shapes, Painter_Update)
   painter::Box painter(viewer().tes()->culler(), viewer().tes()->shaderLibrary());
 
   const FrameNumber max_frames = 20;
-  const FrameNumber window = 10u;
 
   FrameStamp stamp = {};
   const Id id(1);

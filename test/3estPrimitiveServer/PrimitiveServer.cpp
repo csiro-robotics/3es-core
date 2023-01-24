@@ -14,7 +14,7 @@
 #include <3escore/Maths.h>
 #include <3escore/Server.h>
 #include <3escore/shapes/Shapes.h>
-#include <3escore/tessellate/sphere.h>
+#include <3escore/tessellate/Sphere.h>
 
 #define TES_ENABLE
 #include <3escore/ServerMacros.h>

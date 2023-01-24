@@ -55,10 +55,10 @@ public:
 
   /// Access the minimum extents.
   /// @return The minimal corder of the bounding box.
-  inline const Magnum::Vector3 &minimum() const { return convert(Super::minimum()); }
+  inline Magnum::Vector3 minimum() const { return convert(Super::minimum()); }
   /// Access the maximum extents.
   /// @return The maximal corder of the bounding box.
-  inline const Magnum::Vector3 &maximum() const { return convert(Super::maximum()); }
+  inline Magnum::Vector3 maximum() const { return convert(Super::maximum()); }
 
   /// Get the bounds centre point.
   /// @return The bounds centre.

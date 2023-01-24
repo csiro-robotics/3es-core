@@ -52,13 +52,19 @@ struct PointCloudImp
     copy->id = id;
 
     copy->vertices = (vertices && vertexCount) ? new Vector3f[vertexCount] : nullptr;
-    memcpy(copy->vertices, vertices, sizeof(*vertices) * vertexCount);
+    std::copy(vertices, vertices + vertexCount, copy->vertices);
 
     copy->normals = (normals && vertexCount) ? new Vector3f[vertexCount] : nullptr;
-    memcpy(copy->normals, normals, sizeof(*normals) * vertexCount);
+    if (copy->normals)
+    {
+      std::copy(normals, normals + vertexCount, copy->normals);
+    }
 
     copy->colours = (colours && vertexCount) ? new Colour[vertexCount] : nullptr;
-    memcpy(copy->colours, colours, sizeof(*colours) * vertexCount);
+    if (copy->colours)
+    {
+      std::copy(colours, colours + vertexCount, copy->colours);
+    }
 
     copy->references = 1;
     return copy;
@@ -235,7 +241,7 @@ void PointCloud::addPoints(const Vector3f *points, const UIntArg &count)
     copyOnWrite();
     unsigned initial = _imp->vertexCount;
     resize(_imp->vertexCount + count.i);
-    memcpy(_imp->vertices + initial, points, sizeof(*points) * count.i);
+    std::copy(points, points + count.i, _imp->vertices + initial);
 
     // Initialise other data
     for (unsigned i = initial; i < _imp->vertexCount; ++i)
@@ -259,8 +265,8 @@ void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, cons
     copyOnWrite();
     unsigned initial = _imp->vertexCount;
     resize(_imp->vertexCount + count.i);
-    memcpy(_imp->vertices + initial, points, sizeof(*points) * count.i);
-    memcpy(_imp->normals + initial, normals, sizeof(*normals) * count.i);
+    std::copy(points, points + count.i, _imp->vertices + initial);
+    std::copy(normals, normals + count.i, _imp->normals + initial);
 
     // Initialise other data
     const Colour c = Colour::Colours[Colour::White];
@@ -279,9 +285,9 @@ void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, cons
     copyOnWrite();
     unsigned initial = _imp->vertexCount;
     resize(_imp->vertexCount + count.i);
-    memcpy(_imp->vertices + initial, points, sizeof(*points) * count.i);
-    memcpy(_imp->normals + initial, normals, sizeof(*normals) * count.i);
-    memcpy(_imp->colours + initial, colours, sizeof(*colours) * count.i);
+    std::copy(points, points + count.i, _imp->vertices + initial);
+    std::copy(normals, normals + count.i, _imp->normals + initial);
+    std::copy(colours, colours + count.i, _imp->colours + initial);
   }
 }
 
@@ -325,7 +331,7 @@ void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const U
   }
 
   copyOnWrite();
-  memcpy(_imp->vertices + index.i, points, sizeof(*points) * limitedCount);
+  std::copy(points, points + limitedCount, _imp->vertices + index.i);
 }
 
 
@@ -348,8 +354,8 @@ void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const V
   }
 
   copyOnWrite();
-  memcpy(_imp->vertices + index.i, points, sizeof(*points) * limitedCount);
-  memcpy(_imp->normals + index.i, normals, sizeof(*normals) * limitedCount);
+  std::copy(points, points + limitedCount, _imp->vertices + index.i);
+  std::copy(normals, normals + limitedCount, _imp->normals + index.i);
 }
 
 
@@ -373,9 +379,9 @@ void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const V
   }
 
   copyOnWrite();
-  memcpy(_imp->vertices + index.i, points, sizeof(*points) * limitedCount);
-  memcpy(_imp->normals + index.i, normals, sizeof(*normals) * limitedCount);
-  memcpy(_imp->colours + index.i, colours, sizeof(*colours) * limitedCount);
+  std::copy(points, points + limitedCount, _imp->vertices + index.i);
+  std::copy(normals, normals + limitedCount, _imp->normals + index.i);
+  std::copy(colours, colours + limitedCount, _imp->colours + index.i);
 }
 
 
@@ -413,9 +419,9 @@ void PointCloud::setCapacity(unsigned size)
       // Copy existing data.
       if (vertexCount)
       {
-        memcpy(points, _imp->vertices, sizeof(*points) * vertexCount);
-        memcpy(normals, _imp->normals, sizeof(*normals) * vertexCount);
-        memcpy(colours, _imp->colours, sizeof(*colours) * vertexCount);
+        std::copy(_imp->vertices, _imp->vertices + vertexCount, points);
+        std::copy(_imp->normals, _imp->normals + vertexCount, normals);
+        std::copy(_imp->colours, _imp->colours + vertexCount, colours);
       }
 
       delete[] _imp->vertices;

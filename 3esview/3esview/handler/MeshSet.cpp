@@ -280,7 +280,7 @@ bool MeshSet::handleUpdate(PacketReader &reader)
     }
   }
 
-  return true;
+  return ok;
 }
 
 
