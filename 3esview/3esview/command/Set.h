@@ -7,6 +7,7 @@
 #include <3esview/ViewConfig.h>
 
 #include "Command.h"
+#include "Shortcut.h"
 
 #include <memory>
 #include <string>
@@ -28,8 +29,8 @@ public:
   {
     /// The command.
     std::shared_ptr<Command> command;
-    /// A shortcut sequence which can be used to execute the command.
-    std::string shortcut_sequence;
+    /// The shortcut which can be used to execute the command.
+    Shortcut shortcut;
   };
 
   using Commands = std::unordered_map<std::string, Item>;
@@ -43,7 +44,7 @@ public:
   /// @param command The command to register.
   /// @param shortcut_sequence Optional shortcut sequence for the command.
   /// @return True on success, false when a command of the given name exists.
-  bool registerCommand(std::shared_ptr<Command> command, const std::string &shortcut_sequence = std::string());
+  bool registerCommand(std::shared_ptr<Command> command, const Shortcut &shortcut = Shortcut());
 
   /// Access the internal command set - readonly.
   const Commands &commands() const { return _commands; }
@@ -56,7 +57,7 @@ public:
   /// Lookup a command by shortcut squenence.
   /// @param sequence The shortcut sequence to lookup.
   /// @return The command item found. On success @c Item::command is non null.
-  Item lookupShortcut(const std::string &sequence) const;
+  Item lookupShortcut(const Shortcut &shortcut) const;
 
 private:
   Commands _commands;

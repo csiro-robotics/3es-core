@@ -8,7 +8,7 @@ Set::Set() = default;
 Set::~Set() = default;
 
 
-bool Set::registerCommand(std::shared_ptr<Command> command, const std::string &shortcut_sequence)
+bool Set::registerCommand(std::shared_ptr<Command> command, const Shortcut &shortcut)
 {
   if (!command)
   {
@@ -20,7 +20,7 @@ bool Set::registerCommand(std::shared_ptr<Command> command, const std::string &s
     return false;
   }
 
-  _commands.emplace(command->name(), Item{ command, shortcut_sequence });
+  _commands.emplace(command->name(), Item{ command, shortcut });
   return true;
 }
 
@@ -37,11 +37,11 @@ Set::Item Set::lookupName(const std::string &name) const
 }
 
 
-Set::Item Set::lookupShortcut(const std::string &sequence) const
+Set::Item Set::lookupShortcut(const Shortcut &shortcut) const
 {
   for (const auto &[name, item] : _commands)
   {
-    if (item.shortcut_sequence == sequence)
+    if (item.shortcut == shortcut)
     {
       return item;
     }

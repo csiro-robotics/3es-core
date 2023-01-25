@@ -21,6 +21,7 @@ list(APPEND PUBLIC_HEADERS
   command/CommandResult.h
   command/DefaultCommands.h
   command/Set.h
+  command/Shortcut.h
   command/connection/Close.h
   command/connection/OpenFile.h
   command/connection/OpenTcp.h
@@ -85,6 +86,7 @@ list(APPEND SOURCES
   command/CommandResult.cpp
   command/DefaultCommands.cpp
   command/Set.cpp
+  command/Shortcut.cpp
   command/connection/Close.cpp
   command/connection/OpenFile.cpp
   command/connection/OpenTcp.cpp

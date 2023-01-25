@@ -23,16 +23,16 @@ namespace tes::view::command
 {
 void registerDefaultCommands(Set &commands)
 {
-  commands.registerCommand(std::make_shared<connection::Close>(), "ctrl+shift+c");
-  commands.registerCommand(std::make_shared<connection::OpenFile>(), "ctrl+o");
-  commands.registerCommand(std::make_shared<connection::OpenTcp>(), "ctrl+c");
-  commands.registerCommand(std::make_shared<playback::Loop>(), "ctrl+l");
-  commands.registerCommand(std::make_shared<playback::Pause>(), "space");
-  commands.registerCommand(std::make_shared<playback::SkipBackward>(), "ctrl+.");
-  commands.registerCommand(std::make_shared<playback::SkipForward>(), "ctrl+,");
+  commands.registerCommand(std::make_shared<connection::Close>(), Shortcut("ctrl+shift+c"));
+  commands.registerCommand(std::make_shared<connection::OpenFile>(), Shortcut("ctrl+o"));
+  commands.registerCommand(std::make_shared<connection::OpenTcp>(), Shortcut("ctrl+c"));
+  commands.registerCommand(std::make_shared<playback::Loop>(), Shortcut("ctrl+l"));
+  commands.registerCommand(std::make_shared<playback::Pause>(), Shortcut("space"));
+  commands.registerCommand(std::make_shared<playback::SkipBackward>(), Shortcut("ctrl+."));
+  commands.registerCommand(std::make_shared<playback::SkipForward>(), Shortcut("ctrl+,"));
   commands.registerCommand(std::make_shared<playback::SkipToFrame>());
-  commands.registerCommand(std::make_shared<playback::StepBackward>(), ",");
-  commands.registerCommand(std::make_shared<playback::StepForward>(), ".");
+  commands.registerCommand(std::make_shared<playback::StepBackward>(), Shortcut(","));
+  commands.registerCommand(std::make_shared<playback::StepForward>(), Shortcut("."));
   commands.registerCommand(std::make_shared<playback::Stop>());
 }
 }  // namespace tes::view::command
