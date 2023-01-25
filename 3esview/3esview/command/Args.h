@@ -50,6 +50,10 @@ public:
   /// @return The number of arguments set.
   size_t count() const { return _args.size(); }
 
+  /// Check if the argument set is empty.
+  /// @return True when empty.
+  bool empty() const { return _args.empty(); }
+
   /// Get the argument at the given index s the given type.
   ///
   /// Throws @c std::bad_any_cast if the type @p T does not match the stored type.

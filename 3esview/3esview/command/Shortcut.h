@@ -219,7 +219,7 @@ public:
   /// Get the bit flag for a @c Modifier.
   /// @param modifier The modifier to get a flag for.
   /// @return The bit flag corresponding to @p modifier.
-  static unsigned modifierFlag(Modifier modifier) { return (1u << unsigned(modifier)); }
+  static unsigned modifierFlag(Modifier modifier) { return unsigned(modifier); }
 
   /// Try parse a shortcut @p sequence string.
   ///

@@ -38,11 +38,6 @@ struct DrawParams;
 class EdlEffect;
 class FboEffect;
 
-namespace command
-{
-class Set;
-}  // namespace command
-
 namespace handler
 {
 class Message;
@@ -125,9 +120,7 @@ private:
   void initialiseFont();
   void initialiseHandlers();
   void initialiseShaders();
-  void initialiseCommands();
 
-  void updateCamera(float dt);
   void drawShapes(float dt, const DrawParams &params);
   void updateFpsDisplay(float dt, const DrawParams &params);
 
@@ -146,8 +139,6 @@ private:
   std::unordered_set<uint32_t> _unknown_handlers;
 
   std::shared_ptr<painter::Text> _text_painter;
-
-  std::shared_ptr<command::Set> _commands;
 
   FrameStamp _render_stamp = {};
 

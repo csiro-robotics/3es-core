@@ -66,17 +66,14 @@ bool StreamThread::looping() const
 
 void StreamThread::pause()
 {
-  _paused = false;
-  _notify.notify_all();
+  _paused = true;
 }
 
 
 void StreamThread::unpause()
 {
-  if (_paused)
-  {
-    _paused = false;
-  }
+  _paused = false;
+  _notify.notify_all();
 }
 
 
@@ -196,7 +193,7 @@ void StreamThread::skipBack(FrameNumber targetFrame)
 
 bool StreamThread::blockOnPause()
 {
-  if (_paused && _target_frame == 0)
+  if (_paused && targetFrame() == 0)
   {
     std::unique_lock lock(_notify_mutex);
     // Wait for unpause.

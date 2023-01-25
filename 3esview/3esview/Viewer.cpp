@@ -2,6 +2,9 @@
 
 #include "EdlEffect.h"
 
+#include "command/DefaultCommands.h"
+#include "command/Set.h"
+
 #include "data/NetworkThread.h"
 #include "data/StreamThread.h"
 
@@ -45,6 +48,7 @@ uint16_t Viewer::defaultPort()
 Viewer::Viewer(const Arguments &arguments)
   : Magnum::Platform::Application{ arguments, Configuration{}.setTitle("3rd Eye Scene Viewer") }
   , _tes(std::make_shared<ThirdEyeScene>())
+  , _commands(std::make_shared<command::Set>())
   , _move_keys({
       { KeyEvent::Key::A, 0, true },         //
       { KeyEvent::Key::Left, 0, true },      //
@@ -68,6 +72,7 @@ Viewer::Viewer(const Arguments &arguments)
 {
   _edl_effect = std::make_shared<EdlEffect>(Magnum::GL::defaultFramebuffer.viewport());
   _tes->setActiveFboEffect(_edl_effect);
+  command::registerDefaultCommands(*_commands);
 
   if (!handleStartupArgs(arguments))
   {
@@ -228,6 +233,13 @@ void Viewer::mouseMoveEvent(MouseMoveEvent &event)
 
 void Viewer::keyPressEvent(KeyEvent &event)
 {
+  // Start with the shortcuts.
+  checkShortcuts(event);
+  if (event.isAccepted())
+  {
+    return;
+  }
+
   bool dirty = false;
   for (auto &key : _move_keys)
   {
@@ -401,6 +413,41 @@ void Viewer::updateCamera(float dt, camera::Camera &camera)
   }
 
   _fly.updateKeys(dt, key_translation, key_rotation, camera);
+}
+
+
+void Viewer::checkShortcuts(KeyEvent &event)
+{
+  if (!_commands || event.isRepeated())
+  {
+    return;
+  }
+
+  for (const auto &[name, shortcut] : _commands->commands())
+  {
+    if (checkShortcut(shortcut.shortcut, event) && shortcut.command->admissible(*this))
+    {
+      event.setAccepted();
+      shortcut.command->invoke(*this);
+      return;
+    }
+  }
+}
+
+
+bool Viewer::checkShortcut(const command::Shortcut &shortcut, const KeyEvent &event)
+{
+  if (event.key() != shortcut.key())
+  {
+    return false;
+  }
+
+  if ((static_cast<int>(event.modifiers()) & shortcut.modifierFlags()) != shortcut.modifierFlags())
+  {
+    return false;
+  }
+
+  return true;
 }
 
 

@@ -68,7 +68,7 @@ public:
   ///
   /// @param args The command arguments to pass.
   /// @return A @c CommandResult indicating the execution results.
-  CommandResult invoke(Viewer &viewer, const Args &args);
+  CommandResult invoke(Viewer &viewer, const Args &args = Args());
 
   // Speculative:
   // std::future<CommandResult> executeAsync();

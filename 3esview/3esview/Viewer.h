@@ -10,6 +10,12 @@
 
 namespace tes::view
 {
+namespace command
+{
+class Set;
+class Shortcut;
+}  // namespace command
+
 namespace shaders
 {
 class Edl;
@@ -84,6 +90,9 @@ private:
 
   void updateCamera(float dt, camera::Camera &camera);
 
+  void checkShortcuts(KeyEvent &event);
+  static bool checkShortcut(const command::Shortcut &shortcut, const KeyEvent &event);
+
   StartupMode parseStartupArgs(const Arguments &arguments, CommandLineOptions &opt);
   bool handleStartupArgs(const Arguments &arguments);
 
@@ -99,6 +108,7 @@ private:
   EdlParam _edl_tweak = EdlParam::LinearScale;
 
   std::shared_ptr<ThirdEyeScene> _tes;
+  std::shared_ptr<command::Set> _commands;
   std::shared_ptr<DataThread> _data_thread;
 
   Clock::time_point _last_sim_time = Clock::now();

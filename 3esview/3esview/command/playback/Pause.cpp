@@ -25,7 +25,16 @@ CommandResult Pause::invoke(Viewer &viewer, const ExecInfo &info, const Args &ar
   {
     return { CommandResult::Code::Failed, "Invalid data thread" };
   }
-  const auto pause = arg<bool>(0, args);
+  bool pause = true;
+  if (!args.empty())
+  {
+    pause = args.at<bool>(0);
+  }
+  else
+  {
+    pause = !stream->paused();
+  }
+
   if (pause)
   {
     stream->pause();
