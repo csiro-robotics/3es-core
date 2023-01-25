@@ -88,6 +88,8 @@ public:
   /// Get the current frame number.
   FrameNumber currentFrame() const override { return _currentFrame; }
 
+  FrameNumber totalFrames() const override { return _currentFrame; }
+
   void setLooping(bool loop) override;
   bool looping() const override;
 

@@ -60,6 +60,12 @@ public:
   /// Get the current frame number.
   inline FrameNumber currentFrame() const override { return _currentFrame; }
 
+  FrameNumber totalFrames() const override
+  {
+    std::lock_guard guard(_data_mutex);
+    return _total_frames;
+  }
+
   void setLooping(bool loop) override;
   bool looping() const override;
 

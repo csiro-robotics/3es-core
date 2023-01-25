@@ -40,6 +40,8 @@ public:
   void setContinuousSim(bool continuous);
   bool continuousSim();
 
+  const std::shared_ptr<DataThread> &dataThread() const { return _data_thread; }
+
 private:
   enum class EdlParam
   {

@@ -3,8 +3,6 @@
 //
 #include "Bounds.h"
 
-using namespace tes;
-
 namespace tes
 {
 template class Bounds<float>;

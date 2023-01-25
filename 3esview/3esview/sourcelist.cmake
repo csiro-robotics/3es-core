@@ -16,6 +16,20 @@ list(APPEND PUBLIC_HEADERS
   camera/Camera.h
   camera/Controller.h
   camera/Fly.h
+  command/Args.h
+  command/Command.h
+  command/CommandResult.h
+  command/connection/Close.h
+  command/connection/OpenFile.h
+  command/connection/OpenTcp.h
+  command/playback/Loop.h
+  command/playback/Pause.h
+  command/playback/SkipBackward.h
+  command/playback/SkipForward.h
+  command/playback/SkipToFrame.h
+  command/playback/StepBackward.h
+  command/playback/StepForward.h
+  command/playback/Stop.h
   data/DataThread.h
   data/NetworkThread.h
   data/StreamThread.h
@@ -28,8 +42,7 @@ list(APPEND PUBLIC_HEADERS
   handler/Shape.h
   handler/Text2d.h
   handler/Text3d.h
-  painter/ShapeCache.h
-  painter/ShapePainter.h
+  mesh/Converter.h
   painter/Arrow.h
   painter/Box.h
   painter/Capsule.h
@@ -37,10 +50,11 @@ list(APPEND PUBLIC_HEADERS
   painter/Cylinder.h
   painter/Plane.h
   painter/Pose.h
+  painter/ShapeCache.h
+  painter/ShapePainter.h
   painter/Sphere.h
   painter/Star.h
   painter/Text.h
-  mesh/Converter.h
   shaders/Edl.h
   shaders/Flat.h
   shaders/PointGeom.h
@@ -64,6 +78,20 @@ list(APPEND SOURCES
   camera/Camera.cpp
   camera/Controller.cpp
   camera/Fly.cpp
+  command/Args.cpp
+  command/Command.cpp
+  command/CommandResult.cpp
+  command/connection/Close.cpp
+  command/connection/OpenFile.cpp
+  command/connection/OpenTcp.cpp
+  command/playback/Loop.cpp
+  command/playback/Pause.cpp
+  command/playback/SkipBackward.cpp
+  command/playback/SkipForward.cpp
+  command/playback/SkipToFrame.cpp
+  command/playback/StepBackward.cpp
+  command/playback/StepForward.cpp
+  command/playback/Stop.cpp
   data/DataThread.cpp
   data/NetworkThread.cpp
   data/StreamThread.cpp
@@ -76,8 +104,7 @@ list(APPEND SOURCES
   handler/Shape.cpp
   handler/Text2d.cpp
   handler/Text3d.cpp
-  painter/ShapeCache.cpp
-  painter/ShapePainter.cpp
+  mesh/Converter.cpp
   painter/Arrow.cpp
   painter/Box.cpp
   painter/Capsule.cpp
@@ -85,10 +112,11 @@ list(APPEND SOURCES
   painter/Cylinder.cpp
   painter/Plane.cpp
   painter/Pose.cpp
+  painter/ShapeCache.cpp
+  painter/ShapePainter.cpp
   painter/Sphere.cpp
   painter/Star.cpp
   painter/Text.cpp
-  mesh/Converter.cpp
   shaders/Edl.cpp
   shaders/Edl.frag
   shaders/Edl.vert

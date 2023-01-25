@@ -37,7 +37,7 @@ public:
   ///     @p maxExtents.
   /// @param maxExt The bounding box maximum. All components must be greater than or equal to
   ///     @p minExtents.
-  Bounds(const Vector3<T> &minExt, const Vector3<T> maxExt);
+  Bounds(const Vector3<T> &minExt, const Vector3<T> &maxExt);
 
   /// Initialise the boudns to the given point.
   /// @param point The point to set as both min and max extents.
@@ -139,7 +139,7 @@ inline Bounds<T>::Bounds(const Bounds<Q> &other)
 
 
 template <typename T>
-inline Bounds<T>::Bounds(const Vector3<T> &minExt, const Vector3<T> maxExt)
+inline Bounds<T>::Bounds(const Vector3<T> &minExt, const Vector3<T> &maxExt)
   : _minimum(minExt)
   , _maximum(maxExt)
 {}

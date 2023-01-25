@@ -49,6 +49,10 @@ public:
   /// Get the current frame number.
   virtual FrameNumber currentFrame() const = 0;
 
+  /// Get the total number of frames.
+  /// @return The total frame count.
+  virtual FrameNumber totalFrames() const = 0;
+
   virtual void setLooping(bool loop) = 0;
   virtual bool looping() const = 0;
 
