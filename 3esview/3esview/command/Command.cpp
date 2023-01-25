@@ -16,6 +16,9 @@ Command::Command(const std::string &name, const Args &signature, bool enabled)
 {}
 
 
+Command::~Command() = default;
+
+
 bool Command::admissible(Viewer &viewer) const
 {
   return checkAdmissible(viewer);

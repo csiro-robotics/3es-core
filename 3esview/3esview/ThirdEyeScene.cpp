@@ -2,6 +2,9 @@
 
 #include "EdlEffect.h"
 
+#include "command/DefaultCommands.h"
+#include "command/Set.h"
+
 #include "handler/Camera.h"
 #include "handler/Category.h"
 #include "handler/MeshResource.h"
@@ -49,6 +52,7 @@
 namespace tes::view
 {
 ThirdEyeScene::ThirdEyeScene()
+  : _commands(std::make_shared<command::Set>())
 {
   using namespace Magnum::Math::Literals;
 
@@ -66,6 +70,7 @@ ThirdEyeScene::ThirdEyeScene()
   initialiseFont();
   initialiseShaders();
   initialiseHandlers();
+  initialiseCommands();
 }
 
 
@@ -400,6 +405,15 @@ void ThirdEyeScene::initialiseShaders()
   _shader_library->registerShader(shaders::ShaderLibrary::ID::Line, vertex_colour_shader);
   _shader_library->registerShader(shaders::ShaderLibrary::ID::PointCloud, std::make_shared<shaders::PointGeom>());
   _shader_library->registerShader(shaders::ShaderLibrary::ID::Voxel, std::make_shared<shaders::VoxelGeom>());
+}
+
+
+void ThirdEyeScene::initialiseCommands()
+{
+  if (_commands)
+  {
+    command::registerDefaultCommands(*_commands);
+  }
 }
 
 
