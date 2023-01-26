@@ -427,8 +427,21 @@ void Viewer::checkShortcuts(KeyEvent &event)
   {
     if (checkShortcut(shortcut.shortcut, event) && shortcut.command->admissible(*this))
     {
+      log::info("Invoke shortcut command '", shortcut.command->name(), "'");
       event.setAccepted();
-      shortcut.command->invoke(*this);
+      const auto result = shortcut.command->invoke(*this);
+      switch (result.code())
+      {
+      case command::CommandResult::Code::Ok:
+        log::info("Invoked shortcut command '", shortcut.command->name(), "'");
+        break;
+      case command::CommandResult::Code::Cancel:
+        log::info("Cancelled shortcut command '", shortcut.command->name(), "'");
+        break;
+      default:
+        log::error("Failed shortcut command '", shortcut.command->name(), "' : ", result.reason());
+        break;
+      }
       return;
     }
   }

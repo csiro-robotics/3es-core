@@ -19,6 +19,8 @@ public:
   {
     /// Indicates success.
     Ok,
+    /// Cancellation code: not an error.
+    Cancel,
     /// An invalid result indicating no action has been taken. This is the default constructed value for @c code().
     Invalid,
     /// Indicates the command is current disabled and cannot execute.

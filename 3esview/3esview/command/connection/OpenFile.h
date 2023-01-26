@@ -15,6 +15,9 @@ public:
 protected:
   bool checkAdmissible(Viewer &viewer) const override;
   CommandResult invoke(Viewer &viewer, const ExecInfo &info, const Args &args) override;
+
+  /// Select a file from a dialog.
+  std::string fromDialog();
 };
 }  // namespace tes::view::command::connection
 

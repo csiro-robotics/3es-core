@@ -25,6 +25,9 @@ find_package(Magnum CONFIG REQUIRED
 )
 # find_package(MagnumExtras CONFIG REQUIRED)
 find_package(Threads)
+# TODO(KS): Check the vcpkg version of nfd for generaly compability. It seems quite different.
+# A submodule or source import may be better for this one.
+find_package(unofficial-nativefiledialog CONFIG REQUIRED)
 
 #-------------------------------------------------------------------------------
 # Configuration header setup.
@@ -81,14 +84,14 @@ target_link_libraries(3esview
     3escore
     $<$<BOOL:CMAKE_THREAD_LIBS_INIT>:${CMAKE_THREAD_LIBS_INIT}>
   PRIVATE
-    # Should only use BUILD_INTERFACE when building a shared library.
+    # Should only need BUILD_INTERFACE when building a shared library.
     $<BUILD_INTERFACE:Corrade::Containers>
     $<BUILD_INTERFACE:Magnum::Application>
     $<BUILD_INTERFACE:Magnum::Magnum>
     $<BUILD_INTERFACE:Magnum::Primitives>
     $<BUILD_INTERFACE:Magnum::Shaders>
     $<BUILD_INTERFACE:Magnum::Text>
-)
+    $<BUILD_INTERFACE:unofficial::nativefiledialog::nfd>)
 
 #-------------------------------------------------------------------------------
 # Doxygen configuration.

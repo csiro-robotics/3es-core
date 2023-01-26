@@ -33,6 +33,6 @@ void registerDefaultCommands(Set &commands)
   commands.registerCommand(std::make_shared<playback::SkipToFrame>());
   commands.registerCommand(std::make_shared<playback::StepBackward>(), Shortcut(","));
   commands.registerCommand(std::make_shared<playback::StepForward>(), Shortcut("."));
-  commands.registerCommand(std::make_shared<playback::Stop>());
+  commands.registerCommand(std::make_shared<playback::Stop>(), Shortcut("ctrl+R"));
 }
 }  // namespace tes::view::command
