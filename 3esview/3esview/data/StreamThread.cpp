@@ -31,35 +31,40 @@ bool StreamThread::isLiveStream() const
 
 void StreamThread::setTargetFrame(FrameNumber frame)
 {
-  std::lock_guard guard(_data_mutex);
-  _target_frame = frame;
-  if (_target_frame < _currentFrame)
   {
-    // Reset and seek back.
-    _tes->reset();
-    _stream_reader->seek(0);
-    _currentFrame = 0;
+    std::scoped_lock guard(_data_mutex);
+    _target_frame = frame;
+    if (_target_frame < _currentFrame)
+    {
+      // Reset and seek back.
+      _tes->reset();
+      _stream_reader->seek(0);
+      _currentFrame = 0;
+    }
   }
+  // Ensure the thread wakes up to step the frame.
+  // Note we have unlocked the mutex before the notify call.
+  _notify.notify_all();
 }
 
 
 FrameNumber StreamThread::targetFrame() const
 {
-  std::lock_guard guard(_data_mutex);
+  std::scoped_lock guard(_data_mutex);
   return _target_frame.has_value() ? *_target_frame : 0;
 }
 
 
 void StreamThread::setLooping(bool loop)
 {
-  std::lock_guard guard(_data_mutex);
+  std::scoped_lock guard(_data_mutex);
   _looping = loop;
 }
 
 
 bool StreamThread::looping() const
 {
-  std::lock_guard guard(_data_mutex);
+  std::scoped_lock guard(_data_mutex);
   return _looping;
 }
 
@@ -91,13 +96,34 @@ void StreamThread::run()
   // Last position in the stream we can seek to.
   std::istream::pos_type last_seekable_position = 0;
   std::istream::pos_type last_keyframe_position = 0;
-  bool at_frame = false;
+  bool at_frame_boundary = false;
   bool have_server_info = false;
   CollatedPacketDecoder packer_decoder;
 
   while (!_quitFlag)
   {
-    at_frame = false;
+    // Before anything else, check for the target frame being set. This affects catchup and
+    // can trigger updates even when paused.
+    FrameNumber target_frame = 0;
+    switch (checkTargetFrameState(target_frame))
+    {
+    case TargetFrameState::NotSet:  // Nothing special to do
+    default:
+      _catchingUp = false;
+      std::this_thread::sleep_until(next_frame_start);
+      break;
+    case TargetFrameState::Behind:  // Go back.
+      skipBack(target_frame);
+      break;
+    case TargetFrameState::Ahead:  // Catch up.
+      _catchingUp = true;
+      break;
+    case TargetFrameState::Reached:  // Result normal playback.
+      _catchingUp = false;
+      next_frame_start = Clock::now();
+      break;
+    }
+
     if (blockOnPause())
     {
       continue;
@@ -112,37 +138,8 @@ void StreamThread::run()
       }
     }
 
-    auto current_frame = _currentFrame.load();
-    FrameNumber target_frame = 0;
-    bool have_target = false;
-    {
-      std::lock_guard guard(_data_mutex);
-      have_target = _target_frame.has_value();
-      target_frame = (have_target) ? *_target_frame : 0;
-    }
-    if (!have_target)
-    {
-      // Not stepping. Check time elapsed.
-      _catchingUp = false;
-      std::this_thread::sleep_until(next_frame_start);
-    }
-    else if (target_frame < current_frame)
-    {
-      skipBack(target_frame);
-    }
-    else if (target_frame > current_frame)
-    {
-      _catchingUp = true;
-    }
-    else if (have_target && target_frame == current_frame)
-    {
-      // Reached the target frame.
-      std::lock_guard guard(_data_mutex);
-      _target_frame.reset();
-      next_frame_start = Clock::now();
-    }
-
-    while (!at_frame && _stream_reader->isOk() && !_stream_reader->isEof())
+    at_frame_boundary = false;  // Tracks when we reach a frame boundary.
+    while (!at_frame_boundary && _stream_reader->isOk() && !_stream_reader->isEof())
     {
       auto packet_header = _stream_reader->extractPacket();
       if (packet_header)
@@ -160,7 +157,7 @@ void StreamThread::run()
           {
           case MtControl:
             next_frame_start = Clock::now() + processControlMessage(packet);
-            at_frame = packet.messageId() == CIdFrame;
+            at_frame_boundary = packet.messageId() == CIdFrame;
             break;
           case MtServerInfo:
             if (processServerInfo(packet, _server_info))
@@ -197,7 +194,13 @@ bool StreamThread::blockOnPause()
   {
     std::unique_lock lock(_notify_mutex);
     // Wait for unpause.
-    _notify.wait(lock, [this] { return !_paused; });
+    _notify.wait(lock, [this] {
+      if (!_paused || targetFrame() != 0)
+      {
+        return true;
+      }
+      return false;
+    });
     return true;
   }
   return false;
@@ -258,5 +261,34 @@ StreamThread::Clock::duration StreamThread::processControlMessage(PacketReader &
     break;
   }
   return {};
+}
+
+
+StreamThread::TargetFrameState StreamThread::checkTargetFrameState(FrameNumber &target_frame)
+{
+  // Mutex lock to check teh
+  std::scoped_lock guard(_data_mutex);
+
+  if (!_target_frame.has_value())
+  {
+    target_frame = 0;
+    return TargetFrameState::NotSet;
+  }
+
+  target_frame = *_target_frame;
+  const auto current_frame = _currentFrame.load();
+
+  if (target_frame < current_frame)
+  {
+    return TargetFrameState::Behind;
+  }
+
+  if (target_frame > current_frame)
+  {
+    return TargetFrameState::Behind;
+  }
+
+  _target_frame.reset();
+  return TargetFrameState::Reached;
 }
 }  // namespace tes::view

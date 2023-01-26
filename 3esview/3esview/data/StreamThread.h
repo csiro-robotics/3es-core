@@ -120,6 +120,36 @@ private:
   /// @return The time to delay before the next frame, or a zero duration when not a frame message.
   Clock::duration processControlMessage(PacketReader &packet);
 
+  /// Return values for @c checkTargetFrameState()
+  enum class TargetFrameState
+  {
+    NotSet,  ///< No target frame set
+    Behind,  ///< Target frame is set and behind the current frame. Requires keyframe or file reset.
+    Ahead,   ///< The target frame is ahead of the current frame.
+    Reached  ///< Target frame has just been reached.
+  };
+
+  /// Check the conditions around the target frame being set.
+  ///
+  /// This checks the @c targetFrame() value to see if we need to adjust playback to reach the
+  /// target frame. The current state is indicated by the @c TargetFrameState return value.
+  ///
+  /// - @c TargetFrameState::NotSet : the target frame is not set and we use normal playback rules.
+  /// - @c TargetFrameState::Behind : the target frame set behind the current frame. We must reset
+  ///   to a keyframe (or the file start) and catch up to the desired frame. After the reset the
+  ///   next check will be @c TargetFrameState::Ahead until the frame is
+  ///   @c TargetFrameState::Reached
+  /// - @c TargetFrameState::Ahead : the target frame is set ahead of the current frame and we need
+  ///   to process messages to catch up to the target frame.
+  /// - @c TargetFrameState::Reached : the target frame has been reached and we can result normal
+  ///   playback. This also clears the @c targetFrame() value so the next call will return
+  ///   @c TargetFrameState::NotSet
+  ///
+  /// @param[out] target_frame Set to the target frame value. Only useful when returning
+  /// @c TargetFrameState::Valid
+  /// @return Details of the @c targetFrameValue() - see comments.
+  TargetFrameState checkTargetFrameState(FrameNumber &target_frame);
+
   mutable std::mutex _data_mutex;
   std::mutex _notify_mutex;
   std::condition_variable _notify;
