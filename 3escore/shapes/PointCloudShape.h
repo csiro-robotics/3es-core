@@ -23,7 +23,13 @@ namespace tes
 ///
 /// The @c PointCloudShape shape supports limiting the view into the @c MeshResource
 /// by having its own set of indices (see @c setIndices()).
-class TES_CORE_API PointCloudShape : public Shape
+///
+/// @deprecated This shape has been deprecated. Use @c MeshSet with the @c PointCloud specialisation
+/// of @c MeshResource or use a @c MeshShape with @c DtPoints rendering. This has been deprecated
+/// because of the amount of work required by the viewer in order to duplicate resources with
+/// a different set of indices and the functionality is sufficiently covered by the aforementioned
+/// alternative classes.
+class TES_CORE_API TES_CORE_DEPRECATED PointCloudShape : public Shape
 {
 public:
   /// Construct a point cloud shape object.

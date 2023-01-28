@@ -241,8 +241,7 @@ unsigned MeshResource::draw(const DrawParams &params, const std::vector<DrawItem
     if (search != _resources.end() && search->second.mesh && search->second.shader)
     {
       search->second.shader
-        ->  //
-        setDrawScale(0)
+        ->setDrawScale(0)  //
         .setModelMatrix(item.model_matrix)
         .draw(*search->second.mesh);
       ++drawn;
