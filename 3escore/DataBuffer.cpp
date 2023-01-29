@@ -37,7 +37,7 @@ void DataBuffer::reset()
 }
 
 
-void DataBuffer::duplicate()
+DataBuffer &DataBuffer::duplicate()
 {
   // No need to copy if we already own the _stream.
   if (!ownPointer() && _stream != nullptr && _count > 0)
@@ -45,6 +45,7 @@ void DataBuffer::duplicate()
     _affordances->takeOwnership(&_stream, ownPointer(), *this);
     _flags |= Flag::OwnPointer;
   }
+  return *this;
 }
 
 

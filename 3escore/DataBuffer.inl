@@ -8,14 +8,13 @@ inline DataBuffer::DataBuffer()
 {}
 
 template <typename T>
-inline DataBuffer::DataBuffer(const T *v, size_t count, size_t componentCount, size_t componentStride,
-                                  bool ownPointer)
+inline DataBuffer::DataBuffer(const T *v, size_t count, size_t componentCount, size_t componentStride, bool ownPointer)
   : _stream(v)
   , _count(int_cast<unsigned>(count))
   , _componentCount(int_cast<uint8_t>(componentCount))
   , _elementStride(int_cast<uint8_t>(componentStride ? componentStride : componentCount))
-  , _basicTypeSize(int_cast<uint8_t>(DataBufferTypeInfo<T>::size()))
-  , _type(DataBufferTypeInfo<T>::type())
+  , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<T>::size()))
+  , _type(DataBufferPrimitiveTypeInfo<T>::type())
   , _flags(!!ownPointer * Flag::OwnPointer)
   , _affordances(detail::DataBufferAffordancesT<T>::instance())
 {}
@@ -26,8 +25,8 @@ inline DataBuffer::DataBuffer(const Vector3f *v, size_t count)
   , _count(int_cast<unsigned>(count))
   , _componentCount(3)
   , _elementStride(int_cast<uint8_t>(sizeof(Vector3f) / sizeof(float)))
-  , _basicTypeSize(int_cast<uint8_t>(sizeof(Vector3f)))
-  , _type(DataBufferTypeInfo<float>::type())
+  , _primitiveTypeSize(int_cast<uint8_t>(sizeof(Vector3f)))
+  , _type(DataBufferPrimitiveTypeInfo<float>::type())
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<float>::instance())
 {}
@@ -38,8 +37,8 @@ inline DataBuffer::DataBuffer(const Vector3d *v, size_t count)
   , _count(int_cast<unsigned>(count))
   , _componentCount(3)
   , _elementStride(int_cast<uint8_t>(sizeof(Vector3d) / sizeof(double)))
-  , _basicTypeSize(int_cast<uint8_t>(sizeof(Vector3d)))
-  , _type(DataBufferTypeInfo<double>::type())
+  , _primitiveTypeSize(int_cast<uint8_t>(sizeof(Vector3d)))
+  , _type(DataBufferPrimitiveTypeInfo<double>::type())
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<double>::instance())
 {}
@@ -50,8 +49,8 @@ inline DataBuffer::DataBuffer(const Colour *c, size_t count)
   , _count(int_cast<unsigned>(count))
   , _componentCount(1)
   , _elementStride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint32_t)))
-  , _basicTypeSize(int_cast<uint8_t>(sizeof(Colour)))
-  , _type(DataBufferTypeInfo<uint32_t>::type())
+  , _primitiveTypeSize(int_cast<uint8_t>(sizeof(Colour)))
+  , _type(DataBufferPrimitiveTypeInfo<uint32_t>::type())
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<uint32_t>::instance())
 {}
@@ -63,8 +62,8 @@ inline DataBuffer::DataBuffer(const std::vector<T> &v, size_t componentCount, si
   , _count(int_cast<unsigned>(v.size() / (componentStride ? componentStride : componentCount)))
   , _componentCount(int_cast<uint8_t>(componentCount))
   , _elementStride(int_cast<uint8_t>(componentStride ? componentStride : componentCount))
-  , _basicTypeSize(int_cast<uint8_t>(DataBufferTypeInfo<T>::size()))
-  , _type(DataBufferTypeInfo<T>::type())
+  , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<T>::size()))
+  , _type(DataBufferPrimitiveTypeInfo<T>::type())
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<T>::instance())
 {}
@@ -74,7 +73,7 @@ inline DataBuffer::DataBuffer(const std::vector<Vector3f> &v)
   , _count(int_cast<unsigned>(v.size()))
   , _componentCount(3)
   , _elementStride(int_cast<uint8_t>(sizeof(Vector3f) / sizeof(float)))
-  , _basicTypeSize(int_cast<uint8_t>(DataBufferTypeInfo<float>::size()))
+  , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<float>::size()))
   , _type(DctFloat32)
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<float>::instance())
@@ -85,7 +84,7 @@ inline DataBuffer::DataBuffer(const std::vector<Vector3d> &v)
   , _count(int_cast<unsigned>(v.size()))
   , _componentCount(3)
   , _elementStride(int_cast<uint8_t>(sizeof(Vector3d) / sizeof(double)))
-  , _basicTypeSize(int_cast<uint8_t>(DataBufferTypeInfo<double>::size()))
+  , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<double>::size()))
   , _type(DctFloat64)
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<double>::instance())
@@ -96,7 +95,7 @@ inline DataBuffer::DataBuffer(const std::vector<Colour> &c)
   , _count(int_cast<unsigned>(c.size()))
   , _componentCount(1)
   , _elementStride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint32_t)))
-  , _basicTypeSize(int_cast<uint8_t>(DataBufferTypeInfo<uint32_t>::size()))
+  , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint32_t>::size()))
   , _type(DctUInt32)
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<uint32_t>::instance())
@@ -107,7 +106,7 @@ inline DataBuffer::DataBuffer(DataBuffer &&other)
   , _count(std::exchange(other._count, 0))
   , _componentCount(std::exchange(other._componentCount, 0))
   , _elementStride(std::exchange(other._elementStride, 0))
-  , _basicTypeSize(std::exchange(other._basicTypeSize, 0))
+  , _primitiveTypeSize(std::exchange(other._primitiveTypeSize, 0))
   , _type(std::exchange(other._type, DctNone))
   , _flags(std::exchange(other._flags, 0))
   , _affordances(std::exchange(other._affordances, nullptr))
@@ -118,7 +117,7 @@ inline DataBuffer::DataBuffer(const DataBuffer &other)
   , _count(other._count)
   , _componentCount(other._componentCount)
   , _elementStride(other._elementStride)
-  , _basicTypeSize(other._basicTypeSize)
+  , _primitiveTypeSize(other._primitiveTypeSize)
   , _type(other._type)
   , _flags(0)  // Copy assignment. We do not own the pointer.
   , _affordances(other._affordances)
@@ -160,7 +159,7 @@ template <typename T>
 inline T DataBuffer::get(size_t element_index, size_t component_index) const
 {
   T datum{ 0 };
-  _affordances->get(DataBufferTypeInfo<T>::type(), element_index, component_index, 1, _stream, _count,
+  _affordances->get(DataBufferPrimitiveTypeInfo<T>::type(), element_index, component_index, 1, _stream, _count,
                     _componentCount, _elementStride, &datum, 1);
   return datum;
 }
@@ -169,8 +168,8 @@ template <typename T>
 inline size_t DataBuffer::get(size_t element_index, size_t element_count, T *dst, size_t capacity) const
 {
   const size_t components_read =
-    _affordances->get(DataBufferTypeInfo<T>::type(), element_index, 0, element_count * _componentCount, _stream,
-                      _count, _componentCount, _elementStride, dst, capacity);
+    _affordances->get(DataBufferPrimitiveTypeInfo<T>::type(), element_index, 0, element_count * _componentCount,
+                      _stream, _count, _componentCount, _elementStride, dst, capacity);
   return components_read / componentCount();
 }
 
@@ -180,29 +179,45 @@ inline void DataBuffer::swap(DataBuffer &other)
   std::swap(_count, other._count);
   std::swap(_componentCount, other._componentCount);
   std::swap(_elementStride, other._elementStride);
-  std::swap(_basicTypeSize, other._basicTypeSize);
+  std::swap(_primitiveTypeSize, other._primitiveTypeSize);
   std::swap(_type, other._type);
   std::swap(_flags, other._flags);
   std::swap(_affordances, other._affordances);
 }
 
-inline DataBuffer &DataBuffer::operator=(DataBuffer other)
+inline DataBuffer &DataBuffer::operator=(DataBuffer &&other)
 {
   swap(other);
+  return *this;
+}
+
+inline DataBuffer &DataBuffer::operator=(const DataBuffer &other)
+{
+  if (this != &other)
+  {
+    _stream = other._stream;
+    _count = other._count;
+    _componentCount = other._componentCount;
+    _elementStride = other._elementStride;
+    _primitiveTypeSize = other._primitiveTypeSize;
+    _type = other._type;
+    _flags = 0;  // Copy assignment. We do not own the pointer.
+    _affordances = other._affordances;
+  }
   return *this;
 }
 
 template <typename T>
 inline const T *DataBuffer::ptr(size_t element_index) const
 {
-  TES_ASSERT2(DataBufferTypeInfo<T>::type() == _type, "Element type mismatch");
+  TES_ASSERT2(DataBufferPrimitiveTypeInfo<T>::type() == _type, "Element type mismatch");
   return &static_cast<const T *>(_stream)[element_index];
 }
 
 template <typename T>
 inline const T *DataBuffer::ptrAt(size_t element_index) const
 {
-  if (DataBufferTypeInfo<T>::type() == _type)
+  if (DataBufferPrimitiveTypeInfo<T>::type() == _type)
   {
     return &static_cast<const T *>(_stream)[element_index];
   }
@@ -303,8 +318,7 @@ uint32_t DataBufferAffordancesT<T>::write(PacketWriter &packet, uint32_t offset,
 template <typename T>
 template <typename WriteType>
 uint32_t DataBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                                            unsigned byteLimit, uint32_t receiveOffset,
-                                            const DataBuffer &stream) const
+                                            unsigned byteLimit, uint32_t receiveOffset, const DataBuffer &stream) const
 {
   const unsigned itemSize = unsigned(sizeof(WriteType)) * stream.componentCount();
 
@@ -339,7 +353,7 @@ uint32_t DataBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t offse
 
   const T *src = stream.ptr<T>(offset * stream.elementStride());
   unsigned writeCount = 0;
-  if (DataBufferTypeInfo<T>::type() == DataBufferTypeInfo<WriteType>::type() &&
+  if (DataBufferPrimitiveTypeInfo<T>::type() == DataBufferPrimitiveTypeInfo<WriteType>::type() &&
       stream.elementStride() == stream.componentCount())
   {
     // We can write the array directly if the T/WriteType types match and the source array is densely packed (element
@@ -498,8 +512,8 @@ uint32_t DataBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr
 {
   TES_UNUSED(stream);
   bool ok = true;
-  uint8_t componentCount = 0;  // tream.componentCount();;
-  uint8_t packetType = 0;      // DataBufferTypeInfo<T>::type();
+  uint8_t componentCount = 0;  // stream.componentCount();;
+  uint8_t packetType = 0;      // DataBufferPrimitiveTypeInfo<T>::type();
   ok = packet.readElement(componentCount) == sizeof(componentCount) && ok;
   ok = packet.readElement(packetType) == sizeof(packetType) && ok;
 
