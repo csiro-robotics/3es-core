@@ -5,7 +5,7 @@ set(SOURCES
 )
 
 add_executable(3estViewer ${SOURCES})
-tes_configure_unit_test_target(3estViewer)
+tes_configure_unit_test_target(3estViewer GTEST)
 target_link_libraries(3estViewer
   PRIVATE
     3escore

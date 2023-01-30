@@ -223,8 +223,16 @@ endfunction(tes_configure_target)
 
 # Configure a TES unit test target. This skips installation and versionining for the target.
 function(tes_configure_unit_test_target TARGET)
+  cmake_parse_arguments(ARG "GTEST" "" "ARGS" ${ARGN})
+  if(NOT ARG_ARGS)
+    unset(ARG_ARGS)
+  endif(NOT ARG_ARGS)
   tes_configure_target(${TARGET} SKIP INSTALL VERSION)
-  add_test(NAME ${TARGET} COMMAND ${TARGET} --gtest_output=xml:test-reports/)
+  if(ARG_GTEST)
+    gtest_add_tests(TARGET ${TARGET} EXTRA_ARGS --gtest_output=xml:test-reports/ ${ARG_ARGS})
+  else(ARG_GTEST)
+    add_test(NAME ${TARGET} COMMAND ${TARGET} ${ARG_ARGS})
+  endif(ARG_GTEST)
 endfunction(tes_configure_unit_test_target TARGET)
 
 if(CMAKE_VERSION VERSION_LESS 3.13)
