@@ -70,3 +70,4 @@ function(register_target TARGET INCLUDES_VAR LIBRARIES_VAR)
 endfunction(register_target)
 
 register_target(3es::3escore 3ES_INCLUDE_DIRS 3ES_LIBRARIES)
+register_target(3es::3esview 3ES_INCLUDE_DIRS 3ES_LIBRARIES)

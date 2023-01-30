@@ -61,6 +61,9 @@ The 3rd Eye Scene core includes code for both a C++ and a C# based server. This 
 Before sending TES messages, a `tes::Server` object must be declared and initialised as shown below.
 
 ```c++
+#include <3escore/ConnectionMonitor.h>
+#include <3escore/Server.h>
+
 tes::Server *g_tesServer = nullptr;  // Global declaration.
 
 void initialiseTes()
@@ -90,6 +93,9 @@ void initialiseTes()
 Several key server methods must be called periodically to manage the connection. These calls are listed and explained below.
 
 ```c++
+#include <3escore/ConnectionMonitor.h>
+#include <3escore/Server.h>
+
 void endFrame(float dt = 0.0f)
 {
   // Mark the end of frame. Flushed collated packets.
@@ -109,6 +115,14 @@ void endFrame(float dt = 0.0f)
 Once the server has been created and initialised it becomes possible to invoke object creation and update commands. The code below shows the creation and animation of a box shape as well as the creation of some transient objects.
 
 ```c++
+#include <3escore/Colour.h>
+#include <3escore/ConnectionMonitor.h>
+#include <3escore/Maths.h>
+#include <3escore/Server.h>
+#include <3escore/Vector3f.h>
+
+#include <3escore/shapes/Box.h>
+
 void animateBox(tes::Server &server)
 {
   // Declare a box.
@@ -140,6 +154,8 @@ void animateBox(tes::Server &server)
 To correct dispose of the server, call `dispose()`.
 
 ```c++
+#include <3escore/Server.h>
+
 void releaseTes()
 {
   if (g_tesServer)
@@ -153,11 +169,15 @@ void releaseTes()
 }
 ```
 
-Using Categories
-----------------
+## Using Categories
+
 Categories may be used to logically group objects in the viewer client. Objects from specific categories can be hidden and shown as a group. Categories are form a hierarchy, with each category having an optional parent. The code below shows an example category initialisation.
 
 ```c++
+#include <3escore/Messages.h>
+#include <3escore/Server.h>
+#include <3escore/ServerUtil.h>
+
 void defineCategory(tes::Server &server, const char *name, uint16_t category, uint16_t parent, bool defaultActive)
 {
   tes::CategoryNameMessage msg;
@@ -191,6 +211,8 @@ void initCategories()
 It is also possible to use preprocessor macros to invoke must 3rd Eye Scene API calls. This is to support removing all debugging code via the preprocessor thereby eliminating all associated overhead. The examples above can be rewritten using the macro interface as shown below. The `animateBox2()` function is equivalent to the `animateBox()` function, but uses transient objects instead of updating a single object.
 
 ```c++
+#include <3escore/ServerMacros.h>
+
 // Declare global server pointer.
 TES_SERVER_DECL(g_tesServer);
 

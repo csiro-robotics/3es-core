@@ -96,7 +96,13 @@ include(sourcelist.cmake)
 #-------------------------------------------------------------------------------
 # Define the 3escore library.
 add_library(3escore ${PUBLIC_HEADERS} ${PUBLIC_SHAPE_HEADERS} ${PUBLIC_TESSELLATE_HEADERS} ${SOURCES} ${PRIVATE_HEADERS} ${PRIVATE_SOURCES})
-tes_configure_target(3escore)
+tes_configure_target(3escore
+  INCLUDE_PREFIX include/3escore
+  PUBLIC_HEADERS
+    ${PUBLIC_HEADERS}
+    ${PUBLIC_SHAPE_HEADERS}
+    ${PUBLIC_TESSELLATE_HEADERS}
+)
 
 # Define DLL export header (primarily for MSVC).
 include(GenerateExportHeader)
@@ -116,7 +122,7 @@ target_include_directories(3escore
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/3escore>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
-    $<INSTALL_INTERFACE:include/3escore>
+    $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(3escore
@@ -195,9 +201,9 @@ endif(TES_BUILD_DOXYGEN)
 # Installation.
 #-------------------------------------------------------------------------------
 # Header installation
-install(FILES ${PUBLIC_HEADERS} DESTINATION include/3escore COMPONENT Devel)
-install(FILES ${PUBLIC_SHAPE_HEADERS} DESTINATION include/3escore/shapes COMPONENT Devel)
-install(FILES ${PUBLIC_TESSELLATE_HEADERS} DESTINATION include/3escore/tessellate COMPONENT Devel)
+# install(FILES ${PUBLIC_HEADERS} DESTINATION include/3escore COMPONENT Devel)
+# install(FILES ${PUBLIC_SHAPE_HEADERS} DESTINATION include/3escore/shapes COMPONENT Devel)
+# install(FILES ${PUBLIC_TESSELLATE_HEADERS} DESTINATION include/3escore/tessellate COMPONENT Devel)
 
 # Setup import scripts.
 include(CMakePackageConfigHelpers)

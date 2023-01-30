@@ -58,16 +58,94 @@ function(tes_configure_target_properties TARGET)
   endif(_target_type STREQUAL "EXECUTABLE")
 endfunction(tes_configure_target_properties)
 
-# tes_configure_target_properties(TARGET)
+function(_ensure_value VAR DEFAULT_VALUE)
+  if(NOT ${VAR})
+    set(${VAR} "${DEFAULT_VALUE}" PARENT_SCOPE)
+  endif(NOT ${VAR})
+endfunction(_ensure_value VAR DEFAULT_VALUE)
+
+# tes_configure_target_properties(TARGET
+#   INCLUDE_PREFIX [include/<prefix>]
+#   PUBLIC_HEADERS [header1 header2...]
+# )
 #
 # Configure installation of the given TARGET
 function(tes_target_install TARGET)
+  cmake_parse_arguments(ARG "" "INCLUDE_PREFIX" "PUBLIC_HEADERS" ${ARGN})
+
+  _ensure_value(ARG_INCLUDE_PREFIX include)
+
   install(TARGETS ${TARGET} EXPORT 3es-config-targets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include
   )
+
+  # Helper for building INSTALL_PREFIX_FILES_<dir> variable names. See below.
+  function(_dir_to_identifier VAR DIR)
+    cmake_parse_arguments(ARG "" "PREFIX" "" ${ARGN})
+    string(REGEX REPLACE "[\\\\/\\\"'\\+\\${}]" "_" ${VAR} "${DIR}")
+    if(ARG_PREFIX)
+      set(${VAR} "${ARG_PREFIX}${${VAR}}" PARENT_SCOPE)
+    else(ARG_PREFIX)
+      set(${VAR} "${${VAR}}" PARENT_SCOPE)
+    endif(ARG_PREFIX)
+  endfunction(_dir_to_identifier)
+
+  # Manually install PUBLIC_HEADERS to preserve leading directories.
+  if(ARG_PUBLIC_HEADERS)
+    # Remove "include/" from the INCLUDE_PREFIX if specified so we can handle this being added to
+    # absolute paths.
+    set(STRIP_INCLUDE_PREFIX)
+    if(ARG_INCLUDE_PREFIX MATCHES "include[/\\\\]")
+      string(REGEX REPLACE "include[/\\\\](.*)" "/\\1" STRIP_INCLUDE_PREFIX "${ARG_INCLUDE_PREFIX}")
+    endif()
+
+    # We iterate the files collecting files by directory prefix. We store variables as follows:
+    # INSTALL_PREFIXES - the list of installation prefixes
+    # INSTALL_PREFIX_FILES_<dir> - the set of files corresponding to <prefix> where <dir> is
+    #   derived from the directorly name by replacing invalid identifier characters with '_'.
+    set(INSTALL_PREFIXES "${ARG_INCLUDE_PREFIX}")
+    foreach(HEADER ${ARG_PUBLIC_HEADERS})
+      # Remove leading path of CMAKE_CURRENT_LIST_DIR or CMAKE_CURRENT_BINARY_DIR
+      set(HEADER_RELATIVE "${HEADER}")
+      if(IS_ABSOLUTE "${HEADER}")
+        file(RELATIVE_PATH LIST_RELATIVE "${CMAKE_CURRENT_LIST_DIR}${STRIP_INCLUDE_PREFIX}" "${HEADER}")
+        file(RELATIVE_PATH BINARY_RELATIVE "${CMAKE_CURRENT_BINARY_DIR}${STRIP_INCLUDE_PREFIX}" "${HEADER}")
+        if(NOT LIST_RELATIVE MATCHES "\\.\\./.*")
+          set(HEADER_RELATIVE "${LIST_RELATIVE}")
+        elseif(NOT BINARY_RELATIVE MATCHES "\\.\\./.*")
+          set(HEADER_RELATIVE "${BINARY_RELATIVE}")
+        else()
+          message(SEND_ERROR "Absolute header path given outside of expected directories. "
+                  "Must be relative to either CMAKE_CURRENT_LIST_DIR or CMAKE_CURRENT_BINARY_DIR\n"
+                  "CMAKE_CURRENT_LIST_DIR: ${CMAKE_CURRENT_LIST_DIR}\n"
+                  "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}\n")
+        endif()
+      endif(IS_ABSOLUTE "${HEADER}")
+
+      # Get the file's leading directory
+      get_filename_component(HEADER_PREFIX "${HEADER_RELATIVE}" DIRECTORY)
+
+      # Add the prefix to the prefix list. Will remove duplicates later.
+      if(HEADER_PREFIX)
+        list(APPEND INSTALL_PREFIXES "${ARG_INCLUDE_PREFIX}/${HEADER_PREFIX}")
+        _dir_to_identifier(FILE_SET "${ARG_INCLUDE_PREFIX}/${HEADER_PREFIX}" PREFIX INSTALL_PREFIX_FILES_)
+      else(HEADER_PREFIX)
+        # No subdirectories. Add to root install prefix.
+        _dir_to_identifier(FILE_SET "${ARG_INCLUDE_PREFIX}" PREFIX INSTALL_PREFIX_FILES_)
+      endif(HEADER_PREFIX)
+      list(APPEND ${FILE_SET} "${HEADER}")
+    endforeach(HEADER)
+
+    # Remove duplicate paths.
+    list(REMOVE_DUPLICATES INSTALL_PREFIXES)
+    # Add install commands.
+    foreach(PREFIX ${INSTALL_PREFIXES})
+      _dir_to_identifier(FILE_SET "${PREFIX}" PREFIX INSTALL_PREFIX_FILES_)
+      install(FILES ${${FILE_SET}} DESTINATION "${PREFIX}")
+    endforeach(PREFIX)
+  endif(ARG_PUBLIC_HEADERS)
 
   get_target_property(_target_type ${TARGET} TYPE)
   if(MSVC)
@@ -98,19 +176,34 @@ function(tes_target_version TARGET)
   )
 endfunction(tes_target_version)
 
-# tes_configure_target(TARGET [SKIP feature1 [... featureN]])
+# tes_configure_target(TARGET
+#   [INCLUDE_PREFIX include/prefix]
+#   [PUBLIC_HEADERS header1 [header2...]
+#   [SKIP feature1 [... featureN]]
+# )
 #
 # Apply various configuration actions on the given TARGET. All actions are enabled by default, but can be disabled by
-# using the SKIP feature arguments.
+# using the SKIP feature arguments (see below).
 #
-# Available features and their associated functions are:
+# INCLUDE_PREFIX - specifies the include directory prefix. This defaults to "include" when omitted.
+# For 3es libraries this should generally be "include/<target_prefix>" where "<target_prefix>"
+# generally matches the target name.
+#
+# PUBLIC_HEADERS - list of public header files to install. The installation process preserves the
+# directory structure relative to CMAKE_CURRENT_LIST_DIR[/<target_prefix>] or
+# CMAKE_CURRENT_BINARY_DIR[/<target_prefix>], whichever is appropriate.
+#
+# SKIP - allows the following configuration steps to be skipped:
 #
 # - FLAGS tes_configure_target_flags()
 # - PROPERTIES tes_configure_target_properties()
 # - INSTALL tes_target_install()
 # - VERSION tes_target_version()
 function(tes_configure_target TARGET)
-  cmake_parse_arguments(ARG "" "" "SKIP")
+  cmake_parse_arguments(ARG "" "INCLUDE_PREFIX" "PUBLIC_HEADERS;SKIP" ${ARGN})
+
+  _ensure_value(ARG_INCLUDE_PREFIX include)
+
   if(NOT "FLAGS" IN_LIST ARG_SKIP)
     tes_configure_target_flags(${TARGET})
   endif(NOT "FLAGS" IN_LIST ARG_SKIP)
@@ -118,7 +211,10 @@ function(tes_configure_target TARGET)
     tes_configure_target_properties(${TARGET})
   endif(NOT "PROPERTIES" IN_LIST ARG_SKIP)
   if(NOT "INSTALL" IN_LIST ARG_SKIP)
-    tes_target_install(${TARGET})
+    tes_target_install(${TARGET}
+      INCLUDE_PREFIX "${ARG_INCLUDE_PREFIX}"
+      PUBLIC_HEADERS ${ARG_PUBLIC_HEADERS}
+    )
   endif(NOT "INSTALL" IN_LIST ARG_SKIP)
   if(NOT "VERSION" IN_LIST ARG_SKIP)
     tes_target_version(${TARGET})

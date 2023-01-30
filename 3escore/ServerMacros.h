@@ -3,6 +3,8 @@
 //
 // Copyright (c) Kazys Stepanas 2014
 //
+#ifndef TES_CORE_SERVER_MACROS_H
+#define TES_CORE_SERVER_MACROS_H
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -1428,3 +1430,5 @@ constexpr inline void noop()
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif  // __GNUC__
+
+#endif  // TES_CORE_SERVER_MACROS_H

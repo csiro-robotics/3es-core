@@ -9,7 +9,7 @@ set(SOURCES
 )
 
 add_executable(3estUnit ${SOURCES})
-tes_configure_unit_test_target(3estUnit)
+tes_configure_unit_test_target(3estUnit SKIP INSTALL)
 target_link_libraries(3estUnit
   PRIVATE
     3escore
