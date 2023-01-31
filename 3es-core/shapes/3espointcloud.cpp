@@ -109,9 +109,9 @@ PointCloud *PointCloud::clone() const
 }
 
 
-Matrix4f PointCloud::transform() const
+Transform PointCloud::transform() const
 {
-  return Matrix4f::identity;
+  return Transform::identity(false);
 }
 
 
@@ -170,11 +170,10 @@ unsigned PointCloud::vertexCount(int stream) const
 }
 
 
-const float *PointCloud::vertices(unsigned &stride, int stream) const
+DataBuffer PointCloud::vertices(int stream) const
 {
   TES_UNUSED(stream);
-  stride = sizeof(Vector3f);
-  return (_imp->vertices) ? &_imp->vertices->x : nullptr;
+  return DataBuffer(_imp->vertices, _imp->vertexCount);
 }
 
 
@@ -191,20 +190,17 @@ unsigned PointCloud::indexCount(int stream) const
 }
 
 
-const uint8_t *PointCloud::indices(unsigned &stride, unsigned &width, int stream) const
+DataBuffer PointCloud::indices(int stream) const
 {
-  TES_UNUSED(stride);
-  TES_UNUSED(width);
   TES_UNUSED(stream);
-  return nullptr;
+  return DataBuffer();
 }
 
 
-const float *PointCloud::normals(unsigned &stride, int stream) const
+DataBuffer PointCloud::normals(int stream) const
 {
   TES_UNUSED(stream);
-  stride = sizeof(Vector3f);
-  return (_imp->normals) ? &_imp->normals->x : nullptr;
+  return DataBuffer(_imp->normals, _imp->normals ? _imp->vertexCount : 0);
 }
 
 
@@ -214,11 +210,10 @@ const Vector3f *PointCloud::normals() const
 }
 
 
-const uint32_t *PointCloud::colours(unsigned &stride, int stream) const
+DataBuffer PointCloud::colours(int stream) const
 {
   TES_UNUSED(stream);
-  stride = sizeof(Colour);
-  return (_imp->colours) ? &_imp->colours->c : nullptr;
+  return DataBuffer(_imp->colours, _imp->colours ? _imp->vertexCount : 0);
 }
 
 
@@ -228,9 +223,9 @@ const Colour *PointCloud::colours() const
 }
 
 
-const float *PointCloud::uvs(unsigned &, int) const
+DataBuffer PointCloud::uvs(int) const
 {
-  return nullptr;
+  return DataBuffer();
 }
 
 
@@ -449,7 +444,7 @@ void PointCloud::copyOnWrite()
 }
 
 
-bool PointCloud::processCreate(const MeshCreateMessage &msg)
+bool PointCloud::processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes)
 {
   if (msg.drawType != DtPoints)
   {
@@ -468,17 +463,17 @@ bool PointCloud::processCreate(const MeshCreateMessage &msg)
   _imp->normals = nullptr;  // Pending.
   _imp->colours = nullptr;  // Pending
 
-  Matrix4f transform = prsTransform(Vector3f(msg.attributes.position), Quaternionf(msg.attributes.rotation),
-                                    Vector3f(msg.attributes.scale));
+  Transform transform(Vector3d(attributes.position), Quaterniond(attributes.rotation), Vector3d(attributes.scale),
+                      msg.flags & McfDoublePrecision);
 
   // Does not accept a transform.
-  if (!transform.equals(Matrix4f::identity))
+  if (!transform.isEqual(Transform::identity()))
   {
     return false;
   }
 
   // Does not accept a tint.
-  if (msg.attributes.colour != 0xffffffffu)
+  if (attributes.colour != 0xffffffffu)
   {
     return false;
   }
@@ -487,23 +482,29 @@ bool PointCloud::processCreate(const MeshCreateMessage &msg)
 }
 
 
-bool PointCloud::processVertices(const MeshComponentMessage &msg, const float *vertices, unsigned vertexCount)
+bool PointCloud::processVertices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
+  TES_UNUSED(msg);
   static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Vertex size mismatch");
   copyOnWrite();
   unsigned wrote = 0;
 
-  for (unsigned i = 0; i + msg.offset < _imp->vertexCount && i < msg.count; ++i)
+  for (unsigned i = 0; i + offset < _imp->vertexCount && i < stream.count(); ++i)
   {
-    _imp->vertices[i + msg.offset] = Vector3f(vertices + i * 3);
+    for (int j = 0; j < 3; ++j)
+    {
+      _imp->vertices[i + offset][j] = stream.get<float>(i, j);
+    }
+    ++wrote;
   }
 
-  return wrote == vertexCount;
+  return wrote == stream.count();
 }
 
 
-bool PointCloud::processColours(const MeshComponentMessage &msg, const uint32_t *colours, unsigned colourCount)
+bool PointCloud::processColours(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
+  TES_UNUSED(msg);
   copyOnWrite();
   unsigned wrote = 0;
   if (_imp->colours == nullptr)
@@ -511,17 +512,20 @@ bool PointCloud::processColours(const MeshComponentMessage &msg, const uint32_t 
     _imp->colours = new Colour[_imp->vertexCount];
   }
 
-  for (unsigned i = 0; i + msg.offset < _imp->vertexCount && i < msg.count; ++i)
+  for (unsigned i = 0; i + offset < _imp->vertexCount && i < stream.count(); ++i)
   {
-    _imp->colours[i + msg.offset] = colours[i];
+    _imp->colours[i + offset] = stream.get<uint32_t>(i);
+    ;
+    ++wrote;
   }
 
-  return wrote == colourCount;
+  return wrote == stream.count();
 }
 
 
-bool PointCloud::processNormals(const MeshComponentMessage &msg, const float *normals, unsigned normalCount)
+bool PointCloud::processNormals(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
 {
+  TES_UNUSED(msg);
   static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Normal size mismatch");
 
   copyOnWrite();
@@ -531,11 +535,14 @@ bool PointCloud::processNormals(const MeshComponentMessage &msg, const float *no
     _imp->normals = new Vector3f[_imp->vertexCount];
   }
 
-  for (unsigned i = 0; i + msg.offset < _imp->vertexCount && i < msg.count; ++i)
+  for (unsigned i = 0; i + offset < _imp->vertexCount && i < stream.count(); ++i)
   {
-    _imp->normals[i + msg.offset] = Vector3f(normals + i * 3);
+    for (int j = 0; j < 3; ++j)
+    {
+      _imp->normals[i + offset][j] = stream.get<float>(i, j);
+    }
     ++wrote;
   }
 
-  return wrote == normalCount;
+  return wrote == stream.count();
 }

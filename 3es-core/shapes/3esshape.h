@@ -7,9 +7,9 @@
 #include "3es-core.h"
 
 #include "3escolour.h"
+#include "3esid.h"
 #include "3esmessages.h"
-#include "3esquaternionarg.h"
-#include "3esv3arg.h"
+#include "3estransform.h"
 
 #include <cstdint>
 
@@ -78,12 +78,12 @@ class _3es_coreAPI Shape
 public:
   /// Create a new shape with the given @c routingId and instance @c id .
   /// @param routingId Identifies the shape type.
-  /// @param id The shape instance id. A zero id is transient, ~0u is reserved, all other ids must be unique.
-  Shape(uint16_t routingId, uint32_t id = 0);
-  /// Construct a box object.
-  /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  Shape(uint16_t routingId, uint32_t id, uint16_t category);
+  /// @param id The shape instance id.
+  Shape(uint16_t routingId, const Id &id = Id(), const Transform &transform = Transform());
+
+  /// Copy constructor.
+  /// @param other Object to copy.
+  Shape(const Shape &other);
 
   /// Virtual destructor.
   virtual inline ~Shape() = default;
@@ -104,12 +104,15 @@ public:
   /// @return The @c CreateMessage used to represent this shape.
   inline const CreateMessage &data() const { return _data; }
 
+  /// Direct access to the shape attributes. These are stored in double precision, but transmission depends on the
+  /// @c CreateMessage::flag @c OFDoublePrecision . See @c setDoublePrecision() .
+  inline const ObjectAttributesd &attributes() const { return _attributes; }
+
   /// Access the instance id of this shape.
   ///
   /// Shapes must have either a zero id or a unique id. A zero id represents a transient shape which does not need to
   /// be explicitly deleted, while any non-zero id must be unique.
   ///
-  /// Note the id value @c ~0u is reserved.
   /// @return The shape instance id.
   uint32_t id() const;
 
@@ -169,6 +172,15 @@ public:
   /// @return True if the skip resources flag is set.
   bool skipResources() const;
 
+  /// Configures the shape to use double or (on) single (off) precision attributes. See
+  /// @c ObjectFlag::OFDoublePrecision . This is normally implicytly set by how the @c Transform() constructor argument
+  /// is given.
+  /// @return @c *this.
+  Shape &setDoublePrecision(bool doublePrecision);
+  /// Returns true set to skip resource referencing for this shape instance.
+  /// @return True if the skip resources flag is set.
+  bool doublePrecision() const;
+
   /// Set the full set of @c ObjectFlag values.
   /// This affects attributes such as @c isTwoSided() and @c isWireframe().
   /// @param flags New flag values to write.
@@ -178,18 +190,25 @@ public:
   /// @return Active flag set.
   uint16_t flags() const;
 
-  Shape &setPosition(const V3Arg &pos);
-  Vector3f position() const;
+  /// Update the @c position(), @c rotation(), @c scale() and @c doublePrecision() flag.
+  /// @return @c *this
+  Shape &setTransform(const Transform &transform);
 
-  Shape &setPosX(float p);
-  Shape &setPosY(float p);
-  Shape &setPosZ(float p);
+  /// Query the @c position(), @c rotation(), @c scale() and @c doublePrecision() flag.
+  Transform transform() const;
 
-  Shape &setRotation(const QuaternionArg &rot);
-  Quaternionf rotation() const;
+  Shape &setPosition(const Vector3d &pos);
+  Vector3d position() const;
 
-  Shape &setScale(const V3Arg &scale);
-  Vector3f scale() const;
+  Shape &setPosX(double p);
+  Shape &setPosY(double p);
+  Shape &setPosZ(double p);
+
+  Shape &setRotation(const Quaterniond &rot);
+  Quaterniond rotation() const;
+
+  Shape &setScale(const Vector3d &scale);
+  Vector3d scale() const;
 
   Shape &setColour(const Colour &colour);
   Colour colour() const;
@@ -323,37 +342,46 @@ protected:
   /// @param copy The newly cloned object to copy data to. Must not be null.
   void onClone(Shape *copy) const;
 
-  void init(uint32_t id, uint16_t cat = 0, uint16_t flags = 0);
+  void init(const Id &id, const Transform &transform, uint16_t flags = 0);
 
   uint16_t _routingId;
   CreateMessage _data;
+  ObjectAttributesd _attributes;
 };
 
 
-inline Shape::Shape(uint16_t routingId, uint32_t id)
+inline Shape::Shape(uint16_t routingId, const Id &id, const Transform &transform)
   : _routingId(routingId)
 {
-  init(id);
+  init(id, transform);
+  setDoublePrecision(transform.preferDoublePrecision());
 }
 
 
-inline Shape::Shape(uint16_t routingId, uint32_t id, uint16_t category)
-  : _routingId(routingId)
-{
-  init(id, category);
-}
+inline Shape::Shape(const Shape &other)
+  : _routingId(other._routingId)
+  , _data(other._data)
+  , _attributes(other._attributes)
+{}
 
 
-inline void Shape::init(uint32_t id, uint16_t cat, uint16_t flags)
+inline void Shape::init(const Id &id, const Transform &transform, uint16_t flags)
 {
-  _data.id = id;
-  _data.category = cat;
+  _data.id = id.id();
+  _data.category = id.category();
   _data.flags = flags;
   _data.reserved = 0u;
-  _data.attributes.colour = 0xffffffffu;
-  _data.attributes.position[0] = _data.attributes.position[1] = _data.attributes.position[2] = 0;
-  _data.attributes.rotation[0] = _data.attributes.rotation[1] = _data.attributes.rotation[2] = 0;
-  _data.attributes.rotation[3] = _data.attributes.scale[0] = _data.attributes.scale[1] = _data.attributes.scale[2] = 1;
+  _attributes.colour = 0xffffffffu;
+  _attributes.position[0] = transform.position()[0];
+  _attributes.position[1] = transform.position()[1];
+  _attributes.position[2] = transform.position()[2];
+  _attributes.rotation[0] = transform.rotation()[0];
+  _attributes.rotation[1] = transform.rotation()[1];
+  _attributes.rotation[2] = transform.rotation()[2];
+  _attributes.rotation[3] = transform.rotation()[3];
+  _attributes.scale[0] = transform.scale()[0];
+  _attributes.scale[1] = transform.scale()[1];
+  _attributes.scale[2] = transform.scale()[2];
 }
 
 
@@ -459,6 +487,20 @@ inline bool Shape::skipResources() const
 }
 
 
+inline Shape &Shape::setDoublePrecision(bool doublePrecision)
+{
+  _data.flags = uint16_t(_data.flags & ~OFDoublePrecision);
+  _data.flags |= uint16_t(OFDoublePrecision * !!doublePrecision);
+  return *this;
+}
+
+
+inline bool Shape::doublePrecision() const
+{
+  return (_data.flags & OFDoublePrecision) != 0;
+}
+
+
 inline Shape &Shape::setFlags(uint16_t flags)
 {
   _data.flags = flags;
@@ -472,84 +514,102 @@ inline uint16_t Shape::flags() const
 }
 
 
-inline Shape &Shape::setPosition(const V3Arg &pos)
+inline Shape &Shape::setTransform(const Transform &transform)
 {
-  _data.attributes.position[0] = pos[0];
-  _data.attributes.position[1] = pos[1];
-  _data.attributes.position[2] = pos[2];
+  setPosition(transform.position());
+  setRotation(transform.rotation());
+  setScale(transform.scale());
+  setDoublePrecision(transform.preferDoublePrecision());
   return *this;
 }
 
 
-inline Vector3f Shape::position() const
+inline Transform Shape::transform() const
 {
-  return Vector3f(_data.attributes.position[0], _data.attributes.position[1], _data.attributes.position[2]);
+  Transform t(position(), rotation(), scale());
+  t.setPreferDoublePrecision(doublePrecision());
+  return t;
 }
 
 
-inline Shape &Shape::setPosX(float p)
+inline Shape &Shape::setPosition(const Vector3d &pos)
 {
-  _data.attributes.position[0] = p;
+  _attributes.position[0] = pos[0];
+  _attributes.position[1] = pos[1];
+  _attributes.position[2] = pos[2];
   return *this;
 }
 
 
-inline Shape &Shape::setPosY(float p)
+inline Vector3d Shape::position() const
 {
-  _data.attributes.position[1] = p;
+  return Vector3d(_attributes.position[0], _attributes.position[1], _attributes.position[2]);
+}
+
+
+inline Shape &Shape::setPosX(double p)
+{
+  _attributes.position[0] = p;
   return *this;
 }
 
 
-inline Shape &Shape::setPosZ(float p)
+inline Shape &Shape::setPosY(double p)
 {
-  _data.attributes.position[2] = p;
+  _attributes.position[1] = p;
   return *this;
 }
 
 
-inline Shape &Shape::setRotation(const QuaternionArg &rot)
+inline Shape &Shape::setPosZ(double p)
 {
-  _data.attributes.rotation[0] = rot[0];
-  _data.attributes.rotation[1] = rot[1];
-  _data.attributes.rotation[2] = rot[2];
-  _data.attributes.rotation[3] = rot[3];
+  _attributes.position[2] = p;
   return *this;
 }
 
 
-inline Quaternionf Shape::rotation() const
+inline Shape &Shape::setRotation(const Quaterniond &rot)
 {
-  return Quaternionf(_data.attributes.rotation[0], _data.attributes.rotation[1], _data.attributes.rotation[2],
-                     _data.attributes.rotation[3]);
-}
-
-
-inline Shape &Shape::setScale(const V3Arg &scale)
-{
-  _data.attributes.scale[0] = scale[0];
-  _data.attributes.scale[1] = scale[1];
-  _data.attributes.scale[2] = scale[2];
+  _attributes.rotation[0] = rot[0];
+  _attributes.rotation[1] = rot[1];
+  _attributes.rotation[2] = rot[2];
+  _attributes.rotation[3] = rot[3];
   return *this;
 }
 
 
-inline Vector3f Shape::scale() const
+inline Quaterniond Shape::rotation() const
 {
-  return Vector3f(_data.attributes.scale[0], _data.attributes.scale[1], _data.attributes.scale[2]);
+  return Quaterniond(_attributes.rotation[0], _attributes.rotation[1], _attributes.rotation[2],
+                     _attributes.rotation[3]);
+}
+
+
+inline Shape &Shape::setScale(const Vector3d &scale)
+{
+  _attributes.scale[0] = scale[0];
+  _attributes.scale[1] = scale[1];
+  _attributes.scale[2] = scale[2];
+  return *this;
+}
+
+
+inline Vector3d Shape::scale() const
+{
+  return Vector3d(_attributes.scale[0], _attributes.scale[1], _attributes.scale[2]);
 }
 
 
 inline Shape &Shape::setColour(const Colour &colour)
 {
-  _data.attributes.colour = colour.c;
+  _attributes.colour = colour.c;
   return *this;
 }
 
 
 inline Colour Shape::colour() const
 {
-  return Colour(_data.attributes.colour);
+  return Colour(_attributes.colour);
 }
 }  // namespace tes
 

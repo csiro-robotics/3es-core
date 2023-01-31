@@ -57,93 +57,94 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
   EXPECT_EQ(mesh.typeId(), reference.typeId());
   EXPECT_EQ(mesh.uniqueKey(), reference.uniqueKey());
 
-  EXPECT_TRUE(mesh.transform().equals(reference.transform()));
+  EXPECT_TRUE(mesh.transform().isEqual(reference.transform()));
   EXPECT_EQ(mesh.tint(), reference.tint());
   EXPECT_EQ(mesh.vertexCount(), reference.vertexCount());
   EXPECT_EQ(mesh.indexCount(), reference.indexCount());
 
   // Check vertices and vertex related components.
-  unsigned meshStride, refStride = 0;
   if (reference.vertexCount() && mesh.vertexCount() == reference.vertexCount())
   {
-    const float *meshVerts = mesh.vertices(meshStride);
-    const float *refVerts = reference.vertices(refStride);
+    DataBuffer meshVerts = mesh.vertices();
+    DataBuffer refVerts = reference.vertices();
 
-    ASSERT_NE(meshVerts, nullptr);
-    ASSERT_NE(refVerts, nullptr);
+    ASSERT_TRUE(meshVerts.isValid());
+    ASSERT_TRUE(refVerts.isValid());
+    ASSERT_EQ(meshVerts.count(), refVerts.count());
 
     for (unsigned i = 0; i < mesh.vertexCount(); ++i)
     {
-      if (meshVerts[0] != refVerts[0] || meshVerts[1] != refVerts[1] || meshVerts[2] != refVerts[2])
+      const Vector3f meshVert(meshVerts.get<float>(i, 0), meshVerts.get<float>(i, 1), meshVerts.get<float>(i, 2));
+      const Vector3f refVert(meshVerts.get<float>(i, 0), refVerts.get<float>(i, 1), refVerts.get<float>(i, 2));
+      if (meshVert[0] != refVert[0] || meshVert[1] != refVert[1] || meshVert[2] != refVert[2])
       {
-        FAIL() << "vertex[" << i << "]: (" << meshVerts[0] << ',' << meshVerts[1] << ',' << meshVerts[2] << ") != ("
-               << refVerts[0] << ',' << refVerts[1] << ',' << refVerts[2] << ")";
+        FAIL() << "vertex[" << i << "]: (" << meshVert[0] << ',' << meshVert[1] << ',' << meshVert[2] << ") != ("
+               << refVert[0] << ',' << refVert[1] << ',' << refVert[2] << ")";
       }
-
-      meshVerts += meshStride / sizeof(float);
-      refVerts += refStride / sizeof(float);
     }
 
     // Check normals.
-    if (reference.normals(refStride))
+    if (reference.normals().isValid())
     {
-      ASSERT_TRUE(mesh.normals(meshStride)) << "Mesh missing normals.";
+      ASSERT_TRUE(mesh.normals().isValid()) << "Mesh missing normals.";
 
-      const float *meshNorms = mesh.normals(meshStride);
-      const float *refNorms = reference.normals(refStride);
+      DataBuffer meshNorms = mesh.normals();
+      DataBuffer refNorms = reference.normals();
 
-      for (unsigned i = 0; i < mesh.vertexCount(); ++i)
+      ASSERT_EQ(meshNorms.count(), refNorms.count());
+
+      for (unsigned i = 0; i < meshNorms.count(); ++i)
       {
-        if (meshNorms[0] != refNorms[0] || meshNorms[1] != refNorms[1] || meshNorms[2] != refNorms[2])
+        const Vector3f meshNorm(meshNorms.get<float>(i, 0), meshNorms.get<float>(i, 1), meshNorms.get<float>(i, 2));
+        const Vector3f refNorm(meshNorms.get<float>(i, 0), refNorms.get<float>(i, 1), refNorms.get<float>(i, 2));
+        if (meshNorm[0] != refNorm[0] || meshNorm[1] != refNorm[1] || meshNorm[2] != refNorm[2])
         {
-          FAIL() << "normal[" << i << "]: (" << meshNorms[0] << ',' << meshNorms[1] << ',' << meshNorms[2] << ") != ("
-                 << refNorms[0] << ',' << refNorms[1] << ',' << refNorms[2] << ")";
+          FAIL() << "normal[" << i << "]: (" << meshNorm[0] << ',' << meshNorm[1] << ',' << meshNorm[2] << ") != ("
+                 << refNorm[0] << ',' << refNorm[1] << ',' << refNorm[2] << ")";
         }
-
-        meshNorms += meshStride / sizeof(float);
-        refNorms += refStride / sizeof(float);
       }
     }
 
     // Check colours.
-    if (reference.colours(refStride))
+    if (reference.colours().isValid())
     {
-      ASSERT_TRUE(mesh.colours(meshStride)) << "Mesh missing colours.";
+      ASSERT_TRUE(mesh.colours().isValid()) << "Mesh missing colours.";
 
-      const uint32_t *meshColours = mesh.colours(meshStride);
-      const uint32_t *refColours = reference.colours(refStride);
+      DataBuffer meshColours = mesh.colours();
+      DataBuffer refColours = reference.colours();
 
-      for (unsigned i = 0; i < mesh.vertexCount(); ++i)
+      ASSERT_EQ(meshColours.count(), refColours.count());
+
+      for (unsigned i = 0; i < meshColours.count(); ++i)
       {
-        if (*meshColours != *refColours)
+        if (meshColours.get<uint32_t>(i) != refColours.get<uint32_t>(i))
         {
-          FAIL() << "colour[" << i << "]: 0x" << std::hex << std::setw(8) << std::setfill('0') << *meshColours
-                 << " != 0x" << *refColours << std::dec << std::setw(0) << std::setfill(' ');
+          FAIL() << "colour[" << i << "]: 0x" << std::hex << std::setw(8) << std::setfill('0')
+                 << meshColours.get<uint32_t>(i) << " != 0x" << refColours.get<uint32_t>(i) << std::dec << std::setw(0)
+                 << std::setfill(' ');
         }
-
-        meshColours += meshStride / sizeof(uint32_t);
-        refColours += refStride / sizeof(uint32_t);
       }
     }
 
     // Check UVs.
-    if (reference.uvs(refStride))
+    if (reference.uvs().isValid())
     {
-      ASSERT_TRUE(mesh.uvs(meshStride)) << "Mesh missing UVs.";
+      ASSERT_TRUE(mesh.uvs().isValid()) << "Mesh missing UVs.";
 
-      const float *meshUVs = mesh.uvs(meshStride);
-      const float *refUVs = reference.uvs(refStride);
+      DataBuffer meshUVs = mesh.uvs();
+      DataBuffer refUVs = reference.uvs();
 
-      for (unsigned i = 0; i < mesh.vertexCount(); ++i)
+      ASSERT_EQ(meshUVs.count(), refUVs.count());
+
+      for (unsigned i = 0; i < meshUVs.count(); ++i)
       {
-        if (meshUVs[0] != refUVs[0] || meshUVs[1] != refUVs[1])
+        const float meshUV[2] = { meshUVs.get<float>(i, 1), meshUVs.get<float>(i, 2) };
+        const float refUV[2] = { refUVs.get<float>(i, 1), refUVs.get<float>(i, 2) };
+        if (meshUV[0] != refUV[0] || meshUV[1] != refUV[1])
         {
-          FAIL() << "uv[" << i << "]: (" << meshUVs[0] << ',' << meshUVs[1] << ") != (" << refUVs[0] << ',' << refUVs[1]
+          FAIL() << "uv[" << i << "]: (" << meshUV[0] << ',' << meshUV[1] << ") != (" << refUV[0] << ',' << refUV[1]
                  << ")";
         }
-
-        meshUVs += meshStride / sizeof(float);
-        refUVs += refStride / sizeof(float);
       }
     }
   }
@@ -151,56 +152,18 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
   // Check indices.
   if (reference.indexCount() && mesh.indexCount() == reference.indexCount())
   {
-    unsigned meshWidth = 0, refWidth = 0;
-    const uint8_t *meshInds = mesh.indices(meshStride, meshWidth);
-    const uint8_t *refInds = reference.indices(refStride, refWidth);
+    DataBuffer meshInds = mesh.indices();
+    DataBuffer refInds = reference.indices();
 
-    ASSERT_NE(meshInds, nullptr);
-    ASSERT_NE(refInds, nullptr);
+    ASSERT_TRUE(meshInds.isValid());
+    ASSERT_TRUE(refInds.isValid());
+
+    ASSERT_EQ(meshInds.count(), refInds.count());
 
     // Handle index widths.
-    std::function<unsigned(const uint8_t *)> meshGetIndex, refGetIndex;
-
-    auto getIndex1 = [](const uint8_t *mem) { return unsigned(*mem); };
-    auto getIndex2 = [](const uint8_t *mem) { return unsigned(*reinterpret_cast<const uint16_t *>(mem)); };
-    auto getIndex4 = [](const uint8_t *mem) { return unsigned(*reinterpret_cast<const uint32_t *>(mem)); };
-
-    switch (meshWidth)
+    for (unsigned i = 0; i < meshInds.count(); ++i)
     {
-    case 1:
-      meshGetIndex = getIndex1;
-      break;
-    case 2:
-      meshGetIndex = getIndex2;
-      break;
-    case 4:
-      meshGetIndex = getIndex4;
-      break;
-    default:
-      ASSERT_TRUE(false) << "Unexpected index width.";
-    }
-
-    switch (refWidth)
-    {
-    case 1:
-      refGetIndex = getIndex1;
-      break;
-    case 2:
-      refGetIndex = getIndex2;
-      break;
-    case 4:
-      refGetIndex = getIndex4;
-      break;
-    default:
-      ASSERT_TRUE(false) << "Unexpected index width.";
-    }
-
-    for (unsigned i = 0; i < mesh.indexCount(); ++i)
-    {
-      EXPECT_EQ(meshGetIndex(meshInds), refGetIndex(refInds));
-
-      meshInds += meshStride;
-      refInds += refStride;
+      EXPECT_EQ(meshInds.get<uint32_t>(i), refInds.get<uint32_t>(i));
     }
   }
 }
@@ -217,20 +180,20 @@ void validateShape(const Shape &shape, const Shape &reference, const ResourceMap
   EXPECT_EQ(shape.data().flags, reference.data().flags);
   EXPECT_EQ(shape.data().reserved, reference.data().reserved);
 
-  EXPECT_EQ(shape.data().attributes.colour, reference.data().attributes.colour);
+  EXPECT_EQ(shape.attributes().colour, reference.attributes().colour);
 
-  EXPECT_EQ(shape.data().attributes.position[0], reference.data().attributes.position[0]);
-  EXPECT_EQ(shape.data().attributes.position[1], reference.data().attributes.position[1]);
-  EXPECT_EQ(shape.data().attributes.position[2], reference.data().attributes.position[2]);
+  EXPECT_EQ(shape.attributes().position[0], reference.attributes().position[0]);
+  EXPECT_EQ(shape.attributes().position[1], reference.attributes().position[1]);
+  EXPECT_EQ(shape.attributes().position[2], reference.attributes().position[2]);
 
-  EXPECT_EQ(shape.data().attributes.rotation[0], reference.data().attributes.rotation[0]);
-  EXPECT_EQ(shape.data().attributes.rotation[1], reference.data().attributes.rotation[1]);
-  EXPECT_EQ(shape.data().attributes.rotation[2], reference.data().attributes.rotation[2]);
-  EXPECT_EQ(shape.data().attributes.rotation[3], reference.data().attributes.rotation[3]);
+  EXPECT_EQ(shape.attributes().rotation[0], reference.attributes().rotation[0]);
+  EXPECT_EQ(shape.attributes().rotation[1], reference.attributes().rotation[1]);
+  EXPECT_EQ(shape.attributes().rotation[2], reference.attributes().rotation[2]);
+  EXPECT_EQ(shape.attributes().rotation[3], reference.attributes().rotation[3]);
 
-  EXPECT_EQ(shape.data().attributes.scale[0], reference.data().attributes.scale[0]);
-  EXPECT_EQ(shape.data().attributes.scale[1], reference.data().attributes.scale[1]);
-  EXPECT_EQ(shape.data().attributes.scale[2], reference.data().attributes.scale[2]);
+  EXPECT_EQ(shape.attributes().scale[0], reference.attributes().scale[0]);
+  EXPECT_EQ(shape.attributes().scale[1], reference.attributes().scale[1]);
+  EXPECT_EQ(shape.attributes().scale[2], reference.attributes().scale[2]);
 }
 
 
@@ -260,22 +223,41 @@ void validateShape(const MeshShape &shape, const MeshShape &reference, const Res
   validateShape(static_cast<const Shape>(shape), static_cast<const Shape>(reference), resources);
 
   EXPECT_EQ(shape.drawType(), reference.drawType());
-  EXPECT_EQ(shape.vertexCount(), reference.vertexCount());
-  EXPECT_EQ(shape.vertexStride(), reference.vertexStride());
-  EXPECT_EQ(shape.normalsCount(), reference.normalsCount());
-  EXPECT_EQ(shape.normalsStride(), reference.normalsStride());
-  EXPECT_EQ(shape.indexCount(), reference.indexCount());
+  if (reference.vertices().count())
+  {
+    EXPECT_EQ(shape.vertices().count(), reference.vertices().count());
+    EXPECT_EQ(shape.vertices().componentCount(), reference.vertices().componentCount());
+    EXPECT_EQ(shape.vertices().elementStride(), reference.vertices().elementStride());
+  }
+  if (reference.indices().count())
+  {
+    EXPECT_EQ(shape.indices().count(), reference.indices().count());
+    EXPECT_EQ(shape.indices().componentCount(), reference.indices().componentCount());
+    EXPECT_EQ(shape.indices().elementStride(), reference.indices().elementStride());
+  }
+  if (reference.normals().count())
+  {
+    EXPECT_EQ(shape.normals().count(), reference.normals().count());
+    EXPECT_EQ(shape.normals().componentCount(), reference.normals().componentCount());
+    EXPECT_EQ(shape.normals().elementStride(), reference.normals().elementStride());
+  }
+  if (reference.colours().count())
+  {
+    EXPECT_EQ(shape.colours().count(), reference.colours().count());
+    EXPECT_EQ(shape.colours().componentCount(), reference.colours().componentCount());
+    EXPECT_EQ(shape.colours().elementStride(), reference.colours().elementStride());
+  }
 
   // Validate vertices.
   Vector3f v, r;
-  if (shape.vertexCount() == reference.vertexCount() && shape.vertexCount())
+  if (shape.vertices().count() == reference.vertices().count() && shape.vertices().count())
   {
-    ASSERT_NE(shape.vertices(), nullptr);
-    ASSERT_NE(reference.vertices(), nullptr);
-    for (unsigned i = 0; i < shape.vertexCount(); ++i)
+    ASSERT_TRUE(shape.vertices().isValid());
+    ASSERT_TRUE(reference.vertices().isValid());
+    for (unsigned i = 0; i < shape.vertices().count(); ++i)
     {
-      v = Vector3f(shape.vertices() + i * shape.vertexStride());
-      r = Vector3f(reference.vertices() + i * reference.vertexStride());
+      v = Vector3f(shape.vertices().ptr<float>(i));
+      r = Vector3f(reference.vertices().ptr<float>(i));
 
       if (v != r)
       {
@@ -285,15 +267,15 @@ void validateShape(const MeshShape &shape, const MeshShape &reference, const Res
     }
   }
 
-  if (shape.indexCount() == reference.indexCount() && shape.indexCount())
+  if (shape.indices().count() == reference.indices().count() && shape.indices().count())
   {
-    ASSERT_NE(shape.indices(), nullptr);
-    ASSERT_NE(reference.indices(), nullptr);
+    ASSERT_NE(shape.indices().ptr<uint32_t>(), nullptr);
+    ASSERT_NE(reference.indices().ptr<uint32_t>(), nullptr);
     unsigned is, ir;
-    for (unsigned i = 0; i < shape.indexCount(); ++i)
+    for (unsigned i = 0; i < shape.indices().count(); ++i)
     {
-      is = shape.indices()[i];
-      ir = reference.indices()[i];
+      is = *shape.indices().ptr<uint32_t>(i);
+      ir = *reference.indices().ptr<uint32_t>(i);
 
       if (is != ir)
       {
@@ -303,14 +285,14 @@ void validateShape(const MeshShape &shape, const MeshShape &reference, const Res
     }
   }
 
-  if (shape.normalsCount() == reference.normalsCount() && shape.normalsCount())
+  if (shape.normals().count() == reference.normals().count() && shape.normals().count())
   {
-    ASSERT_NE(shape.normals(), nullptr);
-    ASSERT_NE(reference.normals(), nullptr);
-    for (unsigned i = 0; i < shape.normalsCount(); ++i)
+    ASSERT_TRUE(shape.vertices().isValid());
+    ASSERT_TRUE(reference.vertices().isValid());
+    for (unsigned i = 0; i < shape.normals().count(); ++i)
     {
-      v = Vector3f(shape.normals() + i * shape.normalsStride());
-      r = Vector3f(reference.normals() + i * reference.normalsStride());
+      v = Vector3f(shape.normals().ptr<float>(i));
+      r = Vector3f(reference.normals().ptr<float>(i));
 
       if (v != r)
       {
@@ -320,18 +302,14 @@ void validateShape(const MeshShape &shape, const MeshShape &reference, const Res
     }
   }
 
-  if (reference.colours())
-  {
-    ASSERT_NE(shape.colours(), nullptr);
-  }
-
-  if (shape.vertexCount() == reference.vertexCount() && reference.colours())
+  if (shape.colours().count() == reference.colours().count() && reference.colours().count() &&
+      shape.colours().count() == shape.vertices().count())
   {
     Colour cs, cr;
-    for (unsigned i = 0; i < shape.vertexCount(); ++i)
+    for (unsigned i = 0; i < shape.colours().count(); ++i)
     {
-      cs = shape.colours()[i];
-      cr = reference.colours()[i];
+      cs = *shape.colours().ptr<uint32_t>(i);
+      cr = *reference.colours().ptr<uint32_t>(i);
 
       if (cs != cr)
       {
@@ -393,7 +371,7 @@ void validateShape(const MeshSet &shape, const MeshSet &reference, const Resourc
     const MeshResource *part = static_cast<const MeshResource *>(resIter->second);
     const MeshResource *refPart = reference.partResource(i);
 
-    EXPECT_TRUE(shape.partTransform(i).equals(reference.partTransform(i)));
+    EXPECT_TRUE(shape.partTransform(i).isEqual(reference.partTransform(i)));
     EXPECT_EQ(shape.partColour(i), reference.partColour(i));
     validateMesh(*part, *refPart);
   }

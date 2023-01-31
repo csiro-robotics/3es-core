@@ -37,8 +37,8 @@ public:
   /// @param indexCount Number of indices to preallocate.
   /// @param drawType Defines the primitive type being indexed.
   /// @param components The components defined by this mesh. See @c ComponentFlag.
-  SimpleMesh(uint32_t id, const UIntArg &vertexCount = 0u, const UIntArg &indexCount = 0u,
-             DrawType drawType = DtTriangles, unsigned components = Vertex | Index);
+  SimpleMesh(uint32_t id, size_t vertexCount = 0u, size_t indexCount = 0u, DrawType drawType = DtTriangles,
+             unsigned components = Vertex | Index);
 
 protected:
   /// Copy constructor supporting initial, shallow copy with copy on write semantics.
@@ -59,7 +59,7 @@ public:
   virtual uint32_t id() const override;
 
   /// @copydoc Resource::transform()
-  virtual Matrix4f transform() const override;
+  virtual Transform transform() const override;
 
   /// Set the object transformation matrix for this mesh.
   ///
@@ -67,7 +67,7 @@ public:
   /// object matrix and a transformation matrix for each contains @c MeshResource.
   ///
   /// @param transform The object transformation matrix for the mesh.
-  void setTransform(const Matrix4f &transform);
+  void setTransform(const Transform &transform);
 
   /// @copydoc MeshResource::tint()
   virtual uint32_t tint() const override;
@@ -104,58 +104,56 @@ public:
 
   unsigned vertexCount() const;
   virtual unsigned vertexCount(int stream) const override;
-  void setVertexCount(const UIntArg &count);
-  void reserveVertexCount(const UIntArg &count);
+  void setVertexCount(size_t count);
+  void reserveVertexCount(size_t count);
 
   inline unsigned addVertex(const Vector3f &v) { return addVertices(&v, 1u); }
-  unsigned addVertices(const Vector3f *v, const UIntArg &count);
-  inline bool setVertex(const UIntArg &at, const Vector3f &v) { return setVertices(at, &v, 1u) == 1u; }
-  unsigned setVertices(const UIntArg &at, const Vector3f *v, const UIntArg &count);
+  unsigned addVertices(const Vector3f *v, size_t count);
+  inline bool setVertex(size_t at, const Vector3f &v) { return setVertices(at, &v, 1u) == 1u; }
+  unsigned setVertices(size_t at, const Vector3f *v, size_t count);
   const Vector3f *vertices() const;
-  virtual const float *vertices(unsigned &stride, int stream = 0) const override;
+  virtual DataBuffer vertices(int stream) const override;
 
   unsigned indexCount() const;
   virtual unsigned indexCount(int stream) const override;
-  void setIndexCount(const UIntArg &count);
-  void reserveIndexCount(const UIntArg &count);
+  void setIndexCount(size_t count);
+  void reserveIndexCount(size_t count);
 
   inline void addIndex(uint32_t i) { return addIndices(&i, 1u); }
-  void addIndices(const uint32_t *idx, const UIntArg &count);
-  inline bool setIndex(const UIntArg &at, uint32_t i) { return setIndices(at, &i, 1u) == 1u; }
-  unsigned setIndices(const UIntArg &at, const uint32_t *idx, const UIntArg &count);
+  void addIndices(const uint32_t *idx, size_t count);
+  inline bool setIndex(size_t at, uint32_t i) { return setIndices(at, &i, 1u) == 1u; }
+  unsigned setIndices(size_t at, const uint32_t *idx, size_t count);
   const uint32_t *indices() const;
-  virtual const uint8_t *indices(unsigned &stride, unsigned &width, int stream = 0) const override;
+  virtual DataBuffer indices(int stream) const override;
 
-  inline bool setNormal(const UIntArg &at, const Vector3f &n) { return setNormals(at, &n, 1u) == 1u; }
-  unsigned setNormals(const UIntArg &at, const Vector3f *n, const UIntArg &count);
+  inline bool setNormal(size_t at, const Vector3f &n) { return setNormals(at, &n, 1u) == 1u; }
+  unsigned setNormals(size_t at, const Vector3f *n, size_t count);
   const Vector3f *normals() const;
-  virtual const float *normals(unsigned &stride, int stream) const override;
+  virtual DataBuffer normals(int stream) const override;
 
-  inline bool setColour(const UIntArg &at, uint32_t c) { return setColours(at, &c, 1u) == 1u; }
-  unsigned setColours(const UIntArg &at, const uint32_t *c, const UIntArg &count);
+  inline bool setColour(size_t at, uint32_t c) { return setColours(at, &c, 1u) == 1u; }
+  unsigned setColours(size_t at, const uint32_t *c, size_t count);
   const uint32_t *colours() const;
-  virtual const uint32_t *colours(unsigned &stride, int stream) const override;
+  virtual DataBuffer colours(int stream) const override;
 
-  inline bool setUv(const UIntArg &at, float u, float v)
+  inline bool setUv(size_t at, float u, float v)
   {
     const float uv[2] = { u, v };
     return setUvs(at, uv, 1u) == 1u;
   }
-  unsigned setUvs(const UIntArg &at, const float *uvs, const UIntArg &count);
+  unsigned setUvs(size_t at, const float *uvs, size_t count);
   const float *uvs() const;
-  virtual const float *uvs(unsigned &stride, int stream) const override;
+  virtual DataBuffer uvs(int stream) const override;
 
 private:
   void copyOnWrite();
 
-  bool processCreate(const MeshCreateMessage &msg) override;
-  bool processVertices(const MeshComponentMessage &msg, const float *vertices, unsigned vertexCount) override;
-  bool processIndices(const MeshComponentMessage &msg, const uint8_t *indices, unsigned indexCount) override;
-  bool processIndices(const MeshComponentMessage &msg, const uint16_t *indices, unsigned indexCount) override;
-  bool processIndices(const MeshComponentMessage &msg, const uint32_t *indices, unsigned indexCount) override;
-  bool processColours(const MeshComponentMessage &msg, const uint32_t *colours, unsigned colourCount) override;
-  bool processNormals(const MeshComponentMessage &msg, const float *normals, unsigned normalCount) override;
-  bool processUVs(const MeshComponentMessage &msg, const float *uvs, unsigned uvCount) override;
+  bool processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes) override;
+  bool processVertices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream) override;
+  bool processIndices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream) override;
+  bool processColours(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream) override;
+  bool processNormals(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream) override;
+  bool processUVs(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream) override;
 
   SimpleMeshImp *_imp;
 };

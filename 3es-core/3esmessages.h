@@ -93,16 +93,18 @@ enum ObjectMessageId
 /// Flags controlling the creation and appearance of an object.
 enum ObjectFlag
 {
-  OFNone = 0,                ///< No flags. Default appearance.
-  OFWire = (1 << 0),         ///< Show the object as a wireframe mesh.
-  OFTransparent = (1 << 1),  ///< The object supports transparency. Use the colour alpha channel.
-  OFTwoSided = (1 << 2),     ///< Use a two sided shader.
+  OFNone = 0,  ///< No flags. Default appearance.
+  /// Indicates @c ObjectAttributes is in double precision.
+  OFDoublePrecision = (1 << 0),
+  OFWire = (1 << 1),         ///< Show the object as a wireframe mesh.
+  OFTransparent = (1 << 2),  ///< The object supports transparency. Use the colour alpha channel.
+  OFTwoSided = (1 << 3),     ///< Use a two sided shader.
   /// Shape creation should replace any pre-exiting shape with the same object ID.
   /// Normally duplicate shape creation messages are not allowed. This flag allows a duplicate shape ID
   /// (non-transient) by replacing the previous shape.
-  OFReplace = (1 << 3),
+  OFReplace = (1 << 4),
   /// Creating multiple shapes in one message.
-  OFMultiShape = (1 << 4),
+  OFMultiShape = (1 << 5),
   /// Do not reference count resources or queue resources for sending.
   ///
   /// By default each connection reference counts and queues resources for each shape, sending them from
@@ -113,7 +115,7 @@ enum ObjectFlag
   ///
   /// This should always be used when using the @c OFReplace flag as reference counting can only be maintained with
   /// proper create/destroy command pairs.
-  OFSkipResources = (1 << 5),
+  OFSkipResources = (1 << 6),
 
   OFUser = (1 << 8)  ///< User flags start here.
 };
@@ -167,6 +169,29 @@ enum ControlFlag
 {
   /// Flag for @c CIdFrame indicating transient objects should be maintained and not flushed for this frame.
   CFFramePersist = (1 << 0),
+};
+
+/// Data type identifies for any data stream type. Also used in @c DataBuffer to identify the contained data type.
+/// Note the packed types are not valid to be held in a @c DataBuffer and are only used in transmission.
+enum DataStreamType
+{
+  DctNone,     ///< No type: invalid.
+  DctInt8,     ///< Elements using 8-bit signed integers.
+  DctUInt8,    ///< Elements using 8-bit unsigned integers.
+  DctInt16,    ///< Elements using 16-bit signed integers.
+  DctUInt16,   ///< Elements using 16-bit unsigned integers.
+  DctInt32,    ///< Elements using 32-bit signed integers.
+  DctUInt32,   ///< Elements using 32-bit unsigned integers.
+  DctInt64,    ///< Elements using 64-bit signed integers.
+  DctUInt64,   ///< Elements using 64-bit unsigned integers.
+  DctFloat32,  ///< Elements using single precision floating point values.
+  DctFloat64,  ///< Elements using double precision floating point values.
+  /// Elements packed using 16-bit signed integers used to quantise single precision floating point values.
+  /// The quantisation scale factor immeidately preceeds the data array as a 32-bit floating point value.
+  DctPackedFloat16,
+  /// Elements packed using 32-bit signed integers used to quantise double precision floating point values.
+  /// The quantisation scale factor immeidately preceeds the data array as a 64-bit floating point value.
+  DctPackedFloat32,
 };
 
 /// Information about the server. This is sent to clients on connection.
@@ -371,12 +396,13 @@ struct _3es_coreAPI CollatedPacketMessage
 
 /// Contains core object attributes. This includes details
 /// of the model transform and colour.
+template <typename real>
 struct _3es_coreAPI ObjectAttributes
 {
-  uint32_t colour;    ///< Initial object colour.
-  float position[3];  ///< Object position.
-  float rotation[4];  ///< Object rotation (quaternion) xyzw order.
-  float scale[3];     ///< Object scale.
+  uint32_t colour;   ///< Initial object colour.
+  real position[3];  ///< Object position.
+  real rotation[4];  ///< Object rotation (quaternion) xyzw order.
+  real scale[3];     ///< Object scale.
 
   /// Set to an identity transform coloured white.
   inline void identity()
@@ -387,35 +413,125 @@ struct _3es_coreAPI ObjectAttributes
     scale[0] = scale[1] = scale[2] = 1.0f;
   }
 
-  /// Read this message from @p reader.
+  /// Read this message from @p reader as is.
   /// @param reader The data source.
   /// @return True on success.
-  inline bool read(PacketReader &reader)
+  inline bool read(PacketReader &reader) { return readT<real>(reader); }
+
+  /// Read this message from @p reader reading either double or single precision depending on @p read_double_precision .
+  /// @param reader The data source.
+  /// @param read_double_precision True to try read double precision, false to try single precision.
+  /// @return True on success.
+  inline bool read(PacketReader &reader, bool read_double_precision)
+  {
+    if (read_double_precision)
+    {
+      return readT<double>(reader);
+    }
+    return readT<float>(reader);
+  }
+
+  /// Read this message from @p reader using the type @p T to decode position, rotation and scale elements.
+  /// @param reader The data source.
+  /// @return True on success.
+  /// @tparam T Either @c float or @c double
+  template <typename T>
+  inline bool readT(PacketReader &reader)
   {
     bool ok = true;
+    T value;
     ok = reader.readElement(colour) == sizeof(colour) && ok;
-    ok = reader.readArray(&position[0], 3) == 3 && ok;
-    ok = reader.readArray(&rotation[0], 4) == 4 && ok;
-    ok = reader.readArray(&scale[0], 3) == 3 && ok;
+    for (int i = 0; i < 3; ++i)
+    {
+      ok = reader.readElement(value) == sizeof(value) && ok;
+      position[i] = real(value);
+    }
+    for (int i = 0; i < 4; ++i)
+    {
+      ok = reader.readElement(value) == sizeof(value) && ok;
+      rotation[i] = real(value);
+    }
+    for (int i = 0; i < 3; ++i)
+    {
+      ok = reader.readElement(value) == sizeof(value) && ok;
+      scale[i] = real(value);
+    }
     return ok;
   }
 
-  /// Write this message to @p writer.
+  /// Write this message to @p writer as is.
   /// @param writer The target buffer.
   /// @return True on success.
-  inline bool write(PacketWriter &writer) const
+  inline bool write(PacketWriter &writer) const { return writeT<real>(writer); }
+
+  /// Write this message to @p writer selecting the packing precision based on @c write_double_precision .
+  /// @param writer The target buffer.
+  /// @param write_double_precision True to write double precision values, false for single precision.
+  /// @return True on success.
+  inline bool write(PacketWriter &writer, bool write_double_precision) const
+  {
+    if (write_double_precision)
+    {
+      return writeT<double>(writer);
+    }
+    return writeT<float>(writer);
+  }
+
+  /// Write this message to @p writer using the type @p T to encoder position, rotation and scale elements.
+  /// @param writer The target buffer.
+  /// @return True on success.
+  /// @tparam T Either @c float or @c double
+  template <typename T>
+  inline bool writeT(PacketWriter &writer) const
   {
     bool ok = true;
+    T value;
     ok = writer.writeElement(colour) == sizeof(colour) && ok;
-    ok = writer.writeArray(&position[0], 3) == 3 && ok;
-    ok = writer.writeArray(&rotation[0], 4) == 4 && ok;
-    ok = writer.writeArray(&scale[0], 3) == 3 && ok;
+    for (int i = 0; i < 3; ++i)
+    {
+      value = T(position[i]);
+      ok = writer.writeElement(value) == sizeof(value) && ok;
+    }
+    for (int i = 0; i < 4; ++i)
+    {
+      value = T(rotation[i]);
+      ok = writer.writeElement(value) == sizeof(value) && ok;
+    }
+    for (int i = 0; i < 3; ++i)
+    {
+      value = T(scale[i]);
+      ok = writer.writeElement(value) == sizeof(value) && ok;
+    }
     return ok;
+  }
+
+  template <typename real_dst>
+  inline operator ObjectAttributes<real_dst>() const
+  {
+    ObjectAttributes<real_dst> dst;
+    dst.colour = colour;
+    dst.position[0] = real_dst(position[0]);
+    dst.position[1] = real_dst(position[1]);
+    dst.position[2] = real_dst(position[2]);
+    dst.rotation[0] = real_dst(rotation[0]);
+    dst.rotation[1] = real_dst(rotation[1]);
+    dst.rotation[2] = real_dst(rotation[2]);
+    dst.rotation[3] = real_dst(rotation[3]);
+    dst.scale[0] = real_dst(scale[0]);
+    dst.scale[1] = real_dst(scale[1]);
+    dst.scale[2] = real_dst(scale[2]);
+    return dst;
   }
 };
 
-/// Defines an object creation message. This is the message header and the type
-/// specific payload follows.
+template struct _3es_coreAPI ObjectAttributes<float>;
+template struct _3es_coreAPI ObjectAttributes<double>;
+using ObjectAttributesf = ObjectAttributes<float>;
+using ObjectAttributesd = ObjectAttributes<double>;
+
+/// Defines an object creation message. This is the message header and is immediately followed by @c ObjectAttributes
+/// in either single or double precision depending on the @c OFDoublePrecision flag. Any type type specific payload
+/// follows.
 struct _3es_coreAPI CreateMessage
 {
   /// ID for this message.
@@ -424,39 +540,39 @@ struct _3es_coreAPI CreateMessage
     MessageId = OIdCreate
   };
 
-  uint32_t id;                  ///< Id of the object to create. Zero for transient objects.
-  uint16_t category;            ///< Object categorisation. Used to control visibility.
-  uint16_t flags;               ///< Flags controlling the appearance and creation of the object (@c ObjectFlag).
-  uint16_t reserved;            ///< Reserved for future use.
-  ObjectAttributes attributes;  ///< Initial transformation and colour.
+  uint32_t id;        ///< Id of the object to create. Zero for transient objects.
+  uint16_t category;  ///< Object categorisation. Used to control visibility.
+  uint16_t flags;     ///< Flags controlling the appearance and creation of the object (@c ObjectFlag).
+  uint16_t reserved;  ///< Reserved for future use.
 
   /// Read message content.
   /// Crc should have been validated already
   /// @param reader The stream to read from.
   /// @return True on success, false if there is an issue with amount
   ///   of data available.
-  inline bool read(PacketReader &reader)
+  template <typename real>
+  inline bool read(PacketReader &reader, ObjectAttributes<real> &attributes)
   {
     bool ok = true;
     ok = reader.readElement(id) == sizeof(id) && ok;
     ok = reader.readElement(category) == sizeof(category) && ok;
     ok = reader.readElement(flags) == sizeof(flags) && ok;
     ok = reader.readElement(reserved) == sizeof(reserved) && ok;
-    ok = attributes.read(reader) && ok;
+    ok = attributes.read(reader, flags & OFDoublePrecision) && ok;
     return ok;
   }
 
   /// Write this message to @p writer.
-  /// @param writer The target buffer.
   /// @return True on success.
-  inline bool write(PacketWriter &writer) const
+  template <typename real>
+  inline bool write(PacketWriter &writer, const ObjectAttributes<real> &attributes) const
   {
     bool ok = true;
     ok = writer.writeElement(id) == sizeof(id) && ok;
     ok = writer.writeElement(category) == sizeof(category) && ok;
     ok = writer.writeElement(flags) == sizeof(flags) && ok;
     ok = writer.writeElement(reserved) == sizeof(reserved) && ok;
-    ok = attributes.write(writer) && ok;
+    ok = attributes.write(writer, flags & OFDoublePrecision) && ok;
     return ok;
   }
 };
@@ -508,33 +624,35 @@ struct _3es_coreAPI UpdateMessage
     MessageId = OIdUpdate
   };
 
-  uint32_t id;                  ///< Object creation id. Zero if defining a transient/single frame message.
-  uint16_t flags;               ///< Update flags from @c UpdateFlag.
-  ObjectAttributes attributes;  ///< Initial transformation and colour.
+  uint32_t id;  ///< Object creation id. Zero if defining a transient/single frame message.
+  /// Update flags from @c UpdateFlag. Note: @c OFDoublePrecision controls the precision of @c ObjectAttributes.
+  uint16_t flags;
 
   /// Read message content.
   /// Crc should have been validated already
   /// @param reader The stream to read from.
   /// @return True on success, false if there is an issue with amount
   ///   of data available.
-  inline bool read(PacketReader &reader)
+  template <typename real>
+  inline bool read(PacketReader &reader, ObjectAttributes<real> &attributes)
   {
     bool ok = true;
     ok = reader.readElement(id) == sizeof(id) && ok;
     ok = reader.readElement(flags) == sizeof(flags) && ok;
-    ok = attributes.read(reader) && ok;
+    ok = attributes.read(reader, flags & OFDoublePrecision) && ok;
     return ok;
   }
 
   /// Write this message to @p writer.
   /// @param writer The target buffer.
   /// @return True on success.
-  inline bool write(PacketWriter &writer) const
+  template <typename real>
+  inline bool write(PacketWriter &writer, const ObjectAttributes<real> &attributes) const
   {
     bool ok = true;
     ok = writer.writeElement(id) == sizeof(id) && ok;
     ok = writer.writeElement(flags) == sizeof(flags) && ok;
-    ok = attributes.write(writer) && ok;
+    ok = attributes.write(writer, flags & OFDoublePrecision) && ok;
     return ok;
   }
 };

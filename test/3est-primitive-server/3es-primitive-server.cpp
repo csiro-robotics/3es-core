@@ -50,7 +50,7 @@ void onSignal(int arg)
 
 MeshShape *createPointsMesh(unsigned id, const std::vector<Vector3f> &vertices)
 {
-  MeshShape *shape = new MeshShape(DtPoints, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f), id);
+  MeshShape *shape = new MeshShape(DtPoints, tes::Id(id), tes::DataBuffer(vertices));
   return shape;
 }
 
@@ -70,16 +70,14 @@ MeshShape *createLinesMesh(unsigned id, const std::vector<Vector3f> &vertices, c
     lineIndices.push_back(indices[i + 0]);
   }
 
-  MeshShape *shape = new MeshShape(DtLines, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f),
-                                   lineIndices.data(), unsigned(lineIndices.size()), id);
+  MeshShape *shape = new MeshShape(DtLines, Id(id), DataBuffer(vertices), DataBuffer(lineIndices));
   return shape;
 }
 
 
 MeshShape *createTrianglesMesh(unsigned id, const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices)
 {
-  MeshShape *shape = new MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f),
-                                   indices.data(), unsigned(indices.size()), id);
+  MeshShape *shape = new MeshShape(DtTriangles, Id(id), DataBuffer(vertices), DataBuffer(indices));
   return shape;
 }
 
@@ -104,8 +102,7 @@ MeshShape *createVoxelsMesh(unsigned id)
     }
   }
 
-  MeshShape *shape = new MeshShape(DtVoxels, vertices.data()->v, unsigned(vertices.size()), sizeof(Vector3f), id);
-
+  MeshShape *shape = new MeshShape(DtVoxels, Id(id), DataBuffer(vertices));
   shape->setUniformNormal(Vector3f(voxelScale));
   return shape;
 }
@@ -128,7 +125,7 @@ MeshSet *createMeshSet(unsigned id, const std::vector<Vector3f> &vertices, const
 {
   const unsigned partCount = 5;
 
-  MeshSet *shape = new MeshSet(id, 0, partCount);
+  MeshSet *shape = new MeshSet(id, partCount);
 
   for (unsigned i = 0; i < partCount; ++i)
   {
@@ -265,8 +262,8 @@ std::ostream &logShapeExtensions(std::ostream &o, const MeshShape &shape, const 
 
   o << indent << "\"vertices\" : [";
 
-  const float *verts = shape.vertices();
-  for (unsigned v = 0; v < shape.vertexCount(); ++v, verts += shape.vertexStride())
+  const float *verts = shape.vertices().ptr<float>(0);
+  for (unsigned v = 0; v < shape.vertices().count(); ++v, verts += shape.vertices().elementStride())
   {
     if (v > 0)
     {
@@ -277,11 +274,12 @@ std::ostream &logShapeExtensions(std::ostream &o, const MeshShape &shape, const 
   o << '\n' << indent << "]";
   dangling = true;
 
-  if (shape.indexCount())
+  if (shape.indices().count())
   {
     closeDangling(dangling);
     o << indent << "\"indices\" : [";
-    for (unsigned i = 0; i < shape.indexCount(); ++i)
+    const uint32_t *inds = shape.indices().ptr<uint32_t>(0);
+    for (unsigned i = 0; i < shape.indices().count(); ++i)
     {
       if (i > 0)
       {
@@ -293,19 +291,19 @@ std::ostream &logShapeExtensions(std::ostream &o, const MeshShape &shape, const 
         o << '\n' << indent << "  ";
       }
 
-      o << shape.indices()[i];
+      o << inds[i];
     }
     o << '\n' << indent << "]";
     dangling = true;
   }
 
-  if (shape.normalsCount())
+  if (shape.normals().count())
   {
     closeDangling(dangling);
     o << indent << "\"normals\" : [";
 
-    const float *normals = shape.normals();
-    for (unsigned n = 0; n < shape.normalsCount(); ++n, normals += shape.normalsStride())
+    const float *normals = shape.normals().ptr<float>(0);
+    for (unsigned n = 0; n < shape.normals().count(); ++n, normals += shape.normals().elementStride())
     {
       if (n > 0)
       {
@@ -360,20 +358,20 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
     }
   };
 
-  unsigned stride = 0;
   if (mesh.vertexCount())
   {
     closeDangling(dangling);
     o << indent2 << "\"vertices\" : [";
-    const float *verts = mesh.vertices(stride);
-    stride /= unsigned(sizeof(*verts));
-    for (unsigned v = 0; v < mesh.vertexCount(); ++v, verts += stride)
+    DataBuffer verts = mesh.vertices();
+    for (unsigned v = 0; v < verts.count(); ++v)
     {
       if (v > 0)
       {
         o << ',';
       }
-      o << '\n' << indent2 << "  " << verts[v + 0] << ", " << verts[v + 1] << ", " << verts[v + 2];
+      o << '\n'
+        << indent2 << "  " << verts.get<float>(v, 0) << ", " << verts.get<float>(v, 2) << ", "
+        << verts.get<float>(v, 2);
     }
     o << '\n' << indent2 << "]";
     dangling = true;
@@ -383,10 +381,9 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
   {
     closeDangling(dangling);
     o << indent2 << "\"indices\" : [";
-    unsigned indexWidth = 0;
-    const uint8_t *indBytes = mesh.indices(stride, indexWidth);
+    DataBuffer indices = mesh.indices();
 
-    for (unsigned i = 0; i < mesh.indexCount(); ++i, indBytes += stride)
+    for (unsigned i = 0; i < indices.count(); ++i)
     {
       if (i > 0)
       {
@@ -398,70 +395,54 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
         o << '\n' << indent2 << "  ";
       }
 
-      switch (indexWidth)
-      {
-      case 1:
-        o << int(*indBytes);
-        break;
-      case 2:
-        o << *(const uint16_t *)indBytes;
-        break;
-      case 4:
-        o << *(const uint32_t *)indBytes;
-        break;
-      default:
-        o << "\"invalid\" : true\n";
-        i = mesh.indexCount();
-        break;
-      }
+      o << indices.get<uint32_t>(i);
     }
     o << '\n' << indent2 << "]";
     dangling = true;
   }
 
-  if (!vertexOnly && mesh.normals(stride))
+  if (!vertexOnly && mesh.normals().isValid())
   {
     closeDangling(dangling);
     o << indent2 << "\"normals\" : [";
-    const float *normals = mesh.normals(stride);
-    stride /= unsigned(sizeof(*normals));
-    for (unsigned n = 0; n < mesh.vertexCount(); ++n, normals += stride)
+    DataBuffer normals = mesh.normals();
+    for (unsigned n = 0; n < normals.count(); ++n)
     {
       if (n > 0)
       {
         o << ',';
       }
-      o << '\n' << indent2 << "  " << normals[n + 0] << ", " << normals[n + 1] << ", " << normals[n + 2];
+      o << '\n'
+        << indent2 << "  " << normals.get<float>(n, 0) << ", " << normals.get<float>(n, 1) << ", "
+        << normals.get<float>(n, 2);
     }
     o << '\n' << indent2 << "]";
     dangling = true;
   }
 
-  if (!vertexOnly && mesh.uvs(stride))
+  if (!vertexOnly && mesh.uvs().isValid())
   {
     closeDangling(dangling);
     o << indent2 << "\"uvs\" : [";
-    const float *uvs = mesh.uvs(stride);
-    stride /= unsigned(sizeof(*uvs));
-    for (unsigned u = 0; u < mesh.vertexCount(); ++u, uvs += stride)
+    DataBuffer uvs = mesh.uvs();
+    for (unsigned u = 0; u < uvs.count(); ++u)
     {
       if (u > 0)
       {
         o << ',';
       }
-      o << '\n' << indent2 << "  " << uvs[u + 0] << ", " << uvs[u + 1];
+      o << '\n' << indent2 << "  " << uvs.get<float>(u, 0) << ", " << uvs.get<float>(u, 1);
     }
     o << '\n' << indent2 << "]";
     dangling = true;
   }
 
-  if (mesh.colours(stride))
+  if (mesh.colours().isValid())
   {
     closeDangling(dangling);
     o << indent << "\"colours\" : [";
-    const uint32_t *colours = mesh.colours(stride);
-    stride /= unsigned(sizeof(*colours));
-    for (unsigned c = 0; c < mesh.vertexCount(); ++c, colours += stride)
+    DataBuffer colours = mesh.colours();
+    for (unsigned c = 0; c < colours.count(); ++c)
     {
       if (c > 0)
       {
@@ -472,7 +453,7 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
       {
         o << '\n' << indent2 << "  ";
       }
-      o << colours[c];
+      o << colours.get<uint32_t>(c);
     }
     o << '\n' << indent2 << "]";
     dangling = true;
@@ -553,18 +534,18 @@ std::ostream &logShape(std::ostream &o, const T &shape, const char *suffix)
     << "    \"flags\" : " << shape.data().flags << ",\n"
     << "    \"reserved\" : " << shape.data().reserved << ",\n"
     << "    \"attributes\" : {\n"
-    << "      \"colour\" : " << shape.data().attributes.colour << ",\n"
+    << "      \"colour\" : " << shape.attributes().colour << ",\n"
     << "      \"position\" : [\n"
-    << "        " << shape.data().attributes.position[0] << ", " << shape.data().attributes.position[1] << ", "
-    << shape.data().attributes.position[2] << "\n"
+    << "        " << shape.attributes().position[0] << ", " << shape.attributes().position[1] << ", "
+    << shape.attributes().position[2] << "\n"
     << "      ],\n"
     << "      \"rotation\" : [\n"
-    << "        " << shape.data().attributes.rotation[0] << ", " << shape.data().attributes.rotation[1] << ", "
-    << shape.data().attributes.rotation[2] << ", " << shape.data().attributes.rotation[3] << "\n"
+    << "        " << shape.attributes().rotation[0] << ", " << shape.attributes().rotation[1] << ", "
+    << shape.attributes().rotation[2] << ", " << shape.attributes().rotation[3] << "\n"
     << "      ],\n"
     << "      \"scale\" : [\n"
-    << "        " << shape.data().attributes.scale[0] << ", " << shape.data().attributes.scale[1] << ", "
-    << shape.data().attributes.scale[2] << "\n"
+    << "        " << shape.attributes().scale[0] << ", " << shape.attributes().scale[1] << ", "
+    << shape.attributes().scale[2] << "\n"
     << "      ]\n"
     << "    }";
 
@@ -684,20 +665,24 @@ int main(int argc, char **argvNonConst)
   std::vector<Shape *> shapes;
   std::vector<MeshResource *> resources;
 
-  addShape(initShape(new Arrow(nextId++, Vector3f(0.0f), Vector3f(1, 0, 0), 1.0f, 0.25f)), server, shapes);
+  addShape(initShape(new Arrow(nextId++, Directional(Vector3f(0.0f), Vector3f(1, 0, 0), 0.25f, 1.0f))), server, shapes);
   addShape(
-    initShape(new Box(nextId++, Vector3f(0.0f), Vector3f(0.1f, 0.2f, 0.23f),
-                      rotationToQuaternion(Matrix3f::rotation(degToRad(15.0f), degToRad(25.0f), degToRad(-9.0f))))),
+    initShape(new Box(
+      nextId++, Transform(Vector3f(0.0f),
+                          rotationToQuaternion(Matrix3f::rotation(degToRad(15.0f), degToRad(25.0f), degToRad(-9.0f))),
+                          Vector3f(0.1f, 0.2f, 0.23f)))),
     server, shapes);
-  addShape(initShape(new Capsule(nextId++, Vector3f(0.0f), Vector3f(1, 2, 0).normalised(), 0.3f, 2.0f)), server,
-           shapes);
-  addShape(initShape(new Cone(nextId++, Vector3f(0.0f), Vector3f(0, 2, 1).normalised(), degToRad(35.0f), 2.25f)),
+  addShape(initShape(new Capsule(nextId++, Directional(Vector3f(0.0f), Vector3f(1, 2, 0).normalised(), 0.3f, 2.0f))),
            server, shapes);
-  addShape(initShape(new Cylinder(nextId++, Vector3f(0.0f), Vector3f(2, -1.4f, 1).normalised(), 0.15f, 1.2f)), server,
+  addShape(initShape(new Cone(nextId++, Directional(Vector3f(0.0f), Vector3f(0, 2, 1).normalised(), 0.4f, 2.25f))),
+           server, shapes);
+  addShape(
+    initShape(new Cylinder(nextId++, Directional(Vector3f(0.0f), Vector3f(2, -1.4f, 1).normalised(), 0.15f, 1.2f))),
+    server, shapes);
+  addShape(initShape(new Plane(nextId++, Directional(Vector3f(0.0f), Vector3f(-1, -1, 1).normalised()))), server,
            shapes);
-  addShape(initShape(new Plane(nextId++, Vector3f(0.0f), Vector3f(-1, -1, 1).normalised())), server, shapes);
-  addShape(initShape(new Sphere(nextId++, Vector3f(0.0f), 1.15f)), server, shapes);
-  addShape(initShape(new Star(nextId++, Vector3f(0.0f), 0.15f)), server, shapes);
+  addShape(initShape(new Sphere(nextId++, Spherical(Vector3f(0.0f), 1.15f))), server, shapes);
+  addShape(initShape(new Star(nextId++, Spherical(Vector3f(0.0f), 0.15f))), server, shapes);
   addShape(initShape(new Text2D("Hello Text2D", nextId++)), server, shapes);
   addShape(initShape(new Text3D("Hello Text3D", nextId++)), server, shapes);
 

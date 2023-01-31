@@ -20,18 +20,18 @@ namespace tes
 class _3es_coreAPI Text2D : public Shape
 {
 public:
-  // Text2D(const char *text, uint16_t textLength, const V3Arg &pos = V3Arg(0, 0, 0));
-  Text2D(const char *text = "", const V3Arg &pos = V3Arg(0, 0, 0));
-  // Text2D(const char *text, uint16_t textLength, uint32_t id, const V3Arg &pos = V3Arg(0, 0, 0));
-  Text2D(const char *text, uint32_t id, const V3Arg &pos = V3Arg(0, 0, 0));
-  // Text2D(const char *text, uint16_t textLength, uint32_t id, uint16_t category, const V3Arg &pos = V3Arg(0, 0, 0));
-  /// Construct a box object.
-  /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  Text2D(const char *text, uint32_t id, uint16_t category, const V3Arg &pos = V3Arg(0, 0, 0));
+  /// Construct a 2D text.
+  /// @param text The text to display.
+  /// @param id The shape id and category, with unique id among @c Text2D objects, or zero for a transient shape.
+  /// @param pos The position of the text.
+  Text2D(const char *text = "", const Id &id = Id(), const Spherical &pos = Spherical());
+
   /// Copy constructor
+  /// @param other Object to copy.
   Text2D(const Text2D &other);
+
   /// Move constructor
+  /// @param other Object to move.
   Text2D(Text2D &&other);
 
   ~Text2D();
@@ -59,70 +59,16 @@ protected:
   void onClone(Text2D *copy) const;
 
 private:
-  char *_text;
-  uint16_t _textLength;
+  char *_text = nullptr;
+  uint16_t _textLength = 0;
 };
 
 
-// inline Text2D::Text2D(const char *text, uint16_t textLength, const V3Arg &pos)
-//  : Shape(SIdText2D)
-//  , _text(nullptr)
-//  , _textLength(0)
-//{
-//  setPosition(pos);
-//  setText(text, textLength);
-//}
-
-
-inline Text2D::Text2D(const char *text, const V3Arg &pos)
-  : Shape(SIdText2D)
-  , _text(nullptr)
-  , _textLength(0)
+inline Text2D::Text2D(const char *text, const Id &id, const Spherical &pos)
+  : Shape(SIdText2D, id, pos)
 {
-  setPosition(pos);
   setText(text, text ? (uint16_t)strlen(text) : 0);
 }
-
-
-// inline Text2D::Text2D(const char *text, uint16_t textLength, uint32_t id, const V3Arg &pos)
-//  : Shape(SIdText2D, id)
-//  , _text(nullptr)
-//  , _textLength(0)
-//{
-//  setPosition(pos);
-//  setText(text, textLength);
-//}
-
-
-inline Text2D::Text2D(const char *text, uint32_t id, const V3Arg &pos)
-  : Shape(SIdText2D, id)
-  , _text(nullptr)
-  , _textLength(0)
-{
-  setPosition(pos);
-  setText(text, text ? (uint16_t)strlen(text) : 0);
-}
-
-
-// inline Text2D::Text2D(const char *text, uint16_t textLength, uint32_t id, uint16_t category, const V3Arg &pos)
-//  : Shape(SIdText2D, id, category)
-//  , _text(nullptr)
-//  , _textLength(0)
-//{
-//  setPosition(pos);
-//  setText(text, textLength);
-//}
-
-
-inline Text2D::Text2D(const char *text, uint32_t id, uint16_t category, const V3Arg &pos)
-  : Shape(SIdText2D, id, category)
-  , _text(nullptr)
-  , _textLength(0)
-{
-  setPosition(pos);
-  setText(text, text ? (uint16_t)strlen(text) : 0);
-}
-
 
 inline bool Text2D::inWorldSpace() const
 {

@@ -44,7 +44,7 @@ public:
 
   /// Always the identity matrix.
   /// @return An identity matrix.
-  Matrix4f transform() const override;
+  Transform transform() const override;
 
   /// Always returns white.
   /// @return White.
@@ -72,7 +72,7 @@ public:
   /// @copydoc MeshResource::vertexCount()
   unsigned vertexCount(int stream = 0) const override;
   /// @copydoc MeshResource::vertices()
-  const float *vertices(unsigned &stride, int stream = 0) const override;
+  DataBuffer vertices(int stream = 0) const override;
   /// Access vertices as a @c Vector3f array.
   /// @return A pointer to the vertex data as a @c Vector3f array. The number of elements matches @c vertexCount().
   const Vector3f *vertices() const;
@@ -83,23 +83,23 @@ public:
 
   /// Not supported.
   /// @return null
-  const uint8_t *indices(unsigned &stride, unsigned &width, int stream = 0) const override;
+  DataBuffer indices(int stream = 0) const override;
 
   /// @copydoc MeshResource::normals()
-  const float *normals(unsigned &stride, int stream = 0) const override;
+  DataBuffer normals(int stream = 0) const override;
   /// Access normals as a @c Vector3f array.
   /// @return A pointer to the normal data as a @c Vector3f array. The number of elements matches @c vertexCount().
   const Vector3f *normals() const;
 
   /// @copydoc MeshResource::colours()
-  const uint32_t *colours(unsigned &stride, int stream = 0) const override;
+  DataBuffer colours(int stream = 0) const override;
   /// Access colours as a @c Colour array.
   /// @return A pointer to the colour data as a @c Colour array. The number of elements matches @c vertexCount().
   const Colour *colours() const;
 
   /// Not supported.
   /// @return null
-  const float *uvs(unsigned &, int) const override;
+  DataBuffer uvs(int stream = 0) const override;
 
   /// Add a single point to the cloud.
   /// The normal is set to zero and the colour to white.
@@ -200,10 +200,10 @@ private:
   /// Make a copy of underlying data if currently shared with another instance.
   void copyOnWrite();
 
-  bool processCreate(const MeshCreateMessage &msg) override;
-  bool processVertices(const MeshComponentMessage &msg, const float *vertices, unsigned vertexCount) override;
-  bool processColours(const MeshComponentMessage &msg, const uint32_t *colours, unsigned colourCount) override;
-  bool processNormals(const MeshComponentMessage &msg, const float *normals, unsigned normalCount) override;
+  bool processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes) override;
+  bool processVertices(const MeshComponentMessage &msg, unsigned count, const DataBuffer &stream) override;
+  bool processColours(const MeshComponentMessage &msg, unsigned count, const DataBuffer &stream) override;
+  bool processNormals(const MeshComponentMessage &msg, unsigned count, const DataBuffer &stream) override;
 
   PointCloudImp *_imp;
 };

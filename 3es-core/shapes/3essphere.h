@@ -19,102 +19,75 @@ namespace tes
 class _3es_coreAPI Sphere : public Shape
 {
 public:
-  /// @overload
-  Sphere(uint32_t id = 0u, const V3Arg &centre = V3Arg(0, 0, 0), float radius = 1.0f);
   /// Create a sphere.
-  /// @param id The shape ID, unique among @c Sphere objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  /// @param centre Defines the sphere centre coordinate.
-  /// @param radius The sphere radius.
-  Sphere(uint32_t id, uint16_t category, const V3Arg &centre = V3Arg(0, 0, 0), float radius = 1.0f);
-
-  /// @overload
-  Sphere(uint32_t id, const V3Arg &centre, const V3Arg &scale, const QuaternionArg &rot = QuaternionArg(0, 0, 0, 1));
+  /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a transient shape.
+  /// @param transform The spherical transform for the sphere.
+  Sphere(const Id &id = Id(), const Spherical &transform = Spherical());
 
   /// Create an ellipsoid. This constructor allows for scaling and rotating the sphere in order to create an ellipsoid.
-  /// @param id The shape ID, unique among @c Sphere objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  /// @param centre Defines the sphere centre coordinate.
-  /// @param scale Scaling values for the ellispoid along each axis.
-  /// @param rot Orientation of the scale ellipsoid.
-  Sphere(uint32_t id, uint16_t category, const V3Arg &centre, const V3Arg &scale,
-         const QuaternionArg &rot = QuaternionArg(0, 0, 0, 1));
+  /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a transient shape.
+  /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
+  Sphere(const Id &id, const Transform &transform);
+
+  /// Copy constructor.
+  /// Shape to copy.
+  Sphere(const Sphere &other);
 
   inline const char *type() const override { return "sphere"; }
 
   /// Set the sphere radius. This sets the same scale for all dimensions.
   /// @param radius The sphere radius.
   /// @return @c *this
-  Sphere &setRadius(float radius);
+  Sphere &setRadius(double radius);
   /// Get the sphere radius.
   /// @return The sphere radius.
-  float radius() const;
+  double radius() const;
 
   /// Set the sphere centre coordinate.
   /// @param centre The new sphere centre.
   /// @return @c *this
-  Sphere &setCentre(const V3Arg &centre);
+  Sphere &setCentre(const Vector3d &centre);
   /// Get the sphere centre coordinate.
   /// @return The sphere centre.
-  Vector3f centre() const;
+  Vector3d centre() const;
 };
 
 
-inline Sphere::Sphere(uint32_t id, const V3Arg &centre, float radius)
-  : Shape(SIdSphere, id)
+inline Sphere::Sphere(const Id &id, const Spherical &transform)
+  : Shape(SIdSphere, id, transform)
+{}
+
+
+inline Sphere::Sphere(const Id &id, const Transform &transform)
+  : Shape(SIdSphere, id, transform)
+{}
+
+inline Sphere::Sphere(const Sphere &other)
+  : Shape(other)
+{}
+
+
+inline Sphere &Sphere::setRadius(double radius)
 {
-  setPosition(centre);
-  setScale(Vector3f(radius));
-}
-
-
-inline Sphere::Sphere(uint32_t id, uint16_t category, const V3Arg &centre, float radius)
-  : Shape(SIdSphere, id, category)
-{
-  setPosition(centre);
-  setScale(Vector3f(radius));
-}
-
-
-inline Sphere::Sphere(uint32_t id, const V3Arg &centre, const V3Arg &scale, const QuaternionArg &rot)
-  : Shape(SIdSphere, id)
-{
-  setPosition(centre);
-  setScale(scale);
-  setRotation(rot);
-}
-
-
-inline Sphere::Sphere(uint32_t id, uint16_t category, const V3Arg &centre, const V3Arg &scale, const QuaternionArg &rot)
-  : Shape(SIdSphere, id, category)
-{
-  setPosition(centre);
-  setScale(scale);
-  setRotation(rot);
-}
-
-
-inline Sphere &Sphere::setRadius(float radius)
-{
-  setScale(Vector3f(radius));
+  setScale(Vector3d(radius));
   return *this;
 }
 
 
-inline float Sphere::radius() const
+inline double Sphere::radius() const
 {
   return scale().x;
 }
 
 
-inline Sphere &Sphere::setCentre(const V3Arg &centre)
+inline Sphere &Sphere::setCentre(const Vector3d &centre)
 {
   setPosition(centre);
   return *this;
 }
 
 
-inline Vector3f Sphere::centre() const
+inline Vector3d Sphere::centre() const
 {
   return position();
 }

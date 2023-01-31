@@ -29,7 +29,7 @@ public:
   uint32_t id() const override;
 
   /// @copydoc MeshResource::transform()
-  Matrix4f transform() const override;
+  Transform transform() const override;
   /// @copydoc MeshResource::tint()
   uint32_t tint() const override;
   /// @copydoc MeshResource::drawType()
@@ -39,15 +39,15 @@ public:
   /// @copydoc MeshResource::indexCount()
   unsigned indexCount(int stream = 0) const override;
   /// @copydoc MeshResource::vertices()
-  const float *vertices(unsigned &stride, int stream = 0) const override;
+  DataBuffer vertices(int stream = 0) const override;
   /// @copydoc MeshResource::indices()
-  const uint8_t *indices(unsigned &stride, unsigned &width, int stream = 0) const override;
+  DataBuffer indices(int stream = 0) const override;
   /// @copydoc MeshResource::normals()
-  const float *normals(unsigned &stride, int stream = 0) const override;
+  DataBuffer normals(int stream = 0) const override;
   /// @copydoc MeshResource::uvs()
-  const float *uvs(unsigned &stride, int stream = 0) const override;
+  DataBuffer uvs(int stream = 0) const override;
   /// @copydoc MeshResource::colours()
-  const uint32_t *colours(unsigned &stride, int stream = 0) const override;
+  DataBuffer colours(int stream = 0) const override;
 
   /// @copydoc Resource::clone()
   Resource *clone() const override;

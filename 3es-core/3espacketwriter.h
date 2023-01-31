@@ -66,13 +66,21 @@ public:
   /// @param other The packet to copy.
   PacketWriter(const PacketWriter &other);
 
+  /// Move constructor.
+  /// @param other The packet to move.
+  PacketWriter(PacketWriter &&other);
+
   /// Destructor, ensuring the CRC is calculated.
   ~PacketWriter();
 
   /// Assignment operator. Simple as neither writer owns the underlying memory.
   /// Both point to the same underlying memory, but only one should be used.
   /// @param other The packet to copy.
-  PacketWriter &operator=(const PacketWriter &other);
+  PacketWriter &operator=(PacketWriter other);
+
+  void swap(PacketWriter &other);
+
+  friend inline void swap(PacketWriter &a, PacketWriter &b) { a.swap(b); }
 
   /// Resets the packet, clearing out all variable data including the payload, crc and routing id.
   /// Allows preparation for writing new data to the same payload buffer.

@@ -27,7 +27,7 @@ public:
   virtual void close() = 0;
 
   /// Activate/deactivate the connection. Messages are ignored while inactive.
-  /// @param enable The active state to set.
+  /// @param active The active state to set.
   virtual void setActive(bool active) = 0;
 
   /// Check if currently active.

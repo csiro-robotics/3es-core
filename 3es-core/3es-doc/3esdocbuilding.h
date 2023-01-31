@@ -1,4 +1,6 @@
 
+// clang-format off
+
 /*!
 @page docbuild Building 3rd Eye Scene
 Building all the 3<sup>rd</sup> Eye Scene components requires the following tools and libraries:
@@ -86,7 +88,7 @@ detailed below.
 @subsection docbuildcppwindows Windows CMake
 Under Windows, the recommended CMake command is:
 @verbatim
-  cmake -G "Visual Studio 15 2017 Win64" ..
+  cmake -G "Visual Studio 16 2019" -Ax64 ..
 @endverbatim
 
 Note that the generator may be changed to a different version of Visual Studio (below VS12 is definitely not supported),
@@ -149,3 +151,5 @@ Consul the Visual Studio or Xamarin Studio documentation for adding library refe
 information.
 
 */
+
+// clang-format on

@@ -8,6 +8,10 @@
 
 #include "3escolour.h"
 #include "3esvector4.h"
+#include "3esexception.h"
+#include "3esthrow.h"
+
+#include <limits>
 
 namespace tes
 {
@@ -48,10 +52,21 @@ template Vector4<float> _3es_coreAPI toVector(const Colour &c);
 template Vector4<double> _3es_coreAPI toVector(const Colour &c);
 
 
+/// Convert a @c Colour to a 4-component vector.
+///
+/// RGBA channels are mapped to XYZA respectively. Values are scaled [0, 1] depending on the input value [0, 255].
+/// @param c The colour to convert.
+/// @return The floating point representation of the colour.
 inline Vector4f _3es_coreAPI toVectorf(const Colour &c)
 {
   return toVector<float>(c);
 }
+
+/// Convert a @c Colour to a 4-component vector.
+///
+/// RGBA channels are mapped to XYZA respectively. Values are scaled [0, 1] depending on the input value [0, 255].
+/// @param c The colour to convert.
+/// @return The floating point (double) representation of the colour.
 inline Vector4d _3es_coreAPI toVectord(const Colour &c)
 {
   return toVector<double>(c);
@@ -61,6 +76,8 @@ inline Vector4d _3es_coreAPI toVectord(const Colour &c)
 /// Convert a @c Vector4 to a @c Colour. Some precision will be lost.
 ///
 /// Colour channels [R, G, B, A] line up with vertex channels [x, y, z, w].
+/// @param v The vector argument to convert.
+/// @return The @c Colour representation of @p v .
 template <typename T>
 inline Colour toColour(const Vector4<T> &v)
 {
@@ -78,7 +95,7 @@ template Colour _3es_coreAPI toColour(const Vector4<double> &v);
 
 
 /// Calculate the next power of 2 equal to or greater than @p v.
-/// @param The base, integer value.
+/// @param v The base, integer value.
 template <typename T>
 inline T ceilPowerOf2(T v)
 {
@@ -117,6 +134,17 @@ inline int ceilPowerOf2(int v)
   v |= v >> 16;
   v++;
   return v;
+}
+
+template <typename INT, typename SRC_INT>
+INT int_cast(SRC_INT val)
+{
+  if (val < std::numeric_limits<INT>::lowest() && val > std::numeric_limits<INT>::max())
+  {
+    // throw?
+    TES_THROW(Exception("Integer overflow"), INT(val));
+  }
+  return INT(val);
 }
 }  // namespace tes
 

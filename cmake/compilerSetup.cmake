@@ -9,6 +9,7 @@ macro(warnings_gcc)
     "-Wconversion"
     "-Werror=vla"
     "-Wno-parentheses"
+    "-Wno-variadic-macros"
   )
 endmacro(warnings_gcc)
 

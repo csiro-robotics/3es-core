@@ -21,43 +21,37 @@ namespace tes
 class _3es_coreAPI Arrow : public Shape
 {
 public:
-  /// Default direction used as a reference orientation for packing the rotation.
-  ///
-  /// The @c rotation() value is relative to this vector.
-  ///
-  /// The default is <tt>(0, 0, 1)</tt>
-  static const Vector3f DefaultDirection;
-
-  /// @overload
-  Arrow(uint32_t id = 0u, const V3Arg &origin = V3Arg(0, 0, 0), const V3Arg &dir = DefaultDirection,
-        float length = 1.0f, float radius = 0.025f);
   /// Construct an arrow object.
-  /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  /// @param origin The start point for the array.
-  /// @param dir The direction vector of the arrow.
-  /// @param length The arrow length.
-  /// @param radius Radius of the arrow body.
-  Arrow(uint32_t id, uint16_t category, const V3Arg &origin = V3Arg(0, 0, 0), const V3Arg &dir = V3Arg(0, 0, 1),
-        float length = 1.0f, float radius = 0.025f);
+  /// @param id The shape id and category, unique among @c Arrow objects, or zero for a transient shape.
+  /// @param transform The directional transformation for the shape.
+  Arrow(const Id &id = Id(), const Directional &transform = Directional());
+
+  /// Construct an arrow object.
+  /// @param id The shape id and category, unique among @c Arrow objects, or zero for a transient shape.
+  /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
+  Arrow(const Id &id, const Transform &transform);
+
+  /// Copy constructor
+  /// @param other Object to copy.
+  Arrow(const Arrow &other);
 
   inline const char *type() const override { return "arrow"; }
 
   /// Set the arrow radius.
   /// @param radius The new arrow radius.
   /// @return @c *this
-  Arrow &setRadius(float radius);
+  Arrow &setRadius(double radius);
   /// Get the arrow radius. Defines the shaft radius, while the head flanges to a sightly larger radius.
   /// @return The arrow body radius.
-  float radius() const;
+  double radius() const;
 
   /// Set the arrow length from base to tip.
   /// @param length Set the length to set.
   /// @return @c *this
-  Arrow &setLength(float length);
+  Arrow &setLength(double length);
   /// Get the arrow length from base to tip.
   /// @return The arrow length.
-  float length() const;
+  double length() const;
 
   /// Set the arrow origin. This is the arrow base position.
   ///
@@ -65,108 +59,105 @@ public:
   ///
   /// @param origin The arrow base position.
   /// @return @c *this
-  Arrow &setOrigin(const V3Arg &origin);
+  Arrow &setOrigin(const Vector3d &origin);
 
   /// Get the arrow base position.
   ///
   /// Note: this aliases @c position().
   /// @return The arrow base position.
-  Vector3f origin() const;
+  Vector3d origin() const;
 
   /// Set the arrow direction vector.
   /// @param direction The direction vector to set. Must be unit length.
   /// @return @c *this
-  Arrow &setDirection(const V3Arg &direction);
+  Arrow &setDirection(const Vector3d &direction);
   /// Get the arrow direction vector.
   ///
   /// May not exactly match the axis given via @p setDirection() as the direction is defined by the quaternion
   /// @c rotation().
   /// @return The arrow direction vector.
-  Vector3f direction() const;
+  Vector3d direction() const;
 };
 
 
-inline Arrow::Arrow(uint32_t id, const V3Arg &origin, const V3Arg &dir, float length, float radius)
-  : Shape(SIdArrow, id)
+inline Arrow::Arrow(const Id &id, const Directional &transform)
+  : Shape(SIdArrow, id, transform)
+{}
+
+
+inline Arrow::Arrow(const Id &id, const Transform &transform)
+  : Shape(SIdArrow, id, transform)
+{}
+
+
+inline Arrow::Arrow(const Arrow &other)
+  : Shape(other)
+{}
+
+
+inline Arrow &Arrow::setRadius(double radius)
 {
-  setPosition(origin);
-  setDirection(dir);
-  setScale(Vector3f(radius, radius, length));
-}
-
-
-inline Arrow::Arrow(uint32_t id, uint16_t category, const V3Arg &origin, const V3Arg &dir, float length, float radius)
-  : Shape(SIdArrow, id, category)
-{
-  setPosition(origin);
-  setDirection(dir);
-  setScale(Vector3f(radius, radius, length));
-}
-
-
-inline Arrow &Arrow::setRadius(float radius)
-{
-  Vector3f s = Shape::scale();
+  Vector3d s = Shape::scale();
   s.x = s.y = radius;
   setScale(s);
   return *this;
 }
 
 
-inline float Arrow::radius() const
+inline double Arrow::radius() const
 {
   return scale().x;
 }
 
 
-inline Arrow &Arrow::setLength(float length)
+inline Arrow &Arrow::setLength(double length)
 {
-  Vector3f s = Shape::scale();
+  Vector3d s = Shape::scale();
   s.z = length;
   setScale(s);
   return *this;
 }
 
 
-inline float Arrow::length() const
+inline double Arrow::length() const
 {
   return scale().z;
 }
 
 
-inline Arrow &Arrow::setOrigin(const V3Arg &origin)
+inline Arrow &Arrow::setOrigin(const Vector3d &origin)
 {
   setPosition(origin);
   return *this;
 }
 
 
-inline Vector3f Arrow::origin() const
+inline Vector3d Arrow::origin() const
 {
   return position();
 }
 
 
-inline Arrow &Arrow::setDirection(const V3Arg &direction)
+inline Arrow &Arrow::setDirection(const Vector3d &direction)
 {
-  Quaternionf rot;
-  if (direction.v3.dot(DefaultDirection) > -0.9998f)
+  Quaterniond rot;
+  if (direction.dot(Directional::DefaultDirection) > -0.9998)
   {
-    rot = Quaternionf(DefaultDirection, direction);
+    rot = Quaterniond(Directional::DefaultDirection, direction);
   }
   else
   {
-    rot.setAxisAngle(Vector3f::axisx, float(M_PI));
+    rot.setAxisAngle(Vector3d::axisx, M_PI);
   }
   setRotation(rot);
   return *this;
 }
 
 
-inline Vector3f Arrow::direction() const
+inline Vector3d Arrow::direction() const
 {
-  Quaternionf rot = rotation();
-  return rot * DefaultDirection;
+  Quaterniond rot = rotation();
+  return rot * Directional::DefaultDirection;
 }
 }  // namespace tes
 

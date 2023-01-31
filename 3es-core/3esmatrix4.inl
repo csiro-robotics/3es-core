@@ -588,7 +588,7 @@ inline Vector4<T> Matrix4<T>::rotate(const Vector4<T> &v) const
 
 
 template <typename T>
-inline bool Matrix4<T>::equals(const Matrix4<T> &a, const T epsilon) const
+inline bool Matrix4<T>::isEqual(const Matrix4<T> &a, const T epsilon) const
 {
   return std::abs(m[0] - a.m[0]) <= epsilon && std::abs(m[1] - a.m[1]) <= epsilon &&
          std::abs(m[2] - a.m[2]) <= epsilon && std::abs(m[3] - a.m[3]) <= epsilon &&

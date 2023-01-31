@@ -10,7 +10,7 @@
 
 namespace tes
 {
-/// A helper structure used to convert from float or double pointers to @c Vector3f arguments.
+/// A helper structure used to convert from float or double pointers to @c Vector3d arguments.
 struct V3Arg
 {
   /// Single precision pointer constructor.
@@ -39,7 +39,15 @@ struct V3Arg
   /// @param y Y value.
   /// @param z Z value.
   inline V3Arg(float x, float y, float z)
-    : v3(x, y, z)
+    : v3(Vector3f(x, y, z))
+  {}
+
+  /// Component wise constructor.
+  /// @param x X value.
+  /// @param y Y value.
+  /// @param z Z value.
+  inline V3Arg(double x, double y, double z)
+    : v3(Vector3d(x, y, z))
   {}
 
   /// Copy constructor.
@@ -54,7 +62,7 @@ struct V3Arg
   /// Indexing operator.
   /// @param i The element index [0, 2].
   /// @return The requested element
-  inline float operator[](int i) const { return v3[i]; }
+  inline double operator[](int i) const { return v3[i]; }
 
   /// Vector 3 value.
   Vector3f v3;

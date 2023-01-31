@@ -3,27 +3,21 @@
 //
 #include "3estext2d.h"
 
+#include <utility>
+
 using namespace tes;
 
 Text2D::Text2D(const Text2D &other)
-  : Shape(SIdText2D)
-  , _text(nullptr)
-  , _textLength(0)
+  : Shape(other)
 {
-  _data = other._data;
   setText(other.text(), other.textLength());
 }
 
 Text2D::Text2D(Text2D &&other)
-  // TODO: use std::move() with the base constructor.
-  : Shape(SIdText2D)
-  , _text(other._text)
-  , _textLength(other._textLength)
-{
-  _data = other._data;
-  other._text = nullptr;
-  other._textLength = 0;
-}
+  : Shape(other)
+  , _text(std::exchange(other._text, nullptr))
+  , _textLength(std::exchange(other._textLength, 0))
+{}
 
 Text2D::~Text2D()
 {
@@ -35,7 +29,7 @@ bool Text2D::writeCreate(PacketWriter &stream) const
 {
   bool ok = true;
   stream.reset(routingId(), CreateMessage::MessageId);
-  ok = _data.write(stream) && ok;
+  ok = _data.write(stream, _attributes) && ok;
 
   // Write line count and lines.
   const uint16_t textLength = _textLength;
@@ -100,7 +94,7 @@ Text2D &Text2D::operator=(Text2D &&other)
 
 Shape *Text2D::clone() const
 {
-  Text2D *copy = new Text2D(nullptr, (uint16_t)0);
+  Text2D *copy = new Text2D(nullptr, Id());
   onClone(copy);
   return copy;
 }

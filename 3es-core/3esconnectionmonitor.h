@@ -74,11 +74,12 @@ protected:
   virtual ~ConnectionMonitor() {}
 
 public:
+  /// Controls how the monitor behaves - synchronously or asynchronously.
   enum Mode
   {
-    None,
-    Synchronous,
-    Asynchronous
+    None,         ///< Invalid
+    Synchronous,  ///< The @c ConnectionMonitor requires synchronous calls.
+    Asynchronous  ///< The @c ConnectionMonitor runs as a background thread..
   };
 
   /// Report the port being used by the connection monitor.

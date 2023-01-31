@@ -181,8 +181,7 @@ void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape, con
           }
           break;
 
-        case MtControl:
-        {
+        case MtControl: {
           // Only interested in the CIdEnd message to mark the end of the
           // stream.
           ControlMessage msg;
@@ -339,34 +338,37 @@ void validateFileStream(const char *fileName, const T &referenceShape, const Ser
 
 TEST(Shapes, Arrow)
 {
-  testShape(Arrow(42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 2.0f, 0.05f));
-  testShape(Arrow(42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 2.0f, 0.05f));
+  testShape(Arrow(42u, Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.05f, 2.0f)));
+  testShape(Arrow(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.05f, 2.0f)));
 }
 
 TEST(Shapes, Box)
 {
-  testShape(Box(42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 3, 2),
-                Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f))));
-  testShape(Box(42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 3, 2),
-                Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f))));
+  testShape(Box(
+    42u, Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                   Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f)), Vector3f(1, 3, 2))));
+  testShape(Box(Id(42u, 1), Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                                      Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f)),
+                                      Vector3f(1, 3, 2))));
 }
 
 TEST(Shapes, Capsule)
 {
-  testShape(Capsule(42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.3f, 2.05f));
-  testShape(Capsule(42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.3f, 2.05f));
+  testShape(Capsule(42u, Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.3f, 2.05f)));
+  testShape(Capsule(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.3f, 2.05f)));
 }
 
 TEST(Shapes, Cone)
 {
-  testShape(Cone(42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), degToRad(35.0f), 3.0f));
-  testShape(Cone(42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), degToRad(35.0f), 3.0f));
+  testShape(Cone(Id(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.35f, 3.0f)));
+  testShape(Cone(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.35f, 3.0f)));
 }
 
 TEST(Shapes, Cylinder)
 {
-  testShape(Cylinder(42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.25f, 1.05f));
-  testShape(Cylinder(42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.25f, 1.05f));
+  testShape(Cylinder(Id(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.25f, 1.05f)));
+  testShape(
+    Cylinder(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.25f, 1.05f)));
 }
 
 TEST(Shapes, MeshSet)
@@ -439,11 +441,11 @@ TEST(Shapes, MeshSet)
   meshes.push_back(mesh);
 
   // First do a single part MeshSet.
-  testShape(MeshSet(meshes[0], 42));
+  testShape(MeshSet(meshes[0], 42u));
 
   // Now a multi-part MeshSet.
   {
-    MeshSet set(42, 1, int(meshes.size()));
+    MeshSet set(Id(42u, 1), meshes.size());
 
     Matrix4f transform = Matrix4f::identity;
     for (unsigned i = 0; i < meshes.size(); ++i)
@@ -480,51 +482,59 @@ TEST(Shapes, Mesh)
 
   // I> Test each constructor.
   // 1. drawType, verts, vcount, vstrideBytes, pos, rot, scale
-  testShape(MeshShape(DtPoints, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-                      Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-                      Vector3f(1.0f, 1.2f, 0.8f)));
+  testShape(
+    MeshShape(DtPoints, Id(), DataBuffer(vertices),
+              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                        Vector3f(1.0f, 1.2f, 0.8f))));
   // 2. drawType, verts, vcount, vstrideBytes, indices, icount, pos, rot, scale
-  testShape(MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-                      indices.data(), unsigned(indices.size()), Vector3f(1.2f, 2.3f, 3.4f),
-                      Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)), Vector3f(1.0f, 1.2f, 0.8f)));
+  testShape(
+    MeshShape(DtTriangles, Id(), DataBuffer(vertices), DataBuffer(indices),
+              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                        Vector3f(1.0f, 1.2f, 0.8f))));
   // 3. drawType, verts, vcount, vstrideBytes, id, pos, rot, scale
-  testShape(MeshShape(DtPoints, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()), 42,
-                      Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-                      Vector3f(1.0f, 1.2f, 0.8f)));
+  testShape(
+    MeshShape(DtPoints, Id(42u), DataBuffer(vertices),
+              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                        Vector3f(1.0f, 1.2f, 0.8f))));
   // 4. drawType, verts, vcount, vstrideBytes, indices, icount, id, pos, rot,
   // scale
-  testShape(MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-                      indices.data(), unsigned(indices.size()), 42, Vector3f(1.2f, 2.3f, 3.4f),
-                      Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)), Vector3f(1.0f, 1.2f, 0.8f)));
+  testShape(
+    MeshShape(DtTriangles, Id(42u), DataBuffer(vertices), DataBuffer(indices),
+              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                        Vector3f(1.0f, 1.2f, 0.8f))));
   // 5. drawType, verts, vcount, vstrideBytes, indices, icount, id, cat, pos,
   // rot, scale
-  testShape(MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-                      indices.data(), unsigned(indices.size()), 42, 1, Vector3f(1.2f, 2.3f, 3.4f),
-                      Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)), Vector3f(1.0f, 1.2f, 0.8f)));
+  testShape(
+    MeshShape(DtTriangles, Id(42u), DataBuffer(vertices), DataBuffer(indices),
+              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                        Vector3f(1.0f, 1.2f, 0.8f))));
 
   // II> Test with uniform normal.
-  testShape(MeshShape(DtVoxels, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()), 42,
-                      Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-                      Vector3f(1.0f, 1.2f, 0.8f))
-              .setUniformNormal(Vector3f(0.1f, 0.1f, 0.1f)));
+  testShape(
+    MeshShape(DtVoxels, Id(42u), DataBuffer(vertices), DataBuffer(indices),
+              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                        Vector3f(1.0f, 1.2f, 0.8f)))
+      .setUniformNormal(Vector3f(0.1f, 0.1f, 0.1f)));
 
   // III> Test will many normals.
-  testShape(MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-                      indices.data(), unsigned(indices.size()), 42, 1, Vector3f(1.2f, 2.3f, 3.4f),
-                      Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)), Vector3f(1.0f, 1.2f, 0.8f))
-              .setNormals(normals.data()->v, sizeof(*normals.data())));
+  testShape(
+    MeshShape(DtTriangles, Id(42u, 1), DataBuffer(vertices), DataBuffer(indices),
+              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                        Vector3f(1.0f, 1.2f, 0.8f)))
+      .setNormals(DataBuffer(normals)));
 
   // IV> Test with colours.
-  testShape(MeshShape(DtTriangles, vertices.data()->v, unsigned(vertices.size()), sizeof(*vertices.data()),
-                      indices.data(), unsigned(indices.size()), Vector3f(1.2f, 2.3f, 3.4f),
-                      Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)), Vector3f(1.0f, 1.2f, 0.8f))
-              .setColours(colours.data()));
+  testShape(
+    MeshShape(DtTriangles, Id(), DataBuffer(vertices), DataBuffer(indices),
+              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                        Vector3f(1.0f, 1.2f, 0.8f)))
+      .setColours(colours.data()));
 }
 
 TEST(Shapes, Plane)
 {
-  testShape(Plane(42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 5.0f, 0.75f));
-  testShape(Plane(42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 5.0f, 0.75f));
+  testShape(Plane(Id(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 5.0f, 0.75f)));
+  testShape(Plane(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 5.0f, 0.75f)));
 }
 
 TEST(Shapes, PointCloud)
@@ -538,7 +548,7 @@ TEST(Shapes, PointCloud)
   cloud.addPoints(vertices.data(), unsigned(vertices.size()));
 
   // Full res cloud.
-  testShape(PointCloudShape(&cloud, 42, 0, 8));
+  testShape(PointCloudShape(&cloud, Id(42u), 8));
 
   // Indexed (sub-sampled) cloud. Just use half the points.
   indices.clear();
@@ -546,50 +556,56 @@ TEST(Shapes, PointCloud)
   {
     indices.push_back(i);
   }
-  testShape(PointCloudShape(&cloud, 42, 0, 8).setIndices(indices.data(), unsigned(indices.size())));
+  testShape(PointCloudShape(&cloud, Id(42u, 1), 8).setIndices(indices.data(), unsigned(indices.size())));
 }
 
 TEST(Shapes, Pose)
 {
-  testShape(Pose(42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(0.25f, 0.5f, 1.5f), Quaternionf().setAxisAngle(Vector3f::axisz, float(0.25 * M_PI))));
-  testShape(Pose(42, 1, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(0.25f, 0.5f, 1.5f), Quaternionf().setAxisAngle(Vector3f::axisz, float(0.25 * M_PI))));
+  testShape(
+    Pose(Id(42u), Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f::axisz, float(0.25 * M_PI)),
+                            Vector3f(0.25f, 0.5f, 1.5f))));
+  testShape(Pose(Id(42u, 1),
+                 Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f::axisz, float(0.25 * M_PI)),
+                           Vector3f(0.25f, 0.5f, 1.5f))));
 }
 
 TEST(Shapes, Sphere)
 {
-  testShape(Sphere(42, Vector3f(1.2f, 2.3f, 3.4f), 1.26f));
-  testShape(Sphere(42, 1, Vector3f(1.2f, 2.3f, 3.4f), 1.26f));
+  testShape(Sphere(Id(42u), Spherical(Vector3f(1.2f, 2.3f, 3.4f), 1.26f)));
+  testShape(Sphere(Id(42u, 1), Spherical(Vector3f(1.2f, 2.3f, 3.4f), 1.26f)));
 }
 
 TEST(Shapes, Star)
 {
-  testShape(Star(42, Vector3f(1.2f, 2.3f, 3.4f), 1.26f));
-  testShape(Star(42, 1, Vector3f(1.2f, 2.3f, 3.4f), 1.26f));
+  testShape(Star(Id(42u), Spherical(Vector3f(1.2f, 2.3f, 3.4f), 1.26f)));
+  testShape(Star(Id(42u, 1), Spherical(Vector3f(1.2f, 2.3f, 3.4f), 1.26f)));
 }
 
 TEST(Shapes, Text2D)
 {
-  testShape(Text2D("Transient Text2D", Vector3f(1.2f, 2.3f, 3.4f)));
-  testShape(Text2D("Persistent Text2D", 42, Vector3f(1.2f, 2.3f, 3.4f)));
-  testShape(Text2D("Persistent, categorised Text2D", 42, 1, Vector3f(1.2f, 2.3f, 3.4f)));
+  testShape(Text2D("Transient Text2D", Id(), Spherical(Vector3f(1.2f, 2.3f, 3.4f))));
+  testShape(Text2D("Persistent Text2D", 42u, Spherical(Vector3f(1.2f, 2.3f, 3.4f))));
+  testShape(Text2D("Persistent, categorised Text2D", Id(42u, 1), Spherical(Vector3f(1.2f, 2.3f, 3.4f))));
 }
 
 TEST(Shapes, Text3D)
 {
   // Validate all the constructors.
-  testShape(Text3D("Transient Text3D", Vector3f(1.2f, 2.3f, 3.4f), 14));
-  testShape(Text3D("Transient oriented Text3D", Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 2, 3).normalised(), 8));
-  testShape(Text3D("Persistent Text3D", 42, Vector3f(1.2f, 2.3f, 3.4f), 23));
-  testShape(Text3D("Persistent oriented Text3D", 42, Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 2, 3).normalised(), 12));
-  testShape(Text3D("Persistent, categorised, oriented Text3D", 42, 1, Vector3f(1.2f, 2.3f, 3.4f),
-                   Vector3f(1, 2, 3).normalised(), 15));
+  testShape(Text3D("Transient Text3D", Id(), Directional(Vector3f(1.2f, 2.3f, 3.4f), 14)));
+  testShape(Text3D("Transient oriented Text3D", Id(),
+                   Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 2, 3).normalised(), 8)));
+  testShape(Text3D("Persistent Text3D", Id(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f), 23)));
+  testShape(Text3D("Persistent oriented Text3D", Id(42u),
+                   Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 2, 3).normalised(), 12)));
+  testShape(Text3D("Persistent, categorised, oriented Text3D", Id(42u, 1),
+                   Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 2, 3).normalised(), 15)));
 }
 
 TEST(Shapes, FileStream)
 {
   const char *fileName = "sphere-stream.3es";
   ServerInfoMessage serverInfo;
-  Sphere shape(42, Vector3f(1.2f, 2.3f, 3.4f), 1.26f);
+  Sphere shape(Id(42u), Spherical(Vector3f(1.2f, 2.3f, 3.4f), 1.26f));
   testShape(shape, &serverInfo, fileName);
   validateFileStream(fileName, shape, serverInfo);
 }

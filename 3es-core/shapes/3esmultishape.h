@@ -4,13 +4,14 @@
 #ifndef _3ESMULTISHAPE_H_
 #define _3ESMULTISHAPE_H_
 
-#include <algorithm>
-
 #include "3es-core.h"
+
 #include "3esintarg.h"
 #include "3esquaternionarg.h"
 #include "3esshape.h"
 #include "3esv3arg.h"
+
+#include <algorithm>
 
 namespace tes
 {
@@ -28,10 +29,11 @@ namespace tes
 class _3es_coreAPI MultiShape : public Shape
 {
 public:
-  /// Maximum number of shapes in a multi shape packet. Packet is too large otherwise.
-  static const uint16_t BlockCountLimit;  // = 1024u;
+  /// Maximum number of shapes in a multi shape packet using single precision. Halve for double precision. Packet is too
+  /// large otherwise.
+  static const unsigned BlockCountLimitSingle;  // = 1024u;
   /// Maximum number of shapes in a multi shape.
-  static const uint32_t ShapeCountLimit;  // = 0xffffu;
+  static const unsigned ShapeCountLimit;  // = 0xffffu;
 
   /// Create a new multi-shape with the given set of @p shapes. The @c routingId(), @c id() and @c category() for the
   /// shape set is taken from the first item in the array.
@@ -41,8 +43,11 @@ public:
   /// @param position A translation to apply to all shapes in the collection.
   /// @param rotation A rotation transformation to apply to all shapes in the collection.
   /// @param scale Scaling to apply to all shapes in the collection.
-  MultiShape(Shape **shapes, const UIntArg &shapeCount, const V3Arg &position = Vector3f::zero,
-             const QuaternionArg &rotation = Quaternionf::identity, const V3Arg &scale = Vector3f::one);
+  MultiShape(Shape **shapes, const UIntArg &shapeCount, const Transform &transform = Transform());
+
+  /// Move constructor
+  /// @param other Object to move.
+  MultiShape(MultiShape &&other);
 
   /// Destructor.
   ~MultiShape();
@@ -64,22 +69,35 @@ public:
   /// @return @c *this
   MultiShape &takeOwnership();
 
+  unsigned blockCountLimit() const;
+
 private:
   Shape **_shapes = nullptr;  ///< The shape array. Pointer ownership is defined by @c _ownShapes .
   uint32_t _itemCount = 0;    ///< Number of items in @c _shapes.
   bool _ownShapes = false;    ///< True if _shapes is internally allocated and elements are to be deleted.
 };
 
-inline MultiShape::MultiShape(Shape **shapes, const UIntArg &shapeCount, const V3Arg &position,
-                              const QuaternionArg &rotation, const V3Arg &scale)
-  : Shape(shapes[0]->routingId(), shapes[0]->id(), shapes[0]->category())
+inline MultiShape::MultiShape(Shape **shapes, const UIntArg &shapeCount, const Transform &transform)
+  : Shape(shapes[0]->routingId(), Id(shapes[0]->id(), shapes[0]->category()), transform)
   , _shapes(shapes)
   , _itemCount(std::min(static_cast<uint32_t>(shapeCount), ShapeCountLimit))
 {
-  setPosition(position);
-  setRotation(rotation);
-  setScale(scale);
   _data.flags |= OFMultiShape;
+  setDoublePrecision(shapes[0]->doublePrecision());
+}
+
+
+inline MultiShape::MultiShape(MultiShape &&other)
+  : Shape(other)
+  , _shapes(std::exchange(other._shapes, nullptr))
+  , _itemCount(std::exchange(other._itemCount, 0))
+  , _ownShapes(std::exchange(other._ownShapes, false))
+{}
+
+
+inline unsigned MultiShape::blockCountLimit() const
+{
+  return (doublePrecision()) ? BlockCountLimitSingle / 2 : BlockCountLimitSingle;
 }
 }  // namespace tes
 

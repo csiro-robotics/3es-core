@@ -7,6 +7,7 @@
 #include "3esendian.h"
 
 #include <cstring>
+#include <utility>
 
 using namespace tes;
 
@@ -58,19 +59,35 @@ PacketWriter::PacketWriter(const PacketWriter &other)
 }
 
 
+PacketWriter::PacketWriter(PacketWriter &&other)
+  : PacketStream<PacketHeader>(nullptr)
+{
+  _packet = std::exchange(other._packet, nullptr);
+  _status = std::exchange(other._status, Ok);
+  _payloadPosition = std::exchange(other._payloadPosition, 0);
+  _bufferSize = std::exchange(other._bufferSize, 0);
+}
+
+
 PacketWriter::~PacketWriter()
 {
   finalise();
 }
 
 
-PacketWriter &PacketWriter::operator=(const PacketWriter &other)
+PacketWriter &PacketWriter::operator=(PacketWriter other)
 {
-  _packet = reinterpret_cast<PacketHeader *>(other._packet);
-  _bufferSize = other._bufferSize;
-  _status = other._status;
-  _payloadPosition = other._payloadPosition;
+  other.swap(*this);
   return *this;
+}
+
+
+void PacketWriter::swap(PacketWriter &other)
+{
+  std::swap(_packet, other._packet);
+  std::swap(_status, other._status);
+  std::swap(_payloadPosition, other._payloadPosition);
+  std::swap(_bufferSize, other._bufferSize);
 }
 
 

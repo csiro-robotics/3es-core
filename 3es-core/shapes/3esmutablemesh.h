@@ -12,6 +12,7 @@ namespace tes
 {
 class Connection;
 class SimpleMesh;
+class Transform;
 struct MutableMeshImp;
 
 /// A @c SimpleMesh wrapper which manages sending updates on changing mesh context, thereby supporting mutation.
@@ -32,7 +33,7 @@ public:
   /// Exposes the internal mesh data.
   const SimpleMesh &meshResource() const;
 
-  void setTransform(const Matrix4f &transform);
+  void setTransform(const Transform &transform);
 
   void setTint(uint32_t tint);
 

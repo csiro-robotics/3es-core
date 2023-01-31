@@ -14,6 +14,7 @@ list(APPEND PUBLIC_HEADERS
   3escrc.h
   3esdebug.h
   3esendian.h
+  3esexception.h
   3esfeature.h
   3esintarg.h
   3esmaths.h
@@ -26,7 +27,6 @@ list(APPEND PUBLIC_HEADERS
   3esmeshmessages.h
   3esmessages.h
   3esmeta.h
-  3esobjectid.h
   3espacketbuffer.h
   3espacketheader.h
   3espacketreader.h
@@ -47,14 +47,18 @@ list(APPEND PUBLIC_HEADERS
   3esstreamutil.h
   3estcplistensocket.h
   3estcpsocket.h
+  3esthrow.h
   3estimer.h
   3estransferprogress.h
+  3estransform.h
   3estrigeom.h
   3estrigeom.inl
   3esv3arg.h
   3esvector3.h
   3esvector4.h
   3esvectorhash.h
+  3esdatabuffer.h
+  3esdatabuffer.inl
 )
 
 list(APPEND PUBLIC_SHAPE_HEADERS
@@ -64,6 +68,7 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/3escapsule.h
   shapes/3escone.h
   shapes/3escylinder.h
+  shapes/3esid.h
   shapes/3esmeshplaceholder.h
   shapes/3esmeshresource.h
   shapes/3esmeshset.h
@@ -100,6 +105,7 @@ list(APPEND SOURCES
   3escoreutil.cpp
   3escrc.cpp
   3esendian.cpp
+  3esexception.cpp
   3esfeature.cpp
   3esmathsmanip.cpp
   3esmatrix3.cpp
@@ -116,9 +122,12 @@ list(APPEND SOURCES
   3esrotation.cpp
   3esspinlock.cpp
   3esstreamutil.cpp
+  3esthrow.cpp
   3estimer.cpp
+  3estransform.cpp
   3esvector3.cpp
   3esvector4.cpp
+  3esdatabuffer.cpp
 
   shapes/3esarrow.cpp
   shapes/3escapsule.cpp

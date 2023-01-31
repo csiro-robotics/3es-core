@@ -365,7 +365,7 @@ inline Vector3<T> Matrix3<T>::rotate(const Vector3<T> &v) const
 
 
 template <typename T>
-inline bool Matrix3<T>::equals(const Matrix3<T> &a, const T epsilon) const
+inline bool Matrix3<T>::isEqual(const Matrix3<T> &a, const T epsilon) const
 {
   return std::abs(m[0] - a.m[0]) <= epsilon && std::abs(m[1] - a.m[1]) <= epsilon &&
          std::abs(m[2] - a.m[2]) <= epsilon && std::abs(m[3] - a.m[3]) <= epsilon &&

@@ -3,29 +3,21 @@
 //
 #include "3estext3d.h"
 
+#include <utility>
+
 using namespace tes;
 
-const Vector3f Text3D::DefaultFacing(0, -1, 0);
-
 Text3D::Text3D(const Text3D &other)
-  : Shape(SIdText3D)
-  , _text(nullptr)
-  , _textLength(0)
+  : Shape(other)
 {
-  _data = other._data;
   setText(other.text(), other.textLength());
 }
 
 Text3D::Text3D(Text3D &&other)
-  // TODO: use std::move() with the base constructor.
-  : Shape(SIdText3D)
-  , _text(other._text)
-  , _textLength(other._textLength)
-{
-  _data = other._data;
-  other._text = nullptr;
-  other._textLength = 0;
-}
+  : Shape(other)
+  , _text(std::exchange(other._text, nullptr))
+  , _textLength(std::exchange(other._textLength, 0))
+{}
 
 Text3D::~Text3D()
 {
@@ -37,7 +29,7 @@ bool Text3D::writeCreate(PacketWriter &stream) const
 {
   bool ok = true;
   stream.reset(routingId(), CreateMessage::MessageId);
-  ok = _data.write(stream) && ok;
+  ok = _data.write(stream, _attributes) && ok;
 
   // Write line count and lines.
   const uint16_t textLength = _textLength;
@@ -102,7 +94,7 @@ Text3D &Text3D::operator=(Text3D &&other)
 
 Shape *Text3D::clone() const
 {
-  Text3D *copy = new Text3D(nullptr, (uint16_t)0);
+  Text3D *copy = new Text3D(nullptr, Id());
   onClone(copy);
   return copy;
 }

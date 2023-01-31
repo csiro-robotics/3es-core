@@ -9,17 +9,16 @@
 
 using namespace tes;
 
-
 void Shape::updateFrom(const Shape &other)
 {
-  _data.attributes = other._data.attributes;
+  _attributes = other._attributes;
 }
 
 
 bool Shape::writeCreate(PacketWriter &stream) const
 {
   stream.reset(routingId(), CreateMessage::MessageId);
-  return _data.write(stream);
+  return _data.write(stream, _attributes);
 }
 
 
@@ -28,9 +27,8 @@ bool Shape::writeUpdate(PacketWriter &stream) const
   UpdateMessage up;
   up.id = _data.id;
   up.flags = _data.flags;
-  up.attributes = _data.attributes;
   stream.reset(routingId(), UpdateMessage::MessageId);
-  return up.write(stream);
+  return up.write(stream, _attributes);
 }
 
 
@@ -46,38 +44,39 @@ bool Shape::writeDestroy(PacketWriter &stream) const
 bool Shape::readCreate(PacketReader &stream)
 {
   // Assume the routing ID has already been read and resolve.
-  return _data.read(stream);
+  return _data.read(stream, _attributes);
 }
 
 
 bool Shape::readUpdate(PacketReader &stream)
 {
   UpdateMessage up;
-  if (up.read(stream))
+  ObjectAttributesd attrs;
+  if (up.read(stream, attrs))
   {
     if ((up.flags & UFUpdateMode) == 0)
     {
       // Full update.
-      _data.attributes = up.attributes;
+      _attributes = attrs;
     }
     else
     {
       // Partial update.
       if (up.flags & UFPosition)
       {
-        memcpy(_data.attributes.position, up.attributes.position, sizeof(up.attributes.position));
+        memcpy(_attributes.position, attrs.position, sizeof(attrs.position));
       }
       if (up.flags & UFRotation)
       {
-        memcpy(_data.attributes.rotation, up.attributes.rotation, sizeof(up.attributes.rotation));
+        memcpy(_attributes.rotation, attrs.rotation, sizeof(attrs.rotation));
       }
       if (up.flags & UFScale)
       {
-        memcpy(_data.attributes.scale, up.attributes.scale, sizeof(up.attributes.scale));
+        memcpy(_attributes.scale, attrs.scale, sizeof(attrs.scale));
       }
       if (up.flags & UFColour)
       {
-        _data.attributes.colour = up.attributes.colour;
+        _attributes.colour = attrs.colour;
       }
     }
     return true;

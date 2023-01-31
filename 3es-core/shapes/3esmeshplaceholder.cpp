@@ -22,9 +22,9 @@ uint32_t MeshPlaceholder::id() const
 }
 
 
-Matrix4f MeshPlaceholder::transform() const
+Transform MeshPlaceholder::transform() const
 {
-  return Matrix4f::identity;
+  return Transform::identity();
 }
 
 
@@ -52,44 +52,38 @@ unsigned MeshPlaceholder::indexCount(int /* stream */) const
 }
 
 
-const float *MeshPlaceholder::vertices(unsigned &stride, int stream) const
+DataBuffer MeshPlaceholder::vertices(int stream) const
 {
-  TES_UNUSED(stride);
   TES_UNUSED(stream);
-  return nullptr;
+  return DataBuffer();
 }
 
 
-const uint8_t *MeshPlaceholder::indices(unsigned &stride, unsigned &width, int stream) const
+DataBuffer MeshPlaceholder::indices(int stream) const
 {
-  TES_UNUSED(stride);
-  TES_UNUSED(width);
   TES_UNUSED(stream);
-  return nullptr;
+  return DataBuffer();
 }
 
 
-const float *MeshPlaceholder::normals(unsigned &stride, int stream) const
+DataBuffer MeshPlaceholder::normals(int stream) const
 {
-  TES_UNUSED(stride);
   TES_UNUSED(stream);
-  return nullptr;
+  return DataBuffer();
 }
 
 
-const float *MeshPlaceholder::uvs(unsigned &stride, int stream) const
+DataBuffer MeshPlaceholder::uvs(int stream) const
 {
-  TES_UNUSED(stride);
   TES_UNUSED(stream);
-  return nullptr;
+  return DataBuffer();
 }
 
 
-const uint32_t *MeshPlaceholder::colours(unsigned &stride, int stream) const
+DataBuffer MeshPlaceholder::colours(int stream) const
 {
-  TES_UNUSED(stride);
   TES_UNUSED(stream);
-  return nullptr;
+  return DataBuffer();
 }
 
 

@@ -23,38 +23,28 @@ namespace tes
 class _3es_coreAPI Box : public Shape
 {
 public:
-  /// @overload
-  Box(uint32_t id = 0u, const V3Arg &pos = V3Arg(0, 0, 0), const V3Arg &scale = V3Arg(1.0f, 1.0f, 1.0f),
-      const QuaternionArg &rot = QuaternionArg(0, 0, 0, 1));
   /// Construct a box object.
-  /// @param id The shape ID, unique among @c Box objects, or zero for a transient shape.
-  /// @param category The category grouping for the shape used for filtering.
-  /// @param pos Marks the centre position of the box.
-  /// @param scale Defines the size of the box, were (1, 1, 1) denotes a unit box.
-  /// @param rot Quaternion rotation to apply to the box.
-  Box(uint32_t id, uint16_t category, const V3Arg &pos = V3Arg(0, 0, 0), const V3Arg &scale = V3Arg(1, 1, 1),
-      const QuaternionArg &rot = QuaternionArg(0, 0, 0, 1));
+  /// @param id The shape id and category, with unique id among @c Box objects, or zero for a transient shape.
+  /// @param transform The box transformation matrix. The position is the box centre, while a unit scale denotes a unit
+  /// box.
+  Box(const Id &id = Id(), const Transform &transform = Transform());
+
+  /// Copy constructor
+  /// @param other Object to copy.
+  Box(const Box &other);
 
   inline const char *type() const override { return "box"; }
 };
 
 
-inline Box::Box(uint32_t id, const V3Arg &pos, const V3Arg &scale, const QuaternionArg &rot)
-  : Shape(SIdBox, id)
-{
-  setPosition(pos);
-  setRotation(rot);
-  setScale(scale);
-}
+inline Box::Box(const Id &id, const Transform &transform)
+  : Shape(SIdBox, id, transform)
+{}
 
 
-inline Box::Box(uint32_t id, uint16_t category, const V3Arg &pos, const V3Arg &scale, const QuaternionArg &rot)
-  : Shape(SIdBox, id, category)
-{
-  setPosition(pos);
-  setRotation(rot);
-  setScale(scale);
-}
+inline Box::Box(const Box &other)
+  : Shape(other)
+{}
 }  // namespace tes
 
 #endif  // _3ESBOX_H_

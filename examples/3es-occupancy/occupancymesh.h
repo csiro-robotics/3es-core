@@ -37,18 +37,18 @@ public:
   ~OccupancyMesh();
 
   uint32_t id() const override;
-  tes::Matrix4f transform() const override;
+  tes::Transform transform() const override;
   uint32_t tint() const override;
   uint8_t drawType(int stream) const override;
 
   unsigned vertexCount(int stream) const override;
   unsigned indexCount(int stream) const override;
 
-  const float *vertices(unsigned &stride, int stream) const override;
-  const uint8_t *indices(unsigned &stride, unsigned &width, int stream) const override;
-  const float *normals(unsigned &stride, int stream) const override;
-  const float *uvs(unsigned &stride, int stream) const override;
-  const uint32_t *colours(unsigned &stride, int stream) const override;
+  tes::DataBuffer vertices(int stream) const override;
+  tes::DataBuffer indices(int stream) const override;
+  tes::DataBuffer normals(int stream) const override;
+  tes::DataBuffer uvs(int stream) const override;
+  tes::DataBuffer colours(int stream) const override;
 
   tes::Resource *clone() const override;
 

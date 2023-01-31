@@ -180,6 +180,8 @@ if(TES_BUILD_DOXYGEN)
   endif(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../3rdEyeScene/Assets/UI/Images")
 
   if(DOXYGEN_FOUND)
+    message(STATUS "Adding doxygen target: 3es-doc")
+
     # Create a target to build the documentation.
     # Here we also setup various documentation variables passed through to the doxyfile configuration.
     # Each named argument below describes the Doxygen variable it sets.

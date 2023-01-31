@@ -7,6 +7,7 @@
 #include "3esendian.h"
 
 #include <cstring>
+#include <utility>
 
 using namespace tes;
 
@@ -14,6 +15,30 @@ PacketReader::PacketReader(const PacketHeader *packet)
   : PacketStream<const PacketHeader>(packet)
 {
   seek(0, Begin);
+}
+
+
+PacketReader::PacketReader(PacketReader &&other)
+  : PacketStream<const PacketHeader>(nullptr)
+{
+  _packet = std::exchange(other._packet, nullptr);
+  _status = std::exchange(other._status, Ok);
+  _payloadPosition = std::exchange(other._payloadPosition, 0);
+}
+
+
+PacketReader &PacketReader::operator=(PacketReader &&other)
+{
+  other.swap(*this);
+  return *this;
+}
+
+
+void PacketReader::swap(PacketReader &other)
+{
+  std::swap(_packet, other._packet);
+  std::swap(_status, other._status);
+  std::swap(_payloadPosition, other._payloadPosition);
 }
 
 

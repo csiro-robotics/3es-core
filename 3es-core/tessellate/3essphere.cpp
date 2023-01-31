@@ -80,11 +80,8 @@ void tes::sphere::initialise(std::vector<Vector3f> &vertices, std::vector<unsign
   const unsigned initialVertexCount = sizeof(initialVertices) / sizeof(initialVertices[0]);
 
   const unsigned initialIndices[] = { 0, 1,  2, 0, 2,  3, 0, 3,  4,  0,  4,  5,  0,  5,  6,  0,  6,  1,
-
                                       1, 7,  2, 2, 8,  3, 3, 9,  4,  4,  10, 5,  5,  11, 6,  6,  12, 1,
-
                                       7, 8,  2, 8, 9,  3, 9, 10, 4,  10, 11, 5,  11, 12, 6,  12, 7,  1,
-
                                       7, 13, 8, 8, 13, 9, 9, 13, 10, 10, 13, 11, 11, 13, 12, 12, 13, 7 };
   const unsigned initialIndexCount = sizeof(initialIndices) / sizeof(initialIndices[0]);
 

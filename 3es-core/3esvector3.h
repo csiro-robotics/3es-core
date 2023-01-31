@@ -93,11 +93,20 @@ public:
     , y(array3[1])
     , z(array3[2])
   {}
+  /// Initialisation from a array of at least length 3.
+  /// No bounds checking is performed.
+  /// @param array3 An array of at least length 3. Copies elements (0, 1, 2).
+  template <typename U>
+  inline Vector3(const U *array3)
+    : x(T(array3[0]))
+    , y(T(array3[1]))
+    , z(T(array3[2]))
+  {}
 
   /// Copy constructor from a different numeric type.
   /// @param other Vector to copy the value of.
   template <typename Q>
-  explicit inline Vector3(const Vector3<Q> &other)
+  inline Vector3(const Vector3<Q> &other)
     : x(T(other.x))
     , y(T(other.y))
     , z(T(other.z))
