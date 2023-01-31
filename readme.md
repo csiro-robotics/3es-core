@@ -26,6 +26,30 @@
 - QA testing
   - Record test sessions and attach 3es files to bug reports.
 
+## Building
+
+### Building with vcpkg
+
+Building with VCPKG is supported in order to fetch the dependencies. This affects both 3escore and 3esviewer.
+
+```shell
+# Must cmake configure from the source directory so vcpkg can find the vcpkg.json manifest.
+mkdir build
+cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=<vcpkg_dir>/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_FEATURES=test;viewer
+cmake --build build --targets all --
+```
+
+> Note: it's recommended to add `-G Ninja` as ninja makes for fast builds.
+
+For a multi-configuration generator - such as Visual Studio or `Ninja Multi-Config` (since CMake 3.17) we specify the configuration when we build instead.
+
+```shell
+# Must cmake configure from the source directory so vcpkg can find the vcpkg.json manifest.
+mkdir build
+cmake -B build -S . -G "Ninja Multi-Config" -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=<vcpkg_dir>/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_FEATURES=test;viewer
+cmake --build build --config Release --targets all --
+```
+
 ## 3rd Eye Scene Client
 
 Source code for the 3rd Eye Scene client viewer application is available on [GitHub](https://github.com/data61/3rdEyeScene)
@@ -36,7 +60,10 @@ The 3rd Eye Scene core includes code for both a C++ and a C# based server. This 
 
 Before sending TES messages, a `tes::Server` object must be declared and initialised as shown below.
 
-```
+```c++
+#include <3escore/ConnectionMonitor.h>
+#include <3escore/Server.h>
+
 tes::Server *g_tesServer = nullptr;  // Global declaration.
 
 void initialiseTes()
@@ -65,7 +92,10 @@ void initialiseTes()
 
 Several key server methods must be called periodically to manage the connection. These calls are listed and explained below.
 
-```
+```c++
+#include <3escore/ConnectionMonitor.h>
+#include <3escore/Server.h>
+
 void endFrame(float dt = 0.0f)
 {
   // Mark the end of frame. Flushed collated packets.
@@ -84,7 +114,15 @@ void endFrame(float dt = 0.0f)
 
 Once the server has been created and initialised it becomes possible to invoke object creation and update commands. The code below shows the creation and animation of a box shape as well as the creation of some transient objects.
 
-```
+```c++
+#include <3escore/Colour.h>
+#include <3escore/ConnectionMonitor.h>
+#include <3escore/Maths.h>
+#include <3escore/Server.h>
+#include <3escore/Vector3f.h>
+
+#include <3escore/shapes/Box.h>
+
 void animateBox(tes::Server &server)
 {
   // Declare a box.
@@ -115,7 +153,9 @@ void animateBox(tes::Server &server)
 
 To correct dispose of the server, call `dispose()`.
 
-```
+```c++
+#include <3escore/Server.h>
+
 void releaseTes()
 {
   if (g_tesServer)
@@ -129,11 +169,15 @@ void releaseTes()
 }
 ```
 
-Using Categories
-----------------
+## Using Categories
+
 Categories may be used to logically group objects in the viewer client. Objects from specific categories can be hidden and shown as a group. Categories are form a hierarchy, with each category having an optional parent. The code below shows an example category initialisation.
 
-```
+```c++
+#include <3escore/Messages.h>
+#include <3escore/Server.h>
+#include <3escore/ServerUtil.h>
+
 void defineCategory(tes::Server &server, const char *name, uint16_t category, uint16_t parent, bool defaultActive)
 {
   tes::CategoryNameMessage msg;
@@ -162,11 +206,13 @@ void initCategories()
 }
 ```
 
-Using the Macro Interface
--------------------------
+## Using the Macro Interface
+
 It is also possible to use preprocessor macros to invoke must 3rd Eye Scene API calls. This is to support removing all debugging code via the preprocessor thereby eliminating all associated overhead. The examples above can be rewritten using the macro interface as shown below. The `animateBox2()` function is equivalent to the `animateBox()` function, but uses transient objects instead of updating a single object.
 
-```
+```c++
+#include <3escore/ServerMacros.h>
+
 // Declare global server pointer.
 TES_SERVER_DECL(g_tesServer);
 
@@ -244,7 +290,3 @@ void releaseTes()
 ```
 
 Additional documentation can be found at [https://data61.github.io/3rdEyeScene/](https://data61.github.io/3rdEyeScene/)
-
-## Known issues
-
-- `MultiShape` objects do not support individual flags for transparency or wireframe as these are creation flags.

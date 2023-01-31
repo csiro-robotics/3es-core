@@ -1,8 +1,8 @@
 
-add_subdirectory(3es-sphere-view)
-set_target_properties(3es-sphere-view PROPERTIES FOLDER examples)
+add_subdirectory(3esSphereView)
+set_target_properties(3esSphereView PROPERTIES FOLDER examples)
 
-add_subdirectory(3es-occupancy)
-if(TARGET 3es-occupancy)
-  set_target_properties(3es-occupancy PROPERTIES FOLDER examples)
-endif(TARGET 3es-occupancy)
+add_subdirectory(3esOccupancy)
+if(TARGET 3esOccupancy)
+  set_target_properties(3esOccupancy PROPERTIES FOLDER examples)
+endif(TARGET 3esOccupancy)

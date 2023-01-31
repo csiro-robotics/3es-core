@@ -1,0 +1,58 @@
+{
+  "name": "3es",
+  "version-string": "0.8.0",
+  "description": "3D debug rendering instrumentation library.",
+  "dependencies": [
+    "zlib"
+  ],
+  "features": {
+    "tests": {
+      "description": "Build with unit tests.",
+      "dependencies": [
+        "gtest"
+      ]
+    },
+    "viewer": {
+      "description": "Build 3es viewer client.",
+      "dependencies": [
+        "cxxopts",
+        "glfw3",
+        "corrade",
+        {
+          "name": "magnum",
+          "features": [
+            "debugtools",
+            "gl",
+            "gl-info",
+            "glfwapplication",
+            "magnumfont",
+            "primitives",
+            "shaders",
+            "shadertools",
+            "tgaimporter",
+            "text"
+          ]
+        },
+        {
+          "name": "magnum-extras",
+          "features": [
+            "ui"
+          ]
+        },
+        {
+          "name": "magnum-plugins",
+          "features": [
+            "freetypefont"
+          ]
+        },
+        "nativefiledialog"
+      ]
+    },
+    "occupancy": {
+      "description": "Build occupancy map visualisation example using octomap.",
+      "dependencies": [
+        "octomap"
+      ]
+    }
+  }
+}

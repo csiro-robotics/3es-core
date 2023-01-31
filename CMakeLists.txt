@@ -1,9 +1,25 @@
 # Project setup and minimum cmake version.
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
+
+# Add project level options here.
+option(TES_BUILD_EXAMPLES "Build examples?" OFF)
+option(TES_BUILD_TESTS "Build unit tests?" OFF)
+option(TES_BUILD_VIEWER "Build viewer client?" OFF)
+
+# Skip stale example
+# if(TES_BUILD_EXAMPLES)
+#   list(APPEND VCPKG_MANIFEST_FEATURES "occupancy")
+# endif(TES_BUILD_EXAMPLES)
+if(TES_BUILD_TESTS)
+  list(APPEND VCPKG_MANIFEST_FEATURES "tests")
+endif(TES_BUILD_TESTS)
+if(TES_BUILD_VIEWER)
+  list(APPEND VCPKG_MANIFEST_FEATURES "viewer")
+endif(TES_BUILD_VIEWER)
 
 # Setup project details.
 project(3es)
-include(3es-core/cmake/3es-version.cmake)
+include(3escore/cmake/3es-version.cmake)
 set(ConfigPackageLocation lib/cmake/3es)
 
 # C++ standards setup.
@@ -26,22 +42,21 @@ set(CMAKE_DEBUG_POSTFIX "d")
 # binaries should be on the path already.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
-# Add project level options here.
-option(TES_BUILD_EXAMPLES "Build examples?" OFF)
-option(TES_BUILD_TESTS "Build unit tests?" OFF)
-
 # Allow the use of folders to group targets in supporting environments.
 # For example Visual Studio solution folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Manage warnings, disabling ones we want to ignore.
-include(compilerSetup)
+include(3esTarget)
 
 # Include sub projects.
-add_subdirectory(3es-core)
+add_subdirectory(3escore)
 if(TES_BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif(TES_BUILD_EXAMPLES)
+if(TES_BUILD_VIEWER)
+  add_subdirectory(3esview)
+endif(TES_BUILD_VIEWER)
 
 add_subdirectory(utils)
 
