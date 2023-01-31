@@ -2,6 +2,10 @@
 // author: Kazys Stepanas
 //
 
+#include "3estViewer/TestViewerConfig.h"
+
+#include "TestViewer.h"
+
 #include <3esview/painter/Arrow.h>
 #include <3esview/painter/Box.h>
 #include <3esview/painter/Capsule.h>
@@ -29,27 +33,15 @@ namespace tes::view
 class Shapes : public testing::Test
 {
 public:
-  /// Initialise a viewer for use in unit tests. Test which use any of the 3D graphics API require a viewer first.
-  /// @note This will not be thread safe using OpenGL. It may with Vulkan - untested.
-  static void SetUpTestSuite()
+  std::shared_ptr<TestViewer> createViewer() const
   {
     int argc = 1;
     std::string arg = "test";
     char *arg_ptr = arg.data();
     char **argv = &arg_ptr;
-    _viewer = std::make_unique<Viewer>(Magnum::Platform::GlfwApplication::Arguments(argc, argv));
+    return std::make_shared<TestViewer>(TestViewer::Arguments(argc, argv));
   }
-
-  static void TearDownTestSuite() { _viewer.release(); }
-
-  Viewer &viewer() { return *_viewer; }
-  const Viewer &viewer() const { return *_viewer; }
-
-private:
-  static std::unique_ptr<Viewer> _viewer;
 };
-
-std::unique_ptr<Viewer> Shapes::_viewer;
 
 /// A helper class for running painter parent shape tests.
 ///
@@ -68,7 +60,7 @@ struct ParentsTest
 
   /// Run the test.
   /// @param viewer The viewer framework.
-  void run(Viewer &viewer)
+  void run(TestViewer &viewer)
   {
     _painter = std::make_unique<Painter>(viewer.tes()->culler(), viewer.tes()->shaderLibrary());
 
@@ -114,6 +106,9 @@ struct ParentsTest
     validateExpired();
 
     _painter.release();
+
+    // Run the viewer to make sure it does everything it needs to.
+    viewer.runFor(1);
   }
 
 private:
@@ -174,7 +169,8 @@ private:
 
 TEST_F(Shapes, Painter_Add)
 {
-  painter::Box painter(viewer().tes()->culler(), viewer().tes()->shaderLibrary());
+  auto viewer = createViewer();
+  painter::Box painter(viewer->tes()->culler(), viewer->tes()->shaderLibrary());
 
   const Magnum::Matrix4 transform = Magnum::Matrix4::translation({ 1, 2, 3 });
   const Magnum::Color4 colour = { 3, 2, 1, 0 };
@@ -206,7 +202,8 @@ TEST_F(Shapes, Painter_Add)
 
 TEST_F(Shapes, Painter_Remove)
 {
-  painter::Box painter(viewer().tes()->culler(), viewer().tes()->shaderLibrary());
+  auto viewer = createViewer();
+  painter::Box painter(viewer->tes()->culler(), viewer->tes()->shaderLibrary());
 
   const Id id(1);
   const Magnum::Matrix4 transform = Magnum::Matrix4::translation({ 1, 2, 3 });
@@ -252,7 +249,8 @@ TEST_F(Shapes, Painter_ReAdd)
 {
   // Validate we can add a shape, remove it, then add it again all in the same frame.
   // This isn't an expected use case, but it should not break.
-  painter::Box painter(viewer().tes()->culler(), viewer().tes()->shaderLibrary());
+  auto viewer = createViewer();
+  painter::Box painter(viewer->tes()->culler(), viewer->tes()->shaderLibrary());
 
   Magnum::Matrix4 transform = Magnum::Matrix4::translation({ 1, 2, 3 });
   Magnum::Color4 colour = { 3, 2, 1, 0 };
@@ -319,7 +317,8 @@ TEST_F(Shapes, Painter_Parents)
   ParentsTest<painter::Box> test;
   test.child_count = 20;
   test.frame_count = 10;
-  test.run(viewer());
+  auto viewer = createViewer();
+  test.run(*viewer);
 }
 
 
@@ -330,7 +329,8 @@ TEST_F(Shapes, Painter_Update)
   // - keep a window W where W < N
   // - make sure the window is always valid
   // - make sure expired shapes are not valid.
-  painter::Box painter(viewer().tes()->culler(), viewer().tes()->shaderLibrary());
+  auto viewer = createViewer();
+  painter::Box painter(viewer->tes()->culler(), viewer->tes()->shaderLibrary());
 
   const FrameNumber max_frames = 20;
 
@@ -373,55 +373,63 @@ TEST_F(Shapes, Painter_Update)
 TEST_F(Shapes, Painter_Arrow)
 {
   ParentsTest<painter::Arrow> test;
-  test.run(viewer());
+  auto viewer = createViewer();
+  test.run(*viewer);
 }
 
 
 TEST_F(Shapes, Painter_Box)
 {
   ParentsTest<painter::Box> test;
-  test.run(viewer());
+  auto viewer = createViewer();
+  test.run(*viewer);
 }
 
 
 TEST_F(Shapes, Painter_Capsule)
 {
   ParentsTest<painter::Capsule> test;
-  test.run(viewer());
+  auto viewer = createViewer();
+  test.run(*viewer);
 }
 
 
 TEST_F(Shapes, Painter_Cone)
 {
   ParentsTest<painter::Cone> test;
-  test.run(viewer());
+  auto viewer = createViewer();
+  test.run(*viewer);
 }
 
 
 TEST_F(Shapes, Painter_Cylinder)
 {
   ParentsTest<painter::Cylinder> test;
-  test.run(viewer());
+  auto viewer = createViewer();
+  test.run(*viewer);
 }
 
 
 TEST_F(Shapes, Painter_Plane)
 {
   ParentsTest<painter::Plane> test;
-  test.run(viewer());
+  auto viewer = createViewer();
+  test.run(*viewer);
 }
 
 
 TEST_F(Shapes, Painter_Sphere)
 {
   ParentsTest<painter::Sphere> test;
-  test.run(viewer());
+  auto viewer = createViewer();
+  test.run(*viewer);
 }
 
 
 TEST_F(Shapes, Painter_Star)
 {
   ParentsTest<painter::Star> test;
-  test.run(viewer());
+  auto viewer = createViewer();
+  test.run(*viewer);
 }
 }  // namespace tes::view

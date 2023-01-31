@@ -37,7 +37,9 @@ public:
   explicit Viewer(const Arguments &arguments);
   ~Viewer();
 
-  inline std::shared_ptr<ThirdEyeScene> tes() const { return _tes; }
+  std::shared_ptr<ThirdEyeScene> tes() const { return _tes; }
+
+  const std::shared_ptr<DataThread> &dataThread() const { return _data_thread; }
 
   bool open(const std::filesystem::path &path);
   bool connect(const std::string &host, uint16_t port, bool allow_reconnect = true);
@@ -45,8 +47,6 @@ public:
 
   void setContinuousSim(bool continuous);
   bool continuousSim();
-
-  const std::shared_ptr<DataThread> &dataThread() const { return _data_thread; }
 
 private:
   enum class EdlParam
@@ -108,8 +108,8 @@ private:
   EdlParam _edl_tweak = EdlParam::LinearScale;
 
   std::shared_ptr<ThirdEyeScene> _tes;
-  std::shared_ptr<command::Set> _commands;
   std::shared_ptr<DataThread> _data_thread;
+  std::shared_ptr<command::Set> _commands;
 
   Clock::time_point _last_sim_time = Clock::now();
 

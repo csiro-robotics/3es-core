@@ -2,6 +2,8 @@
 // author: Kazys Stepanas
 //
 
+#include "3estViewer/TestViewerConfig.h"
+
 #include <3esview/util/ResourceList.h>
 
 #include <gtest/gtest.h>

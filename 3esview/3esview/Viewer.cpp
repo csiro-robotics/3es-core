@@ -27,7 +27,6 @@
 #include <Magnum/GL/TextureFormat.h>
 #include <Magnum/GL/Version.h>
 
-#include <filesystem>
 #include <fstream>
 
 #include <cxxopts.hpp>
@@ -104,11 +103,12 @@ bool Viewer::open(const std::filesystem::path &path)
 
 bool Viewer::connect(const std::string &host, uint16_t port, bool allow_reconnect)
 {
+  closeOrDisconnect();
   auto net_thread = std::make_shared<NetworkThread>(_tes, host, port, allow_reconnect);
   _data_thread = net_thread;
   if (!allow_reconnect)
   {
-    // Connection not allowed. Wait until the network thread has tried to connect...
+    // Reconnection not allowed. Wait until the network thread has tried to connect...
     const auto start_time = std::chrono::steady_clock::now();
     // ...but don't wait forever.
     const auto timeout = std::chrono::seconds(5);

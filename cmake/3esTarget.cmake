@@ -221,15 +221,28 @@ function(tes_configure_target TARGET)
   endif(NOT "VERSION" IN_LIST ARG_SKIP)
 endfunction(tes_configure_target)
 
+# tes_configure_unit_test_target(target [GTEST [SOURCES source1 [source2...]]] [ARGS arg1 [arg2...])
+#
 # Configure a TES unit test target. This skips installation and versionining for the target.
+#
+# GTEST indicates this is a google test and we should use gtest_add_tests() to add it.
+#
+# SOURCES allows the GTEST source list to be specified. This should be used when some source files
+# for the target are generated files.
+#
+# ARGS allows additional arguments to be passed to the test command.
 function(tes_configure_unit_test_target TARGET)
-  cmake_parse_arguments(ARG "GTEST" "" "ARGS" ${ARGN})
+  cmake_parse_arguments(ARG "GTEST" "" "ARGS;SOURCES" ${ARGN})
   if(NOT ARG_ARGS)
     unset(ARG_ARGS)
   endif(NOT ARG_ARGS)
   tes_configure_target(${TARGET} SKIP INSTALL VERSION)
   if(ARG_GTEST)
-    gtest_add_tests(TARGET ${TARGET} EXTRA_ARGS --gtest_output=xml:test-reports/ ${ARG_ARGS})
+    if(ARG_SOURCES)
+      gtest_add_tests(TARGET ${TARGET} SOURCES ${ARG_SOURCES} EXTRA_ARGS --gtest_output=xml:test-reports/ ${ARG_ARGS})
+    else(ARG_SOURCES)
+      gtest_add_tests(TARGET ${TARGET} EXTRA_ARGS --gtest_output=xml:test-reports/ ${ARG_ARGS})
+    endif(ARG_SOURCES)
   else(ARG_GTEST)
     add_test(NAME ${TARGET} COMMAND ${TARGET} ${ARG_ARGS})
   endif(ARG_GTEST)

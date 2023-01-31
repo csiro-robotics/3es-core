@@ -64,7 +64,11 @@ public:
   /// @return The known routing ID names.
   static const std::unordered_map<uint32_t, std::string> defaultHandlerNames();
 
-  inline std::shared_ptr<BoundsCuller> culler() const { return _culler; }
+  /// Return the last rendered frame stamp.
+  /// @return The last frame stamp.
+  FrameStamp frameStamp() const { return _render_stamp; }
+
+  std::shared_ptr<BoundsCuller> culler() const { return _culler; }
 
   void setCamera(const camera::Camera &camera) { _camera = camera; }
   camera::Camera &camera() { return _camera; }
