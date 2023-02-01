@@ -14,19 +14,23 @@ namespace tes
 ///
 /// A sphere is defined by:
 /// Component      | Description
-/// -------------- | -----------------------------------------------------------------------------------------------
+/// -------------- |
+/// -----------------------------------------------------------------------------------------------
 /// @c centre()    | The sphere centre. An alias for @p position().
 /// @c radius()    | The sphere radius.
 class TES_CORE_API Sphere : public Shape
 {
 public:
   /// Create a sphere.
-  /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a transient shape.
+  /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a
+  /// transient shape.
   /// @param transform The spherical transform for the sphere.
   Sphere(const Id &id = Id(), const Spherical &transform = Spherical());
 
-  /// Create an ellipsoid. This constructor allows for scaling and rotating the sphere in order to create an ellipsoid.
-  /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a transient shape.
+  /// Create an ellipsoid. This constructor allows for scaling and rotating the sphere in order to
+  /// create an ellipsoid.
+  /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a
+  /// transient shape.
   /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
   Sphere(const Id &id, const Transform &transform);
 
@@ -77,7 +81,7 @@ inline Sphere &Sphere::setRadius(double radius)
 
 inline double Sphere::radius() const
 {
-  return scale().x;
+  return scale().x();
 }
 
 

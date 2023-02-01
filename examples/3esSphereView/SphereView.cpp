@@ -18,7 +18,8 @@
 #define TEXT_ID 1u
 #define SPHERE_ID 2u
 
-// Example to view a sphere tessellation. This code duplicates tessellate/3essphere code and adds 3ES commands.
+// Example to view a sphere tessellation. This code duplicates tessellate/3essphere code and adds
+// 3ES commands.
 using Vector3f = tes::Vector3f;
 
 namespace
@@ -68,13 +69,14 @@ namespace
 {
 struct SphereVertexHash
 {
-  inline size_t operator()(const Vector3f &v) const { return tes::vhash::hash(v.x, v.y, v.z); }
+  inline size_t operator()(const Vector3f &v) const { return tes::vhash::hash(v.x(), v.y(), v.z()); }
 };
 
 typedef std::unordered_multimap<Vector3f, unsigned, SphereVertexHash> SphereVertexMap;
 
 
-unsigned tesUnrollDisplay(const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices)
+unsigned tesUnrollDisplay(const std::vector<Vector3f> &vertices,
+                          const std::vector<unsigned> &indices)
 {
   unsigned shapeCount = 0;
   // Maximum 6500 vertices per message. Take it down to the nearest multiple of 3 (triangle).
@@ -93,7 +95,8 @@ unsigned tesUnrollDisplay(const std::vector<Vector3f> &vertices, const std::vect
     }
 
     cursor += count;
-    TES_TRIANGLES(tesServer, TES_RGB(200, 200, 200), tes::Id(SPHERE_ID) + shapeCount, tes::DataBuffer(localVertices));
+    TES_TRIANGLES(tesServer, TES_RGB(200, 200, 200), tes::Id(SPHERE_ID) + shapeCount,
+                  tes::DataBuffer(localVertices));
     ++shapeCount;
   }
 
@@ -109,10 +112,11 @@ unsigned tesUnrollDisplay(const std::vector<Vector3f> &vertices, const std::vect
 /// @param vertex The vertex to add.
 /// @param vertices The vertex data to add to.
 /// @return The index which can be used to refer to the target vertex.
-unsigned insertVertex(const Vector3f &vertex, std::vector<Vector3f> &vertices, SphereVertexMap &vertexMap)
+unsigned insertVertex(const Vector3f &vertex, std::vector<Vector3f> &vertices,
+                      SphereVertexMap &vertexMap)
 {
   auto findResult = vertexMap.find(vertex);
-  size_t hashVal = tes::vhash::hash(vertex.x, vertex.y, vertex.z);
+  size_t hashVal = tes::vhash::hash(vertex.x(), vertex.y(), vertex.z());
   if (findResult != vertexMap.end())
   {
     do
@@ -123,7 +127,8 @@ unsigned insertVertex(const Vector3f &vertex, std::vector<Vector3f> &vertices, S
       }
       ++findResult;
     } while (findResult != vertexMap.end() &&
-             tes::vhash::hash(findResult->first.x, findResult->first.y, findResult->first.z) == hashVal);
+             tes::vhash::hash(findResult->first.x(), findResult->first.y(), findResult->first.z()) ==
+               hashVal);
   }
 
 
@@ -134,7 +139,8 @@ unsigned insertVertex(const Vector3f &vertex, std::vector<Vector3f> &vertices, S
   return idx;
 }
 
-void sphereInitialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, SphereVertexMap *vertexMap)
+void sphereInitialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+                      SphereVertexMap *vertexMap)
 {
   // We start with two hexagonal rings to approximate the sphere.
   // All subdivision occurs on a unit radius sphere, at the origin. We translate and
@@ -159,9 +165,10 @@ void sphereInitialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &in
     Vector3f(ringRadius * std::cos(5 * hexAngle), ringRadius * std::sin(5 * hexAngle), ringHeight),
 
     // Lower hexagon.
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle), ringRadius * std::sin(ring2OffsetAngle), -ringHeight),
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle + hexAngle), ringRadius * std::sin(ring2OffsetAngle + hexAngle),
+    Vector3f(ringRadius * std::cos(ring2OffsetAngle), ringRadius * std::sin(ring2OffsetAngle),
              -ringHeight),
+    Vector3f(ringRadius * std::cos(ring2OffsetAngle + hexAngle),
+             ringRadius * std::sin(ring2OffsetAngle + hexAngle), -ringHeight),
     Vector3f(ringRadius * std::cos(ring2OffsetAngle + 2 * hexAngle),
              ringRadius * std::sin(ring2OffsetAngle + 2 * hexAngle), -ringHeight),
     Vector3f(ringRadius * std::cos(ring2OffsetAngle + 3 * hexAngle),
@@ -175,13 +182,15 @@ void sphereInitialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &in
   };
   const unsigned initialVertexCount = sizeof(initialVertices) / sizeof(initialVertices[0]);
 
-  const unsigned initialIndices[] = { 0, 1,  2, 0, 2,  3, 0, 3,  4,  0,  4,  5,  0,  5,  6,  0,  6,  1,
+  const unsigned initialIndices[] = {
+    0, 1,  2, 0, 2,  3, 0, 3,  4,  0,  4,  5,  0,  5,  6,  0,  6,  1,
 
-                                      1, 7,  2, 2, 8,  3, 3, 9,  4,  4,  10, 5,  5,  11, 6,  6,  12, 1,
+    1, 7,  2, 2, 8,  3, 3, 9,  4,  4,  10, 5,  5,  11, 6,  6,  12, 1,
 
-                                      7, 8,  2, 8, 9,  3, 9, 10, 4,  10, 11, 5,  11, 12, 6,  12, 7,  1,
+    7, 8,  2, 8, 9,  3, 9, 10, 4,  10, 11, 5,  11, 12, 6,  12, 7,  1,
 
-                                      7, 13, 8, 8, 13, 9, 9, 13, 10, 10, 13, 11, 11, 13, 12, 12, 13, 7 };
+    7, 13, 8, 8, 13, 9, 9, 13, 10, 10, 13, 11, 11, 13, 12, 12, 13, 7
+  };
   const unsigned initialIndexCount = sizeof(initialIndices) / sizeof(initialIndices[0]);
 
   for (unsigned i = 0; i < initialVertexCount; ++i)
@@ -209,7 +218,8 @@ void sphereInitialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &in
 }
 
 
-void subdivideUnitSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, SphereVertexMap &vertexMap)
+void subdivideUnitSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+                         SphereVertexMap &vertexMap)
 {
   const unsigned triangleCount = unsigned(indices.size() / 3);
   unsigned triangle[3];
@@ -230,8 +240,8 @@ void subdivideUnitSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> 
     verts[2] = vertices[triangle[2]];
 
     // Highlight the working triangle: extrude it a bit to make it pop.
-    TES_TRIANGLE(tesServer, TES_COLOUR(FireBrick), tes::Id(), verts[0] * 1.01f, verts[1] * 1.01f, verts[2] * 1.01f,
-                 tes::Transform::identity());
+    TES_TRIANGLE(tesServer, TES_COLOUR(FireBrick), tes::Id(), verts[0] * 1.01f, verts[1] * 1.01f,
+                 verts[2] * 1.01f, tes::Transform::identity());
 
     // Calculate the new vertex at the centre of the existing triangle.
     newVertices[0] = (0.5f * (verts[0] + verts[1])).normalised();
@@ -254,10 +264,10 @@ void subdivideUnitSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> 
     def[1] = insertVertex(newVertices[1], vertices, vertexMap);
     def[2] = insertVertex(newVertices[2], vertices, vertexMap);
 
-    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[def[0]], vertices[def[1]], vertices[def[2]],
-                 tes::Transform::identity());
-    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[def[0]], vertices[def[1]], vertices[def[2]],
-                   tes::Transform::identity());
+    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[def[0]], vertices[def[1]],
+                 vertices[def[2]], tes::Transform::identity());
+    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[def[0]], vertices[def[1]],
+                   vertices[def[2]], tes::Transform::identity());
 
     // Replace the original triangle ABC with DEF
     indices[i * 3 + 0] = def[0];
@@ -269,28 +279,28 @@ void subdivideUnitSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> 
     indices.push_back(def[0]);
     indices.push_back(def[2]);
 
-    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[abc[0]], vertices[def[0]], vertices[def[2]],
-                 tes::Transform::identity());
-    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[abc[0]], vertices[def[0]], vertices[def[2]],
-                   tes::Transform::identity());
+    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[abc[0]], vertices[def[0]],
+                 vertices[def[2]], tes::Transform::identity());
+    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[abc[0]], vertices[def[0]],
+                   vertices[def[2]], tes::Transform::identity());
 
     indices.push_back(abc[1]);
     indices.push_back(def[1]);
     indices.push_back(def[0]);
 
-    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[abc[1]], vertices[def[1]], vertices[def[2]],
-                 tes::Transform::identity());
-    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[abc[1]], vertices[def[1]], vertices[def[2]],
-                   tes::Transform::identity());
+    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[abc[1]], vertices[def[1]],
+                 vertices[def[2]], tes::Transform::identity());
+    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[abc[1]], vertices[def[1]],
+                   vertices[def[2]], tes::Transform::identity());
 
     indices.push_back(abc[2]);
     indices.push_back(def[2]);
     indices.push_back(def[1]);
 
-    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[abc[2]], vertices[def[2]], vertices[def[1]],
-                 tes::Transform::identity());
-    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[abc[2]], vertices[def[2]], vertices[def[1]],
-                   tes::Transform::identity());
+    TES_TRIANGLE(tesServer, TES_COLOUR(Cyan), tes::Id(), vertices[abc[2]], vertices[def[2]],
+                 vertices[def[1]], tes::Transform::identity());
+    TES_TRIANGLE_W(tesServer, TES_COLOUR(Navy), tes::Id(), vertices[abc[2]], vertices[def[2]],
+                   vertices[def[1]], tes::Transform::identity());
 
     TES_SERVER_UPDATE(tesServer, 0, true);  // Flush.
   }

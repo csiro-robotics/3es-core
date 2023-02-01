@@ -86,10 +86,12 @@ void Text2D::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &para
   }
 
   _painter->draw2D(
-    _transient.begin(), _transient.end(), [](const std::vector<TextEntry>::iterator &iter) { return *iter; }, params);
+    _transient.begin(), _transient.end(),
+    [](const std::vector<TextEntry>::iterator &iter) { return *iter; }, params);
   _painter->draw2D(
     _text.begin(), _text.end(),
-    [](const std::unordered_map<uint32_t, TextEntry>::iterator &iter) { return iter->second; }, params);
+    [](const std::unordered_map<uint32_t, TextEntry>::iterator &iter) { return iter->second; },
+    params);
 }
 
 
@@ -143,7 +145,8 @@ void Text2D::serialise(Connection &out, ServerInfoMessage &info)
     shape.setText(text.text.c_str(), uint16_t(text.text.length()));
     const auto position = text.transform[3].xyz();
     shape.setPosition(tes::Vector3f(position.x(), position.y(), position.z()));
-    shape.setInWorldSpace((text.flags & painter::Text::TextFlag::ScreenProjected) != painter::Text::TextFlag::Zero);
+    shape.setInWorldSpace((text.flags & painter::Text::TextFlag::ScreenProjected) !=
+                          painter::Text::TextFlag::Zero);
     if (out.create(shape) < 0)
     {
       log::error("Error writing text 2D shape.");

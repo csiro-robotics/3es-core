@@ -17,11 +17,12 @@ struct MeshComponentMessage;
 template <typename real>
 struct ObjectAttributes;
 
-/// Represents a mesh part or object. These are visualised via @c MeshSet,
-/// which may contain several @c MeshResource parts.
+/// Represents a mesh part or object. These are visualised via @c MeshSet, which may contain several
+/// @c MeshResource parts.
 ///
 /// @todo Update to support double precision vertices and normals including quantised transfer.
-/// The mesh creation already does respect the @c transform() flag @c Transform::preferDoublePrecision() .
+/// The mesh creation already does respect the @c transform() flag @c
+/// Transform::preferDoublePrecision() .
 class TES_CORE_API MeshResource : public Resource
 {
 public:
@@ -33,7 +34,8 @@ public:
   /// @param byteLimit The maximum number of bytes to transfer. Note: a hard limit of 0xffff,
   ///   packet header size and CRC is enforced. Zero indices use of the hard limit.
   /// @param Additional byte overhead to account for.
-  static uint16_t estimateTransferCount(size_t elementSize, unsigned byteLimit, unsigned overhead = 0);
+  static uint16_t estimateTransferCount(size_t elementSize, unsigned byteLimit,
+                                        unsigned overhead = 0);
 
   /// Returns @c MtMesh
   uint16_t typeId() const override;
@@ -58,8 +60,8 @@ public:
   /// Returns a pointer to the vertex stream. Each element is taken
   /// as a triple of single precision floats: (x, y, z).
   /// @param stream Reserved for future use.
-  /// @return A @c DataBuffer wrapper around the vertex memory. Must be of type [ @c DctFloat32, @c DctFloat64, @c
-  /// DctPackedFloat16, @c DctPackedFloat32 ] with a @c componentCount() of 3.
+  /// @return A @c DataBuffer wrapper around the vertex memory. Must be of type [ @c DctFloat32, @c
+  /// DctFloat64, @c DctPackedFloat16, @c DctPackedFloat32 ] with a @c componentCount() of 3.
   virtual DataBuffer vertices(int stream = 0) const = 0;
 
   /// Returns a pointer to the index stream. Supports different index widths.
@@ -72,16 +74,16 @@ public:
   /// as a triple of single precision floats: (x, y, z). Expects
   /// @c vertexColour(stream) elements or null if no normals.
   /// @param stream Reserved for future use.
-  /// @return A @c DataBuffer wrapper around the vertex memory. Must be of type [ @c DctFloat32, @c DctFloat64, @c
-  /// DctPackedFloat16, @c DctPackedFloat32 ] with a @c componentCount() of 3.
+  /// @return A @c DataBuffer wrapper around the vertex memory. Must be of type [ @c DctFloat32, @c
+  /// DctFloat64, @c DctPackedFloat16, @c DctPackedFloat32 ] with a @c componentCount() of 3.
   virtual DataBuffer normals(int stream = 0) const = 0;
 
   /// Returns a pointer to the UV stream. Each element is taken
   /// as a pair of single precision floats: (u, v). Expects
   /// @c vertexCount(stream) elements or null if no UVs.
   /// @param stream Reserved for future use.
-  /// @return A @c DataBuffer wrapper around the vertex memory. Must be of type [ @c DctFloat32, @c DctFloat64, @c
-  /// DctPackedFloat16, @c DctPackedFloat32 ] with a @c componentCount() of 2.
+  /// @return A @c DataBuffer wrapper around the vertex memory. Must be of type [ @c DctFloat32, @c
+  /// DctFloat64, @c DctPackedFloat16, @c DctPackedFloat32 ] with a @c componentCount() of 2.
   virtual DataBuffer uvs(int stream = 0) const = 0;
 
   /// Returns a pointer to the colour stream. Each element is taken
@@ -89,7 +91,8 @@ public:
   /// if no vertex colours.
   ///
   /// @param stream Reserved for future use.
-  /// @return A @c DataBuffer wrapper around the vertex colour memory. Must be of type @c DctUInt32 .
+  /// @return A @c DataBuffer wrapper around the vertex colour memory. Must be of type @c DctUInt32
+  /// .
   /// @todo Investigate supporting @c Vector4 based colours.
   virtual DataBuffer colours(int stream = 0) const = 0;
 
@@ -124,12 +127,26 @@ public:
 protected:
   virtual void nextPhase(TransferProgress &progress) const;
 
-  virtual bool processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes);
-  virtual bool processVertices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream);
-  virtual bool processIndices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream);
-  virtual bool processColours(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream);
-  virtual bool processNormals(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream);
-  virtual bool processUVs(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream);
+  virtual bool processCreate(const MeshCreateMessage &msg,
+                             const ObjectAttributes<double> &attributes);
+  virtual bool processVertices(const MeshComponentMessage &msg, unsigned offset,
+                               const DataBuffer &stream);
+  virtual bool processIndices(const MeshComponentMessage &msg, unsigned offset,
+                              const DataBuffer &stream);
+  /// Process colour stream update.
+  ///
+  /// The @p stream is a @c uint8_t stream with 4 channels per element.
+  ///
+  /// @param msg
+  /// @param offset
+  /// @param stream
+  /// @return
+  virtual bool processColours(const MeshComponentMessage &msg, unsigned offset,
+                              const DataBuffer &stream);
+  virtual bool processNormals(const MeshComponentMessage &msg, unsigned offset,
+                              const DataBuffer &stream);
+  virtual bool processUVs(const MeshComponentMessage &msg, unsigned offset,
+                          const DataBuffer &stream);
 };
 }  // namespace tes
 

@@ -19,7 +19,8 @@
 namespace tes
 {
 template <typename D, typename T>
-void testBufferReadAsType(const DataBuffer &buffer, const std::vector<T> &reference, const char *context,
+void testBufferReadAsType(const DataBuffer &buffer, const std::vector<T> &reference,
+                          const char *context,
                           std::function<void(size_t, size_t, D, D, const char *)> validate =
                             std::function<void(size_t, size_t, D, D, const char *)>())
 {
@@ -105,12 +106,12 @@ void fillDataBuffer(std::vector<Vector3<real>> &vertices, std::vector<real> *ref
 
   for (real elevation = 0; elevation < real(90.0); elevation += real(10.0))
   {
-    vert.z = radius * std::sin(elevation * real(M_PI / 180.0));
+    vert.z() = radius * std::sin(elevation * real(M_PI / 180.0));
     for (real azimuth = 0; azimuth < real(360); azimuth += real(10.0))
     {
-      const real ring_radius = std::sqrt(radius * radius - vert.z * vert.z);
-      vert.x = ring_radius * std::cos(azimuth * real(M_PI / 180.0));
-      vert.y = ring_radius * std::sin(azimuth * real(M_PI / 180.0));
+      const real ring_radius = std::sqrt(radius * radius - vert.z() * vert.z());
+      vert.x() = ring_radius * std::cos(azimuth * real(M_PI / 180.0));
+      vert.y() = ring_radius * std::sin(azimuth * real(M_PI / 180.0));
       vertices.emplace_back(vert);
     }
   }

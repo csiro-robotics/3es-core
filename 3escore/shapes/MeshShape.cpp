@@ -164,7 +164,7 @@ MeshShape &MeshShape::setUniformNormal(const Vector3f &normal)
 {
   setCalculateNormals(false);
   Vector3f *n = new Vector3f(normal);
-  _normals = std::move(DataBuffer(n->v, 1, 3, 3, false));
+  _normals = std::move(DataBuffer(n->storage().data(), 1, 3, 3, false));
   _normals.duplicate();
   return *this;
 }
@@ -186,7 +186,8 @@ void expandVertices(DataBuffer &vertices, DataBuffer &indices)
         *dst = vertices.ptr<T>(vind)[j];
       }
     }
-    vertices.set(verts, indices.count(), vertices.componentCount(), vertices.componentCount(), true);
+    vertices.set(verts, indices.count(), vertices.componentCount(), vertices.componentCount(),
+                 true);
   }
 }
 
@@ -198,8 +199,8 @@ MeshShape &MeshShape::expandVertices()
     return duplicateArrays();
   }
 
-  // Drop index / in favour of an expanded vertex array. We will end up owning all array memory with a null
-  // index array.
+  // Drop index / in favour of an expanded vertex array. We will end up owning all array memory with
+  // a null index array.
 
   if (_vertices.type() == DctFloat64)
   {
@@ -259,8 +260,8 @@ int MeshShape::writeData(PacketWriter &packet, unsigned &progressMarker) const
                                { SDT_Normals, _normals.type(), &_normals },
                                { SDT_Colours, _colours.type(), &_colours } };
 
-  // While progressMarker is greater than or equal to the sum of the previous phase counts and the current phase count.
-  // Also terminate of out of phases.
+  // While progressMarker is greater than or equal to the sum of the previous phase counts and the
+  // current phase count. Also terminate of out of phases.
   while (phaseIndex < sizeof(phases) / sizeof(phases[0]) &&
          progressMarker >= previousPhaseOffset + phases[phaseIndex].stream->count())
   {

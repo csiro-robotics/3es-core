@@ -47,8 +47,10 @@ void Fly::updateKeys(float dt, Magnum::Vector3i translate, Magnum::Vector3i rota
     rotate.z() *= -1;
   }
 
-  const auto delta_translate = Magnum::Vector3(_move_speed * _move_multiplier * dt) * Magnum::Vector3(translate);
-  const auto delta_rotate = Magnum::Vector3(_rotation_speed * _rotation_multiplier * dt) * Magnum::Vector3(rotate);
+  const auto delta_translate =
+    Magnum::Vector3(_move_speed * _move_multiplier * dt) * Magnum::Vector3(translate);
+  const auto delta_rotate =
+    Magnum::Vector3(_rotation_speed * _rotation_multiplier * dt) * Magnum::Vector3(rotate);
 
   camera.pitch += delta_rotate.x();
   camera.yaw += delta_rotate.y();

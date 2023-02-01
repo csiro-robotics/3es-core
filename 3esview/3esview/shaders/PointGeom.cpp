@@ -139,7 +139,8 @@ PointGeomProgram::PointGeomProgram()
    bindFragmentDataLocation() */
 #if !defined(MAGNUM_TARGET_GLES) || defined(MAGNUM_TARGET_GLES2)
 #ifndef MAGNUM_TARGET_GLES
-  // if (!GL::Context::current().isExtensionSupported<GL::Extensions::ARB::explicit_attrib_location>(version))
+  // if
+  // (!GL::Context::current().isExtensionSupported<GL::Extensions::ARB::explicit_attrib_location>(version))
 #endif
   {
     bindAttributeLocation(Position::Location, "position");
@@ -150,7 +151,8 @@ PointGeomProgram::PointGeomProgram()
   CORRADE_INTERNAL_ASSERT_OUTPUT(link());
 
 #ifndef MAGNUM_TARGET_GLES
-  // if (!GL::Context::current().isExtensionSupported<GL::Extensions::ARB::explicit_uniform_location>(version))
+  // if
+  // (!GL::Context::current().isExtensionSupported<GL::Extensions::ARB::explicit_uniform_location>(version))
 #endif
   {
     _view_model_matrix_uniform = uniformLocation("viewModelMatrix");

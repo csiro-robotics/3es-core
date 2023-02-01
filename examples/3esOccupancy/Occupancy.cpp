@@ -135,7 +135,8 @@ void shiftToSet(UnorderedKeySet &dst, UnorderedKeySet &src, const octomap::OcTre
 }
 
 #ifdef TES_ENABLE
-void renderVoxels(const UnorderedKeySet &keys, const octomap::OcTree &map, const tes::Colour &colour, uint16_t category)
+void renderVoxels(const UnorderedKeySet &keys, const octomap::OcTree &map,
+                  const tes::Colour &colour, uint16_t category)
 {
   // Convert to voxel centres.
   if (!keys.empty())
@@ -158,12 +159,14 @@ void renderVoxels(const UnorderedKeySet &keys, const octomap::OcTree &map, const
 
 int populateMap(const Options &opt)
 {
-  printf("Loading points from %s with trajectory %s \n", opt.cloudFile.c_str(), opt.trajectoryFile.c_str());
+  printf("Loading points from %s with trajectory %s \n", opt.cloudFile.c_str(),
+         opt.trajectoryFile.c_str());
 
   OccupancyLoader loader;
   if (!loader.open(opt.cloudFile.c_str(), opt.trajectoryFile.c_str()))
   {
-    fprintf(stderr, "Error loading cloud %s with trajectory %s \n", opt.cloudFile.c_str(), opt.trajectoryFile.c_str());
+    fprintf(stderr, "Error loading cloud %s with trajectory %s \n", opt.cloudFile.c_str(),
+            opt.trajectoryFile.c_str());
     return -2;
   }
 
@@ -301,7 +304,8 @@ int populateMap(const Options &opt)
       //// Collapse the map.
       // map.isNodeCollapsible()
 #ifdef TES_ENABLE
-      double elapsedTime = (lastTimestamp >= 0) ? timestamp - lastTimestamp : timestamp - firstBatchTimestamp;
+      double elapsedTime =
+        (lastTimestamp >= 0) ? timestamp - lastTimestamp : timestamp - firstBatchTimestamp;
       // Handle time jumps back.
       elapsedTime = std::max(elapsedTime, 0.0);
       // Cull large time differences.
@@ -318,21 +322,23 @@ int populateMap(const Options &opt)
       // Draw sample lines.
       if (opt.rays & Rays_Lines)
       {
-        TES_LINES(g_tesServer, TES_COLOUR(DarkOrange), tes::Id(0u, CAT_Rays), tes::DataBuffer(rays));
+        TES_LINES(g_tesServer, TES_COLOUR(DarkOrange), tes::Id(0u, CAT_Rays),
+                  tes::DataBuffer(rays));
       }
       rays.clear();
       // Render touched voxels in bulk.
       if (opt.rays & Rays_Voxels)
       {
-        renderVoxels(touchedFree, map, tes::Colour::Colours[tes::Colour::MediumSpringGreen], CAT_FreeCells);
+        renderVoxels(touchedFree, map, tes::Colour(tes::Colour::MediumSpringGreen), CAT_FreeCells);
       }
       if (opt.samples & Samples_Voxels)
       {
-        renderVoxels(touchedOccupied, map, tes::Colour::Colours[tes::Colour::Turquoise], CAT_OccupiedCells);
+        renderVoxels(touchedOccupied, map, tes::Colour(tes::Colour::Turquoise), CAT_OccupiedCells);
       }
       if (opt.samples)
       {
-        TES_POINTS(g_tesServer, TES_COLOUR(Orange), tes::Id(0u, CAT_OccupiedCells), tes::DataBuffer(samples));
+        TES_POINTS(g_tesServer, TES_COLOUR(Orange), tes::Id(0u, CAT_OccupiedCells),
+                   tes::DataBuffer(samples));
       }
       samples.clear();
       // TES_SERVER_UPDATE(g_tesServer, 0.0f);
@@ -394,12 +400,14 @@ void usage(const Options &opt)
 {
   printf("Usage:\n");
   printf("3esOccupancy [options] <cloud.ply> <trajectory.ply>\n");
-  printf("\nGenerates an Octomap occupancy map from a PLY based point cloud and accompanying trajectory file.\n\n");
-  printf(
-    "The trajectory marks the scanner trajectory with timestamps loosely corresponding to cloud point timestamps. ");
-  printf("Trajectory points are interpolated for each cloud point based on corresponding times in the trajectory.\n\n");
-  printf(
-    "Third Eye Scene render commands are interspersed throughout the code to visualise the generation process\n\n");
+  printf("\nGenerates an Octomap occupancy map from a PLY based point cloud and accompanying "
+         "trajectory file.\n\n");
+  printf("The trajectory marks the scanner trajectory with timestamps loosely corresponding to "
+         "cloud point timestamps. ");
+  printf("Trajectory points are interpolated for each cloud point based on corresponding times in "
+         "the trajectory.\n\n");
+  printf("Third Eye Scene render commands are interspersed throughout the code to visualise the "
+         "generation process\n\n");
   printf("Options:\n");
   printf("-b=<batch-size> (%u)\n", opt.batchSize);
   printf("  The number of points to process in each batch. Controls debug display.\n");
@@ -408,7 +416,8 @@ void usage(const Options &opt)
   printf("-m=<miss-probability> (%g)\n", opt.probMiss);
   printf("  The occupancy probability due to a miss. Must be < 0.5.\n");
   printf("-o=<stream-file>\n");
-  printf("  Specifies a file to write a 3es stream to directly without the need for an external client.\n");
+  printf("  Specifies a file to write a 3es stream to directly without the need for an external "
+         "client.\n");
   printf("-p=<point-limit> (0)\n");
   printf("  The voxel resolution of the generated map.\n");
   printf("-q\n");
@@ -416,10 +425,12 @@ void usage(const Options &opt)
   printf("-r=<resolution> (%g)\n", opt.resolution);
   printf("  The voxel resolution of the generated map.\n");
   printf("-s=<time> (%g)\n", opt.startTime);
-  printf("  Specifies a time offset for the start time. Ignore points until the time offset from the first point "
+  printf("  Specifies a time offset for the start time. Ignore points until the time offset from "
+         "the first point "
          "exceeds this value.\n");
   printf("-e=<time> (%g)\n", opt.endTime);
-  printf("  Specifies an end time relative to the first point. Stop after processing time interval of points.\n");
+  printf("  Specifies an end time relative to the first point. Stop after processing time interval "
+         "of points.\n");
   printf("--rays=[off,lines,voxels,all] (lines)\n");
   printf("  Enable or turn off visualisation of sample rays.\n");
   printf("    off: disable. Lowest throughput\n");

@@ -99,7 +99,7 @@ inline Text3D &Text3D::setFacing(const Vector3d &toCamera)
   }
   else
   {
-    rot.setAxisAngle(Vector3d::axisx, M_PI);
+    rot.setAxisAngle(Vector3d::AxisX, M_PI);
   }
   setRotation(rot);
   return *this;

@@ -10,8 +10,8 @@ namespace tes
 {
 /// Plane geometry functions.
 ///
-/// A plane is defined by a @c Vector4 where the xyz components are the normal and the w component is the
-/// plane distance.
+/// A plane is defined by a @c Vector4 where the xyz components are the normal and the w component
+/// is the plane distance.
 namespace planegeom
 {
 /// Point classification results.
@@ -51,7 +51,7 @@ Vector4<T> fromNormalAndPoint(const Vector3<T> &normal, const Vector3<T> &pointO
 template <typename T>
 inline T signedDistanceToPoint(const Vector4<T> &plane, const Vector3<T> &point)
 {
-  return plane.xyz().dot(point) + plane.w;
+  return plane.xyz().dot(point) + plane.w();
 }
 
 

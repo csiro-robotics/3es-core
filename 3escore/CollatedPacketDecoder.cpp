@@ -90,7 +90,8 @@ struct CollatedPacketDecoderDetail
     zip.reset();
   }
 
-  bool initStream(unsigned messageFlags, unsigned targetDecodeBytes, const uint8_t *bytes, unsigned byteCount)
+  bool initStream(unsigned messageFlags, unsigned targetDecodeBytes, const uint8_t *bytes,
+                  unsigned byteCount)
   {
     zip.reset();
     stream = bytes;
@@ -114,7 +115,8 @@ struct CollatedPacketDecoderDetail
       zip.stream.opaque = Z_NULL;
       zip.stream.avail_in = 0;
       zip.stream.next_in = Z_NULL;
-      ok = inflateInit2(&zip.stream, CollatedPacketZip::WindowBits | CollatedPacketZip::GZipEncoding) == Z_OK;
+      ok = inflateInit2(&zip.stream,
+                        CollatedPacketZip::WindowBits | CollatedPacketZip::GZipEncoding) == Z_OK;
       zip.stream.avail_in = streamBytes;
       zip.stream.next_in = (z_const Bytef *)stream;
 #endif  // TES_ZLIB
@@ -152,7 +154,8 @@ struct CollatedPacketDecoderDetail
       zip.stream.avail_out = sizeof(PacketHeader);
       zip.stream.next_out = buffer.data();
       status = inflate(&zip.stream, Z_NO_FLUSH);
-      if (status == Z_STREAM_ERROR || status == Z_NEED_DICT || status == Z_DATA_ERROR || status == Z_MEM_ERROR)
+      if (status == Z_STREAM_ERROR || status == Z_NEED_DICT || status == Z_DATA_ERROR ||
+          status == Z_MEM_ERROR)
       {
         return nullptr;
       }
@@ -182,7 +185,8 @@ struct CollatedPacketDecoderDetail
       zip.stream.avail_out = uInt(packetSize - sizeof(PacketHeader));
       status = inflate(&zip.stream, Z_NO_FLUSH);
 
-      if (status == Z_STREAM_ERROR || status == Z_NEED_DICT || status == Z_DATA_ERROR || status == Z_MEM_ERROR)
+      if (status == Z_STREAM_ERROR || status == Z_NEED_DICT || status == Z_DATA_ERROR ||
+          status == Z_MEM_ERROR)
       {
         return nullptr;
       }
@@ -229,7 +233,8 @@ struct CollatedPacketDecoderDetail
         return nullptr;
       }
 
-      const PacketHeader *nextPacket = reinterpret_cast<const PacketHeader *>(stream + decodedBytes);
+      const PacketHeader *nextPacket =
+        reinterpret_cast<const PacketHeader *>(stream + decodedBytes);
       decodedBytes += packetSize;
 
       if (decodedBytes == targetBytes)

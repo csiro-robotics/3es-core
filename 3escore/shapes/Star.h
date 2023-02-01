@@ -10,24 +10,27 @@
 
 namespace tes
 {
-/// Defines a star to display. A star is a shape with extrusions in both directions along each axis with spherical
-/// extents.
+/// Defines a star to display. A star is a shape with extrusions in both directions along each axis
+/// with spherical extents.
 ///
 /// A star is defined by:
 /// Component      | Description
-/// -------------- | -----------------------------------------------------------------------------------------------
+/// -------------- |
+/// -----------------------------------------------------------------------------------------------
 /// @c centre()    | The star centre. An alias for @p position().
 /// @c radius()    | The star radius.
 class TES_CORE_API Star : public Shape
 {
 public:
   /// Create a star.
-  /// @param id The shape id and category, with unique id among @c Star objects, or zero for a transient shape.
+  /// @param id The shape id and category, with unique id among @c Star objects, or zero for a
+  /// transient shape.
   /// @param transform The spherical transform for the star.
   Star(const Id &id = Id(), const Spherical &transform = Spherical());
 
   /// Create a fully scale star. This constructor allows for scaling and rotating the star.
-  /// @param id The shape id and category, with unique id among @c Star objects, or zero for a transient shape.
+  /// @param id The shape id and category, with unique id among @c Star objects, or zero for a
+  /// transient shape.
   /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
   Star(const Id &id, const Transform &transform);
 
@@ -79,7 +82,7 @@ inline Star &Star::setRadius(double radius)
 
 inline double Star::radius() const
 {
-  return scale().x;
+  return scale().x();
 }
 
 

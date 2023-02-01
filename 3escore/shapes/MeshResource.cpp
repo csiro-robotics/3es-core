@@ -13,10 +13,12 @@
 
 using namespace tes;
 
-uint16_t MeshResource::estimateTransferCount(size_t elementSize, unsigned byteLimit, unsigned overhead)
+uint16_t MeshResource::estimateTransferCount(size_t elementSize, unsigned byteLimit,
+                                             unsigned overhead)
 {
   //                                    packet header           message                         crc
-  const size_t maxTransfer = (0xffffu - (sizeof(PacketHeader) + overhead + sizeof(uint16_t))) / elementSize;
+  const size_t maxTransfer =
+    (0xffffu - (sizeof(PacketHeader) + overhead + sizeof(uint16_t))) / elementSize;
   size_t count = byteLimit ? byteLimit / elementSize : maxTransfer;
   if (count < 1)
   {
@@ -91,7 +93,8 @@ int MeshResource::destroy(PacketWriter &packet) const
 }
 
 
-int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit, TransferProgress &progress) const
+int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
+                           TransferProgress &progress) const
 {
   // packet.reset(typeId(), 0);
   if (progress.phase == 0)
@@ -293,7 +296,7 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
     break;
   }
   case MmtVertexColour: {
-    readStream = DataBuffer(static_cast<uint32_t *>(nullptr), 0);
+    readStream = DataBuffer(static_cast<uint8_t *>(nullptr), 0, 4);
     // Read the expected number of items.
     readStream.read(packet, 0, count);
     ok = processColours(msg, offset, readStream) && ok;
@@ -387,7 +390,8 @@ bool MeshResource::processCreate(const MeshCreateMessage &msg, const ObjectAttri
 }
 
 
-bool MeshResource::processVertices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool MeshResource::processVertices(const MeshComponentMessage &msg, unsigned offset,
+                                   const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   TES_UNUSED(offset);
@@ -396,7 +400,8 @@ bool MeshResource::processVertices(const MeshComponentMessage &msg, unsigned off
 }
 
 
-bool MeshResource::processIndices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool MeshResource::processIndices(const MeshComponentMessage &msg, unsigned offset,
+                                  const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   TES_UNUSED(offset);
@@ -405,7 +410,8 @@ bool MeshResource::processIndices(const MeshComponentMessage &msg, unsigned offs
 }
 
 
-bool MeshResource::processColours(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool MeshResource::processColours(const MeshComponentMessage &msg, unsigned offset,
+                                  const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   TES_UNUSED(offset);
@@ -414,7 +420,8 @@ bool MeshResource::processColours(const MeshComponentMessage &msg, unsigned offs
 }
 
 
-bool MeshResource::processNormals(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool MeshResource::processNormals(const MeshComponentMessage &msg, unsigned offset,
+                                  const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   TES_UNUSED(offset);
@@ -423,7 +430,8 @@ bool MeshResource::processNormals(const MeshComponentMessage &msg, unsigned offs
 }
 
 
-bool MeshResource::processUVs(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool MeshResource::processUVs(const MeshComponentMessage &msg, unsigned offset,
+                              const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   TES_UNUSED(offset);

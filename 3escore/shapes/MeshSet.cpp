@@ -103,10 +103,11 @@ bool MeshSet::writeCreate(PacketWriter &stream) const
     attr.scale[0] = part.transform.scale()[0];
     attr.scale[1] = part.transform.scale()[1];
     attr.scale[2] = part.transform.scale()[2];
-    attr.colour = part.colour.c;
+    attr.colour = part.colour.colour32();
 
     ok = stream.writeElement(partId) == sizeof(partId) && ok;
-    // The precision of the transforms is determined by the CreateMessage::flag OFDoublePrecision only.
+    // The precision of the transforms is determined by the CreateMessage::flag OFDoublePrecision
+    // only.
     if (_data.flags & OFDoublePrecision)
     {
       ok = attr.write(stream) && ok;
@@ -128,7 +129,8 @@ bool MeshSet::readCreate(PacketReader &stream)
     return false;
   }
 
-  // Setup attributes to support double precision. Actual read depends on the CreateMessage flag OFDoublePrecision.
+  // Setup attributes to support double precision. Actual read depends on the CreateMessage flag
+  // OFDoublePrecision.
   ObjectAttributesd attr;
   uint32_t partId = 0;
   uint16_t numberOfParts = 0;
@@ -162,7 +164,8 @@ bool MeshSet::readCreate(PacketReader &stream)
 
     if (ok)
     {
-      _parts[i].transform = Transform(Vector3d(attr.position), Quaterniond(attr.rotation), Vector3d(attr.scale));
+      _parts[i].transform =
+        Transform(Vector3d(attr.position), Quaterniond(attr.rotation), Vector3d(attr.scale));
       _parts[i].transform.setPreferDoublePrecision(expect_double_precision);
       // We can only reference dummy meshes here.
       _parts[i].resource = new MeshPlaceholder(partId);
@@ -174,7 +177,8 @@ bool MeshSet::readCreate(PacketReader &stream)
 }
 
 
-unsigned MeshSet::enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset) const
+unsigned MeshSet::enumerateResources(const Resource **resources, unsigned capacity,
+                                     unsigned fetchOffset) const
 {
   if (!resources || !capacity)
   {

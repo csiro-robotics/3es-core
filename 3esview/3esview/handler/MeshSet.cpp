@@ -212,16 +212,16 @@ void MeshSet::decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttribu
 Magnum::Matrix4 MeshSet::composeTransform(const tes::Transform &tes_transform) const
 {
   ObjectAttributes attrs = {};
-  attrs.position[0] = Magnum::Float(tes_transform.position().x);
-  attrs.position[1] = Magnum::Float(tes_transform.position().y);
-  attrs.position[2] = Magnum::Float(tes_transform.position().z);
-  attrs.rotation[0] = Magnum::Float(tes_transform.rotation().x);
-  attrs.rotation[1] = Magnum::Float(tes_transform.rotation().y);
-  attrs.rotation[2] = Magnum::Float(tes_transform.rotation().z);
-  attrs.rotation[3] = Magnum::Float(tes_transform.rotation().w);
-  attrs.scale[0] = Magnum::Float(tes_transform.scale().x);
-  attrs.scale[1] = Magnum::Float(tes_transform.scale().y);
-  attrs.scale[2] = Magnum::Float(tes_transform.scale().z);
+  attrs.position[0] = Magnum::Float(tes_transform.position().x());
+  attrs.position[1] = Magnum::Float(tes_transform.position().y());
+  attrs.position[2] = Magnum::Float(tes_transform.position().z());
+  attrs.rotation[0] = Magnum::Float(tes_transform.rotation().x());
+  attrs.rotation[1] = Magnum::Float(tes_transform.rotation().y());
+  attrs.rotation[2] = Magnum::Float(tes_transform.rotation().z());
+  attrs.rotation[3] = Magnum::Float(tes_transform.rotation().w());
+  attrs.scale[0] = Magnum::Float(tes_transform.scale().x());
+  attrs.scale[1] = Magnum::Float(tes_transform.scale().y());
+  attrs.scale[2] = Magnum::Float(tes_transform.scale().z());
   return composeTransform(attrs);
 }
 

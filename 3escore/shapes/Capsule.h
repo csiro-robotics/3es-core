@@ -14,20 +14,24 @@ namespace tes
 ///
 /// An arrow is defined by:
 /// Component      | Description
-/// -------------- | -----------------------------------------------------------------------------------------------
+/// -------------- |
+/// -----------------------------------------------------------------------------------------------
 /// @c centre()    | The centre of the capsule. Alias for @p position().
 /// @c axis()      | Defines the capsule primary axis. Affects @c rotation().
-/// @c length()    | The length of the cylindrical part of the capsule. The end caps increase the extents further.
+/// @c length()    | The length of the cylindrical part of the capsule. The end caps increase the
+/// extents further.
 /// @c radius()    | Radius of the capsule cylinder and end caps.
 class TES_CORE_API Capsule : public Shape
 {
 public:
   /// Construct a capsule object.
-  /// @param id The shape id and catgory, unique among @c Capsule objects, or zero for a transient shape.
+  /// @param id The shape id and catgory, unique among @c Capsule objects, or zero for a transient
+  /// shape.
   /// @param transform The directional transformation for the shape.
   Capsule(const Id &id = Id(), const Directional &transform = Directional());
   /// Construct a capsule object.
-  /// @param id The shape id and catgory, unique among @c Capsule objects, or zero for a transient shape.
+  /// @param id The shape id and catgory, unique among @c Capsule objects, or zero for a transient
+  /// shape.
   /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
   Capsule(const Id &id, const Transform &transform);
 
@@ -67,7 +71,8 @@ public:
   Capsule &setAxis(const Vector3d &axis);
   /// Get the capsule primary axis.
   ///
-  /// May not exactly match the axis given via @p setAxis() as the axis is defined by the quaternion @c rotation().
+  /// May not exactly match the axis given via @p setAxis() as the axis is defined by the quaternion
+  /// @c rotation().
   /// @return The primary axis.
   Vector3d axis() const;
 };
@@ -91,7 +96,7 @@ inline Capsule::Capsule(const Capsule &other)
 inline Capsule &Capsule::setRadius(double radius)
 {
   Vector3d s = Shape::scale();
-  s.x = s.y = radius;
+  s.x() = s.y() = radius;
   setScale(s);
   return *this;
 }
@@ -99,14 +104,14 @@ inline Capsule &Capsule::setRadius(double radius)
 
 inline double Capsule::radius() const
 {
-  return scale().x;
+  return scale().x();
 }
 
 
 inline Capsule &Capsule::setLength(double length)
 {
   Vector3d s = Shape::scale();
-  s.z = length;
+  s.z() = length;
   setScale(s);
   return *this;
 }
@@ -114,7 +119,7 @@ inline Capsule &Capsule::setLength(double length)
 
 inline double Capsule::length() const
 {
-  return scale().z;
+  return scale().z();
 }
 
 

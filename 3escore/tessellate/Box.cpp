@@ -15,19 +15,22 @@ namespace
 const std::array<Vector3f, 24> boxVertices =  //
   {
     // +X
-    Vector3f(0.5f, 0.5f, -0.5f), Vector3f(0.5f, 0.5f, 0.5f), Vector3f(0.5f, -0.5f, 0.5f), Vector3f(0.5f, -0.5f, -0.5f),
+    Vector3f(0.5f, 0.5f, -0.5f), Vector3f(0.5f, 0.5f, 0.5f), Vector3f(0.5f, -0.5f, 0.5f),
+    Vector3f(0.5f, -0.5f, -0.5f),
     // -X
     Vector3f(-0.5f, -0.5f, -0.5f), Vector3f(-0.5f, -0.5f, 0.5f), Vector3f(-0.5f, 0.5f, 0.5f),
     Vector3f(-0.5f, 0.5f, -0.5f),
 
     // +Y
-    Vector3f(-0.5f, 0.5f, -0.5f), Vector3f(-0.5f, 0.5f, 0.5f), Vector3f(0.5f, 0.5f, 0.5f), Vector3f(0.5f, 0.5f, -0.5f),
+    Vector3f(-0.5f, 0.5f, -0.5f), Vector3f(-0.5f, 0.5f, 0.5f), Vector3f(0.5f, 0.5f, 0.5f),
+    Vector3f(0.5f, 0.5f, -0.5f),
     // -Y
     Vector3f(0.5f, -0.5f, -0.5f), Vector3f(0.5f, -0.5f, 0.5f), Vector3f(-0.5f, -0.5f, 0.5f),
     Vector3f(-0.5f, -0.5f, -0.5f),
 
     // +Z
-    Vector3f(0.5f, -0.5f, 0.5f), Vector3f(0.5f, 0.5f, 0.5f), Vector3f(-0.5f, 0.5f, 0.5f), Vector3f(-0.5f, -0.5f, 0.5f),
+    Vector3f(0.5f, -0.5f, 0.5f), Vector3f(0.5f, 0.5f, 0.5f), Vector3f(-0.5f, 0.5f, 0.5f),
+    Vector3f(-0.5f, -0.5f, 0.5f),
     // -Z
     Vector3f(0.5f, 0.5f, -0.5f), Vector3f(0.5f, -0.5f, -0.5f), Vector3f(-0.5f, -0.5f, -0.5f),
     Vector3f(-0.5f, 0.5f, -0.5f)
@@ -37,19 +40,25 @@ const std::array<Vector3f, 24> boxVertices =  //
 const std::array<Vector3f, 24> boxNormals =  //
   {
     // +X
-    Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 0.0f, 0.0f),
+    Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 0.0f, 0.0f),
+    Vector3f(1.0f, 0.0f, 0.0f),
     // -X
-    Vector3f(-1.0f, 0.0f, 0.0f), Vector3f(-1.0f, 0.0f, 0.0f), Vector3f(-1.0f, 0.0f, 0.0f), Vector3f(-1.0f, 0.0f, 0.0f),
+    Vector3f(-1.0f, 0.0f, 0.0f), Vector3f(-1.0f, 0.0f, 0.0f), Vector3f(-1.0f, 0.0f, 0.0f),
+    Vector3f(-1.0f, 0.0f, 0.0f),
 
     // +Y
-    Vector3f(0.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f),
+    Vector3f(0.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f),
+    Vector3f(0.0f, 1.0f, 0.0f),
     // -Y
-    Vector3f(0.0f, -1.0f, 0.0f), Vector3f(0.0f, -1.0f, 0.0f), Vector3f(0.0f, -1.0f, 0.0f), Vector3f(0.0f, -1.0f, 0.0f),
+    Vector3f(0.0f, -1.0f, 0.0f), Vector3f(0.0f, -1.0f, 0.0f), Vector3f(0.0f, -1.0f, 0.0f),
+    Vector3f(0.0f, -1.0f, 0.0f),
 
     // +Z
-    Vector3f(0.0f, 0.0f, 1.0f), Vector3f(0.0f, 0.0f, 1.0f), Vector3f(0.0f, 0.0f, 1.0f), Vector3f(0.0f, 0.0f, 1.0f),
+    Vector3f(0.0f, 0.0f, 1.0f), Vector3f(0.0f, 0.0f, 1.0f), Vector3f(0.0f, 0.0f, 1.0f),
+    Vector3f(0.0f, 0.0f, 1.0f),
     // -Z
-    Vector3f(0.0f, 0.0f, -1.0f), Vector3f(0.0f, 0.0f, -1.0f), Vector3f(0.0f, 0.0f, -1.0f), Vector3f(0.0f, 0.0f, -1.0f)
+    Vector3f(0.0f, 0.0f, -1.0f), Vector3f(0.0f, 0.0f, -1.0f), Vector3f(0.0f, 0.0f, -1.0f),
+    Vector3f(0.0f, 0.0f, -1.0f)
   };
 
 const std::array<unsigned, 36> boxIndices =  //
@@ -82,13 +91,14 @@ const std::array<unsigned, 24> wireBoxIndices = {
 };
 
 
-void makeBox(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> *normals,
-             const Vector3f &scale)
+void makeBox(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+             std::vector<Vector3f> *normals, const Vector3f &scale)
 {
   vertices.resize(boxVertices.size());
   for (size_t i = 0; i < boxVertices.size(); ++i)
   {
-    vertices[i] = Vector3f(scale.x * boxVertices[i].x, scale.y * boxVertices[i].y, scale.z * boxVertices[i].z);
+    vertices[i] =
+      Vector3f(scale.x() * boxVertices[i].x(), scale.y() * boxVertices[i].y(), scale.z() * boxVertices[i].z());
   }
 
   if (normals)
@@ -103,8 +113,8 @@ void makeBox(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, st
 }  // namespace
 
 
-void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
-           const Vector3f &scale)
+void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+           std::vector<Vector3f> &normals, const Vector3f &scale)
 {
   return makeBox(vertices, indices, &normals, scale);
 }
@@ -116,7 +126,8 @@ void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, cons
 }
 
 
-void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, const Vector3f &scale)
+void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+               const Vector3f &scale)
 {
   (void)scale;
   const unsigned initialVertCount = unsigned(vertices.size());

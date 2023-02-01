@@ -296,8 +296,8 @@ typedef Matrix3<float> Matrix3f;
 /// Defines a double precision 4x4 matrix.
 typedef Matrix3<double> Matrix3d;
 
-_3es_extern template class TES_CORE_API Matrix3<float>;
-_3es_extern template class TES_CORE_API Matrix3<double>;
+TES_EXTERN template class TES_CORE_API Matrix3<float>;
+TES_EXTERN template class TES_CORE_API Matrix3<double>;
 
 /// Performs the matrix multiplication AB.
 /// @return The result of AB.

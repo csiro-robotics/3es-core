@@ -34,11 +34,11 @@ template <typename T>
 inline bool aabbAxisTestX01(T a, T b, T fa, T fb, const Vector3<T> &v0, const Vector3<T> &v2,
                             const Vector3<T> &halfExtents)
 {
-  const T p0 = a * v0.y - b * v0.z;
-  const T p2 = a * v2.y - b * v2.z;
+  const T p0 = a * v0.y() - b * v0.z();
+  const T p2 = a * v2.y() - b * v2.z();
   const T minval = (p0 < p2) ? p0 : p2;
   const T maxval = (p0 < p2) ? p2 : p0;
-  const T rad = fa * halfExtents.y + fb * halfExtents.z;
+  const T rad = fa * halfExtents.y() + fb * halfExtents.z();
   return !(minval > rad || maxval < -rad);
 }
 
@@ -47,11 +47,11 @@ template <typename T>
 inline bool aabbAxisTestX2(T a, T b, T fa, T fb, const Vector3<T> &v0, const Vector3<T> &v1,
                            const Vector3<T> &halfExtents)
 {
-  const T p0 = a * v0.y - b * v0.z;
-  const T p1 = a * v1.y - b * v1.z;
+  const T p0 = a * v0.y() - b * v0.z();
+  const T p1 = a * v1.y() - b * v1.z();
   const T minval = (p0 < p1) ? p0 : p1;
   const T maxval = (p0 < p1) ? p1 : p0;
-  const T rad = fa * halfExtents.y + fb * halfExtents.z;
+  const T rad = fa * halfExtents.y() + fb * halfExtents.z();
   return !(minval > rad || maxval < -rad);
 }
 
@@ -60,11 +60,11 @@ template <typename T>
 inline bool aabbAxisTestY02(T a, T b, T fa, T fb, const Vector3<T> &v0, const Vector3<T> &v2,
                             const Vector3<T> &halfExtents)
 {
-  const T p0 = -a * v0.x + b * v0.z;
-  const T p2 = -a * v2.x + b * v2.z;
+  const T p0 = -a * v0.x() + b * v0.z();
+  const T p2 = -a * v2.x() + b * v2.z();
   const T minval = (p0 < p2) ? p0 : p2;
   const T maxval = (p0 < p2) ? p2 : p0;
-  const T rad = fa * halfExtents.x + fb * halfExtents.z;
+  const T rad = fa * halfExtents.x() + fb * halfExtents.z();
   return !(minval > rad || maxval < -rad);
 }
 
@@ -73,11 +73,11 @@ template <typename T>
 inline bool aabbAxisTestY1(T a, T b, T fa, T fb, const Vector3<T> &v0, const Vector3<T> &v1,
                            const Vector3<T> &halfExtents)
 {
-  const T p0 = -a * v0.x + b * v0.z;
-  const T p1 = -a * v1.x + b * v1.z;
+  const T p0 = -a * v0.x() + b * v0.z();
+  const T p1 = -a * v1.x() + b * v1.z();
   const T minval = (p0 < p1) ? p0 : p1;
   const T maxval = (p0 < p1) ? p1 : p0;
-  const T rad = fa * halfExtents.x + fb * halfExtents.z;
+  const T rad = fa * halfExtents.x() + fb * halfExtents.z();
   return !(minval > rad || maxval < -rad);
 }
 
@@ -86,11 +86,11 @@ template <typename T>
 inline bool aabbAxisTestZ12(T a, T b, T fa, T fb, const Vector3<T> &v1, const Vector3<T> &v2,
                             const Vector3<T> &halfExtents)
 {
-  const T p1 = a * v1.x - b * v1.y;
-  const T p2 = a * v2.x - b * v2.y;
+  const T p1 = a * v1.x() - b * v1.y();
+  const T p2 = a * v2.x() - b * v2.y();
   const T minval = (p2 < p1) ? p2 : p1;
   const T maxval = (p2 < p1) ? p1 : p2;
-  const T rad = fa * halfExtents.x + fb * halfExtents.y;
+  const T rad = fa * halfExtents.x() + fb * halfExtents.y();
   return !(minval > rad || maxval < -rad);
 }
 
@@ -99,11 +99,11 @@ template <typename T>
 inline bool aabbAxisTestZ0(T a, T b, T fa, T fb, const Vector3<T> &v0, const Vector3<T> &v1,
                            const Vector3<T> &halfExtents)
 {
-  const T p0 = a * v0.x - b * v0.y;
-  const T p1 = a * v1.x - b * v1.y;
+  const T p0 = a * v0.x() - b * v0.y();
+  const T p1 = a * v1.x() - b * v1.y();
   const T minval = (p0 < p1) ? p0 : p1;
   const T maxval = (p0 < p1) ? p1 : p0;
-  const T rad = fa * halfExtents.x + fb * halfExtents.y;
+  const T rad = fa * halfExtents.x() + fb * halfExtents.y();
   return !(minval > rad || maxval < -rad);
 }
 
@@ -119,18 +119,19 @@ void findMinMax(T x0, T x1, T x2, T &minval, T &maxval)
 
 
 template <typename T>
-bool planeBoxOverlap(const Vector3<T> &normal, const Vector3<T> &vert, const Vector3<T> &maxbox)  // -NJMP-
+bool planeBoxOverlap(const Vector3<T> &normal, const Vector3<T> &vert,
+                     const Vector3<T> &maxbox)  // -NJMP-
 {
   Vector3<T> vmin, vmax;
 
-  vmin.x = (normal.x > 0.0f) ? -maxbox.x - vert.x : maxbox.x - vert.x;  // -NJMP-
-  vmax.x = (normal.x > 0.0f) ? maxbox.x - vert.x : -maxbox.x - vert.x;  // -NJMP-
+  vmin.x() = (normal.x() > 0.0f) ? -maxbox.x() - vert.x() : maxbox.x() - vert.x();  // -NJMP-
+  vmax.x() = (normal.x() > 0.0f) ? maxbox.x() - vert.x() : -maxbox.x() - vert.x();  // -NJMP-
 
-  vmin.y = (normal.y > 0.0f) ? -maxbox.y - vert.y : maxbox.y - vert.y;  // -NJMP-
-  vmax.y = (normal.y > 0.0f) ? maxbox.y - vert.y : -maxbox.y - vert.y;  // -NJMP-
+  vmin.y() = (normal.y() > 0.0f) ? -maxbox.y() - vert.y() : maxbox.y() - vert.y();  // -NJMP-
+  vmax.y() = (normal.y() > 0.0f) ? maxbox.y() - vert.y() : -maxbox.y() - vert.y();  // -NJMP-
 
-  vmin.z = (normal.z > 0.0f) ? -maxbox.z - vert.z : maxbox.z - vert.z;  // -NJMP-
-  vmax.z = (normal.z > 0.0f) ? maxbox.z - vert.z : -maxbox.z - vert.z;  // -NJMP-
+  vmin.z() = (normal.z() > 0.0f) ? -maxbox.z() - vert.z() : maxbox.z() - vert.z();  // -NJMP-
+  vmax.z() = (normal.z() > 0.0f) ? maxbox.z() - vert.z() : -maxbox.z() - vert.z();  // -NJMP-
 
   return normal.dot(vmin) <= 0 && normal.dot(vmax) >= 0;
 }
@@ -154,7 +155,8 @@ inline Vector3<T> normalT(const Vector3<T> &v0, const Vector3<T> &v1, const Vect
 
 
 template <typename T>
-inline bool isDegenerateT(const Vector3<T> &tri0, const Vector3<T> &tri1, const Vector3<T> &tri2, T epsilon)
+inline bool isDegenerateT(const Vector3<T> &tri0, const Vector3<T> &tri1, const Vector3<T> &tri2,
+                          T epsilon)
 {
   return (tri1 - tri0).cross(tri2 - tri0).magnitudeSquared() < (epsilon * epsilon);
 }
@@ -307,7 +309,8 @@ bool intersectRayT(T *hitTime, const Vector3<T> &v0, const Vector3<T> &v1, const
   e1 = v2 - v0;
   // Begin calculating determinant - also used to calculate u parameter
   P = dir.cross(e1);
-  // if determinant is near zero, ray lies in plane of triangle or ray is parallel to plane of triangle
+  // if determinant is near zero, ray lies in plane of triangle or ray is parallel to plane of
+  // triangle
   det = e0.dot(P);
   // NOT CULLING
   if (det > -epsilon && det < epsilon)
@@ -346,8 +349,9 @@ bool intersectRayT(T *hitTime, const Vector3<T> &v0, const Vector3<T> &v1, const
 
 
 template <typename T>
-bool intersectTrianglesT(const Vector3<T> &a0, const Vector3<T> &a1, const Vector3<T> &a2, const Vector3<T> &b0,
-                         const Vector3<T> &b1, const Vector3<T> &b2, const T epsilon)
+bool intersectTrianglesT(const Vector3<T> &a0, const Vector3<T> &a1, const Vector3<T> &a2,
+                         const Vector3<T> &b0, const Vector3<T> &b1, const Vector3<T> &b2,
+                         const T epsilon)
 {
   // From: Thomas Moller, "A Fast Triangle-Triangle Intersection test"
   // http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf
@@ -365,9 +369,9 @@ bool intersectTrianglesT(const Vector3<T> &a0, const Vector3<T> &a1, const Vecto
   planeB = planegeom::fromNormalAndPoint(normalT(b0, b1, b2), b0);
 
   // d[V1[i]] = N[2].V1[i] + d[2]
-  dist[0] = planeB.xyz().dot(a0) + planeB.w;
-  dist[1] = planeB.xyz().dot(a1) + planeB.w;
-  dist[2] = planeB.xyz().dot(a2) + planeB.w;
+  dist[0] = planeB.xyz().dot(a0) + planeB.w();
+  dist[1] = planeB.xyz().dot(a1) + planeB.w();
+  dist[2] = planeB.xyz().dot(a2) + planeB.w();
 
   signs[0] = std::copysign(T(1), dist[0]);
   signs[1] = std::copysign(T(1), dist[1]);
@@ -400,14 +404,14 @@ bool intersectTrianglesT(const Vector3<T> &a0, const Vector3<T> &a1, const Vecto
   }
 
   // Triangle coplanar check.
-  if (dist[0] <= -epsilon || dist[0] >= epsilon || dist[1] <= -epsilon || dist[1] >= epsilon || dist[2] <= -epsilon ||
-      dist[2] >= epsilon)
+  if (dist[0] <= -epsilon || dist[0] >= epsilon || dist[1] <= -epsilon || dist[1] >= epsilon ||
+      dist[2] <= -epsilon || dist[2] >= epsilon)
   {
     // Not coplanar.
     // Solution is a line-intersection test of L = O + tD.
     lineD = planeA.xyz().cross(planeB.xyz());  // D
-                                               // O is arbitrary, so is implicitly dropped without altering the result.
-                                               // Project vertices only L.
+                                               // O is arbitrary, so is implicitly dropped without
+                                               // altering the result. Project vertices only L.
                                                // p[V1[i]] = D.(V1[i] - O)
     proj[0] = lineD.dot(a0);
     proj[1] = lineD.dot(a1);
@@ -434,17 +438,17 @@ bool intersectTrianglesT(const Vector3<T> &a0, const Vector3<T> &a1, const Vecto
     }
 
     // t[1] = p[V1[0]] + (p[V1[1]] - p[V1[0]]) * ( d[V1[0]] / (d[V1[0]] - d[V1[1]]) )
-    ta1 = proj[refinds[0]] +
-          (proj[refinds[1]] - proj[refinds[0]]) * (dist[refinds[0]] / (dist[refinds[0]] - dist[refinds[1]]));
+    ta1 = proj[refinds[0]] + (proj[refinds[1]] - proj[refinds[0]]) *
+                               (dist[refinds[0]] / (dist[refinds[0]] - dist[refinds[1]]));
 
     // t[2] = p[V1[2]] + (p[V1[1]] - p[V1[2]]) * ( d[V1[2]] / (d[V1[2]] - d[V1[1]]) )
-    ta2 = proj[refinds[2]] +
-          (proj[refinds[1]] - proj[refinds[2]]) * (dist[refinds[2]] / (dist[refinds[2]] - dist[refinds[1]]));
+    ta2 = proj[refinds[2]] + (proj[refinds[1]] - proj[refinds[2]]) *
+                               (dist[refinds[2]] / (dist[refinds[2]] - dist[refinds[1]]));
 
     // Now we make the same calculation for triangle 2 on 1.
-    dist[0] = planeA.xyz().dot(b0) + planeA.w;
-    dist[1] = planeA.xyz().dot(b1) + planeA.w;
-    dist[2] = planeA.xyz().dot(b2) + planeA.w;
+    dist[0] = planeA.xyz().dot(b0) + planeA.w();
+    dist[1] = planeA.xyz().dot(b1) + planeA.w();
+    dist[2] = planeA.xyz().dot(b2) + planeA.w();
 
     proj[0] = lineD.dot(b0);
     proj[1] = lineD.dot(b1);
@@ -481,15 +485,16 @@ bool intersectTrianglesT(const Vector3<T> &a0, const Vector3<T> &a1, const Vecto
     }
 
     // t[1] = p[V1[0]] + (p[V1[1]] - p[V1[0]]) * ( d[V1[0]] / (d[V1[0]] - d[V1[1]]) )
-    tb1 = proj[refinds[0]] +
-          (proj[refinds[1]] - proj[refinds[0]]) * (dist[refinds[0]] / (dist[refinds[0]] - dist[refinds[1]]));
+    tb1 = proj[refinds[0]] + (proj[refinds[1]] - proj[refinds[0]]) *
+                               (dist[refinds[0]] / (dist[refinds[0]] - dist[refinds[1]]));
 
     // t[2] = p[V1[2]] + (p[V1[1]] - p[V1[2]]) * ( d[V1[2]] / (d[V1[2]] - d[V1[1]]) )
-    tb2 = proj[refinds[2]] +
-          (proj[refinds[1]] - proj[refinds[2]]) * (dist[refinds[2]] / (dist[refinds[2]] - dist[refinds[1]]));
+    tb2 = proj[refinds[2]] + (proj[refinds[1]] - proj[refinds[2]]) *
+                               (dist[refinds[2]] / (dist[refinds[2]] - dist[refinds[1]]));
 
     // Intersect if ta1/2 and tb1/2 intervals overlap.
-    if (ta1 <= tb1 && tb1 <= ta2 || ta1 <= tb2 && tb2 <= ta2 || tb1 <= ta1 && ta1 <= tb2 || tb1 <= ta2 && ta2 <= tb2)
+    if (ta1 <= tb1 && tb1 <= ta2 || ta1 <= tb2 && tb2 <= ta2 || tb1 <= ta1 && ta1 <= tb2 ||
+        tb1 <= ta2 && ta2 <= tb2)
     {
       return true;
     }
@@ -508,19 +513,22 @@ bool intersectTrianglesT(const Vector3<T> &a0, const Vector3<T> &a1, const Vecto
     proj[0] = lineD.dot(b0 - a0);
     proj[1] = lineD.dot(b1 - a0);
     proj[2] = lineD.dot(b2 - a0);
-    overlapA = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) && overlapA;
+    overlapA = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) &&
+               overlapA;
     lineD = a2 - a1;
     ta2 = lineD.magnitudeSquared() + epsilon * epsilon;
     proj[0] = lineD.dot(b0 - a1);
     proj[1] = lineD.dot(b1 - a1);
     proj[2] = lineD.dot(b2 - a1);
-    overlapA = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) && overlapA;
+    overlapA = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) &&
+               overlapA;
     lineD = a0 - a2;
     ta2 = lineD.magnitudeSquared() + epsilon * epsilon;
     proj[0] = lineD.dot(b0 - a2);
     proj[1] = lineD.dot(b1 - a2);
     proj[2] = lineD.dot(b2 - a2);
-    overlapA = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) && overlapA;
+    overlapA = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) &&
+               overlapA;
 
     // Reverse the overlap test.
     lineD = b1 - b0;
@@ -528,19 +536,22 @@ bool intersectTrianglesT(const Vector3<T> &a0, const Vector3<T> &a1, const Vecto
     proj[0] = lineD.dot(a0 - b0);
     proj[1] = lineD.dot(a1 - b0);
     proj[2] = lineD.dot(a2 - b0);
-    overlapB = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) && overlapB;
+    overlapB = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) &&
+               overlapB;
     lineD = b2 - b1;
     ta2 = lineD.magnitudeSquared() + epsilon * epsilon;
     proj[0] = lineD.dot(a0 - b1);
     proj[1] = lineD.dot(a1 - b1);
     proj[2] = lineD.dot(a2 - b1);
-    overlapB = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) && overlapB;
+    overlapB = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) &&
+               overlapB;
     lineD = b0 - b2;
     ta2 = lineD.magnitudeSquared() + epsilon * epsilon;
     proj[0] = lineD.dot(a0 - b2);
     proj[1] = lineD.dot(a1 - b2);
     proj[2] = lineD.dot(a2 - b2);
-    overlapB = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) && overlapB;
+    overlapB = (proj[0] * proj[0] <= ta2 || proj[1] * proj[1] <= ta2 || proj[2] * proj[2] <= ta2) &&
+               overlapB;
 
     return overlapA || overlapB;
   }
@@ -580,28 +591,28 @@ bool intersectAABBT(const Vector3<T> tri[3], const Vector3<T> aabb[2])
 
   /* Bullet 3:  */
   /*  test the 9 tests first (this was faster) */
-  fex = detail::abs(e0.x);
-  fey = detail::abs(e0.y);
-  fez = detail::abs(e0.z);
+  fex = detail::abs(e0.x());
+  fey = detail::abs(e0.y());
+  fez = detail::abs(e0.z());
 
-  intersect = aabbAxisTestX01(e0.z, e0.y, fez, fey, v0, v2, halfExtents) && intersect;
-  intersect = aabbAxisTestY02(e0.z, e0.x, fez, fex, v0, v2, halfExtents) && intersect;
-  intersect = aabbAxisTestZ12(e0.y, e0.x, fey, fex, v1, v2, halfExtents) && intersect;
+  intersect = aabbAxisTestX01(e0.z(), e0.y(), fez, fey, v0, v2, halfExtents) && intersect;
+  intersect = aabbAxisTestY02(e0.z(), e0.x(), fez, fex, v0, v2, halfExtents) && intersect;
+  intersect = aabbAxisTestZ12(e0.y(), e0.x(), fey, fex, v1, v2, halfExtents) && intersect;
 
-  fex = detail::abs(e1.x);
-  fey = detail::abs(e1.y);
-  fez = detail::abs(e1.z);
-  intersect = aabbAxisTestX01(e1.z, e1.y, fez, fey, v0, v2, halfExtents) && intersect;
-  intersect = aabbAxisTestY02(e1.z, e1.x, fez, fex, v0, v2, halfExtents) && intersect;
-  intersect = aabbAxisTestZ0(e1.y, e1.x, fey, fex, v0, v1, halfExtents) && intersect;
+  fex = detail::abs(e1.x());
+  fey = detail::abs(e1.y());
+  fez = detail::abs(e1.z());
+  intersect = aabbAxisTestX01(e1.z(), e1.y(), fez, fey, v0, v2, halfExtents) && intersect;
+  intersect = aabbAxisTestY02(e1.z(), e1.x(), fez, fex, v0, v2, halfExtents) && intersect;
+  intersect = aabbAxisTestZ0(e1.y(), e1.x(), fey, fex, v0, v1, halfExtents) && intersect;
 
-  fex = detail::abs(e2.x);
-  fey = detail::abs(e2.y);
-  fez = detail::abs(e2.z);
+  fex = detail::abs(e2.x());
+  fey = detail::abs(e2.y());
+  fez = detail::abs(e2.z());
 
-  intersect = aabbAxisTestX2(e2.z, e2.y, fez, fey, v0, v1, halfExtents) && intersect;
-  intersect = aabbAxisTestY1(e2.z, e2.x, fez, fex, v0, v1, halfExtents) && intersect;
-  intersect = aabbAxisTestZ12(e2.y, e2.x, fey, fex, v1, v2, halfExtents) && intersect;
+  intersect = aabbAxisTestX2(e2.z(), e2.y(), fez, fey, v0, v1, halfExtents) && intersect;
+  intersect = aabbAxisTestY1(e2.z(), e2.x(), fez, fex, v0, v1, halfExtents) && intersect;
+  intersect = aabbAxisTestZ12(e2.y(), e2.x(), fey, fex, v1, v2, halfExtents) && intersect;
 
   /* Bullet 1: */
   /*  first test overlap in the {x,y,z}-directions */
@@ -610,16 +621,16 @@ bool intersectAABBT(const Vector3<T> tri[3], const Vector3<T> aabb[2])
   /*  the triangle against the AABB */
 
   /* test in X-direction */
-  findMinMax(v0.x, v1.x, v2.x, minval, maxval);
-  intersect = (minval <= halfExtents.x && maxval >= -halfExtents.x) && intersect;
+  findMinMax(v0.x(), v1.x(), v2.x(), minval, maxval);
+  intersect = (minval <= halfExtents.x() && maxval >= -halfExtents.x()) && intersect;
 
   /* test in Y-direction */
-  findMinMax(v0.y, v1.y, v2.y, minval, maxval);
-  intersect = (minval <= halfExtents.y && maxval >= -halfExtents.y) && intersect;
+  findMinMax(v0.y(), v1.y(), v2.y(), minval, maxval);
+  intersect = (minval <= halfExtents.y() && maxval >= -halfExtents.y()) && intersect;
 
   /* test in Z-direction */
-  findMinMax(v0.z, v1.z, v2.z, minval, maxval);
-  intersect = (minval <= halfExtents.z && maxval >= -halfExtents.z) && intersect;
+  findMinMax(v0.z(), v1.z(), v2.z(), minval, maxval);
+  intersect = (minval <= halfExtents.z() && maxval >= -halfExtents.z()) && intersect;
 
   /* Bullet 2: */
   /*  test if the box intersects the plane of the triangle */
@@ -683,7 +694,8 @@ bool isDegenerate(const Vector3f tri[3], float epsilon)
 }
 
 
-bool isPointInside(const Vector3f &point, const Vector3f &v0, const Vector3f &v1, const Vector3f &v2)
+bool isPointInside(const Vector3f &point, const Vector3f &v0, const Vector3f &v1,
+                   const Vector3f &v2)
 {
   const Vector3f tri[3] = { v0, v1, v2 };
   return isPointInsideT(point, tri);
@@ -696,7 +708,8 @@ bool isPointInside(const Vector3f &point, const Vector3f tri[3])
 }
 
 
-Vector3f nearestPoint(const Vector3f &point, const Vector3f &v0, const Vector3f &v1, const Vector3f &v2)
+Vector3f nearestPoint(const Vector3f &point, const Vector3f &v0, const Vector3f &v1,
+                      const Vector3f &v2)
 {
   const Vector3f tri[3] = { v0, v1, v2 };
   return nearestPointT(point, tri);
@@ -709,15 +722,16 @@ Vector3f nearestPoint(const Vector3f &point, const Vector3f tri[3])
 }
 
 
-bool intersectRay(float *hitTime, const Vector3f &v0, const Vector3f &v1, const Vector3f &v2, const Vector3f &origin,
-                  const Vector3f &dir, const float epsilon)
+bool intersectRay(float *hitTime, const Vector3f &v0, const Vector3f &v1, const Vector3f &v2,
+                  const Vector3f &origin, const Vector3f &dir, const float epsilon)
 {
   return intersectRayT(hitTime, v0, v1, v2, origin, dir, epsilon);
 }
 
 
-bool intersectTriangles(const Vector3f &a0, const Vector3f &a1, const Vector3f &a2, const Vector3f &b0,
-                        const Vector3f &b1, const Vector3f &b2, const float epsilon)
+bool intersectTriangles(const Vector3f &a0, const Vector3f &a1, const Vector3f &a2,
+                        const Vector3f &b0, const Vector3f &b1, const Vector3f &b2,
+                        const float epsilon)
 {
   return intersectTrianglesT(a0, a1, a2, b0, b1, b2, epsilon);
 }
@@ -781,7 +795,8 @@ bool isDegenerate(const Vector3d tri[3], double epsilon)
 }
 
 
-bool isPointInside(const Vector3d &point, const Vector3d &v0, const Vector3d &v1, const Vector3d &v2)
+bool isPointInside(const Vector3d &point, const Vector3d &v0, const Vector3d &v1,
+                   const Vector3d &v2)
 {
   const Vector3d tri[3] = { v0, v1, v2 };
   return isPointInsideT(point, tri);
@@ -794,7 +809,8 @@ bool isPointInside(const Vector3d &point, const Vector3d tri[3])
 }
 
 
-Vector3d nearestPoint(const Vector3d &point, const Vector3d &v0, const Vector3d &v1, const Vector3d &v2)
+Vector3d nearestPoint(const Vector3d &point, const Vector3d &v0, const Vector3d &v1,
+                      const Vector3d &v2)
 {
   const Vector3d tri[3] = { v0, v1, v2 };
   return nearestPointT(point, tri);
@@ -807,15 +823,16 @@ Vector3d nearestPoint(const Vector3d &point, const Vector3d tri[3])
 }
 
 
-bool intersectRay(double *hitTime, const Vector3d &v0, const Vector3d &v1, const Vector3d &v2, const Vector3d &origin,
-                  const Vector3d &dir, const double epsilon)
+bool intersectRay(double *hitTime, const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
+                  const Vector3d &origin, const Vector3d &dir, const double epsilon)
 {
   return intersectRayT(hitTime, v0, v1, v2, origin, dir, epsilon);
 }
 
 
-bool intersectTriangles(const Vector3d &a0, const Vector3d &a1, const Vector3d &a2, const Vector3d &b0,
-                        const Vector3d &b1, const Vector3d &b2, const double epsilon)
+bool intersectTriangles(const Vector3d &a0, const Vector3d &a1, const Vector3d &a2,
+                        const Vector3d &b0, const Vector3d &b1, const Vector3d &b2,
+                        const double epsilon)
 {
   return intersectTrianglesT(a0, a1, a2, b0, b1, b2, epsilon);
 }

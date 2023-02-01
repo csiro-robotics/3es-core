@@ -47,11 +47,11 @@ void BoundsCuller::cull(unsigned mark, const Magnum::Math::Frustum<Magnum::Float
   {
     const auto centre = bounds.bounds.centre();
     const auto half_extents = bounds.bounds.halfExtents();
-    bounds.visible_mark =
-      (Magnum::Math::Intersection::aabbFrustum({ centre.x, centre.y, centre.z },
-                                               { half_extents.x, half_extents.y, half_extents.z }, view_frustum)) ?
-        mark :
-        bounds.visible_mark;
+    bounds.visible_mark = (Magnum::Math::Intersection::aabbFrustum(
+                            { centre.x(), centre.y(), centre.z() },
+                            { half_extents.x(), half_extents.y(), half_extents.z() }, view_frustum)) ?
+                            mark :
+                            bounds.visible_mark;
   }
   _last_mark = mark;
 }

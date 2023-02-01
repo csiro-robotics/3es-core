@@ -30,7 +30,8 @@ Text::Text(Corrade::PluginManager::Manager<Magnum::Text::AbstractFont> &font_man
 {
   // TODO(KS): get resources strings passed in as it's the exe which must include the resources.
   Corrade::Utility::Resource rs(fonts_resource_section);
-  _cache = std::make_unique<Magnum::Text::DistanceFieldGlyphCache>(Magnum::Vector2i(2048), Magnum::Vector2i(512), 22);
+  _cache = std::make_unique<Magnum::Text::DistanceFieldGlyphCache>(Magnum::Vector2i(2048),
+                                                                   Magnum::Vector2i(512), 22);
   _font = font_manager.loadAndInstantiate(font_plugin);
   if (_font && _font->openData(rs.getRaw(font_resource_name), 180.0f))
   {
@@ -46,25 +47,28 @@ Text::Text(Corrade::PluginManager::Manager<Magnum::Text::AbstractFont> &font_man
 
     _font->fillGlyphCache(*_cache, printable_characters.c_str());
 
-    _renderer_2d =
-      std::make_unique<Magnum::Text::Renderer2D>(*_font, *_cache, 32.0f, Magnum::Text::Alignment::MiddleLeft);
-    _renderer_2d->reserve(kMaxTextLength, Magnum::GL::BufferUsage::DynamicDraw, Magnum::GL::BufferUsage::StaticDraw);
-    _renderer_3d =
-      std::make_unique<Magnum::Text::Renderer3D>(*_font, *_cache, 0.1f, Magnum::Text::Alignment::MiddleCenter);
-    _renderer_3d->reserve(kMaxTextLength, Magnum::GL::BufferUsage::DynamicDraw, Magnum::GL::BufferUsage::StaticDraw);
+    _renderer_2d = std::make_unique<Magnum::Text::Renderer2D>(*_font, *_cache, 32.0f,
+                                                              Magnum::Text::Alignment::MiddleLeft);
+    _renderer_2d->reserve(kMaxTextLength, Magnum::GL::BufferUsage::DynamicDraw,
+                          Magnum::GL::BufferUsage::StaticDraw);
+    _renderer_3d = std::make_unique<Magnum::Text::Renderer3D>(
+      *_font, *_cache, 0.1f, Magnum::Text::Alignment::MiddleCenter);
+    _renderer_3d->reserve(kMaxTextLength, Magnum::GL::BufferUsage::DynamicDraw,
+                          Magnum::GL::BufferUsage::StaticDraw);
   }
   else
   {
-    log::error("Unable to initialise font ", font_resource_name, ". Text rendering will be unavailable.");
+    log::error("Unable to initialise font ", font_resource_name,
+               ". Text rendering will be unavailable.");
     _font = nullptr;
     _cache = nullptr;
   }
 
-  // The constructor we call is to construct from *column* vectors, but for readability we layout *rows*
-  // then transpose.
-  // TODO(KS): this is only set for CoordiateFrame::XYZ. Do we need anything else? really adding the CoordinateFrame
-  // transform to the projection matrix should be enough. We just need to line up the matrix so it defaults to -Y
-  // facing, Z up.
+  // The constructor we call is to construct from *column* vectors, but for readability we layout
+  // *rows* then transpose.
+  // TODO(KS): this is only set for CoordiateFrame::XYZ. Do we need anything else? really adding the
+  // CoordinateFrame transform to the projection matrix should be enough. We just need to line up
+  // the matrix so it defaults to -Y facing, Z up.
   _default_transform =
     Magnum::Matrix4{
       Magnum::Vector4{ 1, 0, 0, 0 },  //
@@ -85,8 +89,8 @@ bool Text::isAvailable() const
 void Text::beginDraw()
 {
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::Blending);
-  // From magnum text examples: set up premultiplied alpha blending to avoid overlapping text characters to cut into
-  // each other
+  // From magnum text examples: set up premultiplied alpha blending to avoid overlapping text
+  // characters to cut into each other
   Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::One,
                                          Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
   Magnum::GL::Renderer::setBlendEquation(Magnum::GL::Renderer::BlendEquation::Add,
@@ -143,17 +147,18 @@ void Text::draw2DText(const TextEntry &text, const DrawParams &params)
     norm_position *= 0.5f;
   }
 
-  // We try render text out range for a bit to allow long text to start offscreen. The right solution is to clip
-  // properly, but this is enough for now.
+  // We try render text out range for a bit to allow long text to start offscreen. The right
+  // solution is to clip properly, but this is enough for now.
   // TODO(KS): clip text correctly.
-  if (norm_position.x() < -1 || norm_position.x() > 1 || norm_position.y() < -1 && norm_position.y() > 1)
+  if (norm_position.x() < -1 || norm_position.x() > 1 ||
+      norm_position.y() < -1 && norm_position.y() > 1)
   {
     return;
   }
 
   const auto view_size = Magnum::Vector2(params.view_size);
-  const auto text_transform =
-    Magnum::Matrix3::projection(view_size) * Magnum::Matrix3::translation(norm_position * view_size);
+  const auto text_transform = Magnum::Matrix3::projection(view_size) *
+                              Magnum::Matrix3::translation(norm_position * view_size);
   draw(text, text_transform, *_renderer_2d, _shader_2d);
 }
 
@@ -185,7 +190,8 @@ void Text::draw3DText(const TextEntry &text, const DrawParams &params)
       text_transform[0] = Magnum::Vector4(side.x(), side.y(), side.z(), 0);
       text_transform[1] = Magnum::Vector4(camera_fwd.x(), camera_fwd.y(), camera_fwd.z(), 0);
       text_transform[2] = Magnum::Vector4(up.x(), up.y(), up.z(), 0);
-      text_transform[3] = Magnum::Vector4(text_position.x(), text_position.y(), text_position.z(), 1.0f);
+      text_transform[3] =
+        Magnum::Vector4(text_position.x(), text_position.y(), text_position.z(), 1.0f);
     }
     // else cannot resolve.
   }
@@ -201,7 +207,8 @@ void Text::draw3DText(const TextEntry &text, const DrawParams &params)
 
 
 template <typename Matrix, typename Renderer, typename Shader>
-void Text::draw(const TextEntry &text, const Matrix &full_projection_matrix, Renderer &renderer, Shader &shader)
+void Text::draw(const TextEntry &text, const Matrix &full_projection_matrix, Renderer &renderer,
+                Shader &shader)
 {
   using namespace Magnum::Math::Literals;
 

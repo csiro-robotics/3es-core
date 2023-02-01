@@ -21,13 +21,13 @@ void makeCone(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, s
   // to build the base ring.
   Vector3f radials[2];
   const float nearAlignedDot = std::cos(85.0f / 180.0f * float(M_PI));
-  if (axis.dot(Vector3f::axisy) < nearAlignedDot)
+  if (axis.dot(Vector3f::AxisY) < nearAlignedDot)
   {
-    radials[0] = Vector3f::axisy.cross(axis);
+    radials[0] = Vector3f::AxisY.cross(axis);
   }
   else
   {
-    radials[0] = Vector3f::axisx.cross(axis);
+    radials[0] = Vector3f::AxisX.cross(axis);
   }
   radials[0].normalise();
   radials[1] = axis.cross(radials[0]);

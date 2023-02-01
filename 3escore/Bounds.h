@@ -30,14 +30,14 @@ public:
   /// single and double precision.
   /// @param other The bounds to copy.
   template <typename Q>
-  Bounds(const Bounds<Q> &other);
+  explicit Bounds(const Bounds<Q> &other);
 
   /// Initialise a bounding box with the given extents.
   /// @param minExt The bounding box minimum. All components must be less than or equal to
   ///     @p maxExtents.
   /// @param maxExt The bounding box maximum. All components must be greater than or equal to
   ///     @p minExtents.
-  Bounds(const Vector3<T> &minExt, const Vector3<T> &maxExt);
+  Bounds(const Vector3<T> &min_ext, const Vector3<T> &max_ext);
 
   /// Initialise the boudns to the given point.
   /// @param point The point to set as both min and max extents.
@@ -68,10 +68,11 @@ public:
 
   /// Converts the bounds from defining an AABB to being more spherical in nature.
   ///
-  /// This adjusts the bounds such that all axes of the half extents are set to the maximum axis value, while
-  /// maintaining the same centre.
+  /// This adjusts the bounds such that all axes of the half extents are set to the maximum axis
+  /// value, while maintaining the same centre.
   ///
-  /// Note, there is no way to explicitly identify that this adjustment has been made to a @c Bounds object.
+  /// Note, there is no way to explicitly identify that this adjustment has been made to a @c Bounds
+  /// object.
   void convertToSpherical();
 
   /// Expand the bounding box to include @p point.
@@ -85,7 +86,7 @@ public:
   /// Returns true if the bounds are valid, with minimum extents less than or equal to the
   /// maximum.
   /// @return True when valid.
-  bool isValid() const;
+  [[nodiscard]] bool isValid() const;
 
   /// Precise equality operator.
   /// @param other The object to compare to.
@@ -107,13 +108,13 @@ private:
   Vector3<T> _maximum;  ///< Maximum extents.
 };
 
-_3es_extern template class TES_CORE_API Bounds<float>;
-_3es_extern template class TES_CORE_API Bounds<double>;
+TES_EXTERN template class TES_CORE_API Bounds<float>;
+TES_EXTERN template class TES_CORE_API Bounds<double>;
 
 /// Single precision bounds.
-typedef Bounds<float> Boundsf;
+using Boundsf = Bounds<float>;
 /// Double precision bounds.
-typedef Bounds<double> Boundsd;
+using Boundsd = Bounds<double>;
 
 template <typename T>
 inline Bounds<T>::Bounds()
@@ -139,9 +140,9 @@ inline Bounds<T>::Bounds(const Bounds<Q> &other)
 
 
 template <typename T>
-inline Bounds<T>::Bounds(const Vector3<T> &minExt, const Vector3<T> &maxExt)
-  : _minimum(minExt)
-  , _maximum(maxExt)
+inline Bounds<T>::Bounds(const Vector3<T> &min_ext, const Vector3<T> &max_ext)
+  : _minimum(min_ext)
+  , _maximum(max_ext)
 {}
 
 
@@ -168,7 +169,7 @@ inline const Vector3<T> &Bounds<T>::maximum() const
 template <typename T>
 Vector3<T> Bounds<T>::centre() const
 {
-  return T(0.5) * (_minimum + _maximum);
+  return static_cast<T>(0.5) * (_minimum + _maximum);
 }
 
 
@@ -184,8 +185,8 @@ inline void Bounds<T>::convertToSpherical()
 {
   const auto centre = this->centre();
   auto ext = halfExtents();
-  ext.x = std::max(ext.x, ext.y);
-  ext.x = ext.y = ext.z = std::max(ext.x, ext.z);
+  ext.x() = std::max(ext.x(), ext.y());
+  ext.x() = ext.y() = ext.z() = std::max(ext.x(), ext.z());
   *this = fromCentreHalfExtents(centre, ext);
 }
 
@@ -193,12 +194,12 @@ inline void Bounds<T>::convertToSpherical()
 template <typename T>
 inline void Bounds<T>::expand(const Vector3<T> &point)
 {
-  _minimum.x = (point.x < _minimum.x) ? point.x : _minimum.x;
-  _minimum.y = (point.y < _minimum.y) ? point.y : _minimum.y;
-  _minimum.z = (point.z < _minimum.z) ? point.z : _minimum.z;
-  _maximum.x = (point.x > _maximum.x) ? point.x : _maximum.x;
-  _maximum.y = (point.y > _maximum.y) ? point.y : _maximum.y;
-  _maximum.z = (point.z > _maximum.z) ? point.z : _maximum.z;
+  _minimum.x() = (point.x() < _minimum.x()) ? point.x() : _minimum.x();
+  _minimum.y() = (point.y() < _minimum.y()) ? point.y() : _minimum.y();
+  _minimum.z() = (point.z() < _minimum.z()) ? point.z() : _minimum.z();
+  _maximum.x() = (point.x() > _maximum.x()) ? point.x() : _maximum.x();
+  _maximum.y() = (point.y() > _maximum.y()) ? point.y() : _maximum.y();
+  _maximum.z() = (point.z() > _maximum.z()) ? point.z() : _maximum.z();
 }
 
 
@@ -213,15 +214,16 @@ inline void Bounds<T>::expand(const Bounds<T> &other)
 template <typename T>
 inline bool Bounds<T>::isValid() const
 {
-  return _minimum.x <= _maximum.x && _minimum.y <= _maximum.y && _minimum.z <= _maximum.z;
+  return _minimum.x() <= _maximum.x() && _minimum.y() <= _maximum.y() && _minimum.z() <= _maximum.z();
 }
 
 
 template <typename T>
 inline bool Bounds<T>::operator==(const Bounds<T> &other) const
 {
-  return _minimum.x == other._minimum.x && _minimum.y == other._minimum.y && _minimum.z == other._minimum.z &&
-         _maximum.x == other._maximum.x && _maximum.y == other._maximum.y && _maximum.z == other._maximum.z;
+  return _minimum.x() == other._minimum.x() && _minimum.y() == other._minimum.y() &&
+         _minimum.z() == other._minimum.z() && _maximum.x() == other._maximum.x() &&
+         _maximum.y() == other._maximum.y() && _maximum.z() == other._maximum.z();
 }
 
 

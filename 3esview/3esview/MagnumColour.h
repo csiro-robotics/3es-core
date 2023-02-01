@@ -22,7 +22,8 @@ inline tes::Colour convert(const Magnum::Color4 &c)
 
 inline Magnum::Color4 convert(const tes::Colour &c)
 {
-  return Magnum::Color4(Magnum::Float(c.rf()), Magnum::Float(c.gf()), Magnum::Float(c.bf()), Magnum::Float(c.af()));
+  return Magnum::Color4(Magnum::Float(c.rf()), Magnum::Float(c.gf()), Magnum::Float(c.bf()),
+                        Magnum::Float(c.af()));
 }
 };  // namespace tes::view
 

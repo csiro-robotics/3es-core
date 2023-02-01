@@ -29,9 +29,9 @@ Vector3<T> operator*(const Matrix3<T> &a, const Vector3<T> &v)
 {
   Vector3<T> r;
 
-  r.x = a(0, 0) * v[0] + a(0, 1) * v[1] + a(0, 2) * v[2];
-  r.y = a(1, 0) * v[0] + a(1, 1) * v[1] + a(1, 2) * v[2];
-  r.z = a(2, 0) * v[0] + a(2, 1) * v[1] + a(2, 2) * v[2];
+  r.x() = a(0, 0) * v[0] + a(0, 1) * v[1] + a(0, 2) * v[2];
+  r.y() = a(1, 0) * v[0] + a(1, 1) * v[1] + a(1, 2) * v[2];
+  r.z() = a(2, 0) * v[0] + a(2, 1) * v[1] + a(2, 2) * v[2];
 
   return r;
 }
@@ -71,8 +71,8 @@ Matrix3<T>::Matrix3(const Matrix3<Q> &other)
 }
 
 template <typename T>
-Matrix3<T>::Matrix3(const T &rc00, const T &rc01, const T &rc02, const T &rc10, const T &rc11, const T &rc12,
-                    const T &rc20, const T &rc21, const T &rc22)
+Matrix3<T>::Matrix3(const T &rc00, const T &rc01, const T &rc02, const T &rc10, const T &rc11,
+                    const T &rc12, const T &rc20, const T &rc21, const T &rc22)
 {
   rc[0][0] = rc00;
   rc[0][1] = rc01;
@@ -134,18 +134,18 @@ template <typename T>
 inline Matrix3<T> Matrix3<T>::scaling(const Vector3<T> &scale)
 {
   Matrix3<T> m = identity;
-  m.rc[0][0] = scale.x;
-  m.rc[1][1] = scale.y;
-  m.rc[2][2] = scale.z;
+  m.rc[0][0] = scale.x();
+  m.rc[1][1] = scale.y();
+  m.rc[2][2] = scale.z();
   return m;
 }
 
 template <typename T>
-Matrix3<T> Matrix3<T>::lookAt(const Vector3<T> &eye, const Vector3<T> &target, const Vector3<T> &axisUp,
-                              int forwardAxisIndex, int upAxisIndex)
+Matrix3<T> Matrix3<T>::lookAt(const Vector3<T> &eye, const Vector3<T> &target,
+                              const Vector3<T> &axisUp, int forwardAxisIndex, int upAxisIndex)
 {
-  if (forwardAxisIndex == upAxisIndex || forwardAxisIndex < 0 || forwardAxisIndex > 2 || upAxisIndex < 0 ||
-      upAxisIndex > 2)
+  if (forwardAxisIndex == upAxisIndex || forwardAxisIndex < 0 || forwardAxisIndex > 2 ||
+      upAxisIndex < 0 || upAxisIndex > 2)
   {
     // Bad axis specification.
     return identity;
@@ -198,7 +198,8 @@ inline Matrix3<T> &Matrix3<T>::transpose()
 template <typename T>
 inline Matrix3<T> Matrix3<T>::transposed() const
 {
-  const Matrix3<T> m(rc[0][0], rc[1][0], rc[2][0], rc[0][1], rc[1][1], rc[2][1], rc[0][2], rc[1][2], rc[2][2]);
+  const Matrix3<T> m(rc[0][0], rc[1][0], rc[2][0], rc[0][1], rc[1][1], rc[2][1], rc[0][2], rc[1][2],
+                     rc[2][2]);
   return m;
 }
 
@@ -263,8 +264,8 @@ inline Matrix3<T> Matrix3<T>::rigidBodyInverse() const
 template <typename T>
 inline T Matrix3<T>::determinant() const
 {
-  const T det = m[0] * m[4] * m[8] + m[1] * m[5] * m[6] + m[2] * m[3] * m[7] - m[2] * m[4] * m[6] - m[1] * m[3] * m[8] -
-                m[0] * m[5] * m[7];
+  const T det = m[0] * m[4] * m[8] + m[1] * m[5] * m[6] + m[2] * m[3] * m[7] - m[2] * m[4] * m[6] -
+                m[1] * m[3] * m[8] - m[0] * m[5] * m[7];
   return det;
 }
 
@@ -314,9 +315,9 @@ inline Matrix3<T> &Matrix3<T>::setAxisZ(const Vector3<T> &axis)
 template <typename T>
 inline Matrix3<T> &Matrix3<T>::setAxis(int index, const Vector3<T> &axis)
 {
-  rc[0][index] = axis.x;
-  rc[1][index] = axis.y;
-  rc[2][index] = axis.z;
+  rc[0][index] = axis.x();
+  rc[1][index] = axis.y();
+  rc[2][index] = axis.z();
   return *this;
 }
 
@@ -330,17 +331,17 @@ inline Vector3<T> Matrix3<T>::scale() const
 template <typename T>
 inline Matrix3<T> &Matrix3<T>::scale(const Vector3<T> &scaling)
 {
-  rc[0][0] *= scaling.x;
-  rc[1][0] *= scaling.x;
-  rc[2][0] *= scaling.x;
+  rc[0][0] *= scaling.x();
+  rc[1][0] *= scaling.x();
+  rc[2][0] *= scaling.x();
 
-  rc[0][1] *= scaling.y;
-  rc[1][1] *= scaling.y;
-  rc[2][1] *= scaling.y;
+  rc[0][1] *= scaling.y();
+  rc[1][1] *= scaling.y();
+  rc[2][1] *= scaling.y();
 
-  rc[0][2] *= scaling.z;
-  rc[1][2] *= scaling.z;
-  rc[2][2] *= scaling.z;
+  rc[0][2] *= scaling.z();
+  rc[1][2] *= scaling.z();
+  rc[2][2] *= scaling.z();
 
   return *this;
 }
@@ -356,9 +357,9 @@ inline Vector3<T> Matrix3<T>::rotate(const Vector3<T> &v) const
 {
   Vector3<T> r;
 
-  r.x = (*this)(0, 0) * v[0] + (*this)(0, 1) * v[1] + (*this)(0, 2) * v[2];
-  r.y = (*this)(1, 0) * v[0] + (*this)(1, 1) * v[1] + (*this)(1, 2) * v[2];
-  r.z = (*this)(2, 0) * v[0] + (*this)(2, 1) * v[1] + (*this)(2, 2) * v[2];
+  r.x() = (*this)(0, 0) * v[0] + (*this)(0, 1) * v[1] + (*this)(0, 2) * v[2];
+  r.y() = (*this)(1, 0) * v[0] + (*this)(1, 1) * v[1] + (*this)(1, 2) * v[2];
+  r.z() = (*this)(2, 0) * v[0] + (*this)(2, 1) * v[1] + (*this)(2, 2) * v[2];
 
   return r;
 }
@@ -370,6 +371,7 @@ inline bool Matrix3<T>::isEqual(const Matrix3<T> &a, const T epsilon) const
   return std::abs(m[0] - a.m[0]) <= epsilon && std::abs(m[1] - a.m[1]) <= epsilon &&
          std::abs(m[2] - a.m[2]) <= epsilon && std::abs(m[3] - a.m[3]) <= epsilon &&
          std::abs(m[4] - a.m[4]) <= epsilon && std::abs(m[5] - a.m[5]) <= epsilon &&
-         std::abs(m[6] - a.m[6]) <= epsilon && std::abs(m[7] - a.m[7]) <= epsilon && std::abs(m[8] - a.m[8]) <= epsilon;
+         std::abs(m[6] - a.m[6]) <= epsilon && std::abs(m[7] - a.m[7]) <= epsilon &&
+         std::abs(m[8] - a.m[8]) <= epsilon;
 }
 }  // namespace tes

@@ -16,7 +16,8 @@ namespace tes
 ///
 /// A plane is defined by:
 /// Component      | Description
-/// -------------- | -----------------------------------------------------------------------------------------------
+/// -------------- |
+/// -----------------------------------------------------------------------------------------------
 /// @c position()  | Where to display a planar section.
 /// @c normal()    | The plane normal.
 /// @c scale()     | Defines the size of the plane rectangle (X,Y) and @c normalLength() (Z).
@@ -24,12 +25,14 @@ class TES_CORE_API Plane : public Shape
 {
 public:
   /// Create a plane.
-  /// @param id The shape id and category, unique among @c Plane objects, or zero for a transient shape.
+  /// @param id The shape id and category, unique among @c Plane objects, or zero for a transient
+  /// shape.
   /// @param transform The directional transformation for the capsule.
   Plane(const Id &id = Id(), const Directional &transform = Directional());
 
   /// Create a plane.
-  /// @param id The shape id and category, unique among @c Plane objects, or zero for a transient shape.
+  /// @param id The shape id and category, unique among @c Plane objects, or zero for a transient
+  /// shape.
   /// @param transform The directional transformation for the capsule.
   Plane(const Id &id, const Transform &transform);
 
@@ -45,14 +48,16 @@ public:
   Plane &setNormal(const Vector3d &normal);
   /// Get the plane normal.
   ///
-  /// May not exactly match the axis given via @p setNormal() as the axis is defined by the quaternion @c rotation().
+  /// May not exactly match the axis given via @p setNormal() as the axis is defined by the
+  /// quaternion @c rotation().
   /// @return The plane normal.
   Vector3d normal() const;
 
   /// Set the plane "scale", which controls the render size.
   ///
-  /// The X,Y axes control the size of the rectangle used to display the plane at @p position(). The Z is the same
-  /// as the @c normalLength(). Note there is non guarantee on the orientation of the plane rectangle.
+  /// The X,Y axes control the size of the rectangle used to display the plane at @p position(). The
+  /// Z is the same as the @c normalLength(). Note there is non guarantee on the orientation of the
+  /// plane rectangle.
   ////
   /// @param scale The scaling values to set.
   /// @return @c *this
@@ -61,7 +66,7 @@ public:
   /// @return The plane scaling values.
   double scale() const;
 
-  /// Set the plane normal's display length. Alias for @c scale().z
+  /// Set the plane normal's display length. Alias for @c scale().z()
   /// @param length Display length to set.
   /// @return @c *this
   Plane &setNormalLength(double length);
@@ -105,7 +110,7 @@ inline Vector3d Plane::normal() const
 inline Plane &Plane::setScale(double scale)
 {
   Vector3d s = Shape::scale();
-  s.x = s.z = scale;
+  s.x() = s.z() = scale;
   Shape::setScale(s);
   return *this;
 }
@@ -113,14 +118,14 @@ inline Plane &Plane::setScale(double scale)
 
 inline double Plane::scale() const
 {
-  return Shape::scale().x;
+  return Shape::scale().x();
 }
 
 
 inline Plane &Plane::setNormalLength(double len)
 {
   Vector3d s = Shape::scale();
-  s.y = len;
+  s.y() = len;
   Shape::setScale(s);
   return *this;
 }
@@ -128,7 +133,7 @@ inline Plane &Plane::setNormalLength(double len)
 
 inline double Plane::normalLength() const
 {
-  return Shape::scale().y;
+  return Shape::scale().y();
 }
 }  // namespace tes
 

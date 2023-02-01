@@ -12,12 +12,13 @@ constexpr size_t ShapeCache::kListEnd;
 void ShapeCache::calcSphericalBounds(const Magnum::Matrix4 &transform, Bounds &bounds)
 {
   bounds = Bounds::fromCentreHalfExtents(
-    transform[3].xyz(),
-    Magnum::Vector3(transform[0].xyz().length(), transform[1].xyz().length(), transform[2].xyz().length()));
+    transform[3].xyz(), Magnum::Vector3(transform[0].xyz().length(), transform[1].xyz().length(),
+                                        transform[2].xyz().length()));
 }
 
 
-void ShapeCache::calcCylindricalBounds(const Magnum::Matrix4 &transform, float radius, float length, Bounds &bounds)
+void ShapeCache::calcCylindricalBounds(const Magnum::Matrix4 &transform, float radius, float length,
+                                       Bounds &bounds)
 {
   // Scale and rotate an AABB then recalculate bounds from that.
   // Note: assumes the axis.
@@ -40,13 +41,15 @@ void ShapeCache::calcCylindricalBounds(const Magnum::Matrix4 &transform, float r
 }
 
 
-ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::Shader> shader, const Part &part,
+ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler,
+                       std::shared_ptr<shaders::Shader> shader, const Part &part,
                        BoundsCalculator bounds_calculator)
   : ShapeCache(std::move(culler), std::move(shader), { part }, std::move(bounds_calculator))
 {}
 
-ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::Shader> shader,
-                       const std::vector<Part> &parts, BoundsCalculator bounds_calculator)
+ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler,
+                       std::shared_ptr<shaders::Shader> shader, const std::vector<Part> &parts,
+                       BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
   , _parts(parts)
   , _shader(std::move(shader))
@@ -55,8 +58,9 @@ ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<sha
   _instance_buffers.emplace_back(InstanceBuffer{ Magnum::GL::Buffer{}, 0 });
 }
 
-ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::Shader> shader,
-                       std::initializer_list<Part> parts, BoundsCalculator bounds_calculator)
+ShapeCache::ShapeCache(std::shared_ptr<BoundsCuller> culler,
+                       std::shared_ptr<shaders::Shader> shader, std::initializer_list<Part> parts,
+                       BoundsCalculator bounds_calculator)
   : _culler(std::move(culler))
   , _parts(parts)
   , _shader(std::move(shader))
@@ -71,8 +75,8 @@ void ShapeCache::calcBounds(const Magnum::Matrix4 &transform, Bounds &bounds) co
 }
 
 util::ResourceListId ShapeCache::add(const tes::Id &shape_id, const Magnum::Matrix4 &transform,
-                                     const Magnum::Color4 &colour, ShapeFlag flags, util::ResourceListId parent_rid,
-                                     unsigned *child_index)
+                                     const Magnum::Color4 &colour, ShapeFlag flags,
+                                     util::ResourceListId parent_rid, unsigned *child_index)
 {
   auto shape = _shapes.allocate();
 
@@ -135,7 +139,8 @@ bool ShapeCache::endShape(util::ResourceListId id)
   return false;
 }
 
-bool ShapeCache::update(util::ResourceListId id, const Magnum::Matrix4 &transform, const Magnum::Color4 &colour)
+bool ShapeCache::update(util::ResourceListId id, const Magnum::Matrix4 &transform,
+                        const Magnum::Color4 &colour)
 {
   if (id < _shapes.size())
   {
@@ -154,8 +159,8 @@ bool ShapeCache::update(util::ResourceListId id, const Magnum::Matrix4 &transfor
 }
 
 
-bool ShapeCache::get(util::ResourceListId id, bool apply_parent_transform, Magnum::Matrix4 &transform,
-                     Magnum::Color4 &colour) const
+bool ShapeCache::get(util::ResourceListId id, bool apply_parent_transform,
+                     Magnum::Matrix4 &transform, Magnum::Color4 &colour) const
 {
   bool found = false;
   transform = Magnum::Matrix4();
@@ -185,7 +190,8 @@ bool ShapeCache::get(util::ResourceListId id, bool apply_parent_transform, Magnu
 }
 
 
-util::ResourceListId ShapeCache::getChildId(util::ResourceListId parent_id, unsigned child_index) const
+util::ResourceListId ShapeCache::getChildId(util::ResourceListId parent_id,
+                                            unsigned child_index) const
 {
   auto parent = _shapes.at(parent_id);
 
@@ -225,8 +231,8 @@ void ShapeCache::commit()
       _culler->update(iter->bounds_id, bounds);
     }
 
-    // Effect removal, based on Transient flag. We skip Transient and Pending items as this is the initial state for
-    // transient shapes yet to be commited.
+    // Effect removal, based on Transient flag. We skip Transient and Pending items as this is the
+    // initial state for transient shapes yet to be commited.
     if ((iter->flags & (ShapeFlag::Transient | ShapeFlag::Pending)) == ShapeFlag::Transient)
     {
       release(iter.id());
@@ -279,8 +285,9 @@ void ShapeCache::calcBoundsForShape(const Shape &shape, Bounds &bounds) const
 {
   bool bounds_ready = false;
 
-  const auto shape_transform =
-    ((shape.flags & ShapeFlag::Dirty) == ShapeFlag::None) ? shape.current.transform : shape.updated.transform;
+  const auto shape_transform = ((shape.flags & ShapeFlag::Dirty) == ShapeFlag::None) ?
+                                 shape.current.transform :
+                                 shape.updated.transform;
 
   if (shape.parent_rid != kListEnd)
   {
@@ -352,7 +359,8 @@ void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
   // Function to upload the contents of the marshalling buffer to the GPU.
   const auto upload_buffer = [this, &cur_instance_buffer_idx](bool add_buffer_on_full) {
     // Upload current data.
-    _instance_buffers[cur_instance_buffer_idx].buffer.setData(_marshal_buffer, Magnum::GL::BufferUsage::StaticDraw);
+    _instance_buffers[cur_instance_buffer_idx].buffer.setData(_marshal_buffer,
+                                                              Magnum::GL::BufferUsage::StaticDraw);
     ++cur_instance_buffer_idx;
     // Start new buffer if required.
     if (add_buffer_on_full && cur_instance_buffer_idx >= _instance_buffers.size())
@@ -378,7 +386,8 @@ void ShapeCache::buildInstanceBuffers(const FrameStamp &stamp)
       else
       {
         // Child shape. Include parent transforms.
-        get(iter.id(), true, _marshal_buffer[marshal_index].transform, _marshal_buffer[marshal_index].colour);
+        get(iter.id(), true, _marshal_buffer[marshal_index].transform,
+            _marshal_buffer[marshal_index].colour);
       }
 
       if (have_transform_modifier)

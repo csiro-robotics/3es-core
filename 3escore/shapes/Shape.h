@@ -96,8 +96,8 @@ public:
   /// @return The shape type name.
   virtual inline const char *type() const { return "unknown"; }
 
-  /// Identifies the shape routing id. This is used to route to the correct message handler in the viewer application
-  /// and essentially uniquely identifies the shape type.
+  /// Identifies the shape routing id. This is used to route to the correct message handler in the
+  /// viewer application and essentially uniquely identifies the shape type.
   /// @return The shape routing id. See @c ShapeHandlerIDs .
   uint16_t routingId() const;
 
@@ -105,14 +105,15 @@ public:
   /// @return The @c CreateMessage used to represent this shape.
   inline const CreateMessage &data() const { return _data; }
 
-  /// Direct access to the shape attributes. These are stored in double precision, but transmission depends on the
+  /// Direct access to the shape attributes. These are stored in double precision, but transmission
+  /// depends on the
   /// @c CreateMessage::flag @c OFDoublePrecision . See @c setDoublePrecision() .
   inline const ObjectAttributesd &attributes() const { return _attributes; }
 
   /// Access the instance id of this shape.
   ///
-  /// Shapes must have either a zero id or a unique id. A zero id represents a transient shape which does not need to
-  /// be explicitly deleted, while any non-zero id must be unique.
+  /// Shapes must have either a zero id or a unique id. A zero id represents a transient shape which
+  /// does not need to be explicitly deleted, while any non-zero id must be unique.
   ///
   /// @return The shape instance id.
   uint32_t id() const;
@@ -123,8 +124,9 @@ public:
 
   /// Access the shape category.
   ///
-  /// Categories can be used by the viewer to perform collective operations on shapes, such as disable rendering for
-  /// particular categories. The category structure is hierarchical, but user defined.
+  /// Categories can be used by the viewer to perform collective operations on shapes, such as
+  /// disable rendering for particular categories. The category structure is hierarchical, but user
+  /// defined.
   ///
   /// @return The shape's category.
   uint16_t category() const;
@@ -165,8 +167,8 @@ public:
   /// @return True if the replace flag is set.
   bool replace() const;
 
-  /// Configures the shape to skip referencing resources for this instance. See @c ObjectFlag::OFSkipResources .
-  /// Must be set on both creation and destruction.
+  /// Configures the shape to skip referencing resources for this instance. See @c
+  /// ObjectFlag::OFSkipResources . Must be set on both creation and destruction.
   /// @return @c *this.
   Shape &setSkipResources(bool skip);
   /// Returns true set to skip resource referencing for this shape instance.
@@ -174,8 +176,8 @@ public:
   bool skipResources() const;
 
   /// Configures the shape to use double or (on) single (off) precision attributes. See
-  /// @c ObjectFlag::OFDoublePrecision . This is normally implicytly set by how the @c Transform() constructor argument
-  /// is given.
+  /// @c ObjectFlag::OFDoublePrecision . This is normally implicytly set by how the @c Transform()
+  /// constructor argument is given.
   /// @return @c *this.
   Shape &setDoublePrecision(bool doublePrecision);
   /// Returns true set to skip resource referencing for this shape instance.
@@ -245,9 +247,10 @@ public:
 
   /// Called only for complex shapes to write additional creation data.
   ///
-  /// Complex shapes implementing this method must first write the @c DataMessage as a header identifying
-  /// the shape for which the message is intended, via it's ID. The @c DataMessage acts as a header and
-  /// the data format following the message is entirely dependent on the implementing shape.
+  /// Complex shapes implementing this method must first write the @c DataMessage as a header
+  /// identifying the shape for which the message is intended, via it's ID. The @c DataMessage acts
+  /// as a header and the data format following the message is entirely dependent on the
+  /// implementing shape.
   ///
   /// @param stream The data stream to write to.
   /// @param[in,out] progressMarker Indicates data transfer progress.
@@ -328,7 +331,8 @@ public:
   /// @return The number of items added to @p resources when @p resources and @p capacity
   ///   are non zero. When @p resources is null or @p capacity zero, the return value
   ///   indicates the total number of resources used by the shape.
-  virtual unsigned enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset = 0) const;
+  virtual unsigned enumerateResources(const Resource **resources, unsigned capacity,
+                                      unsigned fetchOffset = 0) const;
 
   /// Deep copy clone.
   /// @return A deep copy.
@@ -603,7 +607,7 @@ inline Vector3d Shape::scale() const
 
 inline Shape &Shape::setColour(const Colour &colour)
 {
-  _attributes.colour = colour.c;
+  _attributes.colour = colour.colour32();
   return *this;
 }
 

@@ -22,27 +22,33 @@ constexpr float Capsule::kDefaultRadius;
 constexpr float Capsule::kDefaultHeight;
 const Vector3f Capsule::kDefaultAxis = { 0.0f, 0.0f, 1.0f };
 
-Capsule::Capsule(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders)
-  : ShapePainter(culler, shaders, { Part{ solidMeshCylinder() } }, { Part{ wireframeMeshCylinder() } },
-                 { Part{ solidMeshCylinder() } }, calculateBounds)
+Capsule::Capsule(std::shared_ptr<BoundsCuller> culler,
+                 std::shared_ptr<shaders::ShaderLibrary> shaders)
+  : ShapePainter(culler, shaders, { Part{ solidMeshCylinder() } },
+                 { Part{ wireframeMeshCylinder() } }, { Part{ solidMeshCylinder() } },
+                 calculateBounds)
 {
-  _solid_end_caps[0] =
-    std::make_unique<ShapeCache>(culler, _solid_cache->shader(), Part{ solidMeshCapTop() }, calculateBounds);
-  _solid_end_caps[1] =
-    std::make_unique<ShapeCache>(culler, _solid_cache->shader(), Part{ solidMeshCapBottom() }, calculateBounds);
+  _solid_end_caps[0] = std::make_unique<ShapeCache>(culler, _solid_cache->shader(),
+                                                    Part{ solidMeshCapTop() }, calculateBounds);
+  _solid_end_caps[1] = std::make_unique<ShapeCache>(culler, _solid_cache->shader(),
+                                                    Part{ solidMeshCapBottom() }, calculateBounds);
 
-  _wireframe_end_caps[0] =
-    std::make_unique<ShapeCache>(culler, _wireframe_cache->shader(), Part{ wireframeMeshCap() }, calculateBounds);
-  _wireframe_end_caps[1] =
-    std::make_unique<ShapeCache>(culler, _wireframe_cache->shader(), Part{ wireframeMeshCap() }, calculateBounds);
+  _wireframe_end_caps[0] = std::make_unique<ShapeCache>(
+    culler, _wireframe_cache->shader(), Part{ wireframeMeshCap() }, calculateBounds);
+  _wireframe_end_caps[1] = std::make_unique<ShapeCache>(
+    culler, _wireframe_cache->shader(), Part{ wireframeMeshCap() }, calculateBounds);
 
-  _transparent_end_caps[0] =
-    std::make_unique<ShapeCache>(culler, _transparent_cache->shader(), Part{ solidMeshCapTop() }, calculateBounds);
-  _transparent_end_caps[1] =
-    std::make_unique<ShapeCache>(culler, _transparent_cache->shader(), Part{ solidMeshCapBottom() }, calculateBounds);
+  _transparent_end_caps[0] = std::make_unique<ShapeCache>(
+    culler, _transparent_cache->shader(), Part{ solidMeshCapTop() }, calculateBounds);
+  _transparent_end_caps[1] = std::make_unique<ShapeCache>(
+    culler, _transparent_cache->shader(), Part{ solidMeshCapBottom() }, calculateBounds);
 
-  const auto top_cap_modifier = [](Magnum::Matrix4 &transform) { return endCapTransformModifier(transform, true); };
-  const auto bottom_cap_modifier = [](Magnum::Matrix4 &transform) { return endCapTransformModifier(transform, false); };
+  const auto top_cap_modifier = [](Magnum::Matrix4 &transform) {
+    return endCapTransformModifier(transform, true);
+  };
+  const auto bottom_cap_modifier = [](Magnum::Matrix4 &transform) {
+    return endCapTransformModifier(transform, false);
+  };
 
   _solid_end_caps[0]->setTransformModifier(top_cap_modifier);
   _solid_end_caps[1]->setTransformModifier(bottom_cap_modifier);
@@ -79,7 +85,8 @@ bool Capsule::update(const Id &id, const Magnum::Matrix4 &transform, const Magnu
       cache->update(search->second.index, transform, colour);
     }
 
-    if (std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(search->second.type))
+    if (std::array<std::unique_ptr<ShapeCache>, 2> *end_caches =
+          endCapCachesForType(search->second.type))
     {
       for (size_t i = 0; i < end_caches->size(); ++i)
       {
@@ -103,7 +110,8 @@ bool Capsule::remove(const Id &id)
     {
       cache->endShape(search->second.index);
     }
-    if (std::array<std::unique_ptr<ShapeCache>, 2> *end_caches = endCapCachesForType(search->second.type))
+    if (std::array<std::unique_ptr<ShapeCache>, 2> *end_caches =
+          endCapCachesForType(search->second.type))
     {
       for (auto &cache : *end_caches)
       {
@@ -160,7 +168,8 @@ void Capsule::commit()
 
 void Capsule::calculateBounds(const Magnum::Matrix4 &transform, Bounds &bounds)
 {
-  return ShapeCache::calcCylindricalBounds(transform, kDefaultRadius, kDefaultHeight + kDefaultRadius, bounds);
+  return ShapeCache::calcCylindricalBounds(transform, kDefaultRadius,
+                                           kDefaultHeight + kDefaultRadius, bounds);
 }
 
 
@@ -200,7 +209,8 @@ void Capsule::endCapTransformModifier(Magnum::Matrix4 &transform, bool positive)
 
 Magnum::GL::Mesh Capsule::solidMeshCylinder()
 {
-  static SimpleMesh build_mesh(0, 0, 0, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index);
+  static SimpleMesh build_mesh(0, 0, 0, DtTriangles,
+                               SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index);
   static std::mutex guard;
 
   std::unique_lock<std::mutex> lock(guard);
@@ -212,7 +222,8 @@ Magnum::GL::Mesh Capsule::solidMeshCylinder()
     std::vector<tes::Vector3f> normals;
     std::vector<unsigned> indices;
 
-    tes::cylinder::solid(vertices, indices, normals, Vector3f(0, 0, 1), kDefaultHeight, kDefaultRadius, 24, true);
+    tes::cylinder::solid(vertices, indices, normals, Vector3f(0, 0, 1), kDefaultHeight,
+                         kDefaultRadius, 24, true);
 
     build_mesh.setVertexCount(vertices.size());
     build_mesh.setIndexCount(indices.size());
@@ -234,7 +245,8 @@ Magnum::GL::Mesh Capsule::wireframeMeshCylinder()
 
 Magnum::GL::Mesh Capsule::solidMeshCapTop()
 {
-  static SimpleMesh build_mesh(0, 0, 0, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index);
+  static SimpleMesh build_mesh(0, 0, 0, DtTriangles,
+                               SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index);
   static std::mutex guard;
 
   std::unique_lock<std::mutex> lock(guard);
@@ -251,7 +263,8 @@ Magnum::GL::Mesh Capsule::solidMeshCapTop()
 
 Magnum::GL::Mesh Capsule::solidMeshCapBottom()
 {
-  static SimpleMesh build_mesh(0, 0, 0, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index);
+  static SimpleMesh build_mesh(0, 0, 0, DtTriangles,
+                               SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Index);
   static std::mutex guard;
 
   std::unique_lock<std::mutex> lock(guard);
@@ -272,9 +285,10 @@ Magnum::GL::Mesh Capsule::wireframeMeshCap()
 }
 
 
-util::ResourceListId Capsule::addShape(const Id &shape_id, Type type, const Magnum::Matrix4 &transform,
-                                       const Magnum::Color4 &colour, bool hidden, const ParentId &parent_id,
-                                       unsigned *child_index)
+util::ResourceListId Capsule::addShape(const Id &shape_id, Type type,
+                                       const Magnum::Matrix4 &transform,
+                                       const Magnum::Color4 &colour, bool hidden,
+                                       const ParentId &parent_id, unsigned *child_index)
 {
   // Add as is for the cylinder part.
   util::ResourceListId index =
@@ -286,7 +300,8 @@ util::ResourceListId Capsule::addShape(const Id &shape_id, Type type, const Magn
   }
 
   ShapeCache::ShapeFlag flags = ShapeCache::ShapeFlag::None;
-  flags |= (shape_id.isTransient()) ? ShapeCache::ShapeFlag::Transient : ShapeCache::ShapeFlag::None;
+  flags |=
+    (shape_id.isTransient()) ? ShapeCache::ShapeFlag::Transient : ShapeCache::ShapeFlag::None;
   flags |= (hidden) ? ShapeCache::ShapeFlag::Hidden : ShapeCache::ShapeFlag::None;
   for (size_t i = 0; i < end_caches->size(); ++i)
   {

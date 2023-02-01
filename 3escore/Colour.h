@@ -8,8 +8,10 @@
 
 #include "CoreConfig.h"
 
+#include "Maths.h"
+
 #include <array>
-#include <cstdint>
+#include <vector>
 
 namespace tes
 {
@@ -20,169 +22,190 @@ namespace tes
 class TES_CORE_API Colour
 {
 public:
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
-#pragma GCC diagnostic ignored "-Wnested-anon-types"
-#else  // __clang__
-#pragma GCC diagnostic ignored "-Wpedantic"
-#endif  // __clang__
-#endif  // __GNUC__
   /// Channel index enumeration.
-  enum Channels
+  enum class Channel : int
   {
-#if TES_IS_BIG_ENDIAN
-    R = 0,
-    G = 1,
-    B = 2,
-    A = 3
-#else   // TES_IS_BIG_ENDIAN
-    A = 0,        ///< Alpha channel index.
-    B = 1,        ///< Blue channel index.
-    G = 2,        ///< Green channel index.
-    R = 3         ///< Red channel index.
-#endif  // TES_IS_BIG_ENDIAN
+    R = 0,  ///< Red channel index.
+    G = 1,  ///< Green channel index.
+    B = 2,  ///< Blue channel index.
+    A = 3   ///< Alpha channel index.
   };
-  union
-  {
-    uint32_t c;  ///< Encoded colour value.
 
-    struct
-    {
-#if TES_IS_BIG_ENDIAN
-      uint8_t r;
-      uint8_t g;
-      uint8_t b;
-      uint8_t a;
-#else   // TES_IS_BIG_ENDIAN
-      uint8_t a;  ///< Alpha channel.
-      uint8_t b;  ///< Blue channel.
-      uint8_t g;  ///< Green channel.
-      uint8_t r;  ///< Red channel.
-#endif  // TES_IS_BIG_ENDIAN
-    };
-    uint8_t rgba[4];  ///< Indexed channels.
-  };
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif  // __GNUC__
+  enum NamedColour : unsigned;
 
   /// Construct a colour with the given numeric value.
-  /// @param c The integer colour representation: 0xRRGGBBAA.
-  Colour(uint32_t c = 0xffffffffu);
+  /// @param colour_value The integer colour representation: 0xRRGGBBAA.
+  Colour(uint32_t colour_value = 0xffffffffu) noexcept;  // NOLINT(readability-magic-numbers)
+
+  /// Construct a colour the named colours.
+  /// @param name The colour name enumeration value.
+  Colour(NamedColour name);
 
   /// Copy constructor.
   /// @param other The colour to copy.
-  Colour(const Colour &other);
+  Colour(const Colour &other) noexcept;
 
   /// Partial copy constructor with new alpha value.
   /// @param other The colour to copy RGB channels from.
-  /// @param a The new alpha channel value.
-  Colour(const Colour &other, uint8_t a);
+  /// @param alpha The new alpha channel value.
+  Colour(const Colour &other, uint8_t alpha) noexcept;
   /// Partial copy constructor with new alpha value.
   /// @param other The colour to copy RGB channels from.
-  /// @param a The new alpha channel value.
-  Colour(const Colour &other, int a);
+  /// @param alpha The new alpha channel value.
+  Colour(const Colour &other, int alpha) noexcept;
   /// Partial copy constructor with new alpha value.
   /// @param other The colour to copy RGB channels from.
-  /// @param a The new alpha channel value.
-  Colour(const Colour &other, float a);
+  /// @param alpha The new alpha channel value.
+  Colour(const Colour &other, float alpha) noexcept;
 
   /// Explicit byte based RGBA colour channel initialisation constructor.
-  /// @param r Red channel value [0, 255].
-  /// @param g Red channel value [0, 255].
-  /// @param b Red channel value [0, 255].
-  /// @param a Red channel value [0, 255].
-  explicit Colour(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
+  /// @param red Red channel value [0, 255].
+  /// @param green Green channel value [0, 255].
+  /// @param blue Blue channel value [0, 255].
+  /// @param alpha Alpha channel value [0, 255].
+  explicit Colour(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255u) noexcept;
 
   /// Integer based RGBA colour channel initialisation constructor.
-  /// @param r Red channel value [0, 255].
-  /// @param g Red channel value [0, 255].
-  /// @param b Red channel value [0, 255].
-  /// @param a Red channel value [0, 255].
-  Colour(int r, int g, int b, int a = 255);
+  /// @param red Red channel value [0, 255].
+  /// @param green Green channel value [0, 255].
+  /// @param blue Blue channel value [0, 255].
+  /// @param alpha Alpha channel value [0, 255].
+  Colour(int red, int green, int blue, int alpha = 255) noexcept;
 
   /// Floating point RGBA colour channel initialisation constructor.
-  /// @param r Red channel value [0, 1].
-  /// @param g Red channel value [0, 1].
-  /// @param b Red channel value [0, 1].
-  /// @param a Red channel value [0, 1].
-  Colour(float r, float g, float b, float a = 1.0f);
+  /// @param red Red channel value [0, 1].
+  /// @param green Green channel value [0, 1].
+  /// @param blue Blue channel value [0, 1].
+  /// @param alpha Alpha channel value [0, 1].
+  Colour(float red, float green, float blue, float alpha = 1.0f) noexcept;
+
+  /// Access the specified colour channel for read/write.
+  /// @param channel The channel to access.
+  /// @return A reference to the colour channel value.
+  uint8_t &channel(Channel channel) { return _channels[static_cast<int>(channel)]; }
+  /// Access the specified colour channel for read-only.
+  /// @param channel The channel to access.
+  /// @return The colour channel value.
+  [[nodiscard]] uint8_t channel(Channel channel) const
+  {
+    return _channels[static_cast<int>(channel)];
+  }
+
+  /// Return the internal data storage. Used for buffer packing and network transfer.
+  /// @return The internal array.
+  const std::array<uint8_t, 4> &storage() const { return _channels; }
+
+  /// Access the red colour channel for read/write.
+  /// @return A reference to the red colour channel.
+  uint8_t &r() { return red(); }
+  /// Access the red colour channel for read-only.
+  /// @return The red colour channel value.
+  [[nodiscard]] uint8_t r() const { return red(); }
+  /// Access the red colour channel for read/write.
+  /// @return A reference to the red colour channel.
+  uint8_t &red() { return channel(Channel::R); }
+  /// Access the red colour channel for read-only.
+  /// @return The red colour channel value.
+  [[nodiscard]] uint8_t red() const { return channel(Channel::R); }
+
+  /// Access the green colour channel for read/write.
+  /// @return A reference to the green colour channel.
+  uint8_t &g() { return green(); }
+  /// Access the green colour channel for read-only.
+  /// @return The green colour channel value.
+  [[nodiscard]] uint8_t g() const { return green(); }
+  /// Access the green colour channel for read/write.
+  /// @return A reference to the green colour channel.
+  uint8_t &green() { return channel(Channel::G); }
+  /// Access the green colour channel for read-only.
+  /// @return The green colour channel value.
+  [[nodiscard]] uint8_t green() const { return channel(Channel::G); }
+
+  /// Access the blue colour channel for read/write.
+  /// @return A reference to the blue colour channel.
+  uint8_t &b() { return blue(); }
+  /// Access the blue colour channel for read-only.
+  /// @return The blue colour channel value.
+  [[nodiscard]] uint8_t b() const { return blue(); }
+  /// Access the blue colour channel for read/write.
+  /// @return A reference to the blue colour channel.
+  uint8_t &blue() { return channel(Channel::B); }
+  /// Access the blue colour channel for read-only.
+  /// @return The blue colour channel value.
+  [[nodiscard]] uint8_t blue() const { return channel(Channel::B); }
+
+  /// Access the alpha colour channel for read/write.
+  /// @return A reference to the alpha colour channel.
+  uint8_t &a() { return alpha(); }
+  /// Access the alpha colour channel for read-only.
+  /// @return The alpha colour channel value.
+  [[nodiscard]] uint8_t a() const { return alpha(); }
+  /// Access the alpha colour channel for read/write.
+  /// @return A reference to the alpha colour channel.
+  uint8_t &alpha() { return channel(Channel::A); }
+  /// Access the alpha colour channel for read-only.
+  /// @return The alpha colour channel value.
+  [[nodiscard]] uint8_t alpha() const { return channel(Channel::A); }
+
+  /// Return a 32-bit integer representation of the colour.
+  ///
+  /// This packs the 4 1-byte colour channels into a single 32-bit integer. The byte is platform
+  /// endian dependent and corresponds to how the values of the @c Channel enumeration change
+  /// depending on platform endian.
+  ///
+  /// @return A 32-bit integer representation of the colour.
+  [[nodiscard]] uint32_t colour32() const;
+  /// Cast to a @c uint32_t - see @c colour32().
+  /// @return A 32-bit integer representation of the colour.
+  operator uint32_t() const { return colour32(); }
 
   /// Get red channel in floating point form.
   /// @return Red channel [0, 1].
-  float rf() const;
+  [[nodiscard]] float rf() const;
   /// Get green channel in floating point form.
   /// @return Green channel [0, 1].
-  float gf() const;
+  [[nodiscard]] float gf() const;
   /// Get blue channel in floating point form.
   /// @return Blue channel [0, 1].
-  float bf() const;
+  [[nodiscard]] float bf() const;
   /// Get alpha channel in floating point form.
   /// @return Alpha channel [0, 1].
-  float af() const;
+  [[nodiscard]] float af() const;
 
   /// Set red channel from a floating point value.
-  /// @param f Channel value [0, 1].
-  void setRf(float f);
+  /// @param value Channel value [0, 1].
+  void setRf(float value);
   /// Set green channel from a floating point value.
-  /// @param f Channel value [0, 1].
-  void setGf(float f);
+  /// @param value Channel value [0, 1].
+  void setGf(float value);
   /// Set blue channel from a floating point value.
-  /// @param f Channel value [0, 1].
-  void setBf(float f);
+  /// @param value Channel value [0, 1].
+  void setBf(float value);
   /// Set alpha channel from a floating point value.
-  /// @param f Channel value [0, 1].
-  void setAf(float f);
+  /// @param value Channel value [0, 1].
+  void setAf(float value);
 
   /// Set a channel in floating point form.
-  /// @param f Channel value [0, 1].
-  /// @param index The target channel [0, 3]. Best to use @c Channels.
-  void setf(float f, int index);
+  /// @param value Channel value [0, 1].
+  /// @param channel The target channel.
+  void setf(float value, Channel channel);
   /// Get a channel in floating point form.
-  /// @param index The target channel [0, 3]. Best to use @c Channels.
+  /// @param channel The target channel.
   /// @return The channel value [0, 1].
-  float getf(int index) const;
+  [[nodiscard]] float getf(Channel channel) const;
 
   /// Lighten or darken a colour by @p factor.
   /// Works in HSV space, multiplying the V value by @p factor and clamping the result [0, 1].
   /// @return The adjusted colour.
-  Colour adjust(float factor) const;
+  [[nodiscard]] Colour adjust(float factor) const;
 
   /// Lighten the colour by 1.5
   /// @return A lighter colour.
-  inline Colour lighten() const { return adjust(1.5f); }
+  [[nodiscard]] Colour lighten() const { return adjust(1.5f); }
 
   /// Darken the colour by 0.5
   /// @return A darker colour.
-  inline Colour darken() const { return adjust(0.5f); }
-
-  /// Convert RGB to HSV form.
-  /// @param[out] h The hue value [0, 360].
-  /// @param[out] s The saturation value [0, 1].
-  /// @param[out] v The colour value [0, 1].
-  /// @param r Red channel.
-  /// @param g Green channel.
-  /// @param b Blue channel.
-  static void rgbToHsv(float &h, float &s, float &v, const float r, const float g, const float b);
-
-  /// Convert HSV to RGB form.
-  /// @param[out] r Red channel [0, 1].
-  /// @param[out] g Green channel [0, 1].
-  /// @param[out] b Blue channel [0, 1].
-  /// @param h The hue value [0, 360].
-  /// @param s The saturation value [0, 1].
-  /// @param v The colour value [0, 1].
-  static void hsvToRgb(float &r, float &g, float &b, const float h, const float s, const float v);
-  /// Convert HSV to RGB form.
-  /// @param[out] r Red channel [0, 255].
-  /// @param[out] g Green channel [0, 255].
-  /// @param[out] b Blue channel [0, 255].
-  /// @param h The hue value [0, 360].
-  /// @param s The saturation value [0, 1].
-  /// @param v The colour value [0, 1].
-  static void hsvToRgb(uint8_t &r, uint8_t &g, uint8_t &b, const float h, const float s, const float v);
+  [[nodiscard]] Colour darken() const { return adjust(0.5f); }
 
   /// Assignment operator.
   /// @param other The colour value to assign.
@@ -200,8 +223,48 @@ public:
   /// @return True if this colour is not precisely equal to @p other.
   bool operator!=(const Colour &other) const;
 
+  /// Create a @c Colour object from HSV values.
+  ///
+  /// Out of range arguments yield undefined behaviour.
+  ///
+  /// @param hue The hue value [0, 360].
+  /// @param saturation The saturation value [0, 1].
+  /// @param value The colour value [0, 1].
+  /// @param alpha Optional alpha channel value [0, 1].
+  /// @return The corresponding colour object.
+  static Colour fromHsv(float hue, float saturation, float value, float alpha = 1.0f);
+
+  /// Convert RGB to HSV form.
+  /// @param[out] hue The hue value [0, 360].
+  /// @param[out] saturation The saturation value [0, 1].
+  /// @param[out] value The colour value [0, 1].
+  /// @param red Red channel.
+  /// @param green Green channel.
+  /// @param blue Blue channel.
+  static void rgbToHsv(float &hue, float &saturation, float &value, float red, float green,
+                       float blue);
+
+  /// Convert HSV to RGB form.
+  /// @param[out] red Red channel [0, 1].
+  /// @param[out] green Green channel [0, 1].
+  /// @param[out] blue Blue channel [0, 1].
+  /// @param hue The hue value [0, 360].
+  /// @param saturation The saturation value [0, 1].
+  /// @param value The colour value [0, 1].
+  static void hsvToRgb(float &red, float &green, float &blue, float hue, float saturation,
+                       float value);
+  /// Convert HSV to RGB form.
+  /// @param[out] red Red channel [0, 255].
+  /// @param[out] green Green channel [0, 255].
+  /// @param[out] blue Blue channel [0, 255].
+  /// @param hue The hue value [0, 360].
+  /// @param saturation The saturation value [0, 1].
+  /// @param value The colour value [0, 1].
+  static void hsvToRgb(uint8_t &red, uint8_t &green, uint8_t &blue, float hue, float saturation,
+                       float value);
+
   /// Enumerates a set of predefined colours ("web safe" colours).
-  enum Predefined : unsigned
+  enum NamedColour : unsigned
   {
     // Greys and blacks.
     Gainsboro,
@@ -365,9 +428,21 @@ public:
     SlateBlue,
     MediumSlateBlue,
 
-    PredefinedCount
+    PredefinedLast = MediumSlateBlue
   };
 
+private:
+  std::array<uint8_t, 4> _channels;
+};
+
+
+/// Defines a predetermined set of colours which can be index in a cyclic manner.
+///
+/// Indexing a colour set is safe regardless of the given index. The index is put in range using
+/// a modulus operator and an empty set always returns a black, zero alpha @c Colour .
+class TES_CORE_API ColourSet
+{
+public:
   /// Enumerates the various available colour cycles.
   ///
   /// Note: the colours cycles include sets which attempt to cater for various
@@ -376,227 +451,343 @@ public:
   /// improvements to these colours sets.
   ///
   /// @see @c colourCycle()
-  enum ColourCycle : unsigned
+  enum PredefinedSet : unsigned
   {
     /// Standard colour set.
-    StandardCycle,
+    Standard,
     /// A colour set which attempts to cater for Deuteranomaly colour blindness.
-    DeuteranomalyCycle,
+    Deuteranomaly,
     /// A colour set which attempts to cater for Protanomaly colour blindness.
-    ProtanomalyCycle,
+    Protanomaly,
     /// A colour set which attempts to cater for Tritanomaly colour blindness.
-    TritanomalyCycle,
+    Tritanomaly,
     /// A small grey scale colour set.
-    GreyCycle,
-    /// Defines the number of available colour sets.
-    CycleCount
+    Grey,
+    /// Defines the last colour index.
+    LastSet = Grey
   };
 
-  /// The set of colours matching the @c Predefined enumeration.
-  static const Colour Colours[PredefinedCount];
+  /// Default constructor generating an empty set.
+  ColourSet();
+  /// Construct from the given set of colours.
+  /// @param colours The set of colours to initialise with.
+  ColourSet(std::initializer_list<Colour> colours);
+  /// Move constructor.
+  /// @param other Object to move.
+  ColourSet(ColourSet &&other) noexcept;
+  /// Copy constructor.
+  /// @param other Object to copy.
+  ColourSet(const ColourSet &other);
+  ~ColourSet();
 
-  /// A set of colours which can be cycled to highlight components.
-  ///
-  /// The colour set is initialised to try and provide sufficient contrast between
-  /// each colour. Each element should be indexed into @p Colours.
-  static const unsigned *ColourCycles[CycleCount];
+  /// Move assignment.
+  /// @param other Object to move.
+  ColourSet &operator=(ColourSet &&other) noexcept;
+  /// Copy assignment.
+  /// @param other Object to copy.
+  ColourSet &operator=(const ColourSet &other);
 
-  /// Number of colours in each @p ColourCycles entry.
-  static const unsigned CycleCounts[CycleCount];
+  /// Query the number of colours in the set.
+  /// @return The number of colours.
+  [[nodiscard]] size_t size() const { return _colours.size(); }
+  /// Check if the set is empty.
+  /// @return True when empty.
+  [[nodiscard]] bool empty() const { return _colours.empty(); }
 
-  /// A utility function for colour cycling.
+  /// Request a colour from the set.
   ///
-  /// This function returns a colour from the @c ColourCycle, resolved to its actual
-  /// @c Colours element. The intended use is to periodically call this function with a
-  /// monotonic, increasing @p number value. This is then correctly clamped to the
-  /// @c ColourCycle range.
+  /// This returns at the index corresponding to @p number using a modulus operator to ensure
+  /// @p number is in range.
   ///
-  /// @param number Any numeric value. It is clamped and wrapped to be in range (using modulus).
-  /// @param cycle The colour cycle to request a colour from.
-  /// @return A colour from the cycle.
-  static const Colour &cycle(unsigned number, ColourCycle cycle = StandardCycle);
+  /// @param number The colour number.
+  /// @return The colour at @p number or zero alpha black for an empty set.
+  [[nodiscard]] Colour cycle(size_t number) const;
+  // /// @overload
+  // [[nodiscard]] Colour cycle(int number) const { return cycle(static_cast<size_t>(number)); }
+
+  /// Index operator, aliasing @c cycle().
+  ///
+  /// Out of range indexing is safe.
+  ///
+  /// @param index The colour index.
+  /// @return The colour at @p index or zero alpha black for an empty set.
+  [[nodiscard]] Colour operator[](size_t index) const { return cycle(index); }
+  // /// @overload
+  // [[nodiscard]] Colour operator[](int index) const { return cycle(index); }
+
+  /// Retrieve a predefined colour set by enum.
+  /// @param name The predefined set enum/name.
+  /// @return The predefined colour set.
+  [[nodiscard]] static const ColourSet &predefined(PredefinedSet name);
+
+private:
+  std::vector<Colour> _colours;
 };
 
 
-inline Colour::Colour(uint32_t c)
-  : c(c)
+namespace literals
+{
+inline Colour operator"" _rgba(unsigned long long colour_value)
+{
+  return { static_cast<uint32_t>(colour_value) };
+}
+
+inline Colour operator"" _rgb(unsigned long long colour_value)
+{
+  return Colour(Colour(static_cast<uint32_t>(colour_value), 255));
+}
+}  // namespace literals
+
+
+inline Colour::Colour(uint32_t colour_value) noexcept
+{
+  const auto ridx = static_cast<int>(Channel::R);
+  const auto gidx = static_cast<int>(Channel::G);
+  const auto bidx = static_cast<int>(Channel::B);
+  const auto aidx = static_cast<int>(Channel::A);
+#if TES_IS_BIG_ENDIAN
+  const auto rshift = static_cast<int>(Channel::R);
+  const auto gshift = static_cast<int>(Channel::R);
+  const auto bshift = static_cast<int>(Channel::R);
+  const auto ashift = static_cast<int>(Channel::R);
+#else   // TES_IS_BIG_ENDIAN
+  const auto rshift = 3 - static_cast<int>(Channel::R);
+  const auto gshift = 3 - static_cast<int>(Channel::G);
+  const auto bshift = 3 - static_cast<int>(Channel::B);
+  const auto ashift = 3 - static_cast<int>(Channel::A);
+#endif  // TES_IS_BIG_ENDIAN
+  _channels[ridx] = ((colour_value >> (rshift * sizeof(uint8_t))) & 0xffu);
+  _channels[gidx] = ((colour_value >> (gshift * sizeof(uint8_t))) & 0xffu);
+  _channels[bidx] = ((colour_value >> (bshift * sizeof(uint8_t))) & 0xffu);
+  _channels[aidx] = ((colour_value >> (ashift * sizeof(uint8_t))) & 0xffu);
+}
+
+
+inline Colour::Colour(const Colour &other) noexcept
+{
+  std::copy(other._channels.begin(), other._channels.end(), _channels.begin());
+}
+
+
+inline Colour::Colour(const Colour &other, uint8_t alpha) noexcept
+  : Colour(other)
+{
+  _channels[static_cast<int>(Channel::A)] = alpha;
+}
+
+
+inline Colour::Colour(const Colour &other, int alpha) noexcept
+  : Colour(other, static_cast<uint8_t>(alpha))
 {}
 
 
-inline Colour::Colour(const Colour &other)
-  : c(other.c)
+inline Colour::Colour(const Colour &other, float alpha) noexcept
+  : Colour(other)
+{
+  setAf(alpha);
+}
+
+
+inline Colour::Colour(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha) noexcept
+{
+  r() = red;
+  g() = green;
+  b() = blue;
+  a() = alpha;
+}
+
+
+inline Colour::Colour(int red, int green, int blue, int alpha) noexcept
+  : Colour(static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue),
+           static_cast<uint8_t>(alpha))
 {}
 
 
-inline Colour::Colour(const Colour &other, uint8_t a)
-  : c(other.c)
+inline Colour::Colour(float red, float green, float blue, float alpha) noexcept
 {
-  this->a = a;
+  setRf(red);
+  setGf(green);
+  setBf(blue);
+  setAf(alpha);
 }
 
-
-inline Colour::Colour(const Colour &other, int a)
-  : c(other.c)
+inline uint32_t Colour::colour32() const
 {
-  this->a = uint8_t(a);
-}
-
-
-inline Colour::Colour(const Colour &other, float a)
-  : c(other.c)
-{
-  setAf(a);
-}
-
-
-inline Colour::Colour(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-{
-  this->r = r;
-  this->g = g;
-  this->b = b;
-  this->a = a;
-}
-
-
-inline Colour::Colour(int r, int g, int b, int a)
-  : Colour(uint8_t(r), uint8_t(g), uint8_t(b), uint8_t(a))
-{}
-
-
-inline Colour::Colour(float r, float g, float b, float a)
-{
-  setRf(r);
-  setGf(g);
-  setBf(b);
-  setAf(a);
+  const auto ridx = static_cast<int>(Channel::R);
+  const auto gidx = static_cast<int>(Channel::G);
+  const auto bidx = static_cast<int>(Channel::B);
+  const auto aidx = static_cast<int>(Channel::A);
+#if TES_IS_BIG_ENDIAN
+  const auto rshift = static_cast<int>(Channel::R);
+  const auto gshift = static_cast<int>(Channel::R);
+  const auto bshift = static_cast<int>(Channel::R);
+  const auto ashift = static_cast<int>(Channel::R);
+#else   // TES_IS_BIG_ENDIAN
+  const auto rshift = 3 - static_cast<int>(Channel::R);
+  const auto gshift = 3 - static_cast<int>(Channel::G);
+  const auto bshift = 3 - static_cast<int>(Channel::B);
+  const auto ashift = 3 - static_cast<int>(Channel::A);
+#endif  // TES_IS_BIG_ENDIAN
+  return (_channels[ridx] << (rshift * sizeof(uint8_t))) |
+         (_channels[gidx] << (gshift * sizeof(uint8_t))) |
+         (_channels[bidx] << (bshift * sizeof(uint8_t))) |
+         (_channels[aidx] << (ashift * sizeof(uint8_t)));
 }
 
 inline float Colour::rf() const
 {
-  return getf(R);
+  return getf(Channel::R);
 }
 
 
 inline float Colour::gf() const
 {
-  return getf(G);
+  return getf(Channel::G);
 }
 
 
 inline float Colour::bf() const
 {
-  return getf(B);
+  return getf(Channel::B);
 }
 
 
 inline float Colour::af() const
 {
-  return getf(A);
+  return getf(Channel::A);
 }
 
 
-inline void Colour::setRf(float f)
+inline void Colour::setRf(float value)
 {
-  setf(f, R);
+  setf(value, Channel::R);
 }
 
 
-inline void Colour::setGf(float f)
+inline void Colour::setGf(float value)
 {
-  setf(f, G);
+  setf(value, Channel::G);
 }
 
 
-inline void Colour::setBf(float f)
+inline void Colour::setBf(float value)
 {
-  setf(f, B);
+  setf(value, Channel::B);
 }
 
 
-inline void Colour::setAf(float f)
+inline void Colour::setAf(float value)
 {
-  setf(f, A);
+  setf(value, Channel::A);
 }
 
 
-inline void Colour::setf(float f, int index)
+inline void Colour::setf(float value, Channel channel)
 {
-  rgba[index] = uint8_t(f * 255.0f);
+  _channels[static_cast<int>(channel)] = static_cast<uint8_t>(value * 255.0f);
 }
 
 
-inline float Colour::getf(int index) const
+inline float Colour::getf(Channel channel) const
 {
-  return rgba[index] / 255.0f;
+  return static_cast<float>(_channels[static_cast<int>(channel)]) / 255.0f;
+}
+
+
+inline Colour Colour::adjust(float factor) const
+{
+  float hue = {};
+  float saturation = {};
+  float value = {};
+  Colour colour;
+  rgbToHsv(hue, saturation, value, rf(), gf(), bf());
+  value = std::max(0.0f, std::min(value * factor, 1.0f));
+  hsvToRgb(colour.red(), colour.green(), colour.blue(), hue, saturation, value);
+  colour.alpha() = alpha();
+  return colour;
 }
 
 
 inline Colour &Colour::operator=(const Colour &other)
 {
-  c = other.c;
+  std::copy(other._channels.begin(), other._channels.end(), _channels.begin());
   return *this;
 }
 
 
 inline bool Colour::operator==(const Colour &other) const
 {
-  return c == other.c;
+  return _channels == other._channels;
 }
 
 
 inline bool Colour::operator!=(const Colour &other) const
 {
-  return c != other.c;
+  return _channels != other._channels;
 }
 
-inline Colour operator*(const Colour &a, const Colour &b)
+inline Colour operator*(const Colour &opa, const Colour &opb)
 {
-  std::array<float, 4> channels;
-
+  Colour colour;
   for (int i = 0; i < 4; ++i)
   {
-    channels[i] = std::min(a.getf(i) * b.getf(i), 1.0f);
+    const auto chi = static_cast<Colour::Channel>(i);
+    colour.setf(std::min(opa.getf(chi) * opb.getf(chi), 1.0f), chi);
   }
 
-  return Colour(channels[0], channels[1], channels[2], channels[3]);
+  return colour;
 }
 
-inline Colour operator/(const Colour &a, const Colour &b)
+inline Colour operator/(const Colour &opa, const Colour &opb)
 {
-  std::array<float, 4> channels;
-
+  Colour colour;
   for (int i = 0; i < 4; ++i)
   {
-    channels[i] = std::min(a.getf(i) / b.getf(i), 1.0f);
+    const auto chi = static_cast<Colour::Channel>(i);
+    colour.setf(std::min(opa.getf(chi) / opb.getf(chi), 1.0f), chi);
   }
 
-  return Colour(channels[0], channels[1], channels[2], channels[3]);
-}
-
-
-inline Colour operator+(const Colour &a, const Colour &b)
-{
-  std::array<float, 4> channels;
-
-  for (int i = 0; i < 4; ++i)
-  {
-    channels[i] = std::min(std::sqrt(a.getf(i) * a.getf(i) + b.getf(i) * b.getf(i)), 1.0f);
-  }
-
-  return Colour(channels[0], channels[1], channels[2], channels[3]);
+  return colour;
 }
 
 
-inline Colour operator-(const Colour &a, const Colour &b)
+inline Colour operator+(const Colour &opa, const Colour &opb)
 {
-  std::array<float, 4> channels;
-
+  Colour colour;
   for (int i = 0; i < 4; ++i)
   {
-    channels[i] = std::min(std::sqrt(a.getf(i) * a.getf(i) - b.getf(i) * b.getf(i)), 1.0f);
+    // Should we add the squares of the channels, then sqrt the result?
+    // See this Minute Physics video: https://youtu.be/LKnqECcg6Gw
+    const auto chi = static_cast<Colour::Channel>(i);
+    colour.setf(std::min(opa.getf(chi) + opb.getf(chi), 1.0f), chi);
   }
 
-  return Colour(channels[0], channels[1], channels[2], channels[3]);
+  return colour;
+}
+
+
+inline Colour operator-(const Colour &opa, const Colour &opb)
+{
+  Colour colour;
+  for (int i = 0; i < 4; ++i)
+  {
+    // Should we add the squares of the channels, then sqrt the result?
+    // See this Minute Physics video: https://youtu.be/LKnqECcg6Gw
+    const auto chi = static_cast<Colour::Channel>(i);
+    colour.setf(std::min(opa.getf(chi) - opb.getf(chi), 1.0f), chi);
+  }
+
+  return colour;
+}
+
+
+inline Colour Colour::fromHsv(float hue, float saturation, float value, float alpha)
+{
+  float red = {};
+  float green = {};
+  float blue = {};
+  Colour::hsvToRgb(red, green, blue, hue, saturation, value);
+  return { red, green, blue, alpha };
 }
 }  // namespace tes
 

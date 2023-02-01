@@ -41,10 +41,10 @@
 
 /// @ingroup tescpp
 /// @defgroup tesmacros 3rd Eye Scene Macro Interface
-/// The 3<sup>rd</sup> Eye Scene macro interface provides a way of instrumenting your code with 3<sup>rd</sup> Eye
-/// Scene directives, while being able to conditionally remove these directives from selected builds. The macros are
-/// enabled if @c TES_ENABLE is defined when including <tt>3esservermacros.h</tt>. Otherwise the macros remove the code
-/// contained in their brackets.
+/// The 3<sup>rd</sup> Eye Scene macro interface provides a way of instrumenting your code with
+/// 3<sup>rd</sup> Eye Scene directives, while being able to conditionally remove these directives
+/// from selected builds. The macros are enabled if @c TES_ENABLE is defined when including
+/// <tt>3esservermacros.h</tt>. Otherwise the macros remove the code contained in their brackets.
 
 /// @ingroup tesmacros
 /// Enable @p statement if TES is enabled.
@@ -76,18 +76,18 @@
 /// @ingroup tesmacros
 /// Colour by name.
 /// @param name a member of @p tes::Colour::Predefined.
-#define TES_COLOUR(name) tes::Colour::Colours[tes::Colour::name]
+#define TES_COLOUR(name) tes::Colour(tes::Colour::name)
 
 /// @ingroup tesmacros
 /// Colour by predefined index.
 /// @param index A valid value within @p tes::Colour::Predefined.
-#define TES_COLOUR_I(index) tes::Colour::Colours[index]
+#define TES_COLOUR_I(index) tes::Colour(static_cast<tes::Colour::NamedColour>(index))
 
 /// @ingroup tesmacros
 /// Colour by name with alpha.
 /// @param name a member of @p tes::Colour::Predefined.
 /// @param a Alpha channel value [0, 255].
-#define TES_COLOUR_A(name, a) tes::Colour(tes::Colour::Colours[tes::Colour::name], a)
+#define TES_COLOUR_A(name, a) tes::Colour(tes::Colour::name, a)
 
 /// @ingroup tesmacros
 /// A wrapper for constructing a @c DataBuffer around the given arguments.
@@ -163,7 +163,8 @@
 ///
 /// After this call, the server can accept connections.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
-/// @param mode The server mode: @c ConnectionMonitor::Synchronous or @c ConnectionMonitor::Asynchronous.
+/// @param mode The server mode: @c ConnectionMonitor::Synchronous or @c
+/// ConnectionMonitor::Asynchronous.
 #define TES_SERVER_START(server, mode)          \
   if (server)                                   \
   {                                             \
@@ -282,8 +283,8 @@
 //-----------------------------------------------------------------------------
 
 /// @ingroup tesmacros
-/// Adds a reference to the given @c resource. See @c tes::Connection::referenceResource(). Adds the resource to the
-/// server if there is no existing resource.
+/// Adds a reference to the given @c resource. See @c tes::Connection::referenceResource(). Adds the
+/// resource to the server if there is no existing resource.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param resource A pointer to the resource.
 #define TES_REFERENCE_RESOURCE(server, resource) \
@@ -293,8 +294,8 @@
   }
 
 /// @ingroup tesmacros
-/// Releases a reference to the given @c resource. See @c tes::Connection::referenceResource(). Destroys the resource
-/// if this is the final reference.
+/// Releases a reference to the given @c resource. See @c tes::Connection::referenceResource().
+/// Destroys the resource if this is the final reference.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param resource A pointer to the resource.
 #define TES_RELEASE_RESOURCE(server, resource) \
@@ -305,7 +306,8 @@
 
 /// @ingroup tesmacros
 /// Makes a stack declaration of a placeholder mesh resource.
-/// Primarily for use with @c TES_REFERENCE_RESOURCE(), @c TES_RELEASE_RESOURCE and @c TES_MESHSET_END().
+/// Primarily for use with @c TES_REFERENCE_RESOURCE(), @c TES_RELEASE_RESOURCE and @c
+/// TES_MESHSET_END().
 /// @param id The mesh resource ID to proxy.
 #define TES_MESH_PLACEHOLDER(id) tes::MeshPlaceholder(id)
 
@@ -506,10 +508,11 @@
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
-#define TES_LINES_E(server, colour, ...)                                                              \
-  if (server)                                                                                         \
-  {                                                                                                   \
-    (server)->create(tes::MeshShape(tes::DtLines, ##__VA_ARGS__).expandVertices().setColour(colour)); \
+#define TES_LINES_E(server, colour, ...)                                               \
+  if (server)                                                                          \
+  {                                                                                    \
+    (server)->create(                                                                  \
+      tes::MeshShape(tes::DtLines, ##__VA_ARGS__).expandVertices().setColour(colour)); \
   }
 
 /// @ingroup tesmacros
@@ -593,7 +596,8 @@
 /// @ingroup tesmacros
 /// Render a small set of points with per point colours.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
-/// @param colours A @c uint32_t array of colours. The number of elements must match the number of points pass in ...
+/// @param colours A @c uint32_t array of colours. The number of elements must match the number of
+/// points pass in ...
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
 #define TES_POINTS_C(server, colours, ...)                                              \
   if (server)                                                                           \
@@ -606,10 +610,11 @@
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
-#define TES_POINTS_E(server, colour, ...)                                                              \
-  if (server)                                                                                          \
-  {                                                                                                    \
-    (server)->create(tes::MeshShape(tes::DtPoints, ##__VA_ARGS__).expandVertices().setColour(colour)); \
+#define TES_POINTS_E(server, colour, ...)                                               \
+  if (server)                                                                           \
+  {                                                                                     \
+    (server)->create(                                                                   \
+      tes::MeshShape(tes::DtPoints, ##__VA_ARGS__).expandVertices().setColour(colour)); \
   }
 
 /// @ingroup tesmacros
@@ -858,8 +863,8 @@
 /// @ingroup tesmacros
 /// Single triangle.
 ///
-/// Vertices are specified as any type which can be used as a constructor argument to @c Vector3f. Generally
-/// <tt>const float *</tt> is recommended.
+/// Vertices are specified as any type which can be used as a constructor argument to @c Vector3f.
+/// Generally <tt>const float *</tt> is recommended.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param id The triangle's @c Id.
@@ -867,13 +872,14 @@
 /// @param v1 Second triangle vertex.
 /// @param v2 Third triangle vertex.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
-#define TES_TRIANGLE(server, colour, id, v0, v1, v2, ...)                                                  \
-  if (server)                                                                                              \
-  {                                                                                                        \
-    const std::array<tes::Vector3f, 3> _tri = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-    tes::MeshShape shape(tes::DtTriangles, id, tes::DataBuffer(_tri), ##__VA_ARGS__);                      \
-    shape.setColour(colour).setTwoSided(true);                                                             \
-    (server)->create(shape);                                                                               \
+#define TES_TRIANGLE(server, colour, id, v0, v1, v2, ...)                             \
+  if (server)                                                                         \
+  {                                                                                   \
+    const std::array<tes::Vector3f, 3> _tri = { tes::Vector3f(v0), tes::Vector3f(v1), \
+                                                tes::Vector3f(v2) };                  \
+    tes::MeshShape shape(tes::DtTriangles, id, tes::DataBuffer(_tri), ##__VA_ARGS__); \
+    shape.setColour(colour).setTwoSided(true);                                        \
+    (server)->create(shape);                                                          \
   }
 
 /// @ingroup tesmacros
@@ -885,14 +891,15 @@
 /// @param v1 A triangle vertex.
 /// @param v2 A triangle vertex.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
-#define TES_TRIANGLE_W(server, colour, id, v0, v1, v2, ...)                                                \
-  if (server)                                                                                              \
-  {                                                                                                        \
-    const std::array<tes::Vector3f, 3> _tri = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-    tes::MeshShape shape(tes::DtTriangles, id, tes::DataBuffer(_tri), ##__VA_ARGS__);                      \
-    shape.setColour(colour);                                                                               \
-    shape.setWireframe(true);                                                                              \
-    (server)->create(shape);                                                                               \
+#define TES_TRIANGLE_W(server, colour, id, v0, v1, v2, ...)                           \
+  if (server)                                                                         \
+  {                                                                                   \
+    const std::array<tes::Vector3f, 3> _tri = { tes::Vector3f(v0), tes::Vector3f(v1), \
+                                                tes::Vector3f(v2) };                  \
+    tes::MeshShape shape(tes::DtTriangles, id, tes::DataBuffer(_tri), ##__VA_ARGS__); \
+    shape.setColour(colour);                                                          \
+    shape.setWireframe(true);                                                         \
+    (server)->create(shape);                                                          \
   }
 
 /// @ingroup tesmacros
@@ -904,13 +911,14 @@
 /// @param v1 A triangle vertex.
 /// @param v2 A triangle vertex.
 /// @param ... Additional arguments follow, passed to @p MeshShape() constructor.
-#define TES_TRIANGLE_T(server, colour, id, v0, v1, v2, ...)                                                 \
-  {                                                                                                         \
-    const tes::Vector3f std::array<, 3> _tri = { tes::Vector3f(v0), tes::Vector3f(v1), tes::Vector3f(v2) }; \
-    tes::MeshShape shape(tes::DtTriangles, id, tes::DataBuffer(_tri), ##__VA_ARGS__);                       \
-    shape.setColour(colour);                                                                                \
-    shape.setTransparent(true).setTwoSided(true);                                                           \
-    (server)->create(shape);                                                                                \
+#define TES_TRIANGLE_T(server, colour, id, v0, v1, v2, ...)                            \
+  {                                                                                    \
+    const tes::Vector3f std::array<, 3> _tri = { tes::Vector3f(v0), tes::Vector3f(v1), \
+                                                 tes::Vector3f(v2) };                  \
+    tes::MeshShape shape(tes::DtTriangles, id, tes::DataBuffer(_tri), ##__VA_ARGS__);  \
+    shape.setColour(colour);                                                           \
+    shape.setTransparent(true).setTwoSided(true);                                      \
+    (server)->create(shape);                                                           \
   }
 
 /// @ingroup tesmacros
@@ -918,7 +926,8 @@
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param colour The colour to apply to the shape.
 /// @param resolution The length of the voxel edge. Only supports cubic voxels.
-/// @param ... Additional arguments follow, passed to @p MeshShape() constructor. Vertices and normals required.
+/// @param ... Additional arguments follow, passed to @p MeshShape() constructor. Vertices and
+/// normals required.
 #define TES_VOXELS(server, colour, resolution, ...)                        \
   if (server)                                                              \
   {                                                                        \
@@ -1103,10 +1112,11 @@
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param pos The new position. A @c V3Arg compatible argument.
-#define TES_POS_UPDATE(server, ShapeType, objectID, pos)                                                          \
-  if (server)                                                                                                     \
-  {                                                                                                               \
-    (server)->update(tes::ShapeType(objectID, 0).setPosition(pos).setFlags(tes::UFUpdateMode | tes::UFPosition)); \
+#define TES_POS_UPDATE(server, ShapeType, objectID, pos)                                           \
+  if (server)                                                                                      \
+  {                                                                                                \
+    (server)->update(                                                                              \
+      tes::ShapeType(objectID, 0).setPosition(pos).setFlags(tes::UFUpdateMode | tes::UFPosition)); \
   }
 
 /// @ingroup tesmacros
@@ -1115,11 +1125,12 @@
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param quaternion The updated quaternion rotation. A @c QuaternionArg compatible argument.
-#define TES_ROT_UPDATE(server, ShapeType, objectID, quaternion)                                           \
-  if (server)                                                                                             \
-  {                                                                                                       \
-    (server)->update(                                                                                     \
-      tes::ShapeType(objectID, 0).setRotation(quaternion).setFlags(tes::UFUpdateMode | tes::UFRotation)); \
+#define TES_ROT_UPDATE(server, ShapeType, objectID, quaternion)         \
+  if (server)                                                           \
+  {                                                                     \
+    (server)->update(tes::ShapeType(objectID, 0)                        \
+                       .setRotation(quaternion)                         \
+                       .setFlags(tes::UFUpdateMode | tes::UFRotation)); \
   }
 
 /// @ingroup tesmacros
@@ -1128,10 +1139,11 @@
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param scale The new object scale. A @c V3Arg compatible argument.
-#define TES_SCALE_UPDATE(server, ShapeType, objectID, scale)                                                  \
-  if (server)                                                                                                 \
-  {                                                                                                           \
-    (server)->update(tes::ShapeType(objectID, 0).setScale(scale).setFlags(tes::UFUpdateMode | tes::UFScale)); \
+#define TES_SCALE_UPDATE(server, ShapeType, objectID, scale)                                   \
+  if (server)                                                                                  \
+  {                                                                                            \
+    (server)->update(                                                                          \
+      tes::ShapeType(objectID, 0).setScale(scale).setFlags(tes::UFUpdateMode | tes::UFScale)); \
   }
 
 /// @ingroup tesmacros
@@ -1140,10 +1152,11 @@
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param colour The new object @c Colour.
-#define TES_COLOUR_UPDATE(server, ShapeType, objectID, colour)                                                   \
-  if (server)                                                                                                    \
-  {                                                                                                              \
-    (server)->update(tes::ShapeType(objectID, 0).setColour(colour).setFlags(tes::UFUpdateMode | tes::UFColour)); \
+#define TES_COLOUR_UPDATE(server, ShapeType, objectID, colour)                                    \
+  if (server)                                                                                     \
+  {                                                                                               \
+    (server)->update(                                                                             \
+      tes::ShapeType(objectID, 0).setColour(colour).setFlags(tes::UFUpdateMode | tes::UFColour)); \
   }
 
 /// @ingroup tesmacros
@@ -1152,10 +1165,11 @@
 /// @param ShapeType The class of the shape to update. E.g., @c tes::Box
 /// @param objectID The ID of the object to update.
 /// @param colour The new object @c Colour.
-#define TES_COLOR_UPDATE(server, ShapeType, objectID, colour)                                                    \
-  if (server)                                                                                                    \
-  {                                                                                                              \
-    (server)->update(tes::ShapeType(objectID, 0).setColour(colour).setFlags(tes::UFUpdateMode | tes::UFColour)); \
+#define TES_COLOR_UPDATE(server, ShapeType, objectID, colour)                                     \
+  if (server)                                                                                     \
+  {                                                                                               \
+    (server)->update(                                                                             \
+      tes::ShapeType(objectID, 0).setColour(colour).setFlags(tes::UFUpdateMode | tes::UFColour)); \
   }
 
 /// @ingroup tesmacros
@@ -1214,14 +1228,15 @@
 /// @param pos The new position. A @c V3Arg compatible argument.
 /// @param quaternion The updated quaternion rotation. A @c QuaternionArg compatible argument.
 /// @param scale The new object scale. A @c V3Arg compatible argument.
-#define TES_PRS_UPDATE(server, ShapeType, objectID, pos, quaternion, scale)                              \
-  if (server)                                                                                            \
-  {                                                                                                      \
-    (server)->update(tes::ShapeType(objectID, 0)                                                         \
-                       .setPosition(pos)                                                                 \
-                       .setRotation(quaternion)                                                          \
-                       .setScale(scale)                                                                  \
-                       .setFlags(tes::UFUpdateMode | tes::UFPosition | tes::UFRotation | tes::UFScale)); \
+#define TES_PRS_UPDATE(server, ShapeType, objectID, pos, quaternion, scale)               \
+  if (server)                                                                             \
+  {                                                                                       \
+    (server)->update(                                                                     \
+      tes::ShapeType(objectID, 0)                                                         \
+        .setPosition(pos)                                                                 \
+        .setRotation(quaternion)                                                          \
+        .setScale(scale)                                                                  \
+        .setFlags(tes::UFUpdateMode | tes::UFPosition | tes::UFRotation | tes::UFScale)); \
   }
 
 /// @ingroup tesmacros
@@ -1232,14 +1247,15 @@
 /// @param pos The new position. A @c V3Arg compatible argument.
 /// @param quaternion The updated quaternion rotation. A @c QuaternionArg compatible argument.
 /// @param colour The new object @c Colour.
-#define TES_PRC_UPDATE(server, ShapeType, objectID, pos, quaternion, colour)                              \
-  if (server)                                                                                             \
-  {                                                                                                       \
-    (server)->update(tes::ShapeType(objectID, 0)                                                          \
-                       .setPosition(pos)                                                                  \
-                       .setRotation(quaternion)                                                           \
-                       .setColour(colour)                                                                 \
-                       .setFlags(tes::UFUpdateMode | tes::UFPosition | tes::UFRotation | tes::UFColour)); \
+#define TES_PRC_UPDATE(server, ShapeType, objectID, pos, quaternion, colour)               \
+  if (server)                                                                              \
+  {                                                                                        \
+    (server)->update(                                                                      \
+      tes::ShapeType(objectID, 0)                                                          \
+        .setPosition(pos)                                                                  \
+        .setRotation(quaternion)                                                           \
+        .setColour(colour)                                                                 \
+        .setFlags(tes::UFUpdateMode | tes::UFPosition | tes::UFRotation | tes::UFColour)); \
   }
 
 /// @ingroup tesmacros
@@ -1250,14 +1266,15 @@
 /// @param pos The new position. A @c V3Arg compatible argument.
 /// @param scale The new object scale. A @c V3Arg compatible argument.
 /// @param colour The new object @c Colour.
-#define TES_PSC_UPDATE(server, ShapeType, objectID, pos, scale, colour)                                \
-  if (server)                                                                                          \
-  {                                                                                                    \
-    (server)->update(tes::ShapeType(objectID, 0)                                                       \
-                       .setPosition(pos)                                                               \
-                       .setScale(scale)                                                                \
-                       .setColour(colour)                                                              \
-                       .setFlags(tes::UFUpdateMode | tes::UFPosition | tes::UFScale | tes::UFColour)); \
+#define TES_PSC_UPDATE(server, ShapeType, objectID, pos, scale, colour)                 \
+  if (server)                                                                           \
+  {                                                                                     \
+    (server)->update(                                                                   \
+      tes::ShapeType(objectID, 0)                                                       \
+        .setPosition(pos)                                                               \
+        .setScale(scale)                                                                \
+        .setColour(colour)                                                              \
+        .setFlags(tes::UFUpdateMode | tes::UFPosition | tes::UFScale | tes::UFColour)); \
   }
 
 /// @ingroup tesmacros
@@ -1268,14 +1285,15 @@
 /// @param quaternion The updated quaternion rotation. A @c QuaternionArg compatible argument.
 /// @param scale The new object scale. A @c V3Arg compatible argument.
 /// @param colour The new object @c Colour.
-#define TES_RSC_UPDATE(server, ShapeType, objectID, quaternion, scale, colour)                         \
-  if (server)                                                                                          \
-  {                                                                                                    \
-    (server)->update(tes::ShapeType(objectID, 0)                                                       \
-                       .setRotation(quaternion)                                                        \
-                       .setScale(scale)                                                                \
-                       .setColour(colour)                                                              \
-                       .setFlags(tes::UFUpdateMode | tes::UFRotation | tes::UFScale | tes::UFColour)); \
+#define TES_RSC_UPDATE(server, ShapeType, objectID, quaternion, scale, colour)          \
+  if (server)                                                                           \
+  {                                                                                     \
+    (server)->update(                                                                   \
+      tes::ShapeType(objectID, 0)                                                       \
+        .setRotation(quaternion)                                                        \
+        .setScale(scale)                                                                \
+        .setColour(colour)                                                              \
+        .setFlags(tes::UFUpdateMode | tes::UFRotation | tes::UFScale | tes::UFColour)); \
   }
 
 /// @ingroup tesmacros
@@ -1287,11 +1305,14 @@
 /// @param quaternion The updated quaternion rotation. A @c QuaternionArg compatible argument.
 /// @param scale The new object scale. A @c V3Arg compatible argument.
 /// @param colour The new object @c Colour.
-#define TES_PRSC_UPDATE(server, ShapeType, objectID, pos, quaternion, scale, colour)                           \
-  if (server)                                                                                                  \
-  {                                                                                                            \
-    (server)->update(                                                                                          \
-      tes::ShapeType(objectID, 0).setPosition(pos).setRotation(quaternion).setScale(scale).setColour(colour)); \
+#define TES_PRSC_UPDATE(server, ShapeType, objectID, pos, quaternion, scale, colour) \
+  if (server)                                                                        \
+  {                                                                                  \
+    (server)->update(tes::ShapeType(objectID, 0)                                     \
+                       .setPosition(pos)                                             \
+                       .setRotation(quaternion)                                      \
+                       .setScale(scale)                                              \
+                       .setColour(colour));                                          \
   }
 
 #else  // !TES_ENABLE

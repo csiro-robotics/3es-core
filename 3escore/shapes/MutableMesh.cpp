@@ -134,9 +134,9 @@ unsigned MutableMesh::setVertices(const UIntArg &at, const Vector3f *v, const UI
   for (unsigned i = 0; i < count && targetIndex < vertexCount; ++i)
   {
     delta.writeIndex = targetIndex;
-    delta.position[0] = v->x;
-    delta.position[1] = v->y;
-    delta.position[2] = v->z;
+    delta.position[0] = v->x();
+    delta.position[1] = v->y();
+    delta.position[2] = v->z();
     _imp->vertexChanges.push_back(delta);
     ++v;
     ++targetIndex;
@@ -191,9 +191,9 @@ unsigned MutableMesh::setNormals(const UIntArg &at, const Vector3f *n, const UIn
   for (unsigned i = 0; i < count && targetIndex < vertexCount; ++i)
   {
     delta.writeIndex = targetIndex;
-    delta.normal[0] = n->x;
-    delta.normal[1] = n->y;
-    delta.normal[2] = n->z;
+    delta.normal[0] = n->x();
+    delta.normal[1] = n->y();
+    delta.normal[2] = n->z();
     _imp->vertexChanges.push_back(delta);
     ++n;
     ++targetIndex;
@@ -299,16 +299,16 @@ void MutableMesh::update(Connection *con)
     ObjectAttributesd attributes;
     attributes.identity();
     attributes.colour = (_imp->tintDirty) ? _imp->tint : _imp->mesh.tint();
-    attributes.position[0] = transform.position().x;
-    attributes.position[1] = transform.position().y;
-    attributes.position[2] = transform.position().z;
-    attributes.rotation[0] = transform.rotation().x;
-    attributes.rotation[1] = transform.rotation().y;
-    attributes.rotation[2] = transform.rotation().z;
-    attributes.rotation[3] = transform.rotation().w;
-    attributes.scale[0] = transform.scale().x;
-    attributes.scale[1] = transform.scale().y;
-    attributes.scale[2] = transform.scale().z;
+    attributes.position[0] = transform.position().x();
+    attributes.position[1] = transform.position().y();
+    attributes.position[2] = transform.position().z();
+    attributes.rotation[0] = transform.rotation().x();
+    attributes.rotation[1] = transform.rotation().y();
+    attributes.rotation[2] = transform.rotation().z();
+    attributes.rotation[3] = transform.rotation().w();
+    attributes.scale[0] = transform.scale().x();
+    attributes.scale[1] = transform.scale().y();
+    attributes.scale[2] = transform.scale().z();
     msg.write(packet, attributes);
   }
   else
@@ -316,16 +316,16 @@ void MutableMesh::update(Connection *con)
     ObjectAttributesf attributes;
     attributes.identity();
     attributes.colour = (_imp->tintDirty) ? _imp->tint : _imp->mesh.tint();
-    attributes.position[0] = float(transform.position().x);
-    attributes.position[1] = float(transform.position().y);
-    attributes.position[2] = float(transform.position().z);
-    attributes.rotation[0] = float(transform.rotation().x);
-    attributes.rotation[1] = float(transform.rotation().y);
-    attributes.rotation[2] = float(transform.rotation().z);
-    attributes.rotation[3] = float(transform.rotation().w);
-    attributes.scale[0] = float(transform.scale().x);
-    attributes.scale[1] = float(transform.scale().y);
-    attributes.scale[2] = float(transform.scale().z);
+    attributes.position[0] = float(transform.position().x());
+    attributes.position[1] = float(transform.position().y());
+    attributes.position[2] = float(transform.position().z());
+    attributes.rotation[0] = float(transform.rotation().x());
+    attributes.rotation[1] = float(transform.rotation().y());
+    attributes.rotation[2] = float(transform.rotation().z());
+    attributes.rotation[3] = float(transform.rotation().w());
+    attributes.scale[0] = float(transform.scale().x());
+    attributes.scale[1] = float(transform.scale().y());
+    attributes.scale[2] = float(transform.scale().z());
     msg.write(packet, attributes);
   }
 

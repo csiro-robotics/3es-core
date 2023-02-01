@@ -246,10 +246,10 @@ void PointCloud::addPoints(const Vector3f *points, const UIntArg &count)
     // Initialise other data
     for (unsigned i = initial; i < _imp->vertexCount; ++i)
     {
-      _imp->normals[i] = Vector3f::zero;
+      _imp->normals[i] = Vector3f::Zero;
     }
 
-    const Colour c = Colour::Colours[Colour::White];
+    const Colour c = Colour(Colour::White);
     for (unsigned i = initial; i < _imp->vertexCount; ++i)
     {
       _imp->colours[i] = c;
@@ -269,7 +269,7 @@ void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, cons
     std::copy(normals, normals + count.i, _imp->normals + initial);
 
     // Initialise other data
-    const Colour c = Colour::Colours[Colour::White];
+    const Colour c = Colour(Colour::White);
     for (unsigned i = initial; i < _imp->vertexCount; ++i)
     {
       _imp->colours[i] = c;
@@ -278,7 +278,8 @@ void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, cons
 }
 
 
-void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, const Colour *colours, const UIntArg &count)
+void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, const Colour *colours,
+                           const UIntArg &count)
 {
   if (count)
   {
@@ -335,7 +336,8 @@ void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const U
 }
 
 
-void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals, const UIntArg &count)
+void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals,
+                           const UIntArg &count)
 {
   if (index >= _imp->vertexCount)
   {
@@ -359,8 +361,8 @@ void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const V
 }
 
 
-void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals, const Colour *colours,
-                           const UIntArg &count)
+void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals,
+                           const Colour *colours, const UIntArg &count)
 {
   if (index >= _imp->vertexCount)
   {
@@ -449,7 +451,8 @@ void PointCloud::copyOnWrite()
 }
 
 
-bool PointCloud::processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes)
+bool PointCloud::processCreate(const MeshCreateMessage &msg,
+                               const ObjectAttributes<double> &attributes)
 {
   if (msg.drawType != DtPoints)
   {
@@ -468,8 +471,8 @@ bool PointCloud::processCreate(const MeshCreateMessage &msg, const ObjectAttribu
   _imp->normals = nullptr;  // Pending.
   _imp->colours = nullptr;  // Pending
 
-  Transform transform(Vector3d(attributes.position), Quaterniond(attributes.rotation), Vector3d(attributes.scale),
-                      msg.flags & McfDoublePrecision);
+  Transform transform(Vector3d(attributes.position), Quaterniond(attributes.rotation),
+                      Vector3d(attributes.scale), msg.flags & McfDoublePrecision);
 
   // Does not accept a transform.
   if (!transform.isEqual(Transform::identity()))
@@ -487,7 +490,8 @@ bool PointCloud::processCreate(const MeshCreateMessage &msg, const ObjectAttribu
 }
 
 
-bool PointCloud::processVertices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool PointCloud::processVertices(const MeshComponentMessage &msg, unsigned offset,
+                                 const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Vertex size mismatch");
@@ -507,7 +511,8 @@ bool PointCloud::processVertices(const MeshComponentMessage &msg, unsigned offse
 }
 
 
-bool PointCloud::processColours(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool PointCloud::processColours(const MeshComponentMessage &msg, unsigned offset,
+                                const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   copyOnWrite();
@@ -519,8 +524,8 @@ bool PointCloud::processColours(const MeshComponentMessage &msg, unsigned offset
 
   for (unsigned i = 0; i + offset < _imp->vertexCount && i < stream.count(); ++i)
   {
-    _imp->colours[i + offset] = stream.get<uint32_t>(i);
-    ;
+    _imp->colours[i + offset] = Colour(stream.get<uint8_t>(i, 0), stream.get<uint8_t>(i, 1),
+                                       stream.get<uint8_t>(i, 2), stream.get<uint8_t>(i, 3));
     ++wrote;
   }
 
@@ -528,7 +533,8 @@ bool PointCloud::processColours(const MeshComponentMessage &msg, unsigned offset
 }
 
 
-bool PointCloud::processNormals(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool PointCloud::processNormals(const MeshComponentMessage &msg, unsigned offset,
+                                const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Normal size mismatch");

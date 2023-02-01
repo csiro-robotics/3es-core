@@ -56,7 +56,8 @@ EdlEffect::EdlEffect(const Magnum::Range2Di &viewport)
   };          // 2 2--0
 
   _imp->mesh.setCount(Magnum::Int(Magnum::Containers::arraySize(indices)))
-    .addVertexBuffer(Magnum::GL::Buffer{ vertices }, 0, shaders::Edl::Position{}, shaders::Edl::TextureCoordinates{})
+    .addVertexBuffer(Magnum::GL::Buffer{ vertices }, 0, shaders::Edl::Position{},
+                     shaders::Edl::TextureCoordinates{})
     .setIndexBuffer(Magnum::GL::Buffer{ indices }, 0, Magnum::GL::MeshIndexType::UnsignedInt);
 }
 
@@ -112,12 +113,14 @@ const Magnum::Vector3 &EdlEffect::lightDirection() const
 }
 
 
-void EdlEffect::prepareFrame(const Magnum::Matrix4 &projection_matrix, ProjectionType projection_type, float near_clip,
-                             float far_clip)
+void EdlEffect::prepareFrame(const Magnum::Matrix4 &projection_matrix,
+                             ProjectionType projection_type, float near_clip, float far_clip)
 {
   (void)projection_matrix;
   (void)projection_type;
-  _imp->frame_buffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth).bind();
+  _imp->frame_buffer
+    .clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth)
+    .bind();
   _imp->near_clip = near_clip;
   _imp->far_clip = far_clip;
 }
@@ -161,8 +164,10 @@ void EdlEffect::makeBuffers(const Magnum::Range2Di &viewport)
   _imp->depth_texture.setWrapping(Magnum::GL::SamplerWrapping::ClampToEdge);
 
   _imp->frame_buffer = Magnum::GL::Framebuffer(viewport);
-  _imp->frame_buffer.attachTexture(Magnum::GL::Framebuffer::ColorAttachment{ 0 }, _imp->colour_texture, 0);
-  _imp->frame_buffer.attachTexture(Magnum::GL::Framebuffer::BufferAttachment::Depth, _imp->depth_texture, 0);
+  _imp->frame_buffer.attachTexture(Magnum::GL::Framebuffer::ColorAttachment{ 0 },
+                                   _imp->colour_texture, 0);
+  _imp->frame_buffer.attachTexture(Magnum::GL::Framebuffer::BufferAttachment::Depth,
+                                   _imp->depth_texture, 0);
 
   _imp->shader
     .bindColourTexture(_imp->colour_texture)  //

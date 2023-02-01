@@ -34,15 +34,16 @@ namespace tes::view::handler
 {
 /// The message handler for mesh shape messages and rendering.
 ///
-/// This handles simple meshes of draw types covering triangles, lines and points. This is the general case and
-/// specialised handlers exist for meshes with parts - @c MeshSet - and point clouds - @c PointCloud - including
-/// points rendered using a voxel representation. Note these two also rely in the @c Mesh handler which decoders
-/// mesh resource definitions.
+/// This handles simple meshes of draw types covering triangles, lines and points. This is the
+/// general case and specialised handlers exist for meshes with parts - @c MeshSet - and point
+/// clouds - @c PointCloud - including points rendered using a voxel representation. Note these two
+/// also rely in the @c Mesh handler which decoders mesh resource definitions.
 class TES_VIEWER_API MeshShape : public Message
 {
 public:
   using Flag = DrawableFlag;
-  MeshShape(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shader_library);
+  MeshShape(std::shared_ptr<BoundsCuller> culler,
+            std::shared_ptr<shaders::ShaderLibrary> shader_library);
 
   void initialise() override;
   void reset() override;
@@ -89,9 +90,9 @@ protected:
     /// @return Culling bounds
     inline Bounds cullBounds() const
     {
-      // The accurate approach would be to recalculate the bounds with the transform applied to each vertex.
-      // That could be inefficient for moving meshes with many vertices. The simple option is to make the
-      // bounds pseudo spherical and just translate them.
+      // The accurate approach would be to recalculate the bounds with the transform applied to each
+      // vertex. That could be inefficient for moving meshes with many vertices. The simple option
+      // is to make the bounds pseudo spherical and just translate them.
       const auto centre = bounds.centre() + transform[3].xyz();
       auto half_extents = bounds.halfExtents();
       half_extents.x() = half_extents.y() = half_extents.z() =
@@ -110,9 +111,11 @@ protected:
   ///
   /// This makes a number of assumptions.
   /// - @c _shapes_mutex must not be locked when calling this function or a deadlock will ensue.
-  /// - If @p id is transient, then we fetch the last transient item from @c _pending_shapes. Commited transients
+  /// - If @p id is transient, then we fetch the last transient item from @c _pending_shapes.
+  /// Commited transients
   ///   cannot be retrieved.
-  /// - Non transient shapes may be retrieved from either @p _pending_shapes (preferred), or @c _shapes.
+  /// - Non transient shapes may be retrieved from either @p _pending_shapes (preferred), or @c
+  /// _shapes.
   ///
   /// This is only intended for use from @c handleData(), @c handleUpdate() or @c handleDestroy().
   ///
@@ -132,11 +135,13 @@ protected:
   /// A buffer for items to be added to _shapes on the next @c beginFrame() call.
   /// For details, see the large comment block in @c create().
   std::vector<std::pair<Id, RenderMeshPtr>> _pending_shapes;
-  /// Transient shapes. The last item is the most current which is returned when requesting a transient shape.
+  /// Transient shapes. The last item is the most current which is returned when requesting a
+  /// transient shape.
   std::vector<RenderMeshPtr> _transients;
   unsigned _active_transients_index = 0;
   std::shared_ptr<BoundsCuller> _culler;
-  /// Garbage list populated on @c reset() from background thread so main thread can release on @c beginFrame().
+  /// Garbage list populated on @c reset() from background thread so main thread can release on @c
+  /// beginFrame().
   std::vector<RenderMeshPtr> _garbage_list;
   std::shared_ptr<shaders::ShaderLibrary> _shader_library;
 };

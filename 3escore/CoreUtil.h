@@ -54,7 +54,8 @@ template Vector4<double> TES_CORE_API toVector(const Colour &c);
 
 /// Convert a @c Colour to a 4-component vector.
 ///
-/// RGBA channels are mapped to XYZA respectively. Values are scaled [0, 1] depending on the input value [0, 255].
+/// RGBA channels are mapped to XYZA respectively. Values are scaled [0, 1] depending on the input
+/// value [0, 255].
 /// @param c The colour to convert.
 /// @return The floating point representation of the colour.
 inline Vector4f TES_CORE_API toVectorf(const Colour &c)
@@ -64,7 +65,8 @@ inline Vector4f TES_CORE_API toVectorf(const Colour &c)
 
 /// Convert a @c Colour to a 4-component vector.
 ///
-/// RGBA channels are mapped to XYZA respectively. Values are scaled [0, 1] depending on the input value [0, 255].
+/// RGBA channels are mapped to XYZA respectively. Values are scaled [0, 1] depending on the input
+/// value [0, 255].
 /// @param c The colour to convert.
 /// @return The floating point (double) representation of the colour.
 inline Vector4d TES_CORE_API toVectord(const Colour &c)
@@ -82,10 +84,10 @@ template <typename T>
 inline Colour toColour(const Vector4<T> &v)
 {
   Colour c;
-  c.setRf(float(v.x));
-  c.setGf(float(v.y));
-  c.setBf(float(v.z));
-  c.setAf(float(v.w));
+  c.setRf(float(v.x()));
+  c.setGf(float(v.y()));
+  c.setBf(float(v.z()));
+  c.setAf(float(v.w()));
   return c;
 }
 

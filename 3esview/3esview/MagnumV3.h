@@ -18,7 +18,7 @@ inline tes::Vector3<Magnum::Float> convert(const Magnum::Vector3 &v)
 template <typename T>
 inline Magnum::Vector3 convert(const tes::Vector3<T> &v)
 {
-  return Magnum::Vector3(Magnum::Float(v.x), Magnum::Float(v.y), Magnum::Float(v.z));
+  return Magnum::Vector3(Magnum::Float(v.x()), Magnum::Float(v.y()), Magnum::Float(v.z()));
 }
 };  // namespace tes::view
 

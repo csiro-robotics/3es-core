@@ -38,15 +38,18 @@ public:
   /// Set the current control flags.
   inline void setFlags(Flag flags) { _flags = flags; }
 
-  /// Set the given control flag(s). The @p flag value may contain multiple flags, but is generally expected to be a
-  /// single flag.
+  /// Set the given control flag(s). The @p flag value may contain multiple flags, but is generally
+  /// expected to be a single flag.
   inline void set(Flag flag) { _flags = Flag(unsigned(_flags) | unsigned(flag)); }
-  /// Clear the given control flag(s). The @p flag value may contain multiple flags, but is generally expected to be a
-  /// single flag.
+  /// Clear the given control flag(s). The @p flag value may contain multiple flags, but is
+  /// generally expected to be a single flag.
   inline void clear(Flag flag) { _flags = Flag(unsigned(_flags) & ~unsigned(flag)); }
-  /// Check fi the given control flags are set. The @p flag value may contain multiple flags, but the return value is
-  /// only true if *all* flag bits are set.
-  inline bool isSet(Flag flag) const { return (unsigned(_flags) & unsigned(flag)) == unsigned(flag); }
+  /// Check fi the given control flags are set. The @p flag value may contain multiple flags, but
+  /// the return value is only true if *all* flag bits are set.
+  inline bool isSet(Flag flag) const
+  {
+    return (unsigned(_flags) & unsigned(flag)) == unsigned(flag);
+  }
 
   /// Perform mouse movement update logic.
   /// @param dx Mouse movement delta in x.
@@ -59,7 +62,8 @@ public:
   /// @param translate Current translation to apply per axis.
   /// @param rotate Current rotation to apply per axis.
   /// @param camera Camera to update. Only uses X and Y; X => pitch, Y => yaw.
-  virtual void updateKeys(float dt, Magnum::Vector3i translate, Magnum::Vector3i rotate, Camera &camera) = 0;
+  virtual void updateKeys(float dt, Magnum::Vector3i translate, Magnum::Vector3i rotate,
+                          Camera &camera) = 0;
 
   /// @overload
   void updateKeys(float dt, Magnum::Vector3i translate, Camera &camera)

@@ -102,9 +102,10 @@ private:
 class Oscilator : public ShapeMover
 {
 public:
-  inline Oscilator(Shape *shape, float amplitude = 1.0f, float period = 5.0f, const Vector3f &axis = Vector3f(0, 0, 1))
+  inline Oscilator(Shape *shape, float amplitude = 1.0f, float period = 5.0f,
+                   const Vector3f &axis = Vector3f(0, 0, 1))
     : ShapeMover(shape)
-    , _referencePos(shape ? Vector3f(shape->position()) : Vector3f::zero)
+    , _referencePos(shape ? Vector3f(shape->position()) : Vector3f::Zero)
     , _axis(axis)
     , _amplitude(amplitude)
     , _period(period)
@@ -127,7 +128,10 @@ public:
   }
 
 protected:
-  void onShapeChange() override { _referencePos = (shape()) ? Vector3f(shape()->position()) : _referencePos; }
+  void onShapeChange() override
+  {
+    _referencePos = (shape()) ? Vector3f(shape()->position()) : _referencePos;
+  }
 
 private:
   Vector3f _referencePos;
@@ -139,7 +143,8 @@ private:
 
 MeshResource *createTestMesh()
 {
-  SimpleMesh *mesh = new SimpleMesh(1, 4, 6, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Colour);
+  SimpleMesh *mesh = new SimpleMesh(1, 4, 6, DtTriangles,
+                                    SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Colour);
   mesh->setVertex(0, Vector3f(-0.5f, 0, -0.5f));
   mesh->setVertex(1, Vector3f(0.5f, 0, -0.5f));
   mesh->setVertex(2, Vector3f(0.5f, 0, 0.5f));
@@ -211,15 +216,15 @@ void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Shap
     Arrow *arrow;
 
     arrow = new Arrow(nextId++, Directional(pos, Vector3f(1, 0, 0), arrowRadius, arrowLength));
-    arrow->setColour(Colour::Colours[Colour::Red]);
+    arrow->setColour(Colour(Colour::Red));
     shapes.emplace_back(arrow);
 
     arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 1, 0), arrowRadius, arrowLength));
-    arrow->setColour(Colour::Colours[Colour::ForestGreen]);
+    arrow->setColour(Colour(Colour::ForestGreen));
     shapes.emplace_back(arrow);
 
     arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 0, 1), arrowRadius, arrowLength));
-    arrow->setColour(Colour::Colours[Colour::DodgerBlue]);
+    arrow->setColour(Colour(Colour::DodgerBlue));
     shapes.emplace_back(arrow);
   }
 }
@@ -237,7 +242,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     Arrow *arrow = new Arrow(Id(nextId++, CatArrow));
     arrow->setRadius(0.5f);
     arrow->setLength(1.0f);
-    arrow->setColour(Colour::Colours[Colour::SeaGreen]);
+    arrow->setColour(Colour(Colour::SeaGreen));
     shapes.emplace_back(arrow);
     if (!noMove)
     {
@@ -249,7 +254,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   {
     Box *box = new Box(Id(nextId++, CatBox));
     box->setScale(Vector3f(0.45f));
-    box->setColour(Colour::Colours[Colour::MediumSlateBlue]);
+    box->setColour(Colour(Colour::MediumSlateBlue));
     shapes.emplace_back(box);
     if (!noMove)
     {
@@ -262,7 +267,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     Capsule *capsule = new Capsule(Id(nextId++, CatCapsule), Directional::identity());
     capsule->setLength(2.0f);
     capsule->setRadius(0.3f);
-    capsule->setColour(Colour::Colours[Colour::LavenderBlush]);
+    capsule->setColour(Colour(Colour::LavenderBlush));
     shapes.emplace_back(capsule);
     if (!noMove)
     {
@@ -275,7 +280,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     Cone *cone = new Cone(Id(nextId++, CatCone));
     cone->setLength(2.0f);
     cone->setRadius(0.25f);
-    cone->setColour(Colour::Colours[Colour::SandyBrown]);
+    cone->setColour(Colour(Colour::SandyBrown));
     shapes.emplace_back(cone);
     if (!noMove)
     {
@@ -287,7 +292,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   {
     Cylinder *cylinder = new Cylinder(Id(nextId++, CatCylinder));
     cylinder->setScale(Vector3f(0.45f));
-    cylinder->setColour(Colour::Colours[Colour::FireBrick]);
+    cylinder->setColour(Colour(Colour::FireBrick));
     shapes.emplace_back(cylinder);
     if (!noMove)
     {
@@ -301,7 +306,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     plane->setNormal(Vector3f(1.0f, 1.0f, 0.0f).normalised());
     plane->setScale(1.5f);
     plane->setNormalLength(0.5f);
-    plane->setColour(Colour::Colours[Colour::LightSlateGrey]);
+    plane->setColour(Colour(Colour::LightSlateGrey));
     shapes.emplace_back(plane);
     if (!noMove)
     {
@@ -312,7 +317,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   if (allShapes || haveOption("pose", argc, argv))
   {
     Pose *pose = new Pose(Id(nextId++, CatPose));
-    pose->setRotation(Quaternionf().setAxisAngle(Vector3f::axisz, float(0.25 * M_PI)));
+    pose->setRotation(Quaternionf().setAxisAngle(Vector3f::AxisZ, float(0.25 * M_PI)));
     shapes.emplace_back(pose);
     if (!noMove)
     {
@@ -324,7 +329,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   {
     Sphere *sphere = new Sphere(Id(nextId++, CatSphere));
     sphere->setRadius(0.75f);
-    sphere->setColour(Colour::Colours[Colour::Coral]);
+    sphere->setColour(Colour(Colour::Coral));
     shapes.emplace_back(sphere);
     if (!noMove)
     {
@@ -336,7 +341,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   {
     Star *star = new Star(Id(nextId++, CatStar));
     star->setRadius(0.75f);
-    star->setColour(Colour::Colours[Colour::DarkGreen]);
+    star->setColour(Colour(Colour::DarkGreen));
     shapes.emplace_back(star);
     if (!noMove)
     {
@@ -346,10 +351,12 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("lines", argc, argv))
   {
-    static const Vector3f lineSet[] = { Vector3f(0, 0, 0),        Vector3f(0, 0, 1), Vector3f(0, 0, 1),
-                                        Vector3f(0.25f, 0, 0.8f), Vector3f(0, 0, 1), Vector3f(-0.25f, 0, 0.8f) };
+    static const Vector3f lineSet[] = { Vector3f(0, 0, 0), Vector3f(0, 0, 1),
+                                        Vector3f(0, 0, 1), Vector3f(0.25f, 0, 0.8f),
+                                        Vector3f(0, 0, 1), Vector3f(-0.25f, 0, 0.8f) };
     const unsigned lineVertexCount = sizeof(lineSet) / sizeof(lineSet[0]);
-    MeshShape *lines = new MeshShape(DtLines, Id(nextId++, CatLines), DataBuffer(lineSet, lineVertexCount));
+    MeshShape *lines =
+      new MeshShape(DtLines, Id(nextId++, CatLines), DataBuffer(lineSet, lineVertexCount));
     shapes.emplace_back(lines);
     // if (!noMove)
     // {
@@ -359,19 +366,22 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("triangles", argc, argv))
   {
-    static const Vector3f triangleSet[] = { Vector3f(0, 0, 0), Vector3f(0, 0.25f, 1),  Vector3f(0.25f, 0, 1),
-                                            Vector3f(0, 0, 0), Vector3f(-0.25f, 0, 1), Vector3f(0, 0.25f, 1),
-                                            Vector3f(0, 0, 0), Vector3f(0, -0.25f, 1), Vector3f(-0.25f, 0, 1),
-                                            Vector3f(0, 0, 0), Vector3f(0.25f, 0, 1),  Vector3f(0, -0.25f, 1) };
+    static const Vector3f triangleSet[] = {
+      Vector3f(0, 0, 0),      Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1), Vector3f(0, 0, 0),
+      Vector3f(-0.25f, 0, 1), Vector3f(0, 0.25f, 1), Vector3f(0, 0, 0),     Vector3f(0, -0.25f, 1),
+      Vector3f(-0.25f, 0, 1), Vector3f(0, 0, 0),     Vector3f(0.25f, 0, 1), Vector3f(0, -0.25f, 1)
+    };
     const unsigned triVertexCount = sizeof(triangleSet) / sizeof(triangleSet[0]);
-    static const uint32_t colours[] = { Colour::Colours[Colour::Red].c,   Colour::Colours[Colour::Red].c,
-                                        Colour::Colours[Colour::Red].c,   Colour::Colours[Colour::Green].c,
-                                        Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Green].c,
-                                        Colour::Colours[Colour::Blue].c,  Colour::Colours[Colour::Blue].c,
-                                        Colour::Colours[Colour::Blue].c,  Colour::Colours[Colour::White].c,
-                                        Colour::Colours[Colour::White].c, Colour::Colours[Colour::White].c };
-    MeshShape *triangles =
-      new MeshShape(DtTriangles, Id(nextId++, CatTriangles), DataBuffer(triangleSet, triVertexCount));
+    static const uint32_t colours[] = {
+      Colour(Colour::Red).colour32(),   Colour(Colour::Red).colour32(),
+      Colour(Colour::Red).colour32(),   Colour(Colour::Green).colour32(),
+      Colour(Colour::Green).colour32(), Colour(Colour::Green).colour32(),
+      Colour(Colour::Blue).colour32(),  Colour(Colour::Blue).colour32(),
+      Colour(Colour::Blue).colour32(),  Colour(Colour::White).colour32(),
+      Colour(Colour::White).colour32(), Colour(Colour::White).colour32()
+    };
+    MeshShape *triangles = new MeshShape(DtTriangles, Id(nextId++, CatTriangles),
+                                         DataBuffer(triangleSet, triVertexCount));
     triangles->setColours(colours);
     triangles->duplicateArrays();
     shapes.emplace_back(triangles);
@@ -387,8 +397,8 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     resources.emplace_back(meshRes);
     const unsigned partCount = 2;
     MeshSet *mesh = new MeshSet(Id(nextId++, CatMesh), partCount);
-    mesh->setPart(0, meshRes, Matrix4f::identity, Colour::Colours[Colour::YellowGreen]);
-    mesh->setPart(1, meshRes, Matrix4f::translation(Vector3f(0, 0, 1.5f)), Colour::Colours[Colour::SkyBlue]);
+    mesh->setPart(0, meshRes, Matrix4f::identity, Colour(Colour::YellowGreen));
+    mesh->setPart(1, meshRes, Matrix4f::translation(Vector3f(0, 0, 1.5f)), Colour(Colour::SkyBlue));
     shapes.emplace_back(mesh);
     // if (!noMove)
     // {
@@ -399,13 +409,17 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("points", argc, argv))
   {
-    static const Vector3f pts[] = { Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1), Vector3f(-0.25f, 0, 1),
-                                    Vector3f(0, -0.25f, 1), Vector3f(0, -0.25f, 1) };
+    static const Vector3f pts[] = { Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1),
+                                    Vector3f(-0.25f, 0, 1), Vector3f(0, -0.25f, 1),
+                                    Vector3f(0, -0.25f, 1) };
     const unsigned pointsCount = sizeof(pts) / sizeof(pts[0]);
-    static const uint32_t colours[] = { Colour::Colours[Colour::Black].c, Colour::Colours[Colour::Red].c,
-                                        Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Blue].c,
-                                        Colour::Colours[Colour::White].c };
-    MeshShape *points = new MeshShape(DtPoints, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
+    static const uint32_t colours[] = { Colour(Colour::Black).colour32(),
+                                        Colour(Colour::Red).colour32(),
+                                        Colour(Colour::Green).colour32(),
+                                        Colour(Colour::Blue).colour32(),
+                                        Colour(Colour::White).colour32() };
+    MeshShape *points =
+      new MeshShape(DtPoints, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
     points->setColours(colours);
     points->setDrawScale(3.0f);
     shapes.emplace_back(points);
@@ -417,13 +431,17 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("voxels", argc, argv))
   {
-    static const Vector3f pts[] = { Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1), Vector3f(-0.25f, 0, 1),
-                                    Vector3f(0, -0.25f, 1), Vector3f(0, -0.25f, 1) };
+    static const Vector3f pts[] = { Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1),
+                                    Vector3f(-0.25f, 0, 1), Vector3f(0, -0.25f, 1),
+                                    Vector3f(0, -0.25f, 1) };
     const unsigned pointsCount = sizeof(pts) / sizeof(pts[0]);
-    static const uint32_t colours[] = { Colour::Colours[Colour::Black].c, Colour::Colours[Colour::Red].c,
-                                        Colour::Colours[Colour::Green].c, Colour::Colours[Colour::Blue].c,
-                                        Colour::Colours[Colour::White].c };
-    MeshShape *points = new MeshShape(DtVoxels, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
+    static const uint32_t colours[] = { Colour(Colour::Black).colour32(),
+                                        Colour(Colour::Red).colour32(),
+                                        Colour(Colour::Green).colour32(),
+                                        Colour(Colour::Blue).colour32(),
+                                        Colour(Colour::White).colour32() };
+    MeshShape *points =
+      new MeshShape(DtVoxels, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
     points->setColours(colours);
     points->setDrawScale(0.2f);
     // points->setUniformNormal(tes::Vector3f(0.2f));
@@ -477,14 +495,14 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
         for (int x = 0; x < blockSize; ++x)
         {
           Vector3f pos;
-          pos.x = blockOffset + float(x) * separation;
-          pos.y = blockOffset + float(y) * separation;
-          pos.z = blockOffset + float(z) * separation;
+          pos.x() = blockOffset + float(x) * separation;
+          pos.y() = blockOffset + float(y) * separation;
+          pos.z() = blockOffset + float(z) * separation;
 
           Capsule *capsule = new Capsule(Id(id, CatCapsule), Directional::identity(false));
           capsule->setLength(0.4f);
           capsule->setRadius(0.15f);
-          capsule->setColour(Colour::cycle(i));
+          capsule->setColour(ColourSet::predefined(ColourSet::Standard).cycle(i));
           capsule->setPosition(pos);
           manyShapes[i++] = capsule;
         }
@@ -520,15 +538,15 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   {
     Vector3f pos(0.0f);
     const float spacing = 2.0f;
-    pos.x -= spacing * float((shapes.size() - initialShapeCount) / 2u);
+    pos.x() -= spacing * float((shapes.size() - initialShapeCount) / 2u);
 
     for (size_t i = initialShapeCount; i < shapes.size(); ++i)
     {
       // Set position if not already set.
-      if (shapes[i]->position().isEqual(Vector3f::zero))
+      if (shapes[i]->position().isEqual(Vector3f::Zero))
       {
         shapes[i]->setPosition(pos);
-        pos.x += spacing;
+        pos.x() += spacing;
       }
     }
 
@@ -543,9 +561,11 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   if (allShapes || haveOption("text2d", argc, argv))
   {
     Text2D *text;
-    text = new Text2D("Hello Screen", Id(nextId++, CatText2D), Spherical(Vector3f(0.25f, 0.75f, 0.0f)));
+    text =
+      new Text2D("Hello Screen", Id(nextId++, CatText2D), Spherical(Vector3f(0.25f, 0.75f, 0.0f)));
     shapes.emplace_back(text);
-    text = new Text2D("Hello World 2D", Id(nextId++, CatText2D), Spherical(Vector3f(1.0f, 1.0f, 1.0f)));
+    text =
+      new Text2D("Hello World 2D", Id(nextId++, CatText2D), Spherical(Vector3f(1.0f, 1.0f, 1.0f)));
     text->setInWorldSpace(true);
     shapes.emplace_back(text);
   }
@@ -568,7 +588,8 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     // Nothing created. Create the default shape by providing some fake arguments.
     const char *defaultArgv[] = { "this arg is not read", "sphere" };
 
-    createShapes(nextId, shapes, movers, resources, sizeof(defaultArgv) / sizeof(defaultArgv[0]), defaultArgv);
+    createShapes(nextId, shapes, movers, resources, sizeof(defaultArgv) / sizeof(defaultArgv[0]),
+                 defaultArgv);
   }
 }
 
@@ -699,7 +720,8 @@ int main(int argc, char **argvNonConst)
     auto elapsed = now - lastTime;
 
     lastTime = now;
-    float dt = float(std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()) * 1e-6f;
+    float dt =
+      float(std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()) * 1e-6f;
     time += dt;
 
     for (ShapeMover *mover : movers)
@@ -721,7 +743,8 @@ int main(int argc, char **argvNonConst)
 
     now = std::chrono::system_clock::now();
     elapsed = now - lastTime;
-    unsigned elapsedMs = unsigned(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
+    unsigned elapsedMs =
+      unsigned(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
     unsigned sleepTimeMs = (elapsedMs <= targetFrameTimeMs) ? targetFrameTimeMs - elapsedMs : 0u;
     std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
   }

@@ -84,7 +84,8 @@ struct SimpleMeshImp
 }  // namespace tes
 
 
-SimpleMesh::SimpleMesh(uint32_t id, size_t vertexCount, size_t indexCount, DrawType drawType, unsigned components)
+SimpleMesh::SimpleMesh(uint32_t id, size_t vertexCount, size_t indexCount, DrawType drawType,
+                       unsigned components)
   : _imp(new SimpleMeshImp(components))
 {
   _imp->id = id;
@@ -563,7 +564,8 @@ bool SimpleMesh::processCreate(const MeshCreateMessage &msg, const ObjectAttribu
 }
 
 
-bool SimpleMesh::processVertices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool SimpleMesh::processVertices(const MeshComponentMessage &msg, unsigned offset,
+                                 const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   copyOnWrite();
@@ -580,21 +582,39 @@ bool SimpleMesh::processVertices(const MeshComponentMessage &msg, unsigned offse
 }
 
 
-bool SimpleMesh::processIndices(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool SimpleMesh::processIndices(const MeshComponentMessage &msg, unsigned offset,
+                                const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   return setIndices(offset, stream.ptr<uint32_t>(), stream.count()) == stream.count();
 }
 
 
-bool SimpleMesh::processColours(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool SimpleMesh::processColours(const MeshComponentMessage &msg, unsigned offset,
+                                const DataBuffer &stream)
 {
   TES_UNUSED(msg);
-  return setColours(offset, stream.ptr<uint32_t>(), stream.count()) == stream.count();
+  copyOnWrite();
+  unsigned wrote = 0;
+  if (_imp->colours.empty())
+  {
+    _imp->colours.resize(_imp->vertices.size());
+  }
+
+  for (unsigned i = 0; i + offset < _imp->colours.size() && i < stream.count(); ++i)
+  {
+    _imp->colours[i + offset] = tes::Colour(stream.get<uint8_t>(i, 0), stream.get<uint8_t>(i, 1),
+                                            stream.get<uint8_t>(i, 2), stream.get<uint8_t>(i, 3))
+                                  .colour32();
+    ++wrote;
+  }
+
+  return wrote == stream.count();
 }
 
 
-bool SimpleMesh::processNormals(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool SimpleMesh::processNormals(const MeshComponentMessage &msg, unsigned offset,
+                                const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   copyOnWrite();
@@ -614,7 +634,8 @@ bool SimpleMesh::processNormals(const MeshComponentMessage &msg, unsigned offset
 }
 
 
-bool SimpleMesh::processUVs(const MeshComponentMessage &msg, unsigned offset, const DataBuffer &stream)
+bool SimpleMesh::processUVs(const MeshComponentMessage &msg, unsigned offset,
+                            const DataBuffer &stream)
 {
   TES_UNUSED(msg);
   copyOnWrite();

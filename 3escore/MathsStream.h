@@ -32,7 +32,7 @@
 template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Vector3<REAL> &v)
 {
-  o << '(' << v.x << ',' << v.y << ',' << v.z << ')';
+  o << '(' << v.x() << ',' << v.y() << ',' << v.z() << ')';
   return o;
 }
 
@@ -49,11 +49,11 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Vector4<REAL> &v)
 {
   if (tes::getV4WMode(o) == tes::WM_Last)
   {
-    o << '(' << v.x << ',' << v.y << ',' << v.z << ',' << v.w << ')';
+    o << '(' << v.x() << ',' << v.y() << ',' << v.z() << ',' << v.w() << ')';
   }
   else
   {
-    o << '(' << v.w << ',' << v.x << ',' << v.y << ',' << v.z << ')';
+    o << '(' << v.w() << ',' << v.x() << ',' << v.y() << ',' << v.z() << ')';
   }
   return o;
 }
@@ -71,11 +71,11 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Quaternion<REAL> &q)
 {
   if (tes::getQuatWMode(o) == tes::WM_Last)
   {
-    o << '(' << q.x << ',' << q.y << ',' << q.z << ',' << q.w << ')';
+    o << '(' << q.x() << ',' << q.y() << ',' << q.z() << ',' << q.w() << ')';
   }
   else
   {
-    o << '(' << q.w << ',' << q.x << ',' << q.y << ',' << q.z << ')';
+    o << '(' << q.w() << ',' << q.x() << ',' << q.y() << ',' << q.z() << ')';
   }
   return o;
 }
@@ -128,7 +128,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Matrix4<REAL> &m)
 /// @return @p o
 inline std::ostream &operator<<(std::ostream &o, const tes::Colour &c)
 {
-  o << '[' << int(c.r) << ',' << int(c.g) << ',' << int(c.b) << ',' << int(c.a) << ']';
+  o << '[' << int(c.r()) << ',' << int(c.g()) << ',' << int(c.b()) << ',' << int(c.a()) << ']';
   return o;
 }
 

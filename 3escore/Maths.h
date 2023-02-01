@@ -8,6 +8,7 @@
 #define _USE_MATH_DEFINES
 #endif  // _USE_MATH_DEFINES
 #include <cmath>
+#include <cinttypes>
 
 namespace tes
 {
@@ -34,18 +35,44 @@ inline T radToDeg(const T &angle = T(1))
 /// Round up to the next power of 2.
 ///
 /// From: https://graphics.stanford.edu/~seander/bithacks.html
-/// @param v The value to round up.
+/// @param value The value to round up.
 /// @return The next power of 2 larger than v.
-inline unsigned nextLog2(unsigned v)
+inline uint32_t nextLog2(uint32_t value)
 {
-  v--;
-  v |= v >> 1;
-  v |= v >> 2;
-  v |= v >> 4;
-  v |= v >> 8;
-  v |= v >> 16;
-  v++;
-  return v;
+  value--;
+  value |= value >> 1;
+  value |= value >> 2;
+  value |= value >> 4;
+  value |= value >> 8;
+  value |= value >> 16;
+  value++;
+  return value;
+}
+
+
+/// @overload
+inline uint64_t nextLog2(uint64_t value)
+{
+  value--;
+  value |= value >> 1;
+  value |= value >> 2;
+  value |= value >> 4;
+  value |= value >> 8;
+  value |= value >> 16;
+  value |= value >> 32;
+  value++;
+  return value;
+}
+
+
+/// Helper function to square a number.
+/// @tparam T Mathematical type which supports @c operator*() .
+/// @param value The value to square.
+/// @return `value * value`
+template <typename T>
+inline T sqr(const T &value)
+{
+  return value * value;
 }
 }  // namespace tes
 

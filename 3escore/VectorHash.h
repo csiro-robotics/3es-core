@@ -93,7 +93,8 @@ inline uint32_t hashBits(uint32_t a, uint32_t b = VHASH_MAGIC, uint32_t c = 0)
 /// @param d Fourth component.
 /// @param e Fifth component.
 /// @param f Sixth component.
-inline uint32_t hashBits(uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e = 0, uint32_t f = 0)
+inline uint32_t hashBits(uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e = 0,
+                         uint32_t f = 0)
 {
   c += VHASH_MAGIC;
   VHASH_JENKINS_MIX(a, b, c);
@@ -126,7 +127,8 @@ inline uint32_t hash(float x, float y, float z)
 /// @param w A vector coordinate.
 inline uint32_t hash(float x, float y, float z, float w)
 {
-  return hashBits(*(const uint32_t *)&x, *(const uint32_t *)&y, *(const uint32_t *)&z, *(const uint32_t *)&w);
+  return hashBits(*(const uint32_t *)&x, *(const uint32_t *)&y, *(const uint32_t *)&z,
+                  *(const uint32_t *)&w);
 }
 }  // namespace vhash
 #ifdef __GNUC__
@@ -143,7 +145,7 @@ public:
   /// Operator to convert the vector @p p to its hash code.
   /// @param p A vector3 object.
   /// @return The 32-bit hash code for @p p.
-  inline size_t operator()(const T &p) const { return vhash::hash(p.x, p.y, p.z); }
+  inline size_t operator()(const T &p) const { return vhash::hash(p.x(), p.y(), p.z()); }
 };
 }  // namespace tes
 

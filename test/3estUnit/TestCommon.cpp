@@ -29,7 +29,7 @@ void makeSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
 {
   // Start with a unit sphere so we have normals precalculated.
   // Use a fine subdivision to ensure we need multiple data packets to transfer vertices.
-  sphere::solid(vertices, indices, 1.0f, Vector3f::zero, iterations);
+  sphere::solid(vertices, indices, 1.0f, Vector3f::Zero, iterations);
 
   // Normals as vertices. Scale and offset.
   if (normals)

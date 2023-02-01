@@ -60,8 +60,8 @@ bool haveOption(const char *opt, int argc, const char **argv)
 }
 
 
-void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<const Resource *> &resources, int argc,
-                const char **argv)
+void createAxes(unsigned &nextId, std::vector<Shape *> &shapes,
+                std::vector<const Resource *> &resources, int argc, const char **argv)
 {
   TES_UNUSED(resources);
   if (!haveOption("noaxes", argc, argv))
@@ -72,15 +72,15 @@ void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<cons
     Arrow *arrow;
 
     arrow = new Arrow(nextId++, Directional(pos, Vector3f(1, 0, 0), arrowRadius, arrowLength));
-    arrow->setColour(Colour::Colours[Colour::Red]);
+    arrow->setColour(Colour(Colour::Red));
     shapes.push_back(arrow);
 
     arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 1, 0), arrowRadius, arrowLength));
-    arrow->setColour(Colour::Colours[Colour::ForestGreen]);
+    arrow->setColour(Colour(Colour::ForestGreen));
     shapes.push_back(arrow);
 
     arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 0, 1), arrowRadius, arrowLength));
-    arrow->setColour(Colour::Colours[Colour::DodgerBlue]);
+    arrow->setColour(Colour(Colour::DodgerBlue));
     shapes.push_back(arrow);
   }
 }
@@ -94,7 +94,8 @@ MeshSet *createMeshShape(unsigned shapeId, unsigned meshId, const std::vector<Ve
   {
     components |= SimpleMesh::Normal;
   }
-  SimpleMesh *resource = new SimpleMesh(meshId, vertices.size(), indices.size(), DtTriangles, components);
+  SimpleMesh *resource =
+    new SimpleMesh(meshId, vertices.size(), indices.size(), DtTriangles, components);
   resource->setVertices(0, vertices.data(), vertices.size());
   resource->setIndices(0, indices.data(), indices.size());
   if (normals)
@@ -107,8 +108,8 @@ MeshSet *createMeshShape(unsigned shapeId, unsigned meshId, const std::vector<Ve
 }
 
 
-void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<const Resource *> &resources, int argc,
-                  const char **argv)
+void createShapes(unsigned &nextId, std::vector<Shape *> &shapes,
+                  std::vector<const Resource *> &resources, int argc, const char **argv)
 {
   bool allShapes = haveOption("all", argc, argv) || argc == 1;
   size_t initialShapeCount = shapes.size();
@@ -119,8 +120,10 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<co
 
   if (allShapes || haveOption("arrow", argc, argv))
   {
-    tes::arrow::solid(vertices, indices, normals, 16, 0.2f, 0.1f, 0.7f, 1.0f, Vector3f(1, 0.8f, -0.2f).normalised());
-    MeshSet *mesh = createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
+    tes::arrow::solid(vertices, indices, normals, 16, 0.2f, 0.1f, 0.7f, 1.0f,
+                      Vector3f(1, 0.8f, -0.2f).normalised());
+    MeshSet *mesh =
+      createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
     shapes.push_back(mesh);
     resources.push_back(mesh->partResource(0));
   }
@@ -132,7 +135,8 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<co
   if (allShapes || haveOption("box", argc, argv))
   {
     tes::box::solid(vertices, indices, normals);
-    MeshSet *mesh = createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
+    MeshSet *mesh =
+      createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
     shapes.push_back(mesh);
     resources.push_back(mesh->partResource(0));
   }
@@ -143,9 +147,10 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<co
 
   if (allShapes || haveOption("cone", argc, argv))
   {
-    tes::cone::solid(vertices, indices, normals, Vector3f(0.5), Vector3f(1, 1, 0).normalised(), 1.5f, float(M_PI / 6.0),
-                     12);
-    MeshSet *mesh = createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
+    tes::cone::solid(vertices, indices, normals, Vector3f(0.5), Vector3f(1, 1, 0).normalised(),
+                     1.5f, float(M_PI / 6.0), 12);
+    MeshSet *mesh =
+      createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
     shapes.push_back(mesh);
     resources.push_back(mesh->partResource(0));
   }
@@ -157,7 +162,8 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<co
   if (allShapes || haveOption("cylinder", argc, argv))
   {
     tes::cylinder::solid(vertices, indices, normals, Vector3f(0, 0, 1), 2.2f, 0.3f, 18, false);
-    MeshSet *mesh = createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
+    MeshSet *mesh =
+      createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
     shapes.push_back(mesh);
     resources.push_back(mesh->partResource(0));
   }
@@ -169,7 +175,8 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<co
   if (allShapes || haveOption("sphere", argc, argv))
   {
     tes::sphere::solid(vertices, indices, normals, 0.7f);
-    MeshSet *mesh = createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
+    MeshSet *mesh =
+      createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
     shapes.push_back(mesh);
     resources.push_back(mesh->partResource(0));
   }
@@ -183,12 +190,12 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<co
   {
     Vector3f pos(0.0f);
     const float spacing = 2.0f;
-    pos.x -= spacing * float((shapes.size() - initialShapeCount) / 2u);
+    pos.x() -= spacing * float((shapes.size() - initialShapeCount) / 2u);
 
     for (size_t i = initialShapeCount; i < shapes.size(); ++i)
     {
       shapes[i]->setPosition(pos);
-      pos.x += spacing;
+      pos.x() += spacing;
     }
   }
 }
@@ -283,7 +290,8 @@ int main(int argc, char **argvNonConst)
     auto elapsed = now - lastTime;
 
     lastTime = now;
-    float dt = float(std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()) * 1e-6f;
+    float dt =
+      float(std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()) * 1e-6f;
     time += dt;
 
     if (server->connectionMonitor()->mode() == tes::ConnectionMonitor::Synchronous)
@@ -294,7 +302,8 @@ int main(int argc, char **argvNonConst)
 
     now = std::chrono::system_clock::now();
     elapsed = now - lastTime;
-    unsigned elapsedMs = unsigned(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
+    unsigned elapsedMs =
+      unsigned(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
     unsigned sleepTimeMs = (elapsedMs <= targetFrameTimeMs) ? targetFrameTimeMs - elapsedMs : 0u;
     std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
   }
