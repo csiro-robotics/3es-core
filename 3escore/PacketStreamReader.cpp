@@ -12,7 +12,7 @@ namespace tes
 PacketStreamReader::PacketStreamReader(std::shared_ptr<std::istream> stream)
   : _stream(std::exchange(stream, nullptr))
 {
-  auto packetMarker = networkEndianSwapValue(tes::PacketMarker);
+  auto packetMarker = networkEndianSwapValue(tes::kPacketMarker);
   std::memcpy(_markerBytes.data(), &packetMarker, sizeof(packetMarker));
   _buffer.reserve(_chunkSize);
 }
@@ -153,8 +153,8 @@ void PacketStreamReader::consume()
 size_t PacketStreamReader::calcExpectedSize()
 {
   const PacketHeader *header = reinterpret_cast<const PacketHeader *>(_buffer.data());
-  auto payloadSize = networkEndianSwapValue(header->payloadSize);
-  if ((networkEndianSwapValue(header->flags) & PF_NoCrc) == 0)
+  auto payloadSize = networkEndianSwapValue(header->payload_size);
+  if ((networkEndianSwapValue(header->flags) & PFNoCrc) == 0)
   {
     payloadSize += sizeof(PacketReader::CrcType);
   }

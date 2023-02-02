@@ -189,21 +189,21 @@ bool haveOption(const char *opt, int argc, const char **argv)
 }
 
 
-void defineCategory(Server *server, const char *name, uint16_t id, uint16_t parentId, bool active)
+void defineCategory(Server *server, const char *name, uint16_t id, uint16_t parent_id, bool active)
 {
   CategoryNameMessage msg;
-  msg.categoryId = id;
-  msg.parentId = parentId;
-  msg.defaultActive = (active) ? 1 : 0;
+  msg.category_id = id;
+  msg.parent_id = parent_id;
+  msg.default_active = (active) ? 1 : 0;
   const size_t nameLen = (name) ? strlen(name) : 0u;
-  msg.nameLength = (uint16_t)((nameLen <= 0xffffu) ? nameLen : 0xffffu);
+  msg.name_length = (uint16_t)((nameLen <= 0xffffu) ? nameLen : 0xffffu);
   msg.name = name;
   sendMessage(*(server), MtCategory, CategoryNameMessage::MessageId, msg);
   std::cout << "  \"category-" << name << "\" : {\n"
-            << "    \"categoryId\" : " << id << ",\n"
-            << "    \"parentId\" : " << parentId << ",\n"
-            << "    \"defaultActive\" : " << (active ? "true" : "false") << ",\n"
-            << "    \"nameLength\" : " << msg.nameLength << ",\n"
+            << "    \"category_id\" : " << id << ",\n"
+            << "    \"parent_id\" : " << parent_id << ",\n"
+            << "    \"default_active\" : " << (active ? "true" : "false") << ",\n"
+            << "    \"name_length\" : " << msg.name_length << ",\n"
             << "    \"name\" : \"" << msg.name << "\"\n"
             << "  },\n";
 }
@@ -589,9 +589,9 @@ const char *coordinateFrameString(uint8_t frame)
 std::ostream &operator<<(std::ostream &o, const ServerInfoMessage &info)
 {
   o << "  \"server\" : {\n"
-    << "    \"timeUnit\" : " << info.timeUnit << ",\n"
-    << "    \"defaultFrameTime\" : " << info.defaultFrameTime << ",\n"
-    << "    \"coordinateFrame\" : \"" << coordinateFrameString(info.coordinateFrame) << "\"\n"
+    << "    \"time_unit\" : " << info.time_unit << ",\n"
+    << "    \"default_frame_time\" : " << info.default_frame_time << ",\n"
+    << "    \"coordinate_frame\" : \"" << coordinateFrameString(info.coordinate_frame) << "\"\n"
     << "  },";
   return o;
 }
@@ -636,7 +636,7 @@ int main(int argc, char **argvNonConst)
 
   ServerInfoMessage info;
   initDefaultServerInfo(&info);
-  info.coordinateFrame = XYZ;
+  info.coordinate_frame = XYZ;
   unsigned serverFlags = SF_DefaultNoCompression;
   if (haveOption("compress", argc, argv))
   {

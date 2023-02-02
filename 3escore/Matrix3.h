@@ -297,7 +297,7 @@ public:
   /// @return a Matrix to compare to.
   /// @param epsilon Comparison tolerance value.
   /// @return @c true when each element in this matrix is within @p epsilon of each element of @p a.
-  [[nodiscard]] bool isEqual(const Matrix3<T> &a, const T epsilon = Vector3<T>::Epsilon) const;
+  [[nodiscard]] bool isEqual(const Matrix3<T> &a, T epsilon = Vector3<T>::Epsilon) const;
 
 private:
   StorageType _storage;

@@ -162,8 +162,12 @@ CheckOptions:
   # Magic number ignore list
   # Ignore Integer powers of 2 seems a bit unreliable, so I've listed a bunch explicitly.
   - key: readability-magic-numbers.IgnoredIntegerValues
-    value: "0;1;2;3;4;5;6;7;8;9;10;100;1000;16;32;64;128;255;512;1024;2048;4096;8192;16384;32768;32768"
+    value: "0;1;2;3;4;5;6;7;8;9;10;100;1000;65535;4294967295"
   - key: readability-magic-numbers.IgnorePowersOf2IntegerValues
     value: true
   - key: readability-magic-numbers.IgnoredFloatingPointValues
     value: "0.25;0.5;0.75;1.0;1.5;2.0;2.5;3.0;10.0;100.0;255.0;1000.0;0.1;0.001;0.0001"
+
+  # Variable naming constraints
+  - key: readability-identifier-length.IgnoredVariableNames
+    value: ok

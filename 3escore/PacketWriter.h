@@ -58,7 +58,7 @@ public:
   /// @param bufferSize The total number of bytes available for the @c PacketHeader
   ///   and its paylaod. Must be at least @c sizeof(PacketHeader), or all writing
   ///   will fail.
-  /// @param routingId Optionlly sets the @c routingId member of the packet.
+  /// @param routingId Optionlly sets the @c routing_id member of the packet.
   PacketWriter(uint8_t *buffer, uint16_t bufferSize, uint16_t routingId = 0, uint16_t messageId = 0);
 
   /// Copy constructor. Simple as neither writer owns the underlying memory.
@@ -182,7 +182,7 @@ protected:
 
 inline void PacketWriter::setRoutingId(uint16_t routingId)
 {
-  _packet->routingId = routingId;
+  _packet->routing_id = routingId;
 }
 
 inline PacketHeader &PacketWriter::packet() const

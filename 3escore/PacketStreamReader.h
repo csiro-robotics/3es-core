@@ -74,7 +74,7 @@ private:
   size_t calcExpectedSize();
 
   std::shared_ptr<std::istream> _stream;
-  std::array<uint8_t, sizeof(tes::PacketMarker)> _markerBytes;
+  std::array<uint8_t, sizeof(tes::kPacketMarker)> _markerBytes;
   std::vector<uint8_t> _buffer;
   size_t _chunkSize = 1024u;
 };

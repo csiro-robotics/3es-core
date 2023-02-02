@@ -14,8 +14,8 @@
 
 namespace tes::view
 {
-NetworkThread::NetworkThread(std::shared_ptr<ThirdEyeScene> tes, const std::string &host, uint16_t port,
-                             bool allow_reconnect)
+NetworkThread::NetworkThread(std::shared_ptr<ThirdEyeScene> tes, const std::string &host,
+                             uint16_t port, bool allow_reconnect)
   : _allow_reconnect(allow_reconnect)
   , _host(host)
   , _port(port)
@@ -145,7 +145,8 @@ void NetworkThread::runWith(TcpSocket &socket)
       while (packet_header = packet_decoder.next())
       {
         PacketReader packet(packet_header);
-        // Lock for frame control messages as these tell us to advance the frame and how long to wait.
+        // Lock for frame control messages as these tell us to advance the frame and how long to
+        // wait.
         switch (packet.routingId())
         {
         case MtControl:
@@ -193,7 +194,7 @@ void NetworkThread::processControlMessage(PacketReader &packet)
   case CIdCoordinateFrame:
     if (msg.value32 < CFCount)
     {
-      _server_info.coordinateFrame = CoordinateFrame(msg.value32);
+      _server_info.coordinate_frame = CoordinateFrame(msg.value32);
       _tes->updateServerInfo(_server_info);
     }
     else
@@ -208,8 +209,8 @@ void NetworkThread::processControlMessage(PacketReader &packet)
     _tes->updateToFrame(_currentFrame);
     break;
   case CIdReset:
-    // This doesn't seem right any more. Need to check what the Unity viewer did with this. It may be an artifact of
-    // the main thread needing to do so much work in Unity.
+    // This doesn't seem right any more. Need to check what the Unity viewer did with this. It may
+    // be an artifact of the main thread needing to do so much work in Unity.
     _currentFrame = msg.value32;
     _tes->reset();
     break;

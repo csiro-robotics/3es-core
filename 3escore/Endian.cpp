@@ -35,11 +35,11 @@ void endianSwap(uint8_t *data, size_t size)
     break;
   }
 
-  uint8_t *dataCopy = (uint8_t *)alloca(size);
-  memcpy(dataCopy, data, size);
+  auto *data_copy = reinterpret_cast<uint8_t *>(alloca(size));
+  std::memcpy(data_copy, data, size);
   for (size_t i = 0; i < size / 2; ++i)
   {
-    data[i] = dataCopy[size - i - 1];
+    data[i] = data_copy[size - i - 1];
   }
 }
 }  // namespace tes

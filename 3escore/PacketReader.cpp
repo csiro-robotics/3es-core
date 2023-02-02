@@ -49,7 +49,7 @@ bool PacketReader::checkCrc()
     return true;
   }
 
-  if ((flags() & PF_NoCrc))
+  if ((flags() & PFNoCrc))
   {
     _status |= CrcValid;
     return true;

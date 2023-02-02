@@ -54,35 +54,37 @@ public:
   /// @return The @c PacketHeader::marker bytes.
   uint32_t marker() const { return networkEndianSwapValue(_packet->marker); }
   /// Fetch the major version bytes in local endian.
-  /// @return The @c PacketHeader::versionMajor bytes.
-  uint16_t versionMajor() const { return networkEndianSwapValue(_packet->versionMajor); }
+  /// @return The @c PacketHeader::version_major bytes.
+  uint16_t versionMajor() const { return networkEndianSwapValue(_packet->version_major); }
   /// Fetch the minor version bytes in local endian.
-  /// @return The @c PacketHeader::versionMinor bytes.
-  uint16_t versionMinor() const { return networkEndianSwapValue(_packet->versionMinor); }
+  /// @return The @c PacketHeader::version_minor bytes.
+  uint16_t versionMinor() const { return networkEndianSwapValue(_packet->version_minor); }
   /// Fetch the payload size bytes in local endian.
   /// @return The @c PacketHeader::payloadSize bytes.
-  uint16_t payloadSize() const { return networkEndianSwapValue(_packet->payloadSize); }
-  /// Returns the size of the packet plus payload, giving the full data packet size including the CRC.
+  uint16_t payloadSize() const { return networkEndianSwapValue(_packet->payload_size); }
+  /// Returns the size of the packet plus payload, giving the full data packet size including the
+  /// CRC.
   /// @return PacketHeader data size (bytes).
   uint16_t packetSize() const
   {
-    return uint16_t(sizeof(HEADER) + payloadSize() + (((packet().flags & PF_NoCrc) == 0) ? sizeof(CrcType) : 0));
+    return uint16_t(sizeof(HEADER) + payloadSize() +
+                    (((packet().flags & PFNoCrc) == 0) ? sizeof(CrcType) : 0));
   }
   /// Fetch the routing ID bytes in local endian.
-  /// @return The @c PacketHeader::routingId bytes.
-  uint16_t routingId() const { return networkEndianSwapValue(_packet->routingId); }
+  /// @return The @c PacketHeader::routing_id bytes.
+  uint16_t routingId() const { return networkEndianSwapValue(_packet->routing_id); }
   /// Fetch the message ID bytes in local endian.
-  /// @return The @c PacketHeader::messageId bytes.
-  uint16_t messageId() const { return networkEndianSwapValue(_packet->messageId); }
+  /// @return The @c PacketHeader::message_id bytes.
+  uint16_t messageId() const { return networkEndianSwapValue(_packet->message_id); }
   /// Fetch the flags bytes in local endian.
   /// @return the @c PacketHeader::flags bytes.
   uint8_t flags() const { return networkEndianSwapValue(_packet->flags); }
   /// Fetch the CRC bytes in local endian.
-  /// Invalid for packets with the @c PF_NoCrc flag set.
+  /// Invalid for packets with the @c PFNoCrc flag set.
   /// @return The packet's CRC value.
   CrcType crc() const { return networkEndianSwapValue(*crcPtr()); }
   /// Fetch a pointer to the CRC bytes.
-  /// Invalid for packets with the @c PF_NoCrc flag set.
+  /// Invalid for packets with the @c PFNoCrc flag set.
   /// @return A pointer to the CRC location.
   CrcType *crcPtr();
   /// @overload
@@ -178,7 +180,8 @@ bool PacketStream<HEADER>::seek(int offset, SeekPos pos)
     break;
 
   case Current:
-    if (offset >= 0 && offset + _payloadPosition <= payloadSize() || offset < 0 && _payloadPosition >= -offset)
+    if (offset >= 0 && offset + _payloadPosition <= payloadSize() ||
+        offset < 0 && _payloadPosition >= -offset)
     {
       _payloadPosition = uint16_t(_payloadPosition + offset);
       return true;
@@ -188,7 +191,7 @@ bool PacketStream<HEADER>::seek(int offset, SeekPos pos)
   case End:
     if (offset < payloadSize())
     {
-      _payloadPosition = uint16_t(_packet->payloadSize - 1 - offset);
+      _payloadPosition = uint16_t(_packet->payload_size - 1 - offset);
       return true;
     }
     break;
@@ -206,7 +209,8 @@ typename PacketStream<HEADER>::CrcType *PacketStream<HEADER>::crcPtr()
 {
   // CRC appears after the payload.
   // TODO: fix the const correctness of this.
-  uint8_t *pos = const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(_packet)) + sizeof(HEADER) + payloadSize();
+  uint8_t *pos = const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(_packet)) +
+                 sizeof(HEADER) + payloadSize();
   return reinterpret_cast<CrcType *>(pos);
 }
 

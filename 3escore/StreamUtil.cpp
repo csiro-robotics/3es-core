@@ -42,7 +42,7 @@ bool initialiseStream(std::ostream &stream, const ServerInfoMessage *serverInfo)
   // Write a frame count control message place holder.
   packet.reset(MtControl, CIdFrameCount);
   ControlMessage msg;
-  msg.controlFlags = 0;
+  msg.control_flags = 0;
   msg.value32 = 0;
   msg.value64 = 0;
 
@@ -85,17 +85,18 @@ bool finaliseStream(std::iostream &stream, unsigned frameCount, const ServerInfo
   std::streampos streamPos = 0;
 
   std::vector<uint8_t> headerBuffer(1024);
-  auto markerValidation = PacketMarker;
+  auto markerValidation = kPacketMarker;
   const char *markerValidationBytes = (const char *)&markerValidation;
   networkEndianSwap(markerValidation);
-  decltype(PacketMarker) marker = 0;
+  decltype(kPacketMarker) marker = 0;
   char *markerBytes = (char *)&marker;
   bool markerValid = false;
 
   int attemptsRemaining = 5;
   int byteReadLimit = 0;
 
-  while ((frameCountMessageStart < 0 || serverInfoMessageStart < 0) && attemptsRemaining > 0 && stream.good())
+  while ((frameCountMessageStart < 0 || serverInfoMessageStart < 0) && attemptsRemaining > 0 &&
+         stream.good())
   {
     --attemptsRemaining;
     markerValid = false;
@@ -158,7 +159,8 @@ bool finaliseStream(std::iostream &stream, unsigned frameCount, const ServerInfo
         if (packetSize > sizeof(PacketHeader))
         {
           const auto preReadPos = stream.tellg();
-          stream.read((char *)headerBuffer.data() + sizeof(PacketHeader), packetSize - sizeof(PacketHeader));
+          stream.read((char *)headerBuffer.data() + sizeof(PacketHeader),
+                      packetSize - sizeof(PacketHeader));
           bytesRead = stream.tellg() - preReadPos;
         }
 
@@ -170,16 +172,17 @@ bool finaliseStream(std::iostream &stream, unsigned frameCount, const ServerInfo
         {
           serverInfoMessageStart = streamPos;
         }
-        else if (currentPacket.routingId() == MtControl && currentPacket.messageId() == CIdFrameCount)
+        else if (currentPacket.routingId() == MtControl &&
+                 currentPacket.messageId() == CIdFrameCount)
         {
           // It's the frame count control message. Set the offset to the frame count member.
           frameCountMessageStart = streamPos;
         }
         else
         {
-          // At this point, we've failed to find the right kind of header. We could use the payload size to
-          // skip ahead in the stream which should align exactly to the next message.
-          // Not done for initial testing.
+          // At this point, we've failed to find the right kind of header. We could use the payload
+          // size to skip ahead in the stream which should align exactly to the next message. Not
+          // done for initial testing.
         }
       }
     }
@@ -188,7 +191,8 @@ bool finaliseStream(std::iostream &stream, unsigned frameCount, const ServerInfo
   // Rewrite server info in case it was just a place holder which was written before.
   if (serverInfo && serverInfoMessageStart >= 0)
   {
-    // Found the correct location. Seek the stream to here and write a new FrameCount control message.
+    // Found the correct location. Seek the stream to here and write a new FrameCount control
+    // message.
     stream.seekp(serverInfoMessageStart);
     PacketWriter packet(headerBuffer.data(), uint16_t(headerBuffer.size()), MtServerInfo);
 
@@ -200,13 +204,15 @@ bool finaliseStream(std::iostream &stream, unsigned frameCount, const ServerInfo
 
   if (frameCountMessageStart >= 0)
   {
-    // Found the correct location. Seek the stream to here and write a new FrameCount control message.
+    // Found the correct location. Seek the stream to here and write a new FrameCount control
+    // message.
     stream.seekp(frameCountMessageStart);
 
-    PacketWriter packet(headerBuffer.data(), uint16_t(headerBuffer.size()), MtControl, CIdFrameCount);
+    PacketWriter packet(headerBuffer.data(), uint16_t(headerBuffer.size()), MtControl,
+                        CIdFrameCount);
     ControlMessage frameCountMsg;
 
-    frameCountMsg.controlFlags = 0;
+    frameCountMsg.control_flags = 0;
     frameCountMsg.value32 = frameCount;
     frameCountMsg.value64 = 0;
 

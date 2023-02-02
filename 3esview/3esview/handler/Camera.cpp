@@ -97,7 +97,7 @@ void Camera::readMessage(PacketReader &reader)
   camera.clip_near = msg.near;
   camera.clip_far = msg.far;
   camera.fov_horizontal = msg.fov;
-  camera.frame = tes::CoordinateFrame(_server_info.coordinateFrame);
+  camera.frame = tes::CoordinateFrame(_server_info.coordinate_frame);
 
   // Determine pitch and yaw by a deviation from the expected axis.
   Magnum::Vector3 ref_dir;

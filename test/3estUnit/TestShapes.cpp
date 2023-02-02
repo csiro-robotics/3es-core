@@ -162,9 +162,9 @@ void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape,
       {
         PacketReader reader(packetHeader);
 
-        EXPECT_EQ(reader.marker(), PacketMarker);
-        EXPECT_EQ(reader.versionMajor(), PacketVersionMajor);
-        EXPECT_EQ(reader.versionMinor(), PacketVersionMinor);
+        EXPECT_EQ(reader.marker(), kPacketMarker);
+        EXPECT_EQ(reader.versionMajor(), kPacketVersionMajor);
+        EXPECT_EQ(reader.versionMinor(), kPacketVersionMinor);
 
         switch (reader.routingId())
         {
@@ -173,9 +173,9 @@ void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape,
           readServerInfo.read(reader);
 
           // Validate server info.
-          EXPECT_EQ(readServerInfo.timeUnit, serverInfo.timeUnit);
-          EXPECT_EQ(readServerInfo.defaultFrameTime, serverInfo.defaultFrameTime);
-          EXPECT_EQ(readServerInfo.coordinateFrame, serverInfo.coordinateFrame);
+          EXPECT_EQ(readServerInfo.time_unit, serverInfo.time_unit);
+          EXPECT_EQ(readServerInfo.default_frame_time, serverInfo.default_frame_time);
+          EXPECT_EQ(readServerInfo.coordinate_frame, serverInfo.coordinate_frame);
 
           for (int i = 0;
                i < int(sizeof(readServerInfo.reserved) / sizeof(readServerInfo.reserved[0])); ++i)
@@ -248,7 +248,7 @@ void testShape(const T &shape, ServerInfoMessage *infoOut = nullptr,
   // Initialise server.
   ServerInfoMessage info;
   initDefaultServerInfo(&info);
-  info.coordinateFrame = XYZ;
+  info.coordinate_frame = XYZ;
 
   unsigned serverFlags = SF_Default | SF_CollateAndCompress;
   ServerSettings serverSettings(serverFlags);

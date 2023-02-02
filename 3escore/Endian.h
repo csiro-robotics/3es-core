@@ -20,16 +20,14 @@ void TES_CORE_API endianSwap(uint8_t *data, size_t size);
 /// For completeness.
 /// @param data The 1-byte buffer.
 inline void endianSwap1(uint8_t * /*data*/)
-{
-  return;
-}  // No-op
+{}  // No-op
 
 /// Perform a 2-byte value Endian swap on @p data.
 /// Switches the byte order.
 /// @param data The 2-byte buffer to Endian swap.
 inline void endianSwap2(uint8_t *data)
 {
-  uint8_t temp = data[1];
+  const uint8_t temp = data[1];
   data[1] = data[0];
   data[0] = temp;
 }
@@ -74,6 +72,7 @@ inline void endianSwap8(uint8_t *data)
 /// @param data The 16-byte buffer to Endian swap.
 inline void endianSwap16(uint8_t *data)
 {
+  // NOLINTBEGIN(readability-magic-numbers)
   uint8_t temp = data[15];
   data[15] = data[0];
   data[0] = temp;
@@ -99,6 +98,7 @@ inline void endianSwap16(uint8_t *data)
   temp = data[8];
   data[8] = data[7];
   data[7] = temp;
+  // NOLINTEND(readability-magic-numbers)
 }
 
 

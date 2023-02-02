@@ -32,7 +32,8 @@ BaseConnection::BaseConnection(const ServerSettings &settings)
   _packetBuffer.resize(settings.clientBufferSize);
   _packet = new PacketWriter(_packetBuffer.data(), (uint16_t)_packetBuffer.size());
   initDefaultServerInfo(&_serverInfo);
-  _secondsToTimeUnit = kSecondsToMicroseconds / (_serverInfo.timeUnit ? float(_serverInfo.timeUnit) : 1.0f);
+  _secondsToTimeUnit =
+    kSecondsToMicroseconds / (_serverInfo.time_unit ? float(_serverInfo.time_unit) : 1.0f);
   _collation->setCompressionLevel(settings.compressionLevel);
 }
 
@@ -64,7 +65,8 @@ bool BaseConnection::sendServerInfo(const ServerInfoMessage &info)
   }
 
   _serverInfo = info;
-  _secondsToTimeUnit = kSecondsToMicroseconds / (_serverInfo.timeUnit ? float(_serverInfo.timeUnit) : 1.0f);
+  _secondsToTimeUnit =
+    kSecondsToMicroseconds / (_serverInfo.time_unit ? float(_serverInfo.time_unit) : 1.0f);
 
   if (isConnected())
   {
@@ -121,7 +123,7 @@ int BaseConnection::send(const CollatedPacket &collated)
   unsigned packetSize = 0;
   uint16_t payloadSize = 0;
   bool crcPreset = false;
-  if (!(packet->flags & PF_NoCrc))
+  if (!(packet->flags & PFNoCrc))
   {
     processedBytes -= unsigned(sizeof(PacketWriter::CrcType));
   }
@@ -130,12 +132,12 @@ int BaseConnection::send(const CollatedPacket &collated)
   {
     // Determine current packet size.
     // Get payload size.
-    payloadSize = packet->payloadSize;
+    payloadSize = packet->payload_size;
     networkEndianSwap(payloadSize);
     // Add header size.
     packetSize = payloadSize + unsigned(sizeof(PacketHeader));
     // Add Crc Size.
-    crcPreset = (packet->flags & PF_NoCrc) == 0;
+    crcPreset = (packet->flags & PFNoCrc) == 0;
     packetSize += !!crcPreset * unsigned(sizeof(PacketWriter::CrcType));
 
     // Send packet.
@@ -312,7 +314,8 @@ int BaseConnection::updateTransfers(unsigned byteLimit)
   std::lock_guard<Lock> resource_guard(_resourceLock);
   unsigned transferred = 0;
 
-  while ((!byteLimit || transferred < byteLimit) && (!_currentResource->isNull() || !_resourceQueue.empty()))
+  while ((!byteLimit || transferred < byteLimit) &&
+         (!_currentResource->isNull() || !_resourceQueue.empty()))
   {
     bool startNext = false;
     if (!_currentResource->isNull())
@@ -372,7 +375,7 @@ int BaseConnection::updateFrame(float dt, bool flush)
   // std::lock_guard<Lock> guard(_lock);
   int wrote = -1;
   ControlMessage msg;
-  msg.controlFlags = !flush * CFFramePersist;
+  msg.control_flags = !flush * CFFramePersist;
   // Convert dt to desired time unit.
   msg.value32 = uint32_t(dt * _secondsToTimeUnit);
   msg.value64 = 0;
@@ -382,7 +385,8 @@ int BaseConnection::updateFrame(float dt, bool flush)
   if (msg.write(*_packet))
   {
     _packet->finalise();
-    wrote = writePacket(_packetBuffer.data(), _packet->packetSize(), !(_serverFlags & SF_NakedFrameMessage));
+    wrote = writePacket(_packetBuffer.data(), _packet->packetSize(),
+                        !(_serverFlags & SF_NakedFrameMessage));
   }
   flushCollatedPacket();
   return wrote;

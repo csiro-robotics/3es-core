@@ -108,11 +108,11 @@
   if (server)                                                                               \
   {                                                                                         \
     tes::CategoryNameMessage msg;                                                           \
-    msg.categoryId = static_cast<uint16_t>(_categoryId);                                    \
-    msg.parentId = static_cast<uint16_t>(_parentId);                                        \
-    msg.defaultActive = (_active) ? 1 : 0;                                                  \
+    msg.category_id = static_cast<uint16_t>(_categoryId);                                   \
+    msg.parent_id = static_cast<uint16_t>(_parentId);                                       \
+    msg.default_active = (_active) ? 1 : 0;                                                 \
     const size_t nameLen = (_name != nullptr) ? strlen(_name) : 0u;                         \
-    msg.nameLength = (uint16_t)((nameLen <= 0xffffu) ? nameLen : 0xffffu);                  \
+    msg.name_length = (uint16_t)((nameLen <= 0xffffu) ? nameLen : 0xffffu);                 \
     msg.name = _name;                                                                       \
     tes::sendMessage(*(server), tes::MtCategory, tes::CategoryNameMessage::MessageId, msg); \
   }
@@ -135,20 +135,20 @@
 /// The time unit details for @p info can be initialise using @c TES_SERVER_INFO_TIME()
 /// @see @c initDefaultServerInfo()
 /// @param info Variable name for the @c ServerInfoMessage structure.
-/// @param infoCoordinateFrame The server's @c CoordinateFrame value.
-#define TES_SERVER_INFO(info, infoCoordinateFrame) \
-  tes::ServerInfoMessage info;                     \
-  tes::initDefaultServerInfo(&info);               \
-  info.coordinateFrame = infoCoordinateFrame;
+/// @param info_coordinate_frame The server's @c CoordinateFrame value.
+#define TES_SERVER_INFO(info, info_coordinate_frame) \
+  tes::ServerInfoMessage info;                       \
+  tes::initDefaultServerInfo(&info);                 \
+  info.coordinate_frame = info_coordinate_frame;
 
 /// @ingroup tesmacros
 /// Initialise the time unit details of a @c ServerInfoMessage.
 /// @param info the @c ServerInfoMessage structure variable.
-/// @param timeUnit The @c ServerInfoMessage::timeUnit value to set.
-/// @param defaultFrameTime The @c ServerInfoMessage::defaultFrameTime value to set.
-#define TES_SERVER_INFO_TIME(info, timeUnit, defaultFrameTime) \
-  info.timeUnit = timeUnit;                                    \
-  info.defaultFrameTime = defaultFrameTime;
+/// @param time_unit The @c ServerInfoMessage::time_unit value to set.
+/// @param default_frame_time The @c ServerInfoMessage::default_frame_time value to set.
+#define TES_SERVER_INFO_TIME(info, time_unit, default_frame_time) \
+  info.time_unit = time_unit;                                     \
+  info.default_frame_time = default_frame_time;
 
 /// @ingroup tesmacros
 /// Initialise @p server to a new @c Server object with the given @c ServerSettings and

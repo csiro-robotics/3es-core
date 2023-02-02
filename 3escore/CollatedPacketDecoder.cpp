@@ -24,7 +24,7 @@ namespace tes
 unsigned getPacketSize(const uint8_t *bytes)
 {
   PacketReader reader(reinterpret_cast<const PacketHeader *>(bytes));
-  if (reader.marker() != PacketMarker)
+  if (reader.marker() != kPacketMarker)
   {
     // Invalid marker bytes. Fail.
     return 0;
@@ -69,7 +69,7 @@ struct CollatedPacketDecoderDetail
         return false;
       }
 
-      if (!initStream(msg.flags, msg.uncompressedBytes, reader.payload() + reader.tell(),
+      if (!initStream(msg.flags, msg.uncompressed_bytes, reader.payload() + reader.tell(),
                       reader.payloadSize() - reader.tell()))
       {
         return false;

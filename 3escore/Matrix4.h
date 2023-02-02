@@ -362,7 +362,7 @@ public:
 
   /// Transforms the vector @p v by this matrix.
   /// @return Av, where A is this matrix.
-  Vector3<T> transform(const Vector3<T> &v) const;
+  [[nodiscard]] Vector3<T> transform(const Vector3<T> &v) const;
 
   /// Transforms the vector @p v by this matrix.
   /// @return Av, where A is this matrix.

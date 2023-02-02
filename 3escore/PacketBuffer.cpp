@@ -15,7 +15,7 @@ namespace
 {
 int packetMarkerPosition(const uint8_t *bytes, size_t byteCount)
 {
-  uint32_t packetMarker = networkEndianSwapValue(tes::PacketMarker);
+  uint32_t packetMarker = networkEndianSwapValue(tes::kPacketMarker);
   const uint8_t *markerBytes = (const uint8_t *)&packetMarker;
   for (size_t i = 0; i < byteCount; i += 4)
   {
@@ -91,14 +91,16 @@ PacketHeader *PacketBuffer::extractPacket(std::vector<uint8_t> &buffer)
       // We have a full packet. Allocate a copy and extract the full packet data.
       const unsigned packetSize = reader.packetSize();
       buffer.resize(packetSize);
-      // FIXME(KS): why allocate? Can't we hold a pointer in the buffer, then shift bytes on release?
+      // FIXME(KS): why allocate? Can't we hold a pointer in the buffer, then shift bytes on
+      // release?
       std::copy(_packetBuffer, _packetBuffer + packetSize, buffer.begin());
 
       _markerFound = false;
       if (_byteCount > packetSize)
       {
         // Find next marker beyond the packet just returned.
-        int nextMarkerPos = packetMarkerPosition(_packetBuffer + packetSize, _byteCount - packetSize);
+        int nextMarkerPos =
+          packetMarkerPosition(_packetBuffer + packetSize, _byteCount - packetSize);
         if (nextMarkerPos >= 0)
         {
           removeData(packetSize + unsigned(nextMarkerPos));
