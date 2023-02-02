@@ -38,13 +38,14 @@ public:
   /// marks the start of the packet buffer.
   ///
   /// The packet members are initialised, but @c payloadSize and @c crc are
-  /// left at zero to be calculated later. The @c routingId maybe given now
+  /// left at zero to be calculated later. The @c routing_id maybe given now
   /// or set with @c setRoutingId().
   ///
   /// @param packet The packet to write to.
-  /// @param maxPayloadSize Specifies the space available for the payload (bytes).
+  /// @param max_payload_size Specifies the space available for the payload (bytes).
   ///   This is in excess of the packet size, not the total buffer size.
-  PacketWriter(PacketHeader *packet, uint16_t maxPayloadSize, uint16_t routingId = 0, uint16_t messageId = 0);
+  PacketWriter(PacketHeader *packet, uint16_t max_payload_size, uint16_t routing_id = 0,
+               uint16_t message_id = 0);
 
   /// Creates a @c PacketWriter to write to the given byte buffer.
   ///
@@ -52,14 +53,15 @@ public:
   /// payload is required. If not, then the @c isFail() will be true and
   /// all write operations will fail.
   ///
-  /// The @c routingId maybe given now or set with @c setRoutingId().
+  /// The @c routing_id maybe given now or set with @c setRoutingId().
   ///
   /// @param buffer The packet data buffer.
-  /// @param bufferSize The total number of bytes available for the @c PacketHeader
+  /// @param buffer_size The total number of bytes available for the @c PacketHeader
   ///   and its paylaod. Must be at least @c sizeof(PacketHeader), or all writing
   ///   will fail.
-  /// @param routingId Optionlly sets the @c routing_id member of the packet.
-  PacketWriter(uint8_t *buffer, uint16_t bufferSize, uint16_t routingId = 0, uint16_t messageId = 0);
+  /// @param routing_id Optionlly sets the @c routing_id member of the packet.
+  PacketWriter(uint8_t *buffer, uint16_t buffer_size, uint16_t routing_id = 0,
+               uint16_t message_id = 0);
 
   /// Copy constructor. Simple as neither writer owns the underlying memory.
   /// Both point to the same underlying memory, but only one should be used.
@@ -68,7 +70,7 @@ public:
 
   /// Move constructor.
   /// @param other The packet to move.
-  PacketWriter(PacketWriter &&other);
+  PacketWriter(PacketWriter &&other) noexcept;
 
   /// Destructor, ensuring the CRC is calculated.
   ~PacketWriter();
@@ -80,35 +82,35 @@ public:
 
   void swap(PacketWriter &other);
 
-  friend inline void swap(PacketWriter &a, PacketWriter &b) { a.swap(b); }
+  friend inline void swap(PacketWriter &first, PacketWriter &second) { first.swap(second); }
 
   /// Resets the packet, clearing out all variable data including the payload, crc and routing id.
   /// Allows preparation for writing new data to the same payload buffer.
   ///
-  /// @param routingId Optional specification for the @c routingId after reset.
-  void reset(uint16_t routingId, uint16_t messageId);
+  /// @param routing_id Optional specification for the @c routing_id after reset.
+  void reset(uint16_t routing_id, uint16_t message_id);
 
   /// @overload
   inline void reset() { reset(0, 0); }
 
-  void setRoutingId(uint16_t routingId);
-  PacketHeader &packet() const;
+  void setRoutingId(uint16_t routing_id);
+  [[nodiscard]] PacketHeader &packet() const;
 
-  const uint8_t *data() const;
+  [[nodiscard]] const uint8_t *data() const;
 
-  uint8_t *payload();
+  [[nodiscard]] uint8_t *payload();
 
-  inline void invalidateCrc() { _status = uint16_t(_status & ~CrcValid); }
+  inline void invalidateCrc() { _status = static_cast<uint16_t>(_status & ~CrcValid); }
 
   /// Returns the number of bytes remaining available in the payload.
   /// This is calculated as the @c maxPayloadSize() - @c payloadSize().
   /// @return Number of bytes remaining available for write.
-  uint16_t bytesRemaining() const;
+  [[nodiscard]] uint16_t bytesRemaining() const;
 
   /// Returns the size of the payload buffer. This is the maximum number of bytes
   /// which can be written to the payload.
   /// @return The payload buffer size (bytes).
-  uint16_t maxPayloadSize() const;
+  [[nodiscard]] uint16_t maxPayloadSize() const;
 
   /// Finalises the packet for sending, calculating the CRC.
   /// @return True if the packet is valid and ready for sending.
@@ -123,16 +125,16 @@ public:
   CrcType calculateCrc();
 
   /// Writes a single data element from the current position. This assumes that
-  /// a single data element of size @p elementSize is being write and may require
+  /// a single data element of size @p element_size is being write and may require
   /// an endian swap to the current platform endian.
   ///
-  /// The writer position is advanced by @p elementSize. Does not set the
+  /// The writer position is advanced by @p element_size. Does not set the
   /// @c Fail bit on failure.
   ///
   /// @param bytes Location to write from.
-  /// @param elementSize Size of the data item being write at @p bytes.
-  /// @return @p elementSize on success, 0 otherwise.
-  size_t writeElement(const uint8_t *bytes, size_t elementSize);
+  /// @param element_size Size of the data item being write at @p bytes.
+  /// @return @p element_size on success, 0 otherwise.
+  size_t writeElement(const uint8_t *bytes, size_t element_size);
 
   /// Writes an array of data items from the current position. This makes the
   /// same assumptions as @c writeElement() and performs an endian swap per
@@ -143,22 +145,22 @@ public:
   /// Does not set the @c Fail bit on failure.
   ///
   /// @param bytes Location to write from.
-  /// @param elementSize Size of a single array element to write.
-  /// @param elementCount The number of elements to attempt to write.
+  /// @param element_size Size of a single array element to write.
+  /// @param element_count The number of elements to attempt to write.
   /// @return On success returns the number of elements written, not bytes.
-  size_t writeArray(const uint8_t *bytes, size_t elementSize, size_t elementCount);
+  size_t writeArray(const uint8_t *bytes, size_t element_size, size_t element_count);
 
-  /// Writes raw bytes from the packet at the current position up to @p byteCount.
+  /// Writes raw bytes from the packet at the current position up to @p byte_count.
   /// No endian swap is performed on the data write.
   ///
-  /// The writer position is advanced by @p byteCount.
+  /// The writer position is advanced by @p byte_count.
   /// Does not set the @c Fail bit on failure.
   ///
   /// @param bytes Location to write into.
-  /// @aparam byteCount Number of bytes to write.
-  /// @return The number of bytes write. This may be less than @p byteCount if there
+  /// @aparam byte_count Number of bytes to write.
+  /// @return The number of bytes write. This may be less than @p byte_count if there
   ///   are insufficient data available.
-  size_t writeRaw(const uint8_t *bytes, size_t byteCount);
+  size_t writeRaw(const uint8_t *bytes, size_t byte_count);
 
   /// Writes a single data item from the packet. This writes a number of bytes
   /// equal to @c sizeof(T) performing an endian swap if necessary.
@@ -168,7 +170,7 @@ public:
   size_t writeElement(const T &element);
 
   template <typename T>
-  size_t writeArray(const T *elements, size_t elementCount);
+  size_t writeArray(const T *elements, size_t element_count);
 
   template <typename T>
   PacketWriter &operator>>(T &val);
@@ -177,12 +179,12 @@ protected:
   uint8_t *payloadWritePtr();
   void incrementPayloadSize(size_t inc);
 
-  uint16_t _bufferSize;
+  uint16_t _buffer_size = 0;
 };
 
-inline void PacketWriter::setRoutingId(uint16_t routingId)
+inline void PacketWriter::setRoutingId(uint16_t routing_id)
 {
-  _packet->routing_id = routingId;
+  _packet->routing_id = routing_id;
 }
 
 inline PacketHeader &PacketWriter::packet() const
@@ -207,9 +209,9 @@ inline size_t PacketWriter::writeElement(const T &element)
 }
 
 template <typename T>
-inline size_t PacketWriter::writeArray(const T *elements, size_t elementCount)
+inline size_t PacketWriter::writeArray(const T *elements, size_t element_count)
 {
-  return writeArray(reinterpret_cast<const uint8_t *>(elements), sizeof(T), elementCount);
+  return writeArray(reinterpret_cast<const uint8_t *>(elements), sizeof(T), element_count);
 }
 
 
@@ -224,7 +226,7 @@ inline PacketWriter &PacketWriter::operator>>(T &val)
 
 inline uint8_t *PacketWriter::payloadWritePtr()
 {
-  return payload() + _payloadPosition;
+  return payload() + _payload_position;
 }
 }  // namespace tes
 

@@ -18,7 +18,7 @@ extern const uint16_t TES_CORE_API kPacketVersionMajor;
 extern const uint16_t TES_CORE_API kPacketVersionMinor;
 
 /// Flag values for @c PacketHeader objects.
-enum PacketFlag
+enum PacketFlag : unsigned
 {
   /// Marks a @c PacketHeader as missing its 16-bit CRC.
   PFNoCrc = (1u << 0u),
