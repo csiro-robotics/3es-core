@@ -136,21 +136,26 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
     }
     break;
 
-  case MmtVertexColour:
+  case MmtVertexColour: {
+    unsigned expected_component_count = 1;
     dataSource = colours(0);
     switch (dataSource.type())
     {
     case DctUInt32:
+      expected_component_count = 1;
+      break;
+    case DctUInt8:
+      expected_component_count = 4;
       break;
     default:
       TES_THROW(Exception("Bad vertex colour type", __FILE__, __LINE__), -1);
     }
-    if (dataSource.componentCount() != 1)
+    if (dataSource.componentCount() != expected_component_count)
     {
       TES_THROW(Exception("Bad vertex colour component count", __FILE__, __LINE__), -1);
     }
     break;
-
+  }
   case MmtIndex:
     dataSource = indices(0);
     switch (dataSource.type())
@@ -279,6 +284,17 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
   ok = packet.readElement(offset) == sizeof(offset) && ok;
   ok = packet.readElement(count) == sizeof(count) && ok;
 
+  // If we need to peek the stream data type and component count we can do by invoking
+  // peek_stream_info(). On success, component_count and packet_type will be valid.
+  std::array<uint8_t, 2> component_count_and_packet_type;
+  uint8_t &component_count = component_count_and_packet_type[0];
+  uint8_t &packet_type = component_count_and_packet_type[1];
+  const auto peek_stream_info = [&packet, &component_count_and_packet_type] {
+    return packet.peek(component_count_and_packet_type.data(),
+                       component_count_and_packet_type.size(),
+                       false) == sizeof(component_count_and_packet_type);
+  };
+
   switch (messageType)
   {
   case MmtVertex: {
@@ -289,14 +305,16 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
     break;
   }
   case MmtIndex: {
-    readStream = DataBuffer(static_cast<uint32_t *>(nullptr), 0);
+    readStream = DataBuffer(DctUInt32);
     // Read the expected number of items.
     readStream.read(packet, 0, count);
     ok = processIndices(msg, offset, readStream) && ok;
     break;
   }
   case MmtVertexColour: {
-    readStream = DataBuffer(static_cast<uint8_t *>(nullptr), 0, 4);
+    // Peek stream info. We may have uint32_t or uint8_t streams.
+    ok = peek_stream_info() && ok;
+    readStream = DataBuffer(static_cast<DataStreamType>(packet_type), component_count);
     // Read the expected number of items.
     readStream.read(packet, 0, count);
     ok = processColours(msg, offset, readStream) && ok;
@@ -310,7 +328,7 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
     break;
   }
   case MmtUv: {
-    readStream = DataBuffer(static_cast<double *>(nullptr), 0, 2);
+    readStream = DataBuffer(DctFloat64, 2);
     // Read the expected number of items.
     readStream.read(packet, 0, count);
     ok = processUVs(msg, offset, readStream) && ok;

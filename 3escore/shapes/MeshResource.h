@@ -92,7 +92,8 @@ public:
   ///
   /// @param stream Reserved for future use.
   /// @return A @c DataBuffer wrapper around the vertex colour memory. Must be of type @c DctUInt32
-  /// .
+  /// with 1 component per element or @c DctUInt8 with 4 components (RGBA) per element.
+  ///
   /// @todo Investigate supporting @c Vector4 based colours.
   virtual DataBuffer colours(int stream = 0) const = 0;
 
@@ -135,12 +136,13 @@ protected:
                               const DataBuffer &stream);
   /// Process colour stream update.
   ///
-  /// The @p stream is a @c uint8_t stream with 4 channels per element.
+  /// The @p stream may be a @c uint32_t stream, component per element, or a @c uint8_t stream with
+  /// 4 components per element.
   ///
-  /// @param msg
-  /// @param offset
-  /// @param stream
-  /// @return
+  /// @param msg The component message details.
+  /// @param offset Index offset to read data into.
+  /// @param stream The data buffer to read from.
+  /// @return True on successfully processing the colours.
   virtual bool processColours(const MeshComponentMessage &msg, unsigned offset,
                               const DataBuffer &stream);
   virtual bool processNormals(const MeshComponentMessage &msg, unsigned offset,

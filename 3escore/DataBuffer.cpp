@@ -49,14 +49,15 @@ DataBuffer &DataBuffer::duplicate()
 }
 
 
-unsigned DataBuffer::write(PacketWriter &packet, uint32_t offset, unsigned byteLimit, uint32_t receiveOffset) const
+unsigned DataBuffer::write(PacketWriter &packet, uint32_t offset, unsigned byteLimit,
+                           uint32_t receiveOffset) const
 {
   return _affordances->write(packet, offset, type(), byteLimit, receiveOffset, *this);
 }
 
 
-unsigned DataBuffer::writePacked(PacketWriter &packet, uint32_t offset, double quantisation_unit, unsigned byteLimit,
-                                 uint32_t receiveOffset) const
+unsigned DataBuffer::writePacked(PacketWriter &packet, uint32_t offset, double quantisation_unit,
+                                 unsigned byteLimit, uint32_t receiveOffset) const
 {
   DataStreamType packed_type = type();
   switch (packed_type)
@@ -70,7 +71,8 @@ unsigned DataBuffer::writePacked(PacketWriter &packet, uint32_t offset, double q
   default:
     break;
   }
-  return _affordances->write(packet, offset, packed_type, byteLimit, receiveOffset, *this, quantisation_unit);
+  return _affordances->write(packet, offset, packed_type, byteLimit, receiveOffset, *this,
+                             quantisation_unit);
 }
 
 

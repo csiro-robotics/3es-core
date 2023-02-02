@@ -65,6 +65,10 @@ public:
   /// @param alpha Alpha channel value [0, 255].
   explicit Colour(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255u) noexcept;
 
+  /// Intantiate from a @c uint8_t array.
+  /// @param array Data array to intialise for with indexing set by @c Colour::Channel .
+  Colour(const std::array<uint8_t, 4> &array) noexcept;
+
   /// Integer based RGBA colour channel initialisation constructor.
   /// @param red Red channel value [0, 255].
   /// @param green Green channel value [0, 255].
@@ -82,18 +86,18 @@ public:
   /// Access the specified colour channel for read/write.
   /// @param channel The channel to access.
   /// @return A reference to the colour channel value.
-  uint8_t &channel(Channel channel) { return _channels[static_cast<int>(channel)]; }
+  uint8_t &channel(Channel channel) { return _storage[static_cast<int>(channel)]; }
   /// Access the specified colour channel for read-only.
   /// @param channel The channel to access.
   /// @return The colour channel value.
   [[nodiscard]] uint8_t channel(Channel channel) const
   {
-    return _channels[static_cast<int>(channel)];
+    return _storage[static_cast<int>(channel)];
   }
 
   /// Return the internal data storage. Used for buffer packing and network transfer.
   /// @return The internal array.
-  const std::array<uint8_t, 4> &storage() const { return _channels; }
+  const std::array<uint8_t, 4> &storage() const { return _storage; }
 
   /// Access the red colour channel for read/write.
   /// @return A reference to the red colour channel.
@@ -262,6 +266,37 @@ public:
   /// @param value The colour value [0, 1].
   static void hsvToRgb(uint8_t &red, uint8_t &green, uint8_t &blue, float hue, float saturation,
                        float value);
+
+  /// Helper for converting between @c Colour and @c uint32_t .
+  struct TES_CORE_API ConverterUInt32
+  {
+    static constexpr int RedIndex = static_cast<int>(Channel::R);
+    static constexpr int GreenIndex = static_cast<int>(Channel::G);
+    static constexpr int BlueIndex = static_cast<int>(Channel::B);
+    static constexpr int AlphaIndex = static_cast<int>(Channel::A);
+#if TES_IS_BIG_ENDIAN
+    static constexpr int RedShift =
+      (static_cast<int>(Channel::R) * static_cast<int>(sizeof(uint8_t))) * 8;
+    static constexpr int GreenShift =
+      (static_cast<int>(Channel::G) * static_cast<int>(sizeof(uint8_t))) * 8;
+    static constexpr int BlueShift =
+      (static_cast<int>(Channel::B) * static_cast<int>(sizeof(uint8_t))) * 8;
+    static constexpr int AlphaShift =
+      (static_cast<int>(Channel::A) * static_cast<int>(sizeof(uint8_t))) * 8;
+#else   // TES_IS_BIG_ENDIAN
+    static constexpr int RedShift =
+      (3 - static_cast<int>(Channel::R) * static_cast<int>(sizeof(uint8_t))) * 8;
+    static constexpr int GreenShift =
+      (3 - static_cast<int>(Channel::G) * static_cast<int>(sizeof(uint8_t))) * 8;
+    static constexpr int BlueShift =
+      (3 - static_cast<int>(Channel::B) * static_cast<int>(sizeof(uint8_t))) * 8;
+    static constexpr int AlphaShift =
+      (3 - static_cast<int>(Channel::A) * static_cast<int>(sizeof(uint8_t))) * 8;
+#endif  // TES_IS_BIG_ENDIAN
+
+    uint32_t operator()(const std::array<uint8_t, 4> &storage) const;
+    void operator()(uint32_t colour, std::array<uint8_t, 4> &storage) const;
+  };
 
   /// Enumerates a set of predefined colours ("web safe" colours).
   enum NamedColour : unsigned
@@ -432,7 +467,7 @@ public:
   };
 
 private:
-  std::array<uint8_t, 4> _channels;
+  std::array<uint8_t, 4> _storage;
 };
 
 
@@ -453,6 +488,8 @@ public:
   /// @see @c colourCycle()
   enum PredefinedSet : unsigned
   {
+    /// Full web safe colour set.
+    WebSafe,
     /// Standard colour set.
     Standard,
     /// A colour set which attempts to cater for Deuteranomaly colour blindness.
@@ -541,38 +578,20 @@ inline Colour operator"" _rgb(unsigned long long colour_value)
 
 inline Colour::Colour(uint32_t colour_value) noexcept
 {
-  const auto ridx = static_cast<int>(Channel::R);
-  const auto gidx = static_cast<int>(Channel::G);
-  const auto bidx = static_cast<int>(Channel::B);
-  const auto aidx = static_cast<int>(Channel::A);
-#if TES_IS_BIG_ENDIAN
-  const auto rshift = static_cast<int>(Channel::R);
-  const auto gshift = static_cast<int>(Channel::R);
-  const auto bshift = static_cast<int>(Channel::R);
-  const auto ashift = static_cast<int>(Channel::R);
-#else   // TES_IS_BIG_ENDIAN
-  const auto rshift = 3 - static_cast<int>(Channel::R);
-  const auto gshift = 3 - static_cast<int>(Channel::G);
-  const auto bshift = 3 - static_cast<int>(Channel::B);
-  const auto ashift = 3 - static_cast<int>(Channel::A);
-#endif  // TES_IS_BIG_ENDIAN
-  _channels[ridx] = ((colour_value >> (rshift * sizeof(uint8_t))) & 0xffu);
-  _channels[gidx] = ((colour_value >> (gshift * sizeof(uint8_t))) & 0xffu);
-  _channels[bidx] = ((colour_value >> (bshift * sizeof(uint8_t))) & 0xffu);
-  _channels[aidx] = ((colour_value >> (ashift * sizeof(uint8_t))) & 0xffu);
+  ConverterUInt32()(colour_value, _storage);
 }
 
 
 inline Colour::Colour(const Colour &other) noexcept
 {
-  std::copy(other._channels.begin(), other._channels.end(), _channels.begin());
+  std::copy(other._storage.begin(), other._storage.end(), _storage.begin());
 }
 
 
 inline Colour::Colour(const Colour &other, uint8_t alpha) noexcept
   : Colour(other)
 {
-  _channels[static_cast<int>(Channel::A)] = alpha;
+  _storage[static_cast<int>(Channel::A)] = alpha;
 }
 
 
@@ -597,6 +616,11 @@ inline Colour::Colour(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha) n
 }
 
 
+inline Colour::Colour(const std::array<uint8_t, 4> &array) noexcept
+  : _storage(array)
+{}
+
+
 inline Colour::Colour(int red, int green, int blue, int alpha) noexcept
   : Colour(static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue),
            static_cast<uint8_t>(alpha))
@@ -613,25 +637,7 @@ inline Colour::Colour(float red, float green, float blue, float alpha) noexcept
 
 inline uint32_t Colour::colour32() const
 {
-  const auto ridx = static_cast<int>(Channel::R);
-  const auto gidx = static_cast<int>(Channel::G);
-  const auto bidx = static_cast<int>(Channel::B);
-  const auto aidx = static_cast<int>(Channel::A);
-#if TES_IS_BIG_ENDIAN
-  const auto rshift = static_cast<int>(Channel::R);
-  const auto gshift = static_cast<int>(Channel::R);
-  const auto bshift = static_cast<int>(Channel::R);
-  const auto ashift = static_cast<int>(Channel::R);
-#else   // TES_IS_BIG_ENDIAN
-  const auto rshift = 3 - static_cast<int>(Channel::R);
-  const auto gshift = 3 - static_cast<int>(Channel::G);
-  const auto bshift = 3 - static_cast<int>(Channel::B);
-  const auto ashift = 3 - static_cast<int>(Channel::A);
-#endif  // TES_IS_BIG_ENDIAN
-  return (_channels[ridx] << (rshift * sizeof(uint8_t))) |
-         (_channels[gidx] << (gshift * sizeof(uint8_t))) |
-         (_channels[bidx] << (bshift * sizeof(uint8_t))) |
-         (_channels[aidx] << (ashift * sizeof(uint8_t)));
+  return ConverterUInt32()(_storage);
 }
 
 inline float Colour::rf() const
@@ -684,13 +690,13 @@ inline void Colour::setAf(float value)
 
 inline void Colour::setf(float value, Channel channel)
 {
-  _channels[static_cast<int>(channel)] = static_cast<uint8_t>(value * 255.0f);
+  _storage[static_cast<int>(channel)] = static_cast<uint8_t>(value * 255.0f);
 }
 
 
 inline float Colour::getf(Channel channel) const
 {
-  return static_cast<float>(_channels[static_cast<int>(channel)]) / 255.0f;
+  return static_cast<float>(_storage[static_cast<int>(channel)]) / 255.0f;
 }
 
 
@@ -710,20 +716,20 @@ inline Colour Colour::adjust(float factor) const
 
 inline Colour &Colour::operator=(const Colour &other)
 {
-  std::copy(other._channels.begin(), other._channels.end(), _channels.begin());
+  std::copy(other._storage.begin(), other._storage.end(), _storage.begin());
   return *this;
 }
 
 
 inline bool Colour::operator==(const Colour &other) const
 {
-  return _channels == other._channels;
+  return _storage == other._storage;
 }
 
 
 inline bool Colour::operator!=(const Colour &other) const
 {
-  return _channels != other._channels;
+  return _storage != other._storage;
 }
 
 inline Colour operator*(const Colour &opa, const Colour &opb)
@@ -788,6 +794,23 @@ inline Colour Colour::fromHsv(float hue, float saturation, float value, float al
   float blue = {};
   Colour::hsvToRgb(red, green, blue, hue, saturation, value);
   return { red, green, blue, alpha };
+}
+
+
+inline uint32_t Colour::ConverterUInt32::operator()(const std::array<uint8_t, 4> &storage) const
+{
+  return (storage[RedIndex] << RedShift) | (storage[GreenIndex] << GreenShift) |
+         (storage[BlueIndex] << BlueShift) | (storage[AlphaIndex] << AlphaShift);
+}
+
+
+inline void Colour::ConverterUInt32::operator()(uint32_t colour,
+                                                std::array<uint8_t, 4> &storage) const
+{
+  storage[RedIndex] = (colour >> RedShift) & 0xffu;
+  storage[GreenIndex] = (colour >> GreenShift) & 0xffu;
+  storage[BlueIndex] = (colour >> BlueShift) & 0xffu;
+  storage[AlphaIndex] = (colour >> AlphaShift) & 0xffu;
 }
 }  // namespace tes
 

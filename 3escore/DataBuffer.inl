@@ -7,6 +7,65 @@ namespace tes
 inline DataBuffer::DataBuffer()
 {}
 
+
+inline DataBuffer::DataBuffer(DataStreamType type, size_t componentCount, size_t componentStride)
+  : _stream(nullptr)
+  , _count(0)
+  , _componentCount(int_cast<uint8_t>(componentCount))
+  , _elementStride(int_cast<uint8_t>(componentStride ? componentStride : componentCount))
+  , _type(type)
+  , _flags((type != DctNone) ? Flag::OwnPointer : Flag::Zero)
+{
+  switch (type)
+  {
+  case DctNone:
+  case DctPackedFloat16:
+  case DctPackedFloat32:
+    _componentCount = _elementStride = 0;
+    break;
+  case DctInt8:
+    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int8_t>::size());
+    _affordances = detail::DataBufferAffordancesT<int8_t>::instance();
+    break;
+  case DctUInt8:
+    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint8_t>::size());
+    _affordances = detail::DataBufferAffordancesT<uint8_t>::instance();
+    break;
+  case DctInt16:
+    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int16_t>::size());
+    _affordances = detail::DataBufferAffordancesT<int16_t>::instance();
+    break;
+  case DctUInt16:
+    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint16_t>::size());
+    _affordances = detail::DataBufferAffordancesT<uint16_t>::instance();
+    break;
+  case DctInt32:
+    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int32_t>::size());
+    _affordances = detail::DataBufferAffordancesT<int32_t>::instance();
+    break;
+  case DctUInt32:
+    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint32_t>::size());
+    _affordances = detail::DataBufferAffordancesT<uint32_t>::instance();
+    break;
+  case DctInt64:
+    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int64_t>::size());
+    _affordances = detail::DataBufferAffordancesT<int64_t>::instance();
+    break;
+  case DctUInt64:
+    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint64_t>::size());
+    _affordances = detail::DataBufferAffordancesT<uint64_t>::instance();
+    break;
+  case DctFloat32:
+    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<float>::size());
+    _affordances = detail::DataBufferAffordancesT<float>::instance();
+    break;
+  case DctFloat64:
+    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<double>::size());
+    _affordances = detail::DataBufferAffordancesT<double>::instance();
+    break;
+  }
+}
+
 template <typename T>
 inline DataBuffer::DataBuffer(const T *v, size_t count, size_t componentCount,
                               size_t componentStride, bool ownPointer)
@@ -53,7 +112,7 @@ inline DataBuffer::DataBuffer(const Colour *c, size_t count)
   , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint8_t>::size()))
   , _type(DctUInt8)
   , _flags(0)
-  , _affordances(detail::DataBufferAffordancesT<uint32_t>::instance())
+  , _affordances(detail::DataBufferAffordancesT<uint8_t>::instance())
 {}
 
 
@@ -100,7 +159,7 @@ inline DataBuffer::DataBuffer(const std::vector<Colour> &c)
   , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint8_t>::size()))
   , _type(DctUInt8)
   , _flags(0)
-  , _affordances(detail::DataBufferAffordancesT<uint32_t>::instance())
+  , _affordances(detail::DataBufferAffordancesT<uint8_t>::instance())
 {}
 
 inline DataBuffer::DataBuffer(DataBuffer &&other)
@@ -537,8 +596,8 @@ uint32_t DataBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr
   T *new_ptr = nullptr;
   if (*stream_ptr == nullptr || !*has_ownership || *stream_size < (offset + count))
   {
-    // Current stream too small. Reallocate.
-    new_ptr = new T[(offset + count) * componentCount];
+    // Current stream too small. Reallocate. Note we allocate with the stream's component count.
+    new_ptr = new T[(offset + count) * stream.componentCount()];
   }
 
   if (new_ptr)
@@ -557,6 +616,8 @@ uint32_t DataBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr
     *has_ownership = true;
   }
 
+  // We can only read what's available and what we have capacity for. Minimise the component count
+  componentCount = std::min(componentCount, static_cast<uint8_t>(stream.componentCount()));
   switch (packetType)
   {
   case DctInt8:

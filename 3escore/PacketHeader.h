@@ -21,7 +21,13 @@ extern const uint16_t TES_CORE_API PacketVersionMinor;
 enum PacketFlag
 {
   /// Marks a @c PacketHeader as missing its 16-bit CRC.
-  PF_NoCrc = (1 << 0)
+  PF_NoCrc = (1u << 0u),
+  // /// Indicates that the platform which wrote this data was big endian. In most cases this is
+  // /// irrelevant as data items are generally written to big endian format. However, in some cases
+  // /// the write operation may not be able to change to network endian form, in which case this
+  // flag
+  // /// indicates the source data endian format.
+  // PF_PlatformBigEndian = (1u << 1u),
 };
 
 /// The header for an incoming 3ES data packet. All packet data, including payload

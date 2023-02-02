@@ -594,22 +594,36 @@ bool SimpleMesh::processColours(const MeshComponentMessage &msg, unsigned offset
                                 const DataBuffer &stream)
 {
   TES_UNUSED(msg);
-  copyOnWrite();
-  unsigned wrote = 0;
-  if (_imp->colours.empty())
+  if (stream.type() == DctUInt32)
   {
-    _imp->colours.resize(_imp->vertices.size());
+    return setColours(offset, stream.ptr<uint32_t>(), stream.count()) == stream.count();
   }
 
-  for (unsigned i = 0; i + offset < _imp->colours.size() && i < stream.count(); ++i)
+  // Read RGBA byte arrays.
+  if (stream.type() == DctUInt8 && stream.componentCount() == 4)
   {
-    _imp->colours[i + offset] = tes::Colour(stream.get<uint8_t>(i, 0), stream.get<uint8_t>(i, 1),
-                                            stream.get<uint8_t>(i, 2), stream.get<uint8_t>(i, 3))
-                                  .colour32();
-    ++wrote;
+    copyOnWrite();
+    if (!(_imp->components & Colour) && vertexCount())
+    {
+      _imp->colours.resize(vertexCount());
+      _imp->components |= Colour;
+    }
+
+    std::array<uint8_t, 4> rgba;
+    for (unsigned i = 0; i < stream.count() && i + offset < vertexCount(); ++i)
+    {
+      for (unsigned j = 0; j < rgba.size(); ++j)
+      {
+        rgba[j] = stream.get<uint8_t>(i, j);
+      }
+
+      _imp->colours[i] = tes::Colour(rgba).colour32();
+    }
+
+    return stream.count() + offset <= vertexCount();
   }
 
-  return wrote == stream.count();
+  return false;
 }
 
 
