@@ -1,5 +1,6 @@
 # Run clang tidy general analysis, excluding variable naming checks.
 ---
+# readability-identifier-length disabled since I could not get the ignore expressions working.
 Checks: >
   clang-diagnostic-*,
   clang-analyzer-*,
@@ -32,6 +33,7 @@ Checks: >
   readability-*,
   -readability-implicit-bool-conversion,
   -readability-uppercase-literal-suffix,
+  -readability-identifier-length,
   hicpp-signed-bitwise
 WarningsAsErrors: ""
 HeaderFilterRegex: ".*"
@@ -162,7 +164,7 @@ CheckOptions:
   # Magic number ignore list
   # Ignore Integer powers of 2 seems a bit unreliable, so I've listed a bunch explicitly.
   - key: readability-magic-numbers.IgnoredIntegerValues
-    value: "0;1;2;3;4;5;6;7;8;9;10;100;1000;65535;4294967295"
+    value: "0;1;2;3;4;5;6;7;8;9;10;100;1000;255;65535;4294967295"
   - key: readability-magic-numbers.IgnorePowersOf2IntegerValues
     value: true
   - key: readability-magic-numbers.IgnoredFloatingPointValues
@@ -170,4 +172,4 @@ CheckOptions:
 
   # Variable naming constraints
   - key: readability-identifier-length.IgnoredVariableNames
-    value: ok
+    value: "(dt|id|ok)"

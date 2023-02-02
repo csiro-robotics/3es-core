@@ -13,7 +13,7 @@ namespace tes
 {
 /// Defines the set of feature flags.
 /// See @c checkFeature().
-enum Feature
+enum Feature : unsigned
 {
   /// Is compression is available.
   TFeatureCompression,
@@ -54,15 +54,15 @@ bool TES_CORE_API checkFeature(Feature feature);
 ///
 /// @param featureFlag The feature flag to check for.
 /// @return True if the feature is available.
-bool TES_CORE_API checkFeatureFlag(uint64_t featureFlag);
+bool TES_CORE_API checkFeatureFlag(uint64_t feature_flag);
 
 /// Check if a set of features are available. Use @c featureFlag() to convert from
 /// @c Feature to a feature flag.
 ///
-/// Only valid feature flags are checked. Always true if @p featureFlags is zero.
-/// @param featureFlags Set of features to check for.
-/// @return True if all features in @p featureFlags are available.
-bool TES_CORE_API checkFeatures(uint64_t featureFlags);
+/// Only valid feature flags are checked. Always true if @p feature_flags is zero.
+/// @param feature_flags Set of features to check for.
+/// @return True if all features in @p feature_flags are available.
+bool TES_CORE_API checkFeatures(uint64_t feature_flags);
 }  // namespace tes
 
 #endif  // TES_CORE_FEATURE_H

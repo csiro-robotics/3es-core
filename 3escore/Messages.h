@@ -113,7 +113,7 @@ enum ObjectMessageId
 };
 
 /// Flags controlling the creation and appearance of an object.
-enum ObjectFlag
+enum ObjectFlag : unsigned
 {
   OFNone = 0,  ///< No flags. Default appearance.
   /// Indicates @c ObjectAttributes is in double precision.
@@ -173,7 +173,7 @@ enum MeshShapeFlag
 };
 
 /// Flags controlling the creation and appearance of an object.
-enum UpdateFlag
+enum UpdateFlag : unsigned
 {
   // NOLINTBEGIN(hicpp-signed-bitwise)
   UFUpdateMode =

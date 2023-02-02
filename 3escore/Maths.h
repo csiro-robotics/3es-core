@@ -7,8 +7,8 @@
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 #endif  // _USE_MATH_DEFINES
-#include <cmath>
 #include <cinttypes>
+#include <cmath>
 
 namespace tes
 {
@@ -40,11 +40,11 @@ inline T radToDeg(const T &angle = T(1))
 inline uint32_t nextLog2(uint32_t value)
 {
   value--;
-  value |= value >> 1;
-  value |= value >> 2;
-  value |= value >> 4;
-  value |= value >> 8;
-  value |= value >> 16;
+  value |= value >> 1u;
+  value |= value >> 2u;
+  value |= value >> 4u;
+  value |= value >> 8u;
+  value |= value >> 16u;
   value++;
   return value;
 }
@@ -54,12 +54,12 @@ inline uint32_t nextLog2(uint32_t value)
 inline uint64_t nextLog2(uint64_t value)
 {
   value--;
-  value |= value >> 1;
-  value |= value >> 2;
-  value |= value >> 4;
-  value |= value >> 8;
-  value |= value >> 16;
-  value |= value >> 32;
+  value |= value >> 1u;
+  value |= value >> 2u;
+  value |= value >> 4u;
+  value |= value >> 8u;
+  value |= value >> 16u;
+  value |= value >> 32u;
   value++;
   return value;
 }

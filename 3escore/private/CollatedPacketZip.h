@@ -6,6 +6,8 @@
 
 #include <3escore/CompressionLevel.h>
 
+#include <array>
+
 #ifdef TES_ZLIB
 #include <cstring>
 
@@ -14,7 +16,7 @@
 
 namespace tes
 {
-extern const int TesToGZipCompressionLevel[CL_Levels];
+extern const std::array<int, ClLevels> kTesToGZipCompressionLevel;
 
 struct CollatedPacketZip
 {
@@ -24,13 +26,13 @@ struct CollatedPacketZip
   static const int DefaultCompressionLevel;
 
   /// ZLib stream.
-  z_stream stream;
-  bool inflateMode;
+  z_stream stream = {};
+  bool inflate_mode = false;
 
   inline CollatedPacketZip(bool inflate)
   {
     memset(&stream, 0, sizeof(stream));
-    inflateMode = inflate;
+    inflate_mode = inflate;
   }
 
   inline ~CollatedPacketZip() { reset(); }
@@ -38,7 +40,7 @@ struct CollatedPacketZip
   inline void reset()
   {
     // Ensure clean up
-    if (!inflateMode)
+    if (!inflate_mode)
     {
       if (stream.total_out)
       {

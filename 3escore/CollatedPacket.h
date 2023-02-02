@@ -7,6 +7,7 @@
 #include "CoreConfig.h"
 
 //
+#include "CompressionLevel.h"
 #include "Connection.h"
 #include "PacketHeader.h"
 
@@ -59,35 +60,36 @@ public:
   /// This is the sum of @p PacketHeader, @c CollatedPacketMessage.
   static const unsigned InitialCursorOffset;
   /// The default packet size limit for a @c CollatedPacketMessage.
-  static const uint16_t MaxPacketSize;
+  static constexpr uint16_t kMaxPacketSize = static_cast<uint16_t>(~0u);
+  /// The default buffer size.
+  static constexpr uint16_t kDefaultBufferSize = 0xff00u;
 
-public:
   /// Initialise a collated packet. This sets the initial packet size limited
-  /// by @c MaxPacketSize, and compression options.
+  /// by @c kMaxPacketSize, and compression options.
   ///
   /// @param compress True to compress data as written.
-  /// @param bufferSize The initial bufferSize
+  /// @param buffer_size The initial buffer_size
   /// @bug Specifying a buffer size too close to 0xffff (even correctly accounting for
   ///   the expected overhead) results in dropped packets despite the network layer
   ///   not reporting errors. Likely I'm missing some overhead detail. For now, use
   ///   a lower packet size.
-  CollatedPacket(bool compress, uint16_t bufferSize = 0xff00u);
+  CollatedPacket(bool compress, uint16_t buffer_size = kDefaultBufferSize);
 
-  /// Initialise a collated packet allowing packet sizes large than @p MaxPacketSize.
+  /// Initialise a collated packet allowing packet sizes large than @p kMaxPacketSize.
   /// This is intended for collating messages to be send as a group in a thread-safe
   /// fashion. The maximum packet size may exceed the normal send limit. As such
   /// compression is not allowed to better support splitting.
   ///
-  /// @param bufferSize The initial bufferSize
-  /// @param maxPacketSize The maximum packet size.
-  CollatedPacket(unsigned bufferSize, unsigned maxPacketSize);
+  /// @param buffer_size The initial buffer_size
+  /// @param max_packet_size The maximum packet size.
+  CollatedPacket(unsigned buffer_size, unsigned max_packet_size);
 
   /// Destructor.
-  ~CollatedPacket();
+  ~CollatedPacket() override;
 
   /// Is compression enabled. Required ZLIB.
   /// @return True if compression is enabled.
-  bool compressionEnabled() const;
+  [[nodiscard]] bool compressionEnabled() const;
 
   /// Set the target compression level. Rejected if @p level is out of range of @c CompressionLevel.
   /// May be set even if compression is not enabled, but will have no effect.
@@ -96,7 +98,7 @@ public:
 
   /// Get the target compression level.
   /// @return The current compression level @c CompressionLevel.
-  int compressionLevel() const;
+  [[nodiscard]] int compressionLevel() const;
 
   /// Return the capacity of the collated packet.
   ///
@@ -106,7 +108,7 @@ public:
   /// See that constructor and class notes for details.
   ///
   /// @return The maximum packet capacity or 0xffffffffu if the packet size is variable.
-  unsigned maxPacketSize() const;
+  [[nodiscard]] unsigned maxPacketSize() const;
 
   /// Reset the collated packet, dropping any existing data.
   void reset();
@@ -125,9 +127,9 @@ public:
   /// Add bytes to the packet. Use with care as the @p buffer should always
   /// start with a valid @c PacketHeader in network byte order.
   /// @param buffer The data to add.
-  /// @param byteCount The number of bytes in @p buffer.
+  /// @param byte_count The number of bytes in @p buffer.
   /// @return The <tt>packet.packetSize()</tt> on success, or -1 on failure.
-  int add(const uint8_t *buffer, uint16_t byteCount);
+  int add(const uint8_t *buffer, uint16_t byte_count);
 
   /// Finalises the collated packet for sending. This includes completing
   /// compression and calculating the CRC.
@@ -135,19 +137,19 @@ public:
   bool finalise();
 
   /// Access the internal buffer pointer.
-  /// @param[out] byteCount Set to the number of used bytes in the collated buffer, including
+  /// @param[out] byte_count Set to the number of used bytes in the collated buffer, including
   ///     the CRC when the packet has been finalised.
   /// @return The internal buffer pointer.
-  const uint8_t *buffer(unsigned &byteCount) const;
+  [[nodiscard]] const uint8_t *buffer(unsigned &byte_count) const;
 
   /// Return the number of bytes that have been collated. This excludes the @c PacketHeader
   /// and @c CollatedPacketMessage, but will include the CRC once finalised.
-  unsigned collatedBytes() const;
+  [[nodiscard]] unsigned collatedBytes() const;
 
-  /// Return the number of bytes available in the collated packet. This considers @c collatedBytes() so far and the
-  /// packet @c Overhead with respect to @c maxPacketSize().
+  /// Return the number of bytes available in the collated packet. This considers @c collatedBytes()
+  /// so far and the packet @c Overhead with respect to @c maxPacketSize().
   /// @return The number of byte which can be written to the packet before it is full.
-  unsigned availableBytes() const;
+  [[nodiscard]] unsigned availableBytes() const;
 
   //-------------------------------------------
   // Connection methods.
@@ -162,19 +164,19 @@ public:
 
   /// Check if currently active.
   /// @return True while active.
-  bool active() const override;
+  [[nodiscard]] bool active() const override;
 
   /// Identifies the collated packet.
   /// @return Always "CollatedPacket".
-  const char *address() const override;
+  [[nodiscard]] const char *address() const override;
 
   /// Not supported.
   /// @return Zero.
-  uint16_t port() const override;
+  [[nodiscard]] uint16_t port() const override;
 
   /// Always connected.
   /// @return True.
-  bool isConnected() const override;
+  [[nodiscard]] bool isConnected() const override;
 
   /// Collated the create message for @p shape.
   /// @param shape The shape of interest.
@@ -192,14 +194,14 @@ public:
   int update(const Shape &shape) override;
 
   /// Not supported.
-  /// @param byteLimit Ignored.
+  /// @param byte_limit Ignored.
   /// @return -1.
-  int updateTransfers(unsigned byteLimit) override;
+  int updateTransfers(unsigned byte_limit) override;
 
   /// Not supported.
   /// @param dt Ignored.
   /// @param flush Ignored.
-  int updateFrame(float dt, bool flush = true) override;
+  int updateFrame(float dt, bool flush) override;
 
   /// Not supported.
   /// @return 0;
@@ -216,40 +218,41 @@ public:
 
   /// Add data from @c packet.
   /// @param packet Data to add. Must be finalised.
-  /// @param allowCollation Ignored.
-  int send(const PacketWriter &packet, bool allowCollation = false) override;
+  /// @param allow_collation Ignored.
+  int send(const PacketWriter &packet, bool allow_collation) override;
 
   /// Aliased to @p add().
   /// @param buffer The data to add.
-  /// @param byteCount The number of bytes in @p buffer.
-  /// @param allowCollation Ignored in this context.
+  /// @param byte_count The number of bytes in @p buffer.
+  /// @param allow_collation Ignored in this context.
   /// @return The <tt>packet.packetSize()</tt> on success, or -1 on failure.
-  int send(const uint8_t *data, int byteCount, bool allowCollation = true) override;
+  int send(const uint8_t *data, int byte_count, bool allow_collation) override;
 
 private:
   /// Initialise the buffer.
   /// @param compress Enable compression?
-  /// @param bufferSize Initial buffer size.
-  /// @param maxPacketSize Maximum buffer size.
-  void init(bool compress, unsigned bufferSize, unsigned maxPacketSize);
+  /// @param buffer_size Initial buffer size.
+  /// @param max_packet_size Maximum buffer size.
+  void init(bool compress, unsigned buffer_size, unsigned max_packet_size);
 
-  /// Expand the internal buffer size by @p expandBy bytes up to @c maxPacketSize().
-  /// @param expandBy Minimum number of bytes to expand by.
-  static void expand(unsigned expandBy, uint8_t *&buffer, unsigned &bufferSize, unsigned currentDataCount,
-                     unsigned maxPacketSize);
+  /// Expand the internal buffer size by @p expand_by bytes up to @c maxPacketSize().
+  /// @param expand_by Minimum number of bytes to expand by.
+  static void expand(unsigned expand_by, uint8_t *&buffer, unsigned &buffer_size,
+                     unsigned current_data_count, unsigned max_packet_size);
 
-  CollatedPacketZip *_zip;  ///< Present and used when compression is enabled.
-  uint8_t *_buffer;         ///< Internal buffer.
-  /// Buffer used to finalise collation. Deflating may not be successful, so we can try and fail with this buffer.
-  uint8_t *_finalBuffer;
-  unsigned _bufferSize;              ///< current size of @c _buffer.
-  unsigned _finalBufferSize;         ///< current size of @c _finalBuffer.
-  unsigned _finalPacketCursor;       ///< End of data in @c _finalBuffer
-  unsigned _cursor;                  ///< Current write position in @c _buffer.
-  unsigned _maxPacketSize;           ///< Maximum @p _bufferSize.
-  unsigned short _compressionLevel;  ///< @c CompressionLevel
-  bool _finalised;                   ///< Finalisation flag.
-  bool _active;                      ///< For @c Connection::active().
+  CollatedPacketZip *_zip = nullptr;  ///< Present and used when compression is enabled.
+  uint8_t *_buffer = nullptr;         ///< Internal buffer.
+  /// Buffer used to finalise collation. Deflating may not be successful, so we can try and fail
+  /// with this buffer.
+  uint8_t *_final_buffer = nullptr;
+  unsigned _buffer_size = 0;                ///< current size of @c _buffer.
+  unsigned _final_buffer_size = 0;          ///< current size of @c _final_buffer.
+  unsigned _final_packet_cursor = 0;        ///< End of data in @c _final_buffer
+  unsigned _cursor = 0;                     ///< Current write position in @c _buffer.
+  unsigned _max_packet_size = 0;            ///< Maximum @p _buffer_size.
+  uint16_t _compression_level = ClDefault;  ///< @c CompressionLevel
+  bool _finalised = false;                  ///< Finalisation flag.
+  bool _active = false;                     ///< For @c Connection::active().
 };
 
 
@@ -261,7 +264,7 @@ inline bool CollatedPacket::compressionEnabled() const
 
 inline unsigned CollatedPacket::maxPacketSize() const
 {
-  return _maxPacketSize;
+  return _max_packet_size;
 }
 
 
@@ -272,8 +275,8 @@ inline unsigned CollatedPacket::collatedBytes() const
 
 inline unsigned CollatedPacket::availableBytes() const
 {
-  const unsigned used = collatedBytes() + unsigned(Overhead);
-  return (_maxPacketSize >= used) ? _maxPacketSize - used : 0;
+  const unsigned used = collatedBytes() + static_cast<unsigned>(Overhead);
+  return (_max_packet_size >= used) ? _max_packet_size - used : 0;
 }
 }  // namespace tes
 

@@ -7,8 +7,8 @@
 
 #include <cstdio>
 
-using namespace tes;
-
+namespace tes
+{
 void Shape::updateFrom(const Shape &other)
 {
   _attributes = other._attributes;
@@ -24,20 +24,20 @@ bool Shape::writeCreate(PacketWriter &stream) const
 
 bool Shape::writeUpdate(PacketWriter &stream) const
 {
-  UpdateMessage up;
-  up.id = _data.id;
-  up.flags = _data.flags;
+  UpdateMessage update;
+  update.id = _data.id;
+  update.flags = _data.flags;
   stream.reset(routingId(), UpdateMessage::MessageId);
-  return up.write(stream, _attributes);
+  return update.write(stream, _attributes);
 }
 
 
 bool Shape::writeDestroy(PacketWriter &stream) const
 {
-  DestroyMessage dm;
-  dm.id = _data.id;
+  DestroyMessage destroy;
+  destroy.id = _data.id;
   stream.reset(routingId(), DestroyMessage::MessageId);
-  return dm.write(stream);
+  return destroy.write(stream);
 }
 
 
@@ -50,11 +50,11 @@ bool Shape::readCreate(PacketReader &stream)
 
 bool Shape::readUpdate(PacketReader &stream)
 {
-  UpdateMessage up;
+  UpdateMessage update;
   ObjectAttributesd attrs;
-  if (up.read(stream, attrs))
+  if (update.read(stream, attrs))
   {
-    if ((up.flags & UFUpdateMode) == 0)
+    if ((update.flags & UFUpdateMode) == 0)
     {
       // Full update.
       _attributes = attrs;
@@ -62,19 +62,19 @@ bool Shape::readUpdate(PacketReader &stream)
     else
     {
       // Partial update.
-      if (up.flags & UFPosition)
+      if (update.flags & UFPosition)
       {
         memcpy(_attributes.position, attrs.position, sizeof(attrs.position));
       }
-      if (up.flags & UFRotation)
+      if (update.flags & UFRotation)
       {
         memcpy(_attributes.rotation, attrs.rotation, sizeof(attrs.rotation));
       }
-      if (up.flags & UFScale)
+      if (update.flags & UFScale)
       {
         memcpy(_attributes.scale, attrs.scale, sizeof(attrs.scale));
       }
-      if (up.flags & UFColour)
+      if (update.flags & UFColour)
       {
         _attributes.colour = attrs.colour;
       }
@@ -92,18 +92,19 @@ bool Shape::readData(PacketReader &stream)
 }
 
 
-unsigned Shape::enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset) const
+unsigned Shape::enumerateResources(const Resource **resources, unsigned capacity,
+                                   unsigned fetch_offset) const
 {
   TES_UNUSED(resources);
   TES_UNUSED(capacity);
-  TES_UNUSED(fetchOffset);
+  TES_UNUSED(fetch_offset);
   return 0;
 }
 
 
 Shape *Shape::clone() const
 {
-  Shape *copy = new Shape(_routingId);
+  auto *copy = new Shape(_routing_id);
   onClone(copy);
   return copy;
 }
@@ -114,3 +115,4 @@ void Shape::onClone(Shape *copy) const
   copy->_data = _data;
   copy->_attributes = _attributes;
 }
+}  // namespace tes

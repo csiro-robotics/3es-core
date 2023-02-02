@@ -97,7 +97,7 @@ public:
 
   /// Return the internal data storage. Used for buffer packing and network transfer.
   /// @return The internal array.
-  const std::array<uint8_t, 4> &storage() const { return _storage; }
+  [[nodiscard]] const std::array<uint8_t, 4> &storage() const { return _storage; }
 
   /// Access the red colour channel for read/write.
   /// @return A reference to the red colour channel.
@@ -270,28 +270,28 @@ public:
   /// Helper for converting between @c Colour and @c uint32_t .
   struct TES_CORE_API ConverterUInt32
   {
-    static constexpr int RedIndex = static_cast<int>(Channel::R);
-    static constexpr int GreenIndex = static_cast<int>(Channel::G);
-    static constexpr int BlueIndex = static_cast<int>(Channel::B);
-    static constexpr int AlphaIndex = static_cast<int>(Channel::A);
+    static constexpr int kRedIndex = static_cast<int>(Channel::R);
+    static constexpr int kGreenIndex = static_cast<int>(Channel::G);
+    static constexpr int kBlueIndex = static_cast<int>(Channel::B);
+    static constexpr int kAlphaIndex = static_cast<int>(Channel::A);
 #if TES_IS_BIG_ENDIAN
-    static constexpr int RedShift =
-      (static_cast<int>(Channel::R) * static_cast<int>(sizeof(uint8_t))) * 8;
-    static constexpr int GreenShift =
-      (static_cast<int>(Channel::G) * static_cast<int>(sizeof(uint8_t))) * 8;
-    static constexpr int BlueShift =
-      (static_cast<int>(Channel::B) * static_cast<int>(sizeof(uint8_t))) * 8;
-    static constexpr int AlphaShift =
-      (static_cast<int>(Channel::A) * static_cast<int>(sizeof(uint8_t))) * 8;
+    static constexpr unsigned kRedShift =
+      (static_cast<unsigned>(Channel::R) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
+    static constexpr unsigned kGreenShift =
+      (static_cast<unsigned>(Channel::G) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
+    static constexpr unsigned kBlueShift =
+      (static_cast<unsigned>(Channel::B) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
+    static constexpr unsigned kAlphaShift =
+      (static_cast<unsigned>(Channel::A) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
 #else   // TES_IS_BIG_ENDIAN
-    static constexpr int RedShift =
-      (3 - static_cast<int>(Channel::R) * static_cast<int>(sizeof(uint8_t))) * 8;
-    static constexpr int GreenShift =
-      (3 - static_cast<int>(Channel::G) * static_cast<int>(sizeof(uint8_t))) * 8;
-    static constexpr int BlueShift =
-      (3 - static_cast<int>(Channel::B) * static_cast<int>(sizeof(uint8_t))) * 8;
-    static constexpr int AlphaShift =
-      (3 - static_cast<int>(Channel::A) * static_cast<int>(sizeof(uint8_t))) * 8;
+    static constexpr unsigned kRedShift =
+      (3 - static_cast<unsigned>(Channel::R) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
+    static constexpr unsigned kGreenShift =
+      (3 - static_cast<unsigned>(Channel::G) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
+    static constexpr unsigned kBlueShift =
+      (3 - static_cast<unsigned>(Channel::B) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
+    static constexpr unsigned kAlphaShift =
+      (3 - static_cast<unsigned>(Channel::A) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
 #endif  // TES_IS_BIG_ENDIAN
 
     uint32_t operator()(const std::array<uint8_t, 4> &storage) const;
@@ -564,11 +564,13 @@ private:
 
 namespace literals
 {
+// NOLINTNEXTLINE(google-runtime-int)
 inline Colour operator"" _rgba(unsigned long long colour_value)
 {
   return { static_cast<uint32_t>(colour_value) };
 }
 
+// NOLINTNEXTLINE(google-runtime-int)
 inline Colour operator"" _rgb(unsigned long long colour_value)
 {
   return Colour(Colour(static_cast<uint32_t>(colour_value), 255));
@@ -799,18 +801,19 @@ inline Colour Colour::fromHsv(float hue, float saturation, float value, float al
 
 inline uint32_t Colour::ConverterUInt32::operator()(const std::array<uint8_t, 4> &storage) const
 {
-  return (storage[RedIndex] << RedShift) | (storage[GreenIndex] << GreenShift) |
-         (storage[BlueIndex] << BlueShift) | (storage[AlphaIndex] << AlphaShift);
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
+  return (storage[kRedIndex] << kRedShift) | (storage[kGreenIndex] << kGreenShift) |
+         (storage[kBlueIndex] << kBlueShift) | (storage[kAlphaIndex] << kAlphaShift);
 }
 
 
 inline void Colour::ConverterUInt32::operator()(uint32_t colour,
                                                 std::array<uint8_t, 4> &storage) const
 {
-  storage[RedIndex] = (colour >> RedShift) & 0xffu;
-  storage[GreenIndex] = (colour >> GreenShift) & 0xffu;
-  storage[BlueIndex] = (colour >> BlueShift) & 0xffu;
-  storage[AlphaIndex] = (colour >> AlphaShift) & 0xffu;
+  storage[kRedIndex] = (colour >> kRedShift) & 0xffu;
+  storage[kGreenIndex] = (colour >> kGreenShift) & 0xffu;
+  storage[kBlueIndex] = (colour >> kBlueShift) & 0xffu;
+  storage[kAlphaIndex] = (colour >> kAlphaShift) & 0xffu;
 }
 }  // namespace tes
 

@@ -2,19 +2,19 @@
 
 namespace tes
 {
-const int TesToGZipCompressionLevel[CL_Levels] = {
-  0,  // CL_None,
-  3,  // CL_Low,
-  5,  // CL_Medium
-  7,  // CL_High,
+const std::array<int, ClLevels> kTesToGZipCompressionLevel = {
+  0,  // ClNone,
+  3,  // ClLow,
+  5,  // ClMedium
+  7,  // ClHigh,
 #ifdef TES_ZLIB
-  Z_BEST_COMPRESSION  // CL_VeryHigh (9)
+  Z_BEST_COMPRESSION  // ClVeryHigh (9)
 #else                 // TES_ZLIB
   9
 #endif                // TES_ZLIB
 };
 
 #ifdef TES_ZLIB
-const int CollatedPacketZip::DefaultCompressionLevel = tes::TesToGZipCompressionLevel[CL_Default];
+const int CollatedPacketZip::DefaultCompressionLevel = tes::kTesToGZipCompressionLevel[ClDefault];
 #endif  // TES_ZLIB
 }  // namespace tes

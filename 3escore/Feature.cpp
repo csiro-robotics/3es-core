@@ -16,11 +16,11 @@ Feature featureForFlag(uint64_t flag)
 {
   // Simple solution for now.
   uint64_t bit = 1u;
-  for (int i = 0; i < TFeatureEnd; ++i, bit = bit << 1)
+  for (int i = 0; i < TFeatureEnd; ++i, bit = bit << 1u)
   {
     if (flag & bit)
     {
-      return (Feature)i;
+      return static_cast<Feature>(i);
     }
   }
 
@@ -33,9 +33,9 @@ bool checkFeature(Feature feature)
 }
 
 
-bool checkFeatureFlag(uint64_t featureFlag)
+bool checkFeatureFlag(uint64_t feature_flag)
 {
-  switch (featureFlag)
+  switch (feature_flag)
   {
   case (1ull << TFeatureCompression):
 #ifdef TES_ZLIB
@@ -51,19 +51,19 @@ bool checkFeatureFlag(uint64_t featureFlag)
 }
 
 
-bool checkFeatures(uint64_t featureFlags)
+bool checkFeatures(uint64_t feature_flags)
 {
   uint64_t bit = 1u;
-  for (int i = 0; i < TFeatureEnd && featureFlags != 0ull; ++i, bit = bit << 1)
+  for (int i = 0; i < TFeatureEnd && feature_flags != 0ull; ++i, bit = bit << 1u)
   {
-    if (featureFlags & bit)
+    if (feature_flags & bit)
     {
       if (!checkFeatureFlag(bit))
       {
         return false;
       }
     }
-    featureFlags &= ~bit;
+    feature_flags &= ~bit;
   }
 
   return true;

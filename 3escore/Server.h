@@ -57,11 +57,11 @@ struct TES_CORE_API ServerSettings
   /// Size of the client packet buffers.
   uint16_t clientBufferSize = 0xffe0u;
   /// Compression level to use if enabled. See @c CompressionLevel.
-  uint16_t compressionLevel = CL_Default;
+  uint16_t compressionLevel = ClDefault;
 
   ServerSettings() = default;
   inline ServerSettings(unsigned flags, uint16_t port = 33500u, uint16_t clientBufferSize = 0xffe0u,
-                        CompressionLevel compressionLevel = CL_Default)
+                        CompressionLevel compressionLevel = ClDefault)
     : listenPort(port)
     , flags(flags)
     , clientBufferSize(clientBufferSize)
