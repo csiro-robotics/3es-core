@@ -10,6 +10,8 @@
 
 namespace tes
 {
+// NOLINTBEGIN(readability-identifier-length)
+
 /// A row major 3x3 rotation matrix.
 ///
 /// The matrix is laid out as follows:
@@ -24,48 +26,50 @@ template <typename T>
 class Matrix3
 {
 public:
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
-#pragma GCC diagnostic ignored "-Wnested-anon-types"
-#else  // __clang__
-#pragma GCC diagnostic ignored "-Wpedantic"
-#endif  // __clang__
-#endif  // __GNUC__
-  union
-  {
-    T rc[3][3];  ///< Row/column indexing representation.
-    T m[9];      ///< Array representation.
-  };
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif                               // __GNUC__
-  static const Matrix3<T> zero;      ///< A matrix with all zero elements.
-  static const Matrix3<T> identity;  ///< The identity matrix.
+  /// Internal storage array type.
+  using StorageType = std::array<T, 9>;
+
+  static const Matrix3<T> Zero;      ///< A matrix with all zero elements.
+  static const Matrix3<T> Identity;  ///< The identity matrix.
 
   /// Empty constructor; contents are undefined.
-  inline Matrix3() {}
+  Matrix3() noexcept = default;
   /// Array initialisation constructor from an array of at least 9 elements. No bounds checking.
   /// @param array9 The array of at least 9 value to initialise from.
-  Matrix3(const T *array9);
+  Matrix3(const T array9[9]);  // NOLINT(modernize-avoid-c-arrays)
+  /// Construct from a @c std::array.
+  ///
+  /// Expects a row major format. Use @c transpose() when providing column major data.
+  ///
+  /// @param array Array to construct from.
+  Matrix3(const StorageType &array) noexcept;
+  /// Construct from a @c std::array.
+  ///
+  /// Expects a row major format. Use @c transpose() when providing column major data.
+  ///
+  /// @param array Array to construct from.
+  template <typename U>
+  Matrix3(const std::array<U, 9> &array) noexcept;
   /// Copy constructor.
   /// @param other The matrix to copy from.
-  Matrix3(const Matrix3<T> &other);
+  Matrix3(const Matrix3<T> &other) noexcept = default;
   /// Copy constructor from a different numeric type.
   /// @param other The matrix to copy from.
-  template <typename Q>
-  Matrix3(const Matrix3<Q> &other);
+  template <typename U>
+  Matrix3(const Matrix3<U> &other) noexcept;
+  /// Move constructor.
+  /// @param other The matrix to move from.
+  Matrix3(Matrix3<T> &&other) noexcept = default;
 
   /// Move assignment.
   /// @param other Matrix to assign from.
   /// @return @c *this
-  Matrix3<T> &operator=(Matrix3<T> &&other) = default;
+  Matrix3<T> &operator=(Matrix3<T> &&other) noexcept = default;
 
   /// Copy assignment.
   /// @param other Matrix to assign from.
   /// @return @c *this
-  Matrix3<T> &operator=(const Matrix3<T> &other) = default;
+  Matrix3<T> &operator=(const Matrix3<T> &other) noexcept = default;
 
   /// Per element constructor, specifying each row in order.
   /// @param rc00 Element at row/column 00
@@ -77,33 +81,37 @@ public:
   /// @param rc20 Element at row/column 20
   /// @param rc21 Element at row/column 21
   /// @param rc22 Element at row/column 22
-  Matrix3(const T &rc00, const T &rc01, const T &rc02, const T &rc10, const T &rc11, const T &rc12, const T &rc20,
-          const T &rc21, const T &rc22);
+  Matrix3(const T &rc00, const T &rc01, const T &rc02, const T &rc10, const T &rc11, const T &rc12,
+          const T &rc20, const T &rc21, const T &rc22) noexcept;
 
   /// Row/column access. Not bounds checked.
   /// @param r The row to access [0, 2]
   /// @param c The column to access [0, 2].
-  inline T &operator()(int r, int c) { return rc[r][c]; }
+  T &operator()(size_t r, size_t c) { return _storage[r * 3 + c]; }
   /// Row/column immutable access. Not bounds checked.
   /// @param r The row to access [0, 2]
   /// @param c The column to access [0, 2].
-  inline const T &operator()(int r, int c) const { return rc[r][c]; }
+  [[nodiscard]] const T &operator()(size_t r, size_t c) const { return _storage[r * 3 + c]; }
 
   /// Indexing operator (no bounds checking).
   /// @param index The element to access [0, 9].
   /// @return The matrix element at @p index.
-  inline T &operator[](int index) { return m[index]; }
+  T &operator[](size_t index) { return _storage[index]; }
 
   /// Indexing operator (no bounds checking).
   /// @param index The element to access [0, 9].
   /// @return The matrix element at @p index.
-  inline const T &operator[](int index) const { return m[index]; }
+  [[nodiscard]] const T &operator[](size_t index) const { return _storage[index]; }
+
+  /// Access the internal storage for direct memory copies.
+  /// @return The internal storage.
+  [[nodiscard]] const StorageType &storage() const { return _storage; }
 
   /// Create a matrix which represents a rotation around the X axis.
   /// @param angle The rotation angle in radians.
   /// @return The rotation matrix.
-  static Matrix3<T> rotationX(const T &angle);
-  inline Matrix3<T> &initRotationX(const T &angle)
+  [[nodiscard]] static Matrix3<T> rotationX(const T &angle);
+  Matrix3<T> &initRotationX(const T &angle)
   {
     *this = rotationX(angle);
     return *this;
@@ -112,8 +120,8 @@ public:
   /// Create a matrix which represents a rotation around the Y axis.
   /// @param angle The rotation angle in radians.
   /// @return The rotation matrix.
-  static Matrix3<T> rotationY(const T &angle);
-  inline Matrix3<T> &initRotationY(const T &angle)
+  [[nodiscard]] static Matrix3<T> rotationY(const T &angle);
+  Matrix3<T> &initRotationY(const T &angle)
   {
     *this = rotationY(angle);
     return *this;
@@ -122,8 +130,8 @@ public:
   /// Create a matrix which represents a rotation around the Z axis.
   /// @param angle The rotation angle in radians.
   /// @return The rotation matrix.
-  static Matrix3<T> rotationZ(const T &angle);
-  inline Matrix3<T> &initRotationZ(const T &angle)
+  [[nodiscard]] static Matrix3<T> rotationZ(const T &angle);
+  Matrix3<T> &initRotationZ(const T &angle)
   {
     *this = rotationZ(angle);
     return *this;
@@ -135,8 +143,8 @@ public:
   /// @param y Rotation around the Y axis (radians).
   /// @param z Rotation around the Z axis (radians).
   /// @return The rotation matrix.
-  static Matrix3<T> rotation(const T &x, const T &y, const T &z);
-  inline Matrix3<T> &initRotation(const T &x, const T &y, const T &z)
+  [[nodiscard]] static Matrix3<T> rotation(const T &x, const T &y, const T &z);
+  Matrix3<T> &initRotation(const T &x, const T &y, const T &z)
   {
     *this = rotation(x, y, z);
     return *this;
@@ -145,8 +153,8 @@ public:
   /// Create a scaling matrix.
   /// @param scale The scaling to apply along each axis.
   /// @return The scaling matrix.
-  static Matrix3<T> scaling(const Vector3<T> &scale);
-  inline Matrix3<T> &initScaling(const Vector3<T> &scale)
+  [[nodiscard]] static Matrix3<T> scaling(const Vector3<T> &scale);
+  Matrix3<T> &initScaling(const Vector3<T> &scale)
   {
     *this = scaling(scale);
     return *this;
@@ -170,8 +178,9 @@ public:
   /// @param upAxisIndex The index of the up axis. Must not be equal to @p forwardAxisIndex.
   /// @return A model matrix at @p eye pointing at @p target. Returns identity if
   /// there are errors in the specification of @p forwardAxisIndex and @p upAxisIndex.
-  static Matrix3<T> lookAt(const Vector3<T> &eye, const Vector3<T> &target, const Vector3<T> &axisUp,
-                           int forwardAxisIndex = 1, int upAxisIndex = 2);
+  [[nodiscard]] static Matrix3<T> lookAt(const Vector3<T> &eye, const Vector3<T> &target,
+                                         const Vector3<T> &axis_up, int forward_axis_index = 1,
+                                         int up_axis_index = 2);
 
   /// Initialise this matrix as a model or camera matrix.
   /// @see @c lookAt().
@@ -181,10 +190,10 @@ public:
   /// @param forwardAxisIndex The index of the forward axis. This is to point at @p target.
   /// @param upAxisIndex The index of the up axis. Must not be equal to @p forwardAxisIndex.
   /// @return @c this
-  inline Matrix3<T> &initLookAt(const Vector3<T> &eye, const Vector3<T> &target, const Vector3<T> &axisUp,
-                                int forwardAxisIndex = 1, int upAxisIndex = 2)
+  Matrix3<T> &initLookAt(const Vector3<T> &eye, const Vector3<T> &target, const Vector3<T> &axis_up,
+                         int forward_axis_index = 1, int up_axis_index = 2)
   {
-    *this = lookAt(eye, target, axisUp, forwardAxisIndex, upAxisIndex);
+    *this = lookAt(eye, target, axis_up, forward_axis_index, up_axis_index);
     return *this;
   }
 
@@ -194,7 +203,7 @@ public:
 
   /// Returns the transpose of this matrix, leaving this matrix unchanged.
   /// @return The transpose of this matrix.
-  Matrix3<T> transposed() const;
+  [[nodiscard]] Matrix3<T> transposed() const;
 
   /// Inverts this matrix.
   /// @return This matrix after the operation.
@@ -202,10 +211,10 @@ public:
 
   /// Returns the inverse of this matrix, leaving this matrix unchanged.
   /// @return The inverse of this matrix.
-  Matrix3<T> inverse() const;
+  [[nodiscard]] Matrix3<T> inverse() const;
 
   /// Gets the adjoint of this matrix.
-  /// @param[out] m The adjoint is written here.
+  /// @param[out] adj The adjoint is written here.
   /// @return The determinant.
   T getAdjoint(Matrix3<T> &adj) const;
 
@@ -222,27 +231,27 @@ public:
   /// Returns the inverse of this matrix assuming this is a rigid body transformation.
   /// See @c rigidBodyInvert().
   /// @return The inverse of this matrix.
-  Matrix3<T> rigidBodyInverse() const;
+  [[nodiscard]] Matrix3<T> rigidBodyInverse() const;
 
   /// Calculates the determinant of this matrix.
   /// @return The determinant.
-  T determinant() const;
+  [[nodiscard]] T determinant() const;
 
   /// Returns the X axis of this matrix (elements (0, 0), (1, 0), (2, 0)).
   /// @return The X axis.
-  Vector3<T> axisX() const;
+  [[nodiscard]] Vector3<T> axisX() const;
   /// Returns the Y axis of this matrix (elements (0, 1), (1, 1), (2, 1)).
   /// @return The Y axis.
-  Vector3<T> axisY() const;
+  [[nodiscard]] Vector3<T> axisY() const;
   /// Returns the Z axis of this matrix (elements (0, 2), (1, 2), (2, 2)).
   /// @return The Z axis.
-  Vector3<T> axisZ() const;
+  [[nodiscard]] Vector3<T> axisZ() const;
 
   /// Returns one of the axes of this matrix.
   /// @param index The index of the axis of interest.
   ///   0 => X, 1 => Y, 2 => Z.
   /// @return The axis of interest.
-  Vector3<T> axis(int index) const;
+  [[nodiscard]] Vector3<T> axis(int index) const;
 
   /// Sets the X axis of this matrix. See @p axisX().
   /// @param axis The value to set the axis to.
@@ -268,7 +277,7 @@ public:
 
   /// Returns the scale contained in this matrix. This is the length of each axis.
   /// @return The scale of each rotation axis in this matrix.
-  Vector3<T> scale() const;
+  [[nodiscard]] Vector3<T> scale() const;
 
   /// Scales this matrix, adjusting the scale of each rotation, but leaving the translation.
   /// @param scaling The scaling to apply.
@@ -277,24 +286,27 @@ public:
 
   /// Transforms the vector @p v by this matrix.
   /// @return Av, where A is this matrix.
-  Vector3<T> transform(const Vector3<T> &v) const;
+  [[nodiscard]] Vector3<T> transform(const Vector3<T> &v) const;
 
   /// An alias for @c transform().
   /// @return Av, where A is this matrix.
-  Vector3<T> rotate(const Vector3<T> &v) const;
+  [[nodiscard]] Vector3<T> rotate(const Vector3<T> &v) const;
 
   /// Numerical equality comparison. Reports @c true if each element of this matrix is within of
   /// @p Epsilon @p a (or equal to).
   /// @return a Matrix to compare to.
   /// @param epsilon Comparison tolerance value.
   /// @return @c true when each element in this matrix is within @p epsilon of each element of @p a.
-  bool isEqual(const Matrix3<T> &a, const T epsilon = Vector3<T>::Epsilon) const;
+  [[nodiscard]] bool isEqual(const Matrix3<T> &a, const T epsilon = Vector3<T>::Epsilon) const;
+
+private:
+  StorageType _storage;
 };
 
 /// Defines a single precision 4x4 matrix.
-typedef Matrix3<float> Matrix3f;
+using Matrix3f = Matrix3<float>;
 /// Defines a double precision 4x4 matrix.
-typedef Matrix3<double> Matrix3d;
+using Matrix3d = Matrix3<double>;
 
 TES_EXTERN template class TES_CORE_API Matrix3<float>;
 TES_EXTERN template class TES_CORE_API Matrix3<double>;
@@ -302,12 +314,14 @@ TES_EXTERN template class TES_CORE_API Matrix3<double>;
 /// Performs the matrix multiplication AB.
 /// @return The result of AB.
 template <typename T>
-Matrix3<T> operator*(const Matrix3<T> &a, const Matrix3<T> &b);
+[[nodiscard]] Matrix3<T> operator*(const Matrix3<T> &a, const Matrix3<T> &b);
 
 /// Performs the matrix multiplication Av.
 /// @return The result of Av.
 template <typename T>
-Vector3<T> operator*(const Matrix3<T> &a, const Vector3<T> &v);
+[[nodiscard]] Vector3<T> operator*(const Matrix3<T> &a, const Vector3<T> &v);
+
+// NOLINTEND(readability-identifier-length)
 }  // namespace tes
 
 #include "Matrix3.inl"

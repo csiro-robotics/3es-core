@@ -33,41 +33,47 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cmath>
 #include <unordered_map>
 
-/// Magic number for vector hashing.
-#define VHASH_MAGIC (0x9e3779b9u)
-
-// By Bob Jenkins, 1996. bob_jenkins@burtleburtle.net.
-#define VHASH_JENKINS_MIX(a, b, c) \
-  a -= b;                          \
-  a -= c;                          \
-  a ^= (c >> 13);                  \
-  b -= c;                          \
-  b -= a;                          \
-  b ^= (a << 8);                   \
-  c -= a;                          \
-  c -= b;                          \
-  c ^= (b >> 13);                  \
-  a -= b;                          \
-  a -= c;                          \
-  a ^= (c >> 12);                  \
-  b -= c;                          \
-  b -= a;                          \
-  b ^= (a << 16);                  \
-  c -= a;                          \
-  c -= b;                          \
-  c ^= (b >> 5);                   \
-  a -= b;                          \
-  a -= c;                          \
-  a ^= (c >> 3);                   \
-  b -= c;                          \
-  b -= a;                          \
-  b ^= (a << 10);                  \
-  c -= a;                          \
-  c -= b;                          \
-  c ^= (b >> 15);
-
 namespace tes
 {
+// NOLINTBEGIN(readability-identifier-length,readability-magic-numbers, google-readability-casting)
+/// Magic number for vector hashing.
+inline constexpr uint32_t TES_CORE_API vectorHashMagic()
+{
+  return 0x9e3779b9u;
+}
+
+// By Bob Jenkins, 1996. bob_jenkins@burtleburtle.net.
+inline void TES_CORE_API vectorHashJenkinsMix(uint32_t &a, uint32_t &b, uint32_t &c)
+{
+  a -= b;
+  a -= c;
+  a ^= (c >> 13u);
+  b -= c;
+  b -= a;
+  b ^= (a << 8u);
+  c -= a;
+  c -= b;
+  c ^= (b >> 13u);
+  a -= b;
+  a -= c;
+  a ^= (c >> 12u);
+  b -= c;
+  b -= a;
+  b ^= (a << 16u);
+  c -= a;
+  c -= b;
+  c ^= (b >> 5u);
+  a -= b;
+  a -= c;
+  a ^= (c >> 3u);
+  b -= c;
+  b -= a;
+  b ^= (a << 10u);
+  c -= a;
+  c -= b;
+  c ^= (b >> 15u);
+}
+
 /// Contains functions for hashing vector3/vector4 style vertices for vertex hash maps.
 ///
 /// This hash technique was taken from NVIDIA open source code.
@@ -78,10 +84,10 @@ namespace vhash
 /// @param a First component.
 /// @param b Second component.
 /// @param c Third component.
-inline uint32_t hashBits(uint32_t a, uint32_t b = VHASH_MAGIC, uint32_t c = 0)
+inline uint32_t hashBits(uint32_t a, uint32_t b = vectorHashMagic(), uint32_t c = 0)
 {
-  c += VHASH_MAGIC;
-  VHASH_JENKINS_MIX(a, b, c);
+  c += vectorHashMagic();
+  vectorHashJenkinsMix(a, b, c);
   return c;
 }
 
@@ -96,12 +102,12 @@ inline uint32_t hashBits(uint32_t a, uint32_t b = VHASH_MAGIC, uint32_t c = 0)
 inline uint32_t hashBits(uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e = 0,
                          uint32_t f = 0)
 {
-  c += VHASH_MAGIC;
-  VHASH_JENKINS_MIX(a, b, c);
+  c += vectorHashMagic();
+  vectorHashJenkinsMix(a, b, c);
   a += d;
   b += e;
   c += f;
-  VHASH_JENKINS_MIX(a, b, c);
+  vectorHashJenkinsMix(a, b, c);
   return c;
 }
 
@@ -116,6 +122,7 @@ inline uint32_t hashBits(uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_
 /// @param z A vector coordinate.
 inline uint32_t hash(float x, float y, float z)
 {
+  static_assert(sizeof(float) == sizeof(uint32_t));
   return hashBits(*(const uint32_t *)&x, *(const uint32_t *)&y, *(const uint32_t *)&z);
 }
 
@@ -127,6 +134,7 @@ inline uint32_t hash(float x, float y, float z)
 /// @param w A vector coordinate.
 inline uint32_t hash(float x, float y, float z, float w)
 {
+  static_assert(sizeof(float) == sizeof(uint32_t));
   return hashBits(*(const uint32_t *)&x, *(const uint32_t *)&y, *(const uint32_t *)&z,
                   *(const uint32_t *)&w);
 }
@@ -147,6 +155,7 @@ public:
   /// @return The 32-bit hash code for @p p.
   inline size_t operator()(const T &p) const { return vhash::hash(p.x(), p.y(), p.z()); }
 };
+// NOLINTEND(readability-identifier-length,readability-magic-numbers, google-readability-casting)
 }  // namespace tes
 
 #endif  // TES_CORE_VECTOR_HASH_H

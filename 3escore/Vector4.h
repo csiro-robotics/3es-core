@@ -328,7 +328,7 @@ TES_EXTERN template class TES_CORE_API Vector4<double>;
 
 /// Adds two vectors.
 template <class T>
-inline [[nodiscard]] Vector4<T> operator+(const Vector4<T> &a, const Vector4<T> &b)
+[[nodiscard]] inline Vector4<T> operator+(const Vector4<T> &a, const Vector4<T> &b)
 {
   Vector4<T> v(a);
   v.add(b);
@@ -337,7 +337,7 @@ inline [[nodiscard]] Vector4<T> operator+(const Vector4<T> &a, const Vector4<T> 
 
 /// Adds two vectors.
 template <class T>
-inline [[nodiscard]] Vector4<T> operator+(const Vector4<T> &a, const T &b)
+[[nodiscard]] inline Vector4<T> operator+(const Vector4<T> &a, const T &b)
 {
   Vector4<T> v(a);
   v.add(b);
@@ -346,14 +346,14 @@ inline [[nodiscard]] Vector4<T> operator+(const Vector4<T> &a, const T &b)
 
 /// Adds two vectors.
 template <class T>
-inline [[nodiscard]] Vector4<T> operator+(const T &a, const Vector4<T> &b)
+[[nodiscard]] inline Vector4<T> operator+(const T &a, const Vector4<T> &b)
 {
   return b * a;
 }
 
 /// Sutracts @p b from @p a.
 template <class T>
-inline [[nodiscard]] Vector4<T> operator-(const Vector4<T> &a, const Vector4<T> &b)
+[[nodiscard]] inline Vector4<T> operator-(const Vector4<T> &a, const Vector4<T> &b)
 {
   Vector4<T> v(a);
   v.subtract(b);
@@ -362,7 +362,7 @@ inline [[nodiscard]] Vector4<T> operator-(const Vector4<T> &a, const Vector4<T> 
 
 /// Adds two vectors.
 template <class T>
-inline [[nodiscard]] Vector4<T> operator-(const Vector4<T> &a, const T &b)
+[[nodiscard]] inline Vector4<T> operator-(const Vector4<T> &a, const T &b)
 {
   Vector4<T> v(a);
   v.subtract(b);
@@ -371,7 +371,7 @@ inline [[nodiscard]] Vector4<T> operator-(const Vector4<T> &a, const T &b)
 
 /// Multiplies a vector by a scalar.
 template <class T>
-inline [[nodiscard]] Vector4<T> operator*(const Vector4<T> &a, const T &b)
+[[nodiscard]] inline Vector4<T> operator*(const Vector4<T> &a, const T &b)
 {
   Vector4<T> v(a);
   v.multiply(b);
@@ -380,14 +380,14 @@ inline [[nodiscard]] Vector4<T> operator*(const Vector4<T> &a, const T &b)
 
 /// Multiplies a vector by a scalar.
 template <class T>
-inline [[nodiscard]] Vector4<T> operator*(const T &a, const Vector4<T> &b)
+[[nodiscard]] inline Vector4<T> operator*(const T &a, const Vector4<T> &b)
 {
   return b * a;
 }
 
 /// Divides a vector by a scalar.
 template <class T>
-inline [[nodiscard]] Vector4<T> operator/(const Vector4<T> &a, const T &b)
+[[nodiscard]] inline Vector4<T> operator/(const Vector4<T> &a, const T &b)
 {
   Vector4<T> v(a);
   v.divide(b);

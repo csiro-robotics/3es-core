@@ -148,7 +148,7 @@ MeshSet *createMeshSet(unsigned id, const std::vector<Vector3f> &vertices,
     }
 
     resources.push_back(mesh);
-    shape->setPart(i, mesh, Matrix4f::identity);
+    shape->setPart(i, mesh, Matrix4f::Identity);
   }
 
   return shape;
@@ -336,8 +336,8 @@ std::ostream &operator<<(std::ostream &o, const Matrix4f &transform)
     {
       o << ",\n";
     }
-    o << transform.rc[i][0] << ", " << transform.rc[i][1] << ", " << transform.rc[i][2] << ", "
-      << transform.rc[i][3];
+    o << transform(i, 0) << ", " << transform(i, 1) << ", " << transform(i, 2) << ", "
+      << transform(i, 3);
   }
 
   o << " ]";

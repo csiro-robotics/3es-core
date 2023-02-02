@@ -462,7 +462,7 @@ TEST(Shapes, MeshSet)
   {
     MeshSet set(Id(42u, 1), meshes.size());
 
-    Matrix4f transform = Matrix4f::identity;
+    Matrix4f transform = Matrix4f::Identity;
     for (unsigned i = 0; i < meshes.size(); ++i)
     {
       const float fi = float(i);

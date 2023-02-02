@@ -145,6 +145,89 @@
 
 
   <!-- 3es types -->
+  <Type Name="tes::Colour">
+    <DisplayString>r={_storage[0]} g={_storage[1]} b={_storage[2]} a={_storage[3]}</DisplayString>
+    <Expand>
+      <Item Name="r">_storage[0]</Item>
+      <Item Name="g">_storage[1]</Item>
+      <Item Name="b">_storage[2]</Item>
+      <Item Name="a">_storage[3]</Item>
+      <Item Name="rf">_storage[0] / 255.0</Item>
+      <Item Name="gf">_storage[1] / 255.0</Item>
+      <Item Name="bf">_storage[2] / 255.0</Item>
+      <Item Name="af">_storage[3] / 255.0</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="tes::Vector3&lt;*&gt;">
+    <DisplayString>x={_storage[0]} y={_storage[1]} z={_storage[2]}</DisplayString>
+    <Expand>
+      <Item Name="x">_storage[0]</Item>
+      <Item Name="y">_storage[1]</Item>
+      <Item Name="z">_storage[2]</Item>
+      <Item Name="len2">_storage[0] * _storage[0] + _storage[1] * _storage[1] + _storage[2] * _storage[2]</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="tes::Vector4&lt;*&gt;">
+    <DisplayString>x={_storage[0]} y={_storage[1]} z={_storage[2]} w={_storage[3]}</DisplayString>
+    <Expand>
+      <Item Name="x">_storage[0]</Item>
+      <Item Name="y">_storage[1]</Item>
+      <Item Name="z">_storage[2]</Item>
+      <Item Name="w">_storage[2]</Item>
+      <Item Name="len2">_storage[0] * _storage[0] + _storage[1] * _storage[1] + _storage[2] * _storage[2] + _storage[3] * _storage[3]</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="tes::Quaternion&lt;*&gt;">
+    <DisplayString>x={_storage[0]} y={_storage[1]} z={_storage[2]} w={_storage[3]}</DisplayString>
+    <Expand>
+      <Item Name="x">_storage[0]</Item>
+      <Item Name="y">_storage[1]</Item>
+      <Item Name="z">_storage[2]</Item>
+      <Item Name="w">_storage[2]</Item>
+      <Item Name="len2">_storage[0] * _storage[0] + _storage[1] * _storage[1] + _storage[2] * _storage[2] + _storage[3] * _storage[3]</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="tes::Matrix3&lt;*&gt;">
+    <DisplayString>[{storage[0]} {storage[1]} {storage[2]} {storage[3]} {storage[4]} {storage[5]} {storage[6]} {storage[7]} {storage[8]}]</DisplayString>
+    <Expand>
+      <Item Name="rc(0,0)">_storage[0]</Item>
+      <Item Name="rc(0,1)">_storage[1]</Item>
+      <Item Name="rc(0,2)">_storage[2]</Item>
+      <Item Name="rc(1,0)">_storage[3]</Item>
+      <Item Name="rc(1,1)">_storage[4]</Item>
+      <Item Name="rc(1,2)">_storage[5]</Item>
+      <Item Name="rc(2,0)">_storage[6]</Item>
+      <Item Name="rc(2,1)">_storage[7]</Item>
+      <Item Name="rc(2,2)">_storage[8]</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="tes::Matrix4&lt;*&gt;">
+    <DisplayString>[{storage[0]} {storage[1]} {storage[2]} {storage[3]} {storage[4]} {storage[5]} {storage[6]} {storage[7]} {storage[8]} {storage[9]} {storage[10]} {storage[11]} {storage[12]} {storage[13]} {storage[14]} {storage[15]}]</DisplayString>
+    <Expand>
+      <Item Name="rc(0,0)">_storage[0]</Item>
+      <Item Name="rc(0,1)">_storage[1]</Item>
+      <Item Name="rc(0,2)">_storage[2]</Item>
+      <Item Name="rc(0,3)">_storage[3]</Item>
+      <Item Name="rc(1,0)">_storage[4]</Item>
+      <Item Name="rc(1,1)">_storage[5]</Item>
+      <Item Name="rc(1,2)">_storage[6]</Item>
+      <Item Name="rc(1,3)">_storage[7]</Item>
+      <Item Name="rc(2,0)">_storage[8]</Item>
+      <Item Name="rc(2,1)">_storage[9]</Item>
+      <Item Name="rc(2,2)">_storage[10]</Item>
+      <Item Name="rc(2,3)">_storage[11]</Item>
+      <Item Name="rc(3,0)">_storage[12]</Item>
+      <Item Name="rc(3,1)">_storage[13]</Item>
+      <Item Name="rc(3,2)">_storage[14]</Item>
+      <Item Name="rc(3,3)">_storage[15]</Item>
+    </Expand>
+  </Type>
+
   <Type Name="tes::view::util::ResourceList&lt;*&gt;::ResourceRefBase&lt;*,*&gt;">
     <AlternativeType Name="tes::view::util::ResourceList&lt;*&gt;::ResourceRef"/>
     <AlternativeType Name="tes::view::util::ResourceList&lt;*&gt;::ResourceConstRef"/>

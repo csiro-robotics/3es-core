@@ -397,7 +397,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     resources.emplace_back(meshRes);
     const unsigned partCount = 2;
     MeshSet *mesh = new MeshSet(Id(nextId++, CatMesh), partCount);
-    mesh->setPart(0, meshRes, Matrix4f::identity, Colour(Colour::YellowGreen));
+    mesh->setPart(0, meshRes, Matrix4f::Identity, Colour(Colour::YellowGreen));
     mesh->setPart(1, meshRes, Matrix4f::translation(Vector3f(0, 0, 1.5f)), Colour(Colour::SkyBlue));
     shapes.emplace_back(mesh);
     // if (!noMove)
