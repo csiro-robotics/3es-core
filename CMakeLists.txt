@@ -5,6 +5,9 @@ cmake_minimum_required(VERSION 3.16)
 option(TES_BUILD_EXAMPLES "Build examples?" OFF)
 option(TES_BUILD_TESTS "Build unit tests?" OFF)
 option(TES_BUILD_VIEWER "Build viewer client?" OFF)
+option(TES_EXCEPTIONS "Enable 3es exceptions? When disabled, errors are logged instead. Behaviour may be undefined after such an error." ON)
+option(TES_ASSERT_ENABLE_DEBUG "Enable 3es debug assertions?" ON)
+option(TES_ASSERT_ENABLE_RELEASE "Enable 3es release assertions?" OFF)
 
 # Skip stale example
 # if(TES_BUILD_EXAMPLES)

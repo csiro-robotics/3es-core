@@ -26,6 +26,11 @@
 /// Version string.
 #define TES_VERSION "@TES_VERSION@"
 
+/// @def TES_EXCEPTIONS
+/// Throw @c tes::Exception when enabled, otherwise log an error and continue.
+// NOLINTNEXTLINE(modernize-macro-to-enum)
+#cmakedefine01 TES_EXCEPTIONS
+
 namespace tes
 {
 /// Version number enum.
@@ -68,23 +73,34 @@ enum class Version : int
 #include <cmath>
 // #include <cstddef>
 
-// Define TES_ZLIB if in use
+/// @def TES_ZLIB
+/// Use ZLIB when defined.
 #cmakedefine TES_ZLIB
 
 // Define the local Endian and the network Endian
 #define TES_IS_BIG_ENDIAN @TES_IS_BIG_ENDIAN@ // NOLINT(modernize-macro-to-enum)
 #define TES_IS_NETWORK_ENDIAN @TES_IS_BIG_ENDIAN@ // NOLINT(modernize-macro-to-enum)
 
-// Define assertion usage.s
-#cmakedefine TES_ASSERT_ENABLE_DEBUG
-#cmakedefine TES_ASSERT_ENABLE_RELEASE
+// Define assertion usages.
+/// @def TES_ASSERT_ENABLE_DEBUG
+/// Enable debug mode assertions when defined.
+// NOLINTNEXTLINE(modernize-macro-to-enum)
+#cmakedefine01 TES_ASSERT_ENABLE_DEBUG
+/// @def TES_ASSERT_ENABLE_RELEASE
+/// Enable release mode assertions when defined.
+// NOLINTNEXTLINE(modernize-macro-to-enum)
+#cmakedefine01 TES_ASSERT_ENABLE_RELEASE
 
-#if defined(NDEBUG) && defined(TES_ASSERT_ENABLE_RELEASE) || !defined(NDEBUG) && defined(TES_ASSERT_ENABLE_DEBUG)
+#if defined(NDEBUG) && TES_ASSERT_ENABLE_RELEASE || !defined(NDEBUG) && TES_ASSERT_ENABLE_DEBUG
 #define TES_ASSERT_ENABLE 1
-#endif  // defined(NDEBUG) && defined(TES_ASSERT_ENABLE_RELEASE) || !defined(NDEBUG) && defined(TES_ASSERT_ENABLE_DEBUG)
+#endif  // defined(NDEBUG) && TES_ASSERT_ENABLE_RELEASE || !defined(NDEBUG) && TES_ASSERT_ENABLE_DEBUG
 
-// Define the word size (in bits)s
-#cmakedefine TES_32
+// Define the word size (in bits)
+/// @def TES_32
+/// Defines when on a 32-bit platform.
+#cmakedefine TES_32 
+/// @def TES_64
+/// Defines when on a 64-bit platform.
 #cmakedefine TES_64
 
 // Define a useful printf format string for size_t
