@@ -160,7 +160,10 @@ void SimpleMesh::clearData()
     SimpleMeshImp *old = _imp;
     --_imp->references;
     _imp = new SimpleMeshImp(Vertex | Index);
-    *_imp = *old;
+    _imp->transform = old->transform;
+    _imp->id = old->id;
+    _imp->tint = old->tint;
+    _imp->drawType = old->drawType;
     _imp->references = 1;
     _imp->clearArrays();
   }

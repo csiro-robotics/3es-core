@@ -34,6 +34,8 @@ namespace tes
 class TES_CORE_API PacketWriter : public PacketStream<PacketHeader>
 {
 public:
+  // TODO(KS): support constructor from std::array.
+
   /// Creates a @c PacketWriter to write to the given @p packet. This
   /// marks the start of the packet buffer.
   ///

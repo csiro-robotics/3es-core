@@ -32,11 +32,25 @@ inline T radToDeg(const T &angle = T(1))
 }
 
 
+/// Calculate the next power of 2 equal to or greater than @p v.
+/// @param v The base, integer value.
+template <typename T>
+inline T nextLog2(T v)
+{
+  size_t next;
+  bool isPow2;
+  isPow2 = v && !(v & (v - 1));
+  next = static_cast<T>(1) << (static_cast<T>(1) + static_cast<T>(std::floor(std::log2(float(v)))));
+  return isPow2 ? v : next;
+}
+
+
 /// Round up to the next power of 2.
 ///
 /// From: https://graphics.stanford.edu/~seander/bithacks.html
 /// @param value The value to round up.
 /// @return The next power of 2 larger than v.
+template <>
 inline uint32_t nextLog2(uint32_t value)
 {
   value--;
@@ -51,6 +65,24 @@ inline uint32_t nextLog2(uint32_t value)
 
 
 /// @overload
+template <>
+inline int nextLog2(int value)
+{
+  // NOLINTBEGIN(hicpp-signed-bitwise)
+  value--;
+  value |= value >> 1;
+  value |= value >> 2;
+  value |= value >> 4;
+  value |= value >> 8;
+  value |= value >> 16;
+  // NOLINTEND(hicpp-signed-bitwise)
+  value++;
+  return value;
+}
+
+
+/// @overload
+template <>
 inline uint64_t nextLog2(uint64_t value)
 {
   value--;

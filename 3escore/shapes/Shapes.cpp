@@ -3,11 +3,6 @@
 //
 #include "Shapes.h"
 
-using namespace tes;
-
-namespace
+namespace tes
 {
-#ifdef _MSC_VER
-int preventCompilerWarning = 0;
-#endif  // _MSC_VER
 }  // namespace

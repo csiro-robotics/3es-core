@@ -40,22 +40,25 @@ public:
 
   /// The resource ID. Unique among resources of the same @c typeId().
   /// @return The resource's ID.
-  virtual uint32_t id() const = 0;
+  [[nodiscard]] virtual uint32_t id() const = 0;
 
   /// The resource type ID. This corresponds to the routing ID (see @c MessageTypeIDs).
   /// May be loosely used for casting.
   /// @return The type ID.
-  virtual uint16_t typeId() const = 0;
+  [[nodiscard]] virtual uint16_t typeId() const = 0;
 
   /// Returns a unique key for this resource, based on the @c typeId() and @c id().
-  inline uint64_t uniqueKey() const { return ((uint64_t)typeId() << 32) | (uint64_t)id(); }
+  [[nodiscard]] uint64_t uniqueKey() const
+  {
+    return (static_cast<uint64_t>(typeId()) << 32u) | static_cast<uint64_t>(id());
+  }
 
   /// Clone the resource. Ideally this should perform a limited, shallow copy and expose
   /// shared resource data. For example, a @c MeshResource may wrap an existing mesh
   /// object pointer and the clone operation simply copies the wrapped pointer.
   /// Obviously, the existing mesh object must outlive the resource use.
   /// @return A (preferably shallow) copy of this resource.
-  virtual Resource *clone() const = 0;
+  [[nodiscard]] virtual Resource *clone() const = 0;
 
   /// Generate a creation packet to send to a connected client.
   ///
@@ -87,20 +90,34 @@ public:
   /// then referenced again). On error, the @p progress.failed flag may be sent, which also
   /// halts transfer.
   ///
-  /// Implementations should respect the @p byteLimit and keep packet sizes below this limit.
+  /// Implementations should respect the @p byte_limit and keep packet sizes below this limit.
   ///
   /// Note that any implementation must @c PacketWriter::reset() the packet before
   /// writing to it, but should not @c PacketWriter::finalise() the packet.
   ///
   /// @param packet A packet to populate and send.
-  /// @param byteLimit A nominal byte limit on how much data a single @p transfer() call may add.
+  /// @param byte_limit A nominal byte limit on how much data a single @p transfer() call may add.
   /// @param[in,out] progress A progress marker tracking how much has already been transferred, and
   ///     updated to indicate what has been added to @p packet.
   /// @return Zero on success, an error code otherwise.
-  virtual int transfer(PacketWriter &packet, unsigned byteLimit, TransferProgress &progress) const = 0;
+  virtual int transfer(PacketWriter &packet, unsigned byte_limit,
+                       TransferProgress &progress) const = 0;
 
+  /// Read the @c OIdCreate message for this resource.
+  ///
+  /// This reads what the @c create() function writes.
+  ///
+  /// @param packet Data packet to read from.
+  /// @return True on success.
   virtual bool readCreate(PacketReader &packet) = 0;
-  virtual bool readTransfer(int messageType, PacketReader &packet) = 0;
+  /// Read a transfer message - @c OIdUpdate .
+  ///
+  /// This reads what the @c transfer() calls write.
+  ///
+  /// @param message_type The transfer message type.
+  /// @param packet Data packet to read from.
+  /// @return True on success.
+  virtual bool readTransfer(int message_type, PacketReader &packet) = 0;
 };
 }  // namespace tes
 

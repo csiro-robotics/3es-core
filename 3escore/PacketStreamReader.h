@@ -27,6 +27,8 @@ struct PacketHeader;
 class TES_CORE_API PacketStreamReader
 {
 public:
+  /// Default constructor. The resulting reader is invalid. Use @c setStream() to initialise.
+  PacketStreamReader();
   /// Construct a stream reader for the given stream.
   /// @param stream The stream to read.
   PacketStreamReader(std::shared_ptr<std::istream> stream);
@@ -34,18 +36,18 @@ public:
 
   /// Check if the stream is ok for more reading.
   /// @return True if ok to read on.
-  inline bool isOk() const { return _stream && _stream->good(); }
+  [[nodiscard]] bool isOk() const { return _stream && _stream->good(); }
 
   /// Check if the stream is at the end of file.
   /// @return True if at end of file.
-  bool isEof() const { return _stream && _stream->eof(); }
+  [[nodiscard]] bool isEof() const { return _stream && _stream->eof(); }
 
   /// (Re)set the stream to read from.
   /// @param stream The stream to read from.
   void setStream(std::shared_ptr<std::istream> stream);
   /// Get the stream in use.
   /// @return The current stream - may be null.
-  std::shared_ptr<std::istream> stream() const { return _stream; }
+  [[nodiscard]] std::shared_ptr<std::istream> stream() const { return _stream; }
 
   /// Try extract the next packet from the stream. The packet pointer remains
   /// valid until the next call to @c extractPacket(). This object retains the
@@ -62,7 +64,7 @@ public:
   void seek(std::istream::pos_type position);
 
 private:
-  size_t readMore(size_t moreCount);
+  size_t readMore(size_t more_count);
   bool checkMarker(std::vector<uint8_t> &buffer, size_t i);
   /// Consume the packet at the head of the buffer (if valid and able).
   void consume();
@@ -74,9 +76,9 @@ private:
   size_t calcExpectedSize();
 
   std::shared_ptr<std::istream> _stream;
-  std::array<uint8_t, sizeof(tes::kPacketMarker)> _markerBytes;
+  std::array<uint8_t, sizeof(tes::kPacketMarker)> _marker_bytes;
   std::vector<uint8_t> _buffer;
-  size_t _chunkSize = 1024u;
+  size_t _chunk_size = 1024u;
 };
 }  // namespace tes
 

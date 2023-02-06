@@ -6,8 +6,6 @@
 #include <atomic>
 #include <thread>
 
-using namespace tes;
-
 namespace tes
 {
 struct SpinLockImp
@@ -18,17 +16,13 @@ struct SpinLockImp
     : lock(false)
   {}
 };
-}  // namespace tes
 
 SpinLock::SpinLock()
-  : _imp(new SpinLockImp)
+  : _imp(std::make_unique<SpinLockImp>())
 {}
 
 
-SpinLock::~SpinLock()
-{
-  delete _imp;
-}
+SpinLock::~SpinLock() = default;
 
 
 void SpinLock::lock()
@@ -40,7 +34,7 @@ void SpinLock::lock()
 }
 
 
-bool SpinLock::try_lock()
+bool SpinLock::tryLock()
 {
   return !_imp->lock.exchange(true);
 }
@@ -50,3 +44,4 @@ void SpinLock::unlock()
 {
   _imp->lock = false;
 }
+}  // namespace tes

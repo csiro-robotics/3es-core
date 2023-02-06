@@ -14,32 +14,14 @@ namespace tes
 {
 void endianSwap(uint8_t *data, size_t size)
 {
-  switch (size)
-  {
-  case 0:
-  case 1:
-    return;
-  case 2:
-    return endianSwap2(data);
-    ;
-  case 4:
-    return endianSwap4(data);
-    ;
-  case 8:
-    return endianSwap8(data);
-    ;
-  case 16:
-    return endianSwap16(data);
-    ;
-  default:
-    break;
-  }
-
   auto *data_copy = reinterpret_cast<uint8_t *>(alloca(size));
   std::memcpy(data_copy, data, size);
   for (size_t i = 0; i < size / 2; ++i)
   {
-    data[i] = data_copy[size - i - 1];
+    const auto index_a = i;
+    const auto index_b = size - i - 1;
+    data[index_a] = data_copy[index_b];
+    data[index_b] = data_copy[index_a];
   }
 }
 }  // namespace tes

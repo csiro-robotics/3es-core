@@ -6,6 +6,7 @@ set(SOURCES
   TestCore.cpp
   TestDataBuffer.cpp
   TestShapes.cpp
+  TestStream.cpp
 )
 
 add_executable(3estUnit ${SOURCES})

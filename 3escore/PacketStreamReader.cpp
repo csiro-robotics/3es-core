@@ -3,18 +3,24 @@
 //
 #include "PacketStreamReader.h"
 
+#include "CoreUtil.h"
 #include "PacketReader.h"
 
 #include <cstring>
 
 namespace tes
 {
-PacketStreamReader::PacketStreamReader(std::shared_ptr<std::istream> stream)
-  : _stream(std::exchange(stream, nullptr))
+PacketStreamReader::PacketStreamReader()
 {
-  auto packetMarker = networkEndianSwapValue(tes::kPacketMarker);
-  std::memcpy(_markerBytes.data(), &packetMarker, sizeof(packetMarker));
-  _buffer.reserve(_chunkSize);
+  const auto packet_marker = networkEndianSwapValue(tes::kPacketMarker);
+  std::memcpy(_marker_bytes.data(), &packet_marker, sizeof(packet_marker));
+  _buffer.reserve(_chunk_size);
+}
+
+PacketStreamReader::PacketStreamReader(std::shared_ptr<std::istream> stream)
+  : PacketStreamReader()
+{
+  _stream = std::move(stream);
 }
 
 
@@ -30,7 +36,7 @@ void PacketStreamReader::setStream(std::shared_ptr<std::istream> stream)
 
 const PacketHeader *PacketStreamReader::extractPacket()
 {
-  if (!_stream || _stream->eof())
+  if (!_stream)
   {
     return nullptr;
   }
@@ -38,9 +44,13 @@ const PacketHeader *PacketStreamReader::extractPacket()
   consume();
 
   // Read a chunk from the stream.
-  if (_buffer.size() < _chunkSize)
+  if (_buffer.empty())
   {
-    readMore(_chunkSize - _buffer.size());
+    if (readMore(_chunk_size - _buffer.size()) == 0)
+    {
+      // We have no data to read more.
+      return nullptr;
+    }
   }
 
   // Scan for the buffer start.
@@ -66,12 +76,12 @@ const PacketHeader *PacketStreamReader::extractPacket()
       }
 
       // Check the packet size and work out how much more to read.
-      const auto targetSize = calcExpectedSize();
+      const auto target_size = calcExpectedSize();
       // Read the full payload.
-      if (_buffer.size() < targetSize)
+      if (_buffer.size() < target_size)
       {
-        readMore(targetSize - _buffer.size());
-        if (_buffer.size() < targetSize)
+        readMore(target_size - _buffer.size());
+        if (_buffer.size() < target_size)
         {
           // Failed to read enough.
           return nullptr;
@@ -99,28 +109,30 @@ void PacketStreamReader::seek(std::istream::pos_type position)
 }
 
 
-size_t PacketStreamReader::readMore(size_t moreCount)
+size_t PacketStreamReader::readMore(size_t more_count)
 {
   static_assert(sizeof(*_buffer.data()) == sizeof(char));
-  auto haveCount = _buffer.size();
-  _buffer.resize(haveCount + moreCount);
-  _stream->read(reinterpret_cast<char *>(_buffer.data()) + haveCount, moreCount);
-  auto readCount = _stream->gcount();
-  _buffer.resize(haveCount + readCount);
-  return readCount;
+  if (isEof())
+  {
+    return 0;
+  }
+
+  auto have_count = _buffer.size();
+  _buffer.resize(have_count + more_count);
+  const auto read_count = _stream->readsome(reinterpret_cast<char *>(_buffer.data()) + have_count,
+                                            int_cast<unsigned>(more_count));
+  _buffer.resize(have_count + read_count);
+  return read_count;
 }
 
 
 bool PacketStreamReader::checkMarker(std::vector<uint8_t> &buffer, size_t i)
 {
-  if (_buffer[i] == _markerBytes[0])
+  for (size_t j = 0; j < _marker_bytes.size() && i + j < buffer.size(); ++j)
   {
-    for (unsigned j = 1; j < unsigned(_markerBytes.size()) && i + j < buffer.size(); ++j)
+    if (_buffer[i + j] != _marker_bytes[j])
     {
-      if (_buffer[i + j] != _markerBytes[j])
-      {
-        return false;
-      }
+      return false;
     }
   }
   return true;
@@ -141,23 +153,23 @@ void PacketStreamReader::consume()
     return;
   }
 
-  auto targetSize = calcExpectedSize();
-  if (_buffer.size() >= targetSize)
+  auto target_size = calcExpectedSize();
+  if (_buffer.size() >= target_size)
   {
     // Consume.
-    std::memmove(_buffer.data(), _buffer.data() + targetSize, _buffer.size() - targetSize);
-    _buffer.resize(_buffer.size() - targetSize);
+    std::memmove(_buffer.data(), _buffer.data() + target_size, _buffer.size() - target_size);
+    _buffer.resize(_buffer.size() - target_size);
   }
 }
 
 size_t PacketStreamReader::calcExpectedSize()
 {
-  const PacketHeader *header = reinterpret_cast<const PacketHeader *>(_buffer.data());
-  auto payloadSize = networkEndianSwapValue(header->payload_size);
+  const auto *header = reinterpret_cast<const PacketHeader *>(_buffer.data());
+  auto payload_size = networkEndianSwapValue(header->payload_size);
   if ((networkEndianSwapValue(header->flags) & PFNoCrc) == 0)
   {
-    payloadSize += sizeof(PacketReader::CrcType);
+    payload_size += sizeof(PacketReader::CrcType);
   }
-  return sizeof(PacketHeader) + payloadSize;
+  return sizeof(PacketHeader) + payload_size;
 }
 }  // namespace tes

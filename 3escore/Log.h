@@ -7,9 +7,7 @@
 #include <sstream>
 #include <string>
 
-namespace tes
-{
-namespace log
+namespace tes::log
 {
 /// Logging levels.
 enum class Level
@@ -27,20 +25,20 @@ enum class Level
 };
 
 /// Logging function signature.
-/// @param level The logging level. This is provided for information purposes; any logging prefix will already be
-/// added.
+/// @param level The logging level. This is provided for information purposes; any logging prefix
+/// will already be added.
 /// @param message The message to log.
 using LogFunction = std::function<void(Level level, const std::string &message)>;
 
 /// The default logging function.
-/// @param level The logging level. This is provided for information purposes; any logging prefix will already be
-/// added.
+/// @param level The logging level. This is provided for information purposes; any logging prefix
+/// will already be added.
 /// @param message The message to log.
 void TES_CORE_API defaultLogger(Level level, const std::string &message);
 
 /// Get the logging function. This is used to log all messages.
 /// @return The current loging function.
-LogFunction TES_CORE_API logger();
+[[nodiscard]] LogFunction TES_CORE_API logger();
 /// Set the logging function.
 ///
 /// Not threadsafe.
@@ -50,14 +48,14 @@ void TES_CORE_API setLogger(LogFunction logger);
 /// Log level to string
 /// @param level The level to convert.
 /// @return The level string text.
-const std::string TES_CORE_API &toString(Level level);
+[[nodiscard]] const std::string TES_CORE_API &toString(Level level);
 
 /// Get the logging prefix for a particular logging level.
 ///
 /// Of the form @c "[{toString(level)}]"
 /// @param level The level to get the prefix for.
 /// @return The message prefix.
-const std::string TES_CORE_API &prefix(Level level);
+[[nodiscard]] const std::string TES_CORE_API &prefix(Level level);
 
 /// Log the given message is is. No prefix or newlines are added.
 /// @param message Message to log.
@@ -165,7 +163,6 @@ inline std::ostream &operator<<(std::ostream &o, tes::log::Level level)
   o << toString(level);
   return o;
 }
-}  // namespace log
-}  // namespace tes
+}  // namespace tes::log
 
 #endif  // TES_CORE_LOG_H

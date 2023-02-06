@@ -6,6 +6,8 @@
 
 #include "CoreConfig.h"
 
+#include <memory>
+
 namespace tes
 {
 struct SpinLockImp;
@@ -29,15 +31,24 @@ public:
 
   /// Try attain the lock without blocking.
   /// @return True if the lock is attained, false if it could not be attained.
-  bool try_lock();
+  [[nodiscard]] bool tryLock();
+
+  /// Alias for @c tryLock().
+  /// @return True if the lock is attained, false if it could not be attained.
+  [[nodiscard]] bool try_lock();  // NOLINT(readability-identifier-naming)
 
   /// Unlock the lock. Should only ever be called by the scope which called @c lock()
   /// or succeeded at @c try_lock.
   void unlock();
 
 private:
-  SpinLockImp *_imp;  ///< Implementation detail.
+  std::unique_ptr<SpinLockImp> _imp;  ///< Implementation detail.
 };
+
+inline bool SpinLock::try_lock()
+{
+  return tryLock();
+}
 }  // namespace tes
 
 #endif  // TES_CORE_SPIN_LOCK_H
