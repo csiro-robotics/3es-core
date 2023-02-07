@@ -252,7 +252,7 @@ private:
   unsigned _max_packet_size = 0;            ///< Maximum @p _buffer_size.
   uint16_t _compression_level = ClDefault;  ///< @c CompressionLevel
   bool _finalised = false;                  ///< Finalisation flag.
-  bool _active = false;                     ///< For @c Connection::active().
+  bool _active = true;                      ///< For @c Connection::active().
 };
 
 
