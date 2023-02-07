@@ -39,7 +39,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Vector3<REAL> &v)
 /// @ingroup tesiostream
 /// Write @c Vector4 type to stream.
 ///
-/// By default, the W component is displayed last. Use @c v4wmode() to adjust this behaviour.
+/// By default, the W component is displayed last. Use @c tesV4WMode() to adjust this behaviour.
 ///
 /// @param o Output stream.
 /// @param v Vector to display.
@@ -61,7 +61,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Vector4<REAL> &v)
 /// @ingroup tesiostream
 /// Write @c Quaternion type to stream.
 ///
-/// By default, the W component is displayed last. Use @c quatwmode() to adjust this behaviour.
+/// By default, the W component is displayed last. Use @c tesQuatWMode() to adjust this behaviour.
 ///
 /// @param o Output stream.
 /// @param q Quaternion to display.
@@ -83,7 +83,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Quaternion<REAL> &q)
 /// @ingroup tesiostream
 /// Write @c Matrix3 type to stream.
 ///
-/// By default, all elements are displayed inline. Use @c matmode() to adjust this behaviour.
+/// By default, all elements are displayed inline. Use @c tesMatrixMode() to adjust this behaviour.
 ///
 /// @param o Output stream.
 /// @param m Matrix to display.
@@ -103,7 +103,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Matrix3<REAL> &m)
 /// @ingroup tesiostream
 /// Write @c Matrix4 type to stream.
 ///
-/// By default, all elements are displayed inline. Use @c matmode() to adjust this behaviour.
+/// By default, all elements are displayed inline. Use @c tesMatrixMode() to adjust this behaviour.
 ///
 /// @param o Output stream.
 /// @param m Matrix to display.

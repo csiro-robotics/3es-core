@@ -5,7 +5,9 @@
 
 #include <cstring>
 
-void tes::initDefaultServerInfo(ServerInfoMessage *info)
+namespace tes
+{
+void initDefaultServerInfo(ServerInfoMessage *info)
 {
   const uint32_t default_frame_step_ms = 33u;
   memset(info, 0, sizeof(*info));
@@ -13,3 +15,4 @@ void tes::initDefaultServerInfo(ServerInfoMessage *info)
   info->default_frame_time = default_frame_step_ms;
   info->coordinate_frame = 0;
 }
+}  // namespace tes

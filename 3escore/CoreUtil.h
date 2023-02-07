@@ -110,7 +110,25 @@ template <typename Int, typename SrcInt>
 Int int_cast(SrcInt value)  // NOLINT(readability-identifier-naming)
 {
   // NOLINTNEXTLINE(misc-redundant-expression)
-  if (value < std::numeric_limits<Int>::lowest() || value > std::numeric_limits<Int>::max())
+  const auto lowest = std::numeric_limits<Int>::lowest();
+  const auto highest = std::numeric_limits<Int>::max();
+  bool overflow = false;
+  if constexpr (std::is_signed<Int>::value == std::is_signed<SrcInt>::value)
+  {
+    // Source and target types are both signed or unsigned.
+    overflow = value < lowest || value > highest;
+  }
+  else if constexpr (std::is_signed<Int>::value)
+  {
+    // Target type is signed, source is unsigned. Only check upper limit.
+    overflow = value > highest;
+  }
+  else
+  {
+    // Target type is unsigned and source is signed.
+    overflow = value < 0 || value > highest;
+  }
+  if (overflow)
   {
     // The source value is out of range for the destination type.
     TES_THROW(Exception("Integer overflow"), Int(value));

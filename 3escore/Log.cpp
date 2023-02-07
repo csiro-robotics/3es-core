@@ -43,6 +43,7 @@ LogFunction logger()
 
 void setLogger(LogFunction logger)
 {
+  (void)tes::log::logger();  // Ensure initialisation.
   s_log_function = std::move(logger);
 }
 
@@ -67,7 +68,7 @@ const std::string &prefix(Level level)
 
 void log(Level level, const std::string &message)
 {
-  s_log_function(level, message);
+  logger()(level, message);
 }
 
 void fatal(const std::string &message)

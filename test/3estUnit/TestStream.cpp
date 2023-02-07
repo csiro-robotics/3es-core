@@ -5,13 +5,17 @@
 #include "TestCommon.h"
 
 #include <3escore/CoordinateFrame.h>
+#include <3escore/CoreUtil.h>
 #include <3escore/Messages.h>
-#include <3escore/StreamUtil.h>
+#include <3escore/PacketBuffer.h>
+#include <3escore/PacketReader.h>
 #include <3escore/PacketStreamReader.h>
+#include <3escore/StreamUtil.h>
 
 #include <gtest/gtest.h>
 
 #include <array>
+#include <iterator>
 #include <memory>
 #include <sstream>
 
@@ -132,5 +136,71 @@ TEST(Stream, Util)
   EXPECT_EQ(server_info.default_frame_time, expected_info.default_frame_time);
   EXPECT_EQ(server_info.coordinate_frame, expected_info.coordinate_frame);
   EXPECT_EQ(frame_count, expect_frame_count);
+}
+
+TEST(Stream, PacketBuffer)
+{
+  // Setup a stream.
+  std::shared_ptr<std::stringstream> stream_ptr = std::make_shared<std::stringstream>();
+  std::stringstream &stream = *stream_ptr;
+  ServerInfoMessage expected_server_info = {};
+  const uint32_t expected_frame_count = 42u;
+  initDefaultServerInfo(&expected_server_info);
+  streamutil::initialiseStream(stream, &expected_server_info);
+  ASSERT_TRUE(streamutil::finaliseStream(stream, expected_frame_count, &expected_server_info));
+  stream.flush();
+
+  std::vector<uint8_t> buffer;
+  std::vector<uint8_t> secondary_buffer;
+  const auto str = stream.str();
+  std::copy(str.begin(), str.end(), back_inserter(buffer));
+
+  ServerInfoMessage restored_info = {};
+  uint32_t final_frame_count = 0;
+  const auto handle_packet = [this, &restored_info,
+                              &final_frame_count](const PacketHeader *header) {
+    PacketReader reader(header);
+    switch (reader.routingId())
+    {
+    case MtServerInfo:
+      EXPECT_TRUE(restored_info.read(reader));
+      break;
+    case MtControl:
+      if (reader.messageId() == CIdFrameCount)
+      {
+        ControlMessage msg;
+        EXPECT_TRUE(msg.read(reader));
+        final_frame_count = msg.value32;
+        break;
+      }
+      TES_FALLTHROUGH;
+    default:
+      FAIL() << "Unexpected message type.";
+      break;
+    }
+  };
+
+  // We have our memory buffer. Now start migrating data from this to a PacketBuffer.
+  // We'll copy 16 byte blocks to simulate partial reads.
+  PacketBuffer packet_buffer;
+
+  for (size_t i = 0; i < buffer.size(); i += 16)
+  {
+    const size_t copy_count = std::min<size_t>(16u, buffer.size() - i);
+    EXPECT_NE(packet_buffer.addBytes(buffer.data() + i, copy_count), -1);
+
+    // Check for packet completion.
+    secondary_buffer.clear();
+    auto *packet = packet_buffer.extractPacket(secondary_buffer);
+    if (packet)
+    {
+      handle_packet(packet);
+    }
+  }
+
+  EXPECT_EQ(restored_info.time_unit, expected_server_info.time_unit);
+  EXPECT_EQ(restored_info.default_frame_time, expected_server_info.default_frame_time);
+  EXPECT_EQ(restored_info.coordinate_frame, expected_server_info.coordinate_frame);
+  EXPECT_EQ(final_frame_count, expected_frame_count);
 }
 }  // namespace tes

@@ -16,47 +16,56 @@
 namespace tes
 {
 /// @ingroup tesiostream
-/// Accepted values for @c ::matmode.
-enum MatMode
+/// Accepted values for @c ::tesMatrixMode.
+enum class MatrixMode : int
 {
   /// Display all matrix elements inline.
-  MM_Inline,
+  Inline,
   /// Insert newlines after every row.
-  MM_Block
+  Block
 };
 
 /// @ingroup tesiostream
 /// Display mode W component in @c Vector4 and @c Quaternion types.
-enum WMode
+enum class WMode : int
 {
   /// W is displayed last to match memory layout (default).
-  WM_Last,
+  Last,
   /// W component is displayed first.
-  WM_First
+  First
 };
 
-int TES_CORE_API getMatMode(std::ostream &o);
-int TES_CORE_API getQuatWMode(std::ostream &o);
-int TES_CORE_API getV4WMode(std::ostream &o);
+/// Get the current matrix streaming display mode using @p stream.
+/// @param stream The stream of interest.
+/// @return The current matrix display mode for @p stream.
+MatrixMode TES_CORE_API getMatMode(std::ostream &stream);
+/// Get the current @c Quaternion W component streaming display mode using @p stream.
+/// @param stream The stream of interest.
+/// @return The current @c Quaternion W display mode for @p stream.
+WMode TES_CORE_API getQuatWMode(std::ostream &stream);
+/// Get the current @c Vector4 W component streaming display mode using @p stream.
+/// @param stream The stream of interest.
+/// @return The current @c Vector4 W display mode for @p stream.
+WMode TES_CORE_API getV4WMode(std::ostream &stream);
 }  // namespace tes
 
 /// @ingroup tesiostream
 /// Set the @c tes::MatMode for a stream affecting @c tes::Matrix3 and @c tes::Matrix4 output.
-/// @param o The stream to set the mode for.
-/// @param mode The mode to set. See @c tes::MatMode
-/// @return @c o
-std::ostream TES_CORE_API &matmode(std::ostream &o, int mode);
+/// @param stream The stream to set the mode for.
+/// @param mode The mode to set. See @c tes::MatrixMode
+/// @return @c stream
+std::ostream TES_CORE_API &tesMatrixMode(std::ostream &stream, tes::MatrixMode mode);
 /// @ingroup tesiostream
 /// Set the @c tes::WMode used to display @c tes::Vector4 in a stream.
-/// @param o The stream to set the mode for.
+/// @param stream The stream to set the mode for.
 /// @param mode The mode to set. See @c tes::WMode
-/// @return @c o
-std::ostream TES_CORE_API &v4wmode(std::ostream &o, int mode);
+/// @return @c stream
+std::ostream TES_CORE_API &tesV4WMode(std::ostream &stream, tes::WMode mode);
 /// @ingroup tesiostream
 /// Set the @c tes::WMode used to display @c tes::Quaternion in a stream.
-/// @param o The stream to set the mode for.
+/// @param stream The stream to set the mode for.
 /// @param mode The mode to set. See @c tes::WMode
-/// @return @c o
-std::ostream TES_CORE_API &quatwmode(std::ostream &o, int mode);
+/// @return @c stream
+std::ostream TES_CORE_API &tesQuatWMode(std::ostream &stream, tes::WMode mode);
 
 #endif  // TES_CORE_MATHS_4MANIP_H
