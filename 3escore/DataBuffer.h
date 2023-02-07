@@ -19,7 +19,6 @@
 #include <cinttypes>
 #include <memory>
 #include <utility>
-#include <vector>
 
 #define STREAM_TYPE_INFO(_type, _type_name) \
   template <>                               \
@@ -132,8 +131,8 @@ public:
   /// @param packet The data packet to write to.
   /// @param offset The element offset into @p stream to start writing from.
   /// @param write_as_type The data type to write to @p packet.
-  /// @param byteLimit The maximum number of bytes we can write to @p packet.
-  /// @param receiveOffset Receiver offset. This is added to @p offset when writing to th
+  /// @param byte_limit The maximum number of bytes we can write to @p packet.
+  /// @param receive_offset Receiver offset. This is added to @p offset when writing to th
   /// @p packet. See @c DataBuffer::write() for details.
   /// @param stream The @c DataBuffer to read from. This affordances object is expected to belong
   /// to the @c stream.
@@ -141,8 +140,16 @@ public:
   /// @c DctPackedFloat32 operations.
   /// @return The number of elements written to @p packet. Zero on failure.
   virtual uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                         unsigned byteLimit, uint32_t receiveOffset, const DataBuffer &stream,
-                         double quantisation_unit = 0.0) const = 0;
+                         unsigned byte_limit, uint32_t receive_offset, const DataBuffer &stream,
+                         double quantisation_unit) const = 0;
+
+  /// @overload
+  uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
+                 unsigned byte_limit, uint32_t receive_offset, const DataBuffer &stream) const
+  {
+    return write(packet, offset, write_as_type, byte_limit, receive_offset, stream, 0.0);
+  }
+
   /// Write data from @p packet into the address at @p stream_ptr ensuring we read data of the type
   /// expected by these affordances.
   ///
@@ -228,21 +235,21 @@ public:
   /// @return Affordances singleton.
   static DataBufferAffordances *instance();
 
-  void release(const void **stream_ptr, bool has_ownership) const override;
+  void release(const void **stream_ptr, bool has_ownership) const final;
   void takeOwnership(const void **stream_ptr, bool has_ownership,
-                     const DataBuffer &stream) const override;
+                     const DataBuffer &stream) const final;
   uint32_t write(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                 unsigned byteLimit, uint32_t receiveOffset, const DataBuffer &stream,
-                 double quantisation_unit = 0.0) const override;
+                 unsigned byte_limit, uint32_t receive_offset, const DataBuffer &stream,
+                 double quantisation_unit) const final;
   uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
-                const DataBuffer &stream) const override;
+                const DataBuffer &stream) const final;
   uint32_t read(PacketReader &packet, void **stream_ptr, unsigned *stream_size, bool *has_ownership,
-                const DataBuffer &stream, unsigned offset, unsigned count) const;
+                const DataBuffer &stream, unsigned offset, unsigned count) const final;
 
   size_t get(DataStreamType as_type, size_t element_index, size_t component_index,
              size_t component_read_count, const void *stream, size_t stream_element_count,
              size_t stream_component_count, size_t stream_element_stride, void *dst,
-             size_t dst_capacity) const override;
+             size_t dst_capacity) const final;
 
   /// Helper function to write data from @c T to the @p WriteType.
   /// @tparam WriteType The data type to write as.
@@ -251,13 +258,13 @@ public:
   /// @param write_as_type The @c DataStreamType to write as. This generally matches the type @c T
   /// however it is also valid to have @c DctPackedFloat16 with for @c WriteType @c int16_t and
   /// @c DctDctPackedFloat32 with @c WriteType @c int32_t.
-  /// @param byteLimit maximum number of bytes to write to @p packet.
-  /// @param receiveOffset Added to the @p offset for the receiver to handle. See remarks.
+  /// @param byte_limit maximum number of bytes to write to @p packet.
+  /// @param receive_offset Added to the @p offset for the receiver to handle. See remarks.
   /// @param stream The owning @c DataBuffer.
   /// @return The number of elements written or zero on failure.
   template <typename WriteType>
   uint32_t writeAs(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                   unsigned byteLimit, uint32_t receiveOffset, const DataBuffer &stream) const;
+                   unsigned byte_limit, uint32_t receive_offset, const DataBuffer &stream) const;
 
   /// Function function for writing packed ata.
   /// @tparam FloatType Either @c float or @c double matching the affordances type.
@@ -267,20 +274,21 @@ public:
   /// @param offset An element index offset to start writing from this buffer.
   /// @param write_as_type The @c DataStreamType to write as; either @c DctPackedFloat16 or
   /// @c DctDctPackedFloat32.
-  /// @param byteLimit maximum number of bytes to write to @p packet.
-  /// @param receiveOffset Added to the @p offset for the receiver to handle. See remarks.
-  /// @param packingOrigin A origin offset applied to help with quantisation. Essentially this
-  /// value is subtracted from each element. The number of elements at @c packingOrigin must match
+  /// @param byte_limit maximum number of bytes to write to @p packet.
+  /// @param receive_offset Added to the @p offset for the receiver to handle. See remarks.
+  /// @param packet_origin A origin offset applied to help with quantisation. Essentially this
+  /// value is subtracted from each element. The number of elements at @c packet_origin must match
   /// the @c stream.componentCount(). For example, if writing @c Vector3d elements, then
-  /// @c packingOrigin must be an array of 3 @c double values (i.e., a @c Vector3d ) and this value
+  /// @c packet_origin must be an array of 3 @c double values (i.e., a @c Vector3d ) and this value
   /// is subtracted from each @c Vector3d before packing.
-  /// @param quantisationUnit The quantisation unit divides into each element to quantise it.
+  /// @param quantisation_unit The quantisation unit divides into each element to quantise it.
   /// @param stream The owning @c DataBuffer.
   /// @return The number of elements written or zero on failure.
   template <typename FloatType, typename PackedType>
   uint32_t writeAsPacked(PacketWriter &packet, uint32_t offset, DataStreamType write_as_type,
-                         unsigned byteLimit, uint32_t receiveOffset, const FloatType *packingOrigin,
-                         const FloatType quantisationUnit, const DataBuffer &stream) const;
+                         unsigned byte_limit, uint32_t receive_offset,
+                         const FloatType *packet_origin, FloatType quantisation_unit,
+                         const DataBuffer &stream) const;
 
   /// Helper function to read data of type @p ReadType from @p packet into @p *stream_ptr.
   ///
@@ -291,11 +299,11 @@ public:
   /// @param packet Data packet to read from.
   /// @param offset Element offset into @p *stream_ptr to write to.
   /// @param count Number of elements from @p packet to read.
-  /// @param componentCount Number of components per element.
+  /// @param component_count Number of components per element.
   /// @param[in,out] stream_ptr A pointer to the @c DataBuffer data pointer.
   /// @return The number of element read, zero on failure.
   template <typename ReadType>
-  uint32_t readAs(PacketReader &packet, uint32_t offset, uint32_t count, unsigned componentCount,
+  uint32_t readAs(PacketReader &packet, uint32_t offset, uint32_t count, unsigned component_count,
                   void **stream_ptr) const;
 
   /// Helper function to read packed data of type @p ReadType from @p packet into @p *stream_ptr.
@@ -307,12 +315,12 @@ public:
   /// @param packet Data packet to read from.
   /// @param offset Element offset into @p *stream_ptr to write to.
   /// @param count Number of elements from @p packet to read.
-  /// @param componentCount Number of components per element.
+  /// @param component_count Number of components per element.
   /// @param[in,out] stream_ptr A pointer to the @c DataBuffer data pointer.
   /// @return The number of element read, zero on failure.
   template <typename FloatType, typename ReadType>
   uint32_t readAsPacked(PacketReader &packet, unsigned offset, unsigned count,
-                        unsigned componentCount, void **stream_ptr) const;
+                        unsigned component_count, void **stream_ptr) const;
 };
 
 extern template class TES_CORE_API DataBufferAffordancesT<int8_t>;
@@ -348,21 +356,21 @@ extern template class TES_CORE_API DataBufferAffordancesT<double>;
 /// represented by a simple @em primitiveType: @c intX_t , @c uintX_t , @c float or @c double . The
 /// array is broken up into @em vertices where each @em vertex is composed of a number of
 /// consecutive
-/// @em dataElements determined by the @em componentCount all of the same primitive type. A vertex
+/// @em dataElements determined by the @em component_count all of the same primitive type. A vertex
 /// be followed by some padding - possibly for data alignment - of M @em dataElements. Finally,
 /// there number of @em vertices must be known and fixed.
 ///
 /// The terminology is broken down below:
 /// - @em primitiveType - the primitive type contained in the stream; e.g., @c int32_t, @c double.
 /// - @em dataElements - a number of consecutive @em primitiveType elements
-/// - @em componentCount - the number of @em primitiveType elements in each @em vertex
+/// - @em component_count - the number of @em primitiveType elements in each @em vertex
 /// - @em vertexStride - the number of @em primitiveType elements between each vertex. This will be
 /// at
-///   least as large as @em componentCount
+///   least as large as @em component_count
 ///
 /// Some examples are provided below to help illustrate the terminology:
 ///
-/// Logical Type       | @em primitiveType  | @em componentCount | @em vertexStride |
+/// Logical Type       | @em primitiveType  | @em component_count | @em vertexStride |
 /// ------------------ | ------------- | ------------------ | ---------------- |
 /// `32-bit indices`   | uint32_t      | 1                  | 1                |
 /// `float3 (packed)`  | float         | 3                  | 3                |
@@ -372,10 +380,10 @@ extern template class TES_CORE_API DataBufferAffordancesT<double>;
 /// precision vertex storage. In contrast `float3 (packed)` assumes densely packed float triplets
 /// such as the @c tes::Vector3f definition.
 ///
-/// The byte size of each element is calculated as `sizeof(primitiveType) * componentCount`.
+/// The byte size of each element is calculated as `sizeof(primitiveType) * component_count`.
 ///
 /// The byte size of the entire array is calculated as
-/// `count() * sizeof(primitiveType) * componentCount`. @c componentCount() values above 16 are not
+/// `count() * sizeof(primitiveType) * component_count`. @c componentCount() values above 16 are not
 /// supported.
 ///
 /// The @c DataBuffer class is designed to work with @c PacketWriter and @c PacketReader classes
@@ -398,24 +406,24 @@ public:
   /// instantiation and result in an invalid @c DataBuffer, equivalent to calling @c DataBuffer().
   ///
   /// @param type The stream type. Using @c DctNone or a packed data type is invalid.
-  /// @param componentCount Number of components of @c type in each element.
-  /// @param componentStride Stride between elements. The stride is sized by @p type and must
-  /// be @c >= @p componentCount excepting that a zero value implies
-  /// `componentStride = componentCount`.
-  explicit DataBuffer(DataStreamType type, size_t componentCount = 1, size_t componentStride = 0);
+  /// @param component_count Number of components of @c type in each element.
+  /// @param component_stride Stride between elements. The stride is sized by @p type and must
+  /// be @c >= @p component_count excepting that a zero value implies
+  /// `component_stride = component_count`.
+  explicit DataBuffer(DataStreamType type, size_t component_count = 1, size_t component_stride = 0);
 
   /// Construct from a raw pointer array.
   /// @tparam T The array data type. See @em primitiveType restrictions in class comments.
   /// @param v The vertex data array.
   /// @param count Number of vertex elements in the array.
-  /// @param componentCount Number of components of type @p T in each element.
-  /// @param componentStride Stride between elements in @p v. The stride is sized by @p T and must
-  /// be @c >= @p componentCount excepting that a zero value implies
-  /// `componentStride = componentCount`.
-  /// @param ownPointer True to take ownership of the memory at @p v.
+  /// @param component_count Number of components of type @p T in each element.
+  /// @param component_stride Stride between elements in @p v. The stride is sized by @p T and must
+  /// be @c >= @p component_count excepting that a zero value implies
+  /// `component_stride = component_count`.
+  /// @param own_pointer True to take ownership of the memory at @p v.
   template <typename T>
-  DataBuffer(const T *v, size_t count, size_t componentCount = 1, size_t componentStride = 0,
-             bool ownPointer = false);
+  DataBuffer(const T *v, size_t count, size_t component_count = 1, size_t component_stride = 0,
+             bool own_pointer = false);
 
   /// Construct a vertex data buffer from a @c Vector3f data type using borrowed memory.
   /// @param v The vertex array.
@@ -467,12 +475,12 @@ public:
   /// Construct a data buffer from a @c std::vector using borrowed memory.
   /// @tparam T The array data type. See @em primitiveType restrictions in class comments.
   /// @param v The vertex data array.
-  /// @param componentCount Number of components of type @p T in each element.
-  /// @param componentStride Stride between elements in @p v. The stride is sized by @p T and must
+  /// @param component_count Number of components of type @p T in each element.
+  /// @param component_stride Stride between elements in @p v. The stride is sized by @p T and must
   /// be @c >=
-  ///   @p componentCount excepting that a zero value implies `componentStride = componentCount`.
+  ///   @p component_count excepting that a zero value implies `component_stride = component_count`.
   template <typename T>
-  DataBuffer(const std::vector<T> &v, size_t componentCount = 1, size_t componentStride = 0);
+  DataBuffer(const std::vector<T> &v, size_t component_count = 1, size_t component_stride = 0);
 
   /// Construct a data buffer from a @c std::array using borrowed memory. Component stride and count
   /// are 1.
@@ -498,11 +506,11 @@ public:
   /// alpha}.
   ///
   /// @param v The colour array.
-  DataBuffer(const std::vector<Colour> &v);
+  DataBuffer(const std::vector<Colour> &colours);
 
   /// Move constructor.
   /// @param other Object to move.
-  DataBuffer(DataBuffer &&other);
+  DataBuffer(DataBuffer &&other) noexcept;
 
   /// Copy constructor. This borrows memory from @p other and results in a @c DataBuffer which
   /// @em borrows the memory. Use @c duplicate() to copy the data into owned memory.
@@ -523,14 +531,14 @@ public:
   /// @tparam T The array data type. See @em primitiveType restrictions in class comments.
   /// @param v The vertex data array.
   /// @param count Number of vertex elements in the array.
-  /// @param componentCount Number of components of type @p T in each element.
-  /// @param componentStride Stride between elements in @p v. The stride is sized by @p T and must
+  /// @param component_count Number of components of type @p T in each element.
+  /// @param component_stride Stride between elements in @p v. The stride is sized by @p T and must
   /// be @c >=
-  ///   @p componentCount excepting that a zero value implies `componentStride = componentCount`.
-  /// @param ownPointer True to take ownership of the memory at @p v.
+  ///   @p component_count excepting that a zero value implies `component_stride = component_count`.
+  /// @param own_pointer True to take ownership of the memory at @p v.
   template <typename T>
-  void set(const T *v, size_t count, size_t componentCount = 1, size_t componentStride = 0,
-           bool ownPointer = false);
+  void set(const T *v, size_t count, size_t component_count = 1, size_t component_stride = 0,
+           bool own_pointer = false);
 
   /// Set data from a @c std::vector using borrowed memory.
   ///
@@ -538,12 +546,12 @@ public:
   ///
   /// @tparam T The array data type. See @em primitiveType restrictions in class comments.
   /// @param v The vertex data array.
-  /// @param componentCount Number of components of type @p T in each element.
-  /// @param componentStride Stride between elements in @p v. The stride is sized by @p T and must
+  /// @param component_count Number of components of type @p T in each element.
+  /// @param component_stride Stride between elements in @p v. The stride is sized by @p T and must
   /// be @c >=
-  ///   @p componentCount excepting that a zero value implies `componentStride = componentCount`.
+  ///   @p component_count excepting that a zero value implies `component_stride = component_count`.
   template <typename T>
-  void set(const std::vector<T> &v, size_t componentCount = 1, size_t componentStride = 0);
+  void set(const std::vector<T> &v, size_t component_count = 1, size_t component_stride = 0);
 
   /// Set from a @c Vector3f @c std::vector using borrowed memory.
   ///
@@ -562,7 +570,7 @@ public:
   /// Existing memory is released as required.
   ///
   /// @param v The colour array.
-  void set(const std::vector<Colour> &v);
+  void set(const std::vector<Colour> &colours);
 
   /// Read a single item at the given element index, and component index.
   ///
@@ -610,7 +618,7 @@ public:
   /// Move assignment.
   /// @param other Object to move.
   /// @return @c *this
-  DataBuffer &operator=(DataBuffer &&other);
+  DataBuffer &operator=(DataBuffer &&other) noexcept;
 
   /// Copy assignment operator. This borrows memory from @p other and results in a @c DataBuffer
   /// which @em borrows the memory. Use @c duplicate() to copy the data into owned memory.
@@ -625,11 +633,11 @@ public:
   /// behaviour is undefined if the original memory has been released.
   ///
   /// @return True if the buffer has a valid pointer.
-  bool isValid() const { return _stream != nullptr; }
+  [[nodiscard]] bool isValid() const { return _stream != nullptr; }
 
   /// Return the number of elements in the data buffer.
   /// @return The number of elements in the buffer.
-  unsigned count() const { return _count; }
+  [[nodiscard]] unsigned count() const { return _count; }
 
   /// Returns the number of addressable primitives in the data buffer.
   ///
@@ -638,34 +646,34 @@ public:
   /// can be read from the buffer; 12 @c Vector3f elements with 3 @c float elements per @c Vector3f.
   ///
   /// @return The number of addressable primitives in the data buffer.
-  unsigned addressableCount() const { return _count * _componentCount; }
+  [[nodiscard]] unsigned addressableCount() const { return _count * _component_count; }
 
   /// Return the size of the primitive type stored in the @c DataBuffer - e.g., @c int32_t, @c
   /// double, etc.
   /// @return The buffer primitive type.
-  unsigned primitiveTypeSize() const { return _primitiveTypeSize; }
+  [[nodiscard]] unsigned primitiveTypeSize() const { return _primitive_type_size; }
   /// Return the byte stride between elements in the buffer. Must be at lease the size of the
   /// primitive type times the @c componentCount().
   /// @return The element byte stride.
-  unsigned byteStride() const { return _elementStride * _primitiveTypeSize; }
+  [[nodiscard]] unsigned byteStride() const { return _element_stride * _primitive_type_size; }
   /// Return the number of primitive components (or channels) in each element.
   /// @return The component count.
-  unsigned componentCount() const { return _componentCount; }
+  [[nodiscard]] unsigned componentCount() const { return _component_count; }
   /// Return the stride between elements in the buffer where where the unit is a single primitive.
   /// @return The element stride.
-  unsigned elementStride() const { return _elementStride; }
+  [[nodiscard]] unsigned elementStride() const { return _element_stride; }
 
   /// Check if this buffer owns its memory.
   /// @return True if this data buffer owns it's memory.
-  bool ownPointer() const { return int(_flags & Flag::OwnPointer) != 0; }
+  [[nodiscard]] bool ownPointer() const { return (_flags & Flag::OwnPointer) != 0; }
 
   /// Return and identifier for the data primitive stored in the buffer.
   /// @return The buffer primitive type.
-  DataStreamType type() const { return _type; }
+  [[nodiscard]] DataStreamType type() const { return _type; }
 
   /// Swap the contents of this buffer with @p other.
   /// @param other The buffer to swap with.
-  void swap(DataBuffer &other);
+  void swap(DataBuffer &other) noexcept;
 
   /// Retrieve a read only primitive pointer into the data buffer.
   ///
@@ -679,7 +687,7 @@ public:
   /// @param element_index The index of the element to retrieve a pointer to.
   /// @return A pointer of type @p T into the buffer at @p element_index.
   template <typename T>
-  const T *ptr(size_t element_index = 0) const;
+  [[nodiscard]] const T *ptr(size_t element_index = 0) const;
 
   /// Retrieve a read only primitive pointer into the data buffer with bounds checking.
   ///
@@ -694,7 +702,7 @@ public:
   /// @return A pointer of type @p T into the buffer at @p element_index or a @c nullptr if
   /// @p element_index is out of range.
   template <typename T>
-  const T *ptrAt(size_t element_index) const;
+  [[nodiscard]] const T *ptrAt(size_t element_index) const;
 
   /// Copy the internal array and take ownership. Does nothing if this object already owns its own
   /// array memory.
@@ -704,26 +712,27 @@ public:
   /// Estimates now many elements may be packed for a network transfer operation given the specified
   /// limits.
   ///
-  /// @param elementSize The size of each data element to transfer.
+  /// @param element_size The size of each data element to transfer.
   /// @param overhead Byte overhead for a single transfer packet (headers etc), which effectively
-  /// reduces the @c byteLimit.
-  /// @param byteLimit Maximum number of bytes which can be transferred.
+  /// reduces the @c byte_limit.
+  /// @param byte_limit Maximum number of bytes which can be transferred.
   /// @return The maximum number of elements which can be packed into a single network packet.
-  static uint16_t estimateTransferCount(size_t elementSize, unsigned overhead, unsigned byteLimit);
+  [[nodiscard]] static uint16_t estimateTransferCount(size_t element_size, unsigned overhead,
+                                                      unsigned byte_limit);
 
-  // receiveOffset: offset packed into the message for the receiver to handle. Allows a small vertex
-  // buffer to represent a slice of a buffer at the other end.
+  // receive_offset: offset packed into the message for the receiver to handle. Allows a small
+  // vertex buffer to represent a slice of a buffer at the other end.
   /// Write data from the @c DataBuffer to @p packet.
   ///
   /// This writes elements from the data buffer to the @p packet up to a maximum determined by
   /// @c estimateTransferCount(). The @p offset is an element offset representing the index of the
-  /// first element to pack from the buffer. The @p byteLimit sets the maximum number of bytes which
-  /// can be packed.
+  /// first element to pack from the buffer. The @p byte_limit sets the maximum number of bytes
+  /// which can be packed.
   ///
   /// Note that packing removes any alignment offsets, meaning the packed data has an effective
   /// @c componentStride() equal to the @p componentCount().
   ///
-  /// Finally the @p receiveOffset maybe used to adjust the @p offset at the receiving end.
+  /// Finally the @p receive_offset maybe used to adjust the @p offset at the receiving end.
   /// Essentially it is added to the element offset value written to the packet. The use case is
   /// to allow a small @c DataBuffer to be created by the sender, which is used to write into a
   /// section of a larger buffer the receiver has; i.e., update a small section of an existing
@@ -732,19 +741,19 @@ public:
   /// The data written to the @p packet is as follows:
   ///
   /// - @c uint32_t @c offset - the index of the first element in the @p packet.
-  ///   Calculated as `offset + receiveOffset`.
+  ///   Calculated as `offset + receive_offset`.
   /// - @c uin16_t @c count - the number of elements in the @p packet.
-  /// - @c uint8_t @c componentCount - number of primitives in each element (channels).
+  /// - @c uint8_t @c component_count - number of primitives in each element (channels).
   /// - @c uint8_t @c dataType - the @c DataStreamType of data in the buffer.
   /// - buffer data
   ///
   /// @param packet The data packet to write to.
   /// @param offset An element index offset to start writing from this buffer.
-  /// @param byteLimit maximum number of bytes to write to @p packet.
-  /// @param receiveOffset Added to the @p offset for the receiver to handle. See remarks.
+  /// @param byte_limit maximum number of bytes to write to @p packet.
+  /// @param receive_offset Added to the @p offset for the receiver to handle. See remarks.
   /// @return The number of elements written.
-  unsigned write(PacketWriter &packet, uint32_t offset, unsigned byteLimit = 0,
-                 uint32_t receiveOffset = 0) const;
+  unsigned write(PacketWriter &packet, uint32_t offset, unsigned byte_limit = 0,
+                 uint32_t receive_offset = 0) const;
 
   /// Write data from this buffer in a packet/quantised form if possible.
   ///
@@ -765,11 +774,11 @@ public:
   ///
   /// @param packet The data packet to write to.
   /// @param offset An element index offset to start writing from this buffer.
-  /// @param byteLimit maximum number of bytes to write to @p packet.
-  /// @param receiveOffset Added to the @p offset for the receiver to handle. See remarks.
+  /// @param byte_limit maximum number of bytes to write to @p packet.
+  /// @param receive_offset Added to the @p offset for the receiver to handle. See remarks.
   /// @return The number of elements written.
   unsigned writePacked(PacketWriter &packet, uint32_t offset, double quantisation_unit,
-                       unsigned byteLimit = 0, uint32_t receiveOffset = 0) const;
+                       unsigned byte_limit = 0, uint32_t receive_offset = 0) const;
 
   /// Read content from the given @p packet first reading the packet data count and offset.
   ///
@@ -777,7 +786,7 @@ public:
   ///
   /// - @c uint32_t @c offset - the element offset to write into this buffer.
   /// - @c uint16_t @c count - the number of elements to read from the @p packet.
-  /// - @c uint8_t @c componentCount - the @c componentCount() of data in the @p packet (channels).
+  /// - @c uint8_t @c component_count - the @c componentCount() of data in the @p packet (channels).
   /// - @c uint8_t @c packetType - the @c DataStreamType of data in the packet.
   ///
   /// This function uses @c DataBufferAffordances to decode from the @p packet into the
@@ -789,7 +798,7 @@ public:
   /// @c DctPackedFloat16 to @c DctFloat32.
   ///
   /// Note there are some limitations to the data conversion process. Most notably, the
-  /// @c componentCount in the @p packet must match this @c componentCount(). This implies that the
+  /// @c component_count in the @p packet must match this @c componentCount(). This implies that the
   /// @c DataBuffer must be constructed before reading with the expected destination primitive type
   /// and @c componentCount(). The @c read() function fails when the @p componentCount() does not
   /// match.
@@ -812,14 +821,14 @@ public:
   /// Implementation for @c std::swap().
   /// @param a First buffer.
   /// @param b Second buffer.
-  friend void swap(DataBuffer &a, DataBuffer &b) { a.swap(b); }
+  friend void swap(DataBuffer &a, DataBuffer &b) noexcept { a.swap(b); }
 
 private:
   /// Flag values for @c _flags
   enum Flag : uint8_t
   {
-    Zero = 0,               ///< Zero value
-    OwnPointer = (1 << 0),  ///< Indicates this object owns the heap allocation for @c _stream
+    Zero = 0u,                ///< Zero value
+    OwnPointer = (1u << 0u),  ///< Indicates this object owns the heap allocation for @c _stream
   };
 
   /// Get a writable address for the data buffer.
@@ -832,19 +841,19 @@ private:
 
   const void *_stream = nullptr;
   unsigned _count = 0;  ///< Number of vertices in the @p _stream .
-  uint8_t _componentCount =
+  uint8_t _component_count =
     1;  ///< Number of primitive type component elements in each vertex. E.g., Vector3 has 3.
   /// Number of primitive type elements between each vertex. For any densely packed array this value
   /// will match
-  /// @c _componentCount . For aligned, or interleaved arrays, this valid will be larger than @c
-  /// _componentCount .
+  /// @c _component_count . For aligned, or interleaved arrays, this valid will be larger than @c
+  /// _component_count .
   ///
-  /// For example, an array of 16 byte aligned @c float3 vertices will have a @c _componentCount of
+  /// For example, an array of 16 byte aligned @c float3 vertices will have a @c _component_count of
   /// 3 and a
-  /// @c _elementStride of 4.
-  uint8_t _elementStride = 1;
+  /// @c _element_stride of 4.
+  uint8_t _element_stride = 1;
   /// Size of the primitive @c _type stored in @c stream .
-  uint8_t _primitiveTypeSize = 0;
+  uint8_t _primitive_type_size = 0;
   DataStreamType _type = DctNone;  ///< The primitive type for @c _stream
   uint8_t _flags = Flag::Zero;     ///< Does this class own the @c _stream pointer?
   /// Pointer to the implementation for various operations supported on a @c DataBuffer . This is

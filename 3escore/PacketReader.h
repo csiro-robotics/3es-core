@@ -8,6 +8,8 @@
 
 #include "PacketStream.h"
 
+#include <vector>
+
 namespace tes
 {
 /// A utility class for dealing with reading packets.
@@ -108,6 +110,12 @@ public:
   size_t readArray(T *elements, size_t element_count);
 
   template <typename T>
+  size_t readArray(std::vector<T> &elements);
+
+  template <typename T, int N>
+  size_t readArray(std::array<T, N> &elements);
+
+  template <typename T>
   PacketReader &operator>>(T &val);
 };
 
@@ -126,6 +134,19 @@ template <typename T>
 inline size_t PacketReader::readArray(T *elements, size_t element_count)
 {
   return readArray(reinterpret_cast<uint8_t *>(elements), sizeof(T), element_count);
+}
+
+
+template <typename T>
+inline size_t PacketReader::readArray(std::vector<T> &elements)
+{
+  return readArray(elements.data(), elements.size());
+}
+
+template <typename T, int N>
+inline size_t PacketReader::readArray(std::array<T, N> &elements)
+{
+  return readArray(elements.data(), elements.size());
 }
 
 template <typename T>

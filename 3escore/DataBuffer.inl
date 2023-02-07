@@ -4,15 +4,12 @@
 
 namespace tes
 {
-inline DataBuffer::DataBuffer()
-{}
+inline DataBuffer::DataBuffer() = default;
 
 
-inline DataBuffer::DataBuffer(DataStreamType type, size_t componentCount, size_t componentStride)
-  : _stream(nullptr)
-  , _count(0)
-  , _componentCount(int_cast<uint8_t>(componentCount))
-  , _elementStride(int_cast<uint8_t>(componentStride ? componentStride : componentCount))
+inline DataBuffer::DataBuffer(DataStreamType type, size_t component_count, size_t component_stride)
+  : _component_count(int_cast<uint8_t>(component_count))
+  , _element_stride(int_cast<uint8_t>(component_stride ? component_stride : component_count))
   , _type(type)
   , _flags((type != DctNone) ? Flag::OwnPointer : Flag::Zero)
 {
@@ -21,61 +18,61 @@ inline DataBuffer::DataBuffer(DataStreamType type, size_t componentCount, size_t
   case DctNone:
   case DctPackedFloat16:
   case DctPackedFloat32:
-    _componentCount = _elementStride = 0;
+    _component_count = _element_stride = 0;
     break;
   case DctInt8:
-    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int8_t>::size());
+    _primitive_type_size = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int8_t>::size());
     _affordances = detail::DataBufferAffordancesT<int8_t>::instance();
     break;
   case DctUInt8:
-    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint8_t>::size());
+    _primitive_type_size = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint8_t>::size());
     _affordances = detail::DataBufferAffordancesT<uint8_t>::instance();
     break;
   case DctInt16:
-    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int16_t>::size());
+    _primitive_type_size = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int16_t>::size());
     _affordances = detail::DataBufferAffordancesT<int16_t>::instance();
     break;
   case DctUInt16:
-    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint16_t>::size());
+    _primitive_type_size = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint16_t>::size());
     _affordances = detail::DataBufferAffordancesT<uint16_t>::instance();
     break;
   case DctInt32:
-    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int32_t>::size());
+    _primitive_type_size = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int32_t>::size());
     _affordances = detail::DataBufferAffordancesT<int32_t>::instance();
     break;
   case DctUInt32:
-    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint32_t>::size());
+    _primitive_type_size = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint32_t>::size());
     _affordances = detail::DataBufferAffordancesT<uint32_t>::instance();
     break;
   case DctInt64:
-    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int64_t>::size());
+    _primitive_type_size = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<int64_t>::size());
     _affordances = detail::DataBufferAffordancesT<int64_t>::instance();
     break;
   case DctUInt64:
-    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint64_t>::size());
+    _primitive_type_size = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint64_t>::size());
     _affordances = detail::DataBufferAffordancesT<uint64_t>::instance();
     break;
   case DctFloat32:
-    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<float>::size());
+    _primitive_type_size = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<float>::size());
     _affordances = detail::DataBufferAffordancesT<float>::instance();
     break;
   case DctFloat64:
-    _primitiveTypeSize = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<double>::size());
+    _primitive_type_size = int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<double>::size());
     _affordances = detail::DataBufferAffordancesT<double>::instance();
     break;
   }
 }
 
 template <typename T>
-inline DataBuffer::DataBuffer(const T *v, size_t count, size_t componentCount,
-                              size_t componentStride, bool ownPointer)
+inline DataBuffer::DataBuffer(const T *v, size_t count, size_t component_count,
+                              size_t component_stride, bool own_pointer)
   : _stream(v)
   , _count(int_cast<unsigned>(count))
-  , _componentCount(int_cast<uint8_t>(componentCount))
-  , _elementStride(int_cast<uint8_t>(componentStride ? componentStride : componentCount))
-  , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<T>::size()))
+  , _component_count(int_cast<uint8_t>(component_count))
+  , _element_stride(int_cast<uint8_t>(component_stride ? component_stride : component_count))
+  , _primitive_type_size(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<T>::size()))
   , _type(DataBufferPrimitiveTypeInfo<T>::type())
-  , _flags(!!ownPointer * Flag::OwnPointer)
+  , _flags(!!own_pointer * Flag::OwnPointer)
   , _affordances(detail::DataBufferAffordancesT<T>::instance())
 {}
 
@@ -83,9 +80,9 @@ inline DataBuffer::DataBuffer(const T *v, size_t count, size_t componentCount,
 inline DataBuffer::DataBuffer(const Vector3f *v, size_t count)
   : _stream(v ? v->storage().data() : nullptr)
   , _count(int_cast<unsigned>(count))
-  , _componentCount(3)
-  , _elementStride(int_cast<uint8_t>(sizeof(Vector3f) / sizeof(float)))
-  , _primitiveTypeSize(int_cast<uint8_t>(sizeof(Vector3f)))
+  , _component_count(3)
+  , _element_stride(int_cast<uint8_t>(sizeof(Vector3f) / sizeof(float)))
+  , _primitive_type_size(int_cast<uint8_t>(sizeof(Vector3f)))
   , _type(DataBufferPrimitiveTypeInfo<float>::type())
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<float>::instance())
@@ -95,9 +92,9 @@ inline DataBuffer::DataBuffer(const Vector3f *v, size_t count)
 inline DataBuffer::DataBuffer(const Vector3d *v, size_t count)
   : _stream(v ? v->storage().data() : nullptr)
   , _count(int_cast<unsigned>(count))
-  , _componentCount(3)
-  , _elementStride(int_cast<uint8_t>(sizeof(Vector3d) / sizeof(double)))
-  , _primitiveTypeSize(int_cast<uint8_t>(sizeof(Vector3d)))
+  , _component_count(3)
+  , _element_stride(int_cast<uint8_t>(sizeof(Vector3d) / sizeof(double)))
+  , _primitive_type_size(int_cast<uint8_t>(sizeof(Vector3d)))
   , _type(DataBufferPrimitiveTypeInfo<double>::type())
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<double>::instance())
@@ -107,9 +104,9 @@ inline DataBuffer::DataBuffer(const Vector3d *v, size_t count)
 inline DataBuffer::DataBuffer(const Colour *c, size_t count)
   : _stream(c ? c->storage().data() : nullptr)
   , _count(int_cast<unsigned>(count))
-  , _componentCount(4)
-  , _elementStride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint8_t)))
-  , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint8_t>::size()))
+  , _component_count(4)
+  , _element_stride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint8_t)))
+  , _primitive_type_size(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint8_t>::size()))
   , _type(DctUInt8)
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<uint8_t>::instance())
@@ -117,13 +114,13 @@ inline DataBuffer::DataBuffer(const Colour *c, size_t count)
 
 
 template <typename T>
-inline DataBuffer::DataBuffer(const std::vector<T> &v, size_t componentCount,
-                              size_t componentStride)
+inline DataBuffer::DataBuffer(const std::vector<T> &v, size_t component_count,
+                              size_t component_stride)
   : _stream(v.data())
-  , _count(int_cast<unsigned>(v.size() / (componentStride ? componentStride : componentCount)))
-  , _componentCount(int_cast<uint8_t>(componentCount))
-  , _elementStride(int_cast<uint8_t>(componentStride ? componentStride : componentCount))
-  , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<T>::size()))
+  , _count(int_cast<unsigned>(v.size() / (component_stride ? component_stride : component_count)))
+  , _component_count(int_cast<uint8_t>(component_count))
+  , _element_stride(int_cast<uint8_t>(component_stride ? component_stride : component_count))
+  , _primitive_type_size(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<T>::size()))
   , _type(DataBufferPrimitiveTypeInfo<T>::type())
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<T>::instance())
@@ -132,9 +129,9 @@ inline DataBuffer::DataBuffer(const std::vector<T> &v, size_t componentCount,
 inline DataBuffer::DataBuffer(const std::vector<Vector3f> &v)
   : _stream(v.data()->storage().data())
   , _count(int_cast<unsigned>(v.size()))
-  , _componentCount(3)
-  , _elementStride(int_cast<uint8_t>(sizeof(Vector3f) / sizeof(float)))
-  , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<float>::size()))
+  , _component_count(3)
+  , _element_stride(int_cast<uint8_t>(sizeof(Vector3f) / sizeof(float)))
+  , _primitive_type_size(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<float>::size()))
   , _type(DctFloat32)
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<float>::instance())
@@ -143,31 +140,31 @@ inline DataBuffer::DataBuffer(const std::vector<Vector3f> &v)
 inline DataBuffer::DataBuffer(const std::vector<Vector3d> &v)
   : _stream(v.data()->storage().data())
   , _count(int_cast<unsigned>(v.size()))
-  , _componentCount(3)
-  , _elementStride(int_cast<uint8_t>(sizeof(Vector3d) / sizeof(double)))
-  , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<double>::size()))
+  , _component_count(3)
+  , _element_stride(int_cast<uint8_t>(sizeof(Vector3d) / sizeof(double)))
+  , _primitive_type_size(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<double>::size()))
   , _type(DctFloat64)
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<double>::instance())
 {}
 
-inline DataBuffer::DataBuffer(const std::vector<Colour> &c)
-  : _stream(c.data()->storage().data())
-  , _count(int_cast<unsigned>(c.size()))
-  , _componentCount(4)
-  , _elementStride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint8_t)))
-  , _primitiveTypeSize(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint8_t>::size()))
+inline DataBuffer::DataBuffer(const std::vector<Colour> &colours)
+  : _stream(colours.data()->storage().data())
+  , _count(int_cast<unsigned>(colours.size()))
+  , _component_count(4)
+  , _element_stride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint8_t)))
+  , _primitive_type_size(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint8_t>::size()))
   , _type(DctUInt8)
   , _flags(0)
   , _affordances(detail::DataBufferAffordancesT<uint8_t>::instance())
 {}
 
-inline DataBuffer::DataBuffer(DataBuffer &&other)
+inline DataBuffer::DataBuffer(DataBuffer &&other) noexcept
   : _stream(std::exchange(other._stream, nullptr))
   , _count(std::exchange(other._count, 0))
-  , _componentCount(std::exchange(other._componentCount, 0))
-  , _elementStride(std::exchange(other._elementStride, 0))
-  , _primitiveTypeSize(std::exchange(other._primitiveTypeSize, 0))
+  , _component_count(std::exchange(other._component_count, 0))
+  , _element_stride(std::exchange(other._element_stride, 0))
+  , _primitive_type_size(std::exchange(other._primitive_type_size, 0))
   , _type(std::exchange(other._type, DctNone))
   , _flags(std::exchange(other._flags, 0))
   , _affordances(std::exchange(other._affordances, nullptr))
@@ -176,9 +173,9 @@ inline DataBuffer::DataBuffer(DataBuffer &&other)
 inline DataBuffer::DataBuffer(const DataBuffer &other)
   : _stream(other._stream)
   , _count(other._count)
-  , _componentCount(other._componentCount)
-  , _elementStride(other._elementStride)
-  , _primitiveTypeSize(other._primitiveTypeSize)
+  , _component_count(other._component_count)
+  , _element_stride(other._element_stride)
+  , _primitive_type_size(other._primitive_type_size)
   , _type(other._type)
   , _flags(0)  // Copy assignment. We do not own the pointer.
   , _affordances(other._affordances)
@@ -190,16 +187,17 @@ inline DataBuffer::~DataBuffer()
 }
 
 template <typename T>
-inline void DataBuffer::set(const T *v, size_t count, size_t componentCount, size_t componentStride,
-                            bool ownPointer)
+inline void DataBuffer::set(const T *v, size_t count, size_t component_count,
+                            size_t component_stride, bool own_pointer)
 {
-  *this = std::move(DataBuffer(v, count, componentCount, componentStride, ownPointer));
+  *this = std::move(DataBuffer(v, count, component_count, component_stride, own_pointer));
 }
 
 template <typename T>
-inline void DataBuffer::set(const std::vector<T> &v, size_t componentCount, size_t componentStride)
+inline void DataBuffer::set(const std::vector<T> &v, size_t component_count,
+                            size_t component_stride)
 {
-  *this = std::move(DataBuffer(v, componentCount, componentStride));
+  *this = std::move(DataBuffer(v, component_count, component_stride));
 }
 
 inline void DataBuffer::set(const std::vector<Vector3f> &v)
@@ -212,9 +210,9 @@ inline void DataBuffer::set(const std::vector<Vector3d> &v)
   *this = std::move(DataBuffer(v));
 }
 
-inline void DataBuffer::set(const std::vector<Colour> &c)
+inline void DataBuffer::set(const std::vector<Colour> &colours)
 {
-  *this = std::move(DataBuffer(c));
+  *this = std::move(DataBuffer(colours));
 }
 
 template <typename T>
@@ -222,7 +220,7 @@ inline T DataBuffer::get(size_t element_index, size_t component_index) const
 {
   T datum{ 0 };
   _affordances->get(DataBufferPrimitiveTypeInfo<T>::type(), element_index, component_index, 1,
-                    _stream, _count, _componentCount, _elementStride, &datum, 1);
+                    _stream, _count, _component_count, _element_stride, &datum, 1);
   return datum;
 }
 
@@ -231,24 +229,24 @@ inline size_t DataBuffer::get(size_t element_index, size_t element_count, T *dst
                               size_t capacity) const
 {
   const size_t components_read = _affordances->get(
-    DataBufferPrimitiveTypeInfo<T>::type(), element_index, 0, element_count * _componentCount,
-    _stream, _count, _componentCount, _elementStride, dst, capacity);
+    DataBufferPrimitiveTypeInfo<T>::type(), element_index, 0, element_count * _component_count,
+    _stream, _count, _component_count, _element_stride, dst, capacity);
   return components_read / componentCount();
 }
 
-inline void DataBuffer::swap(DataBuffer &other)
+inline void DataBuffer::swap(DataBuffer &other) noexcept
 {
   std::swap(_stream, other._stream);
   std::swap(_count, other._count);
-  std::swap(_componentCount, other._componentCount);
-  std::swap(_elementStride, other._elementStride);
-  std::swap(_primitiveTypeSize, other._primitiveTypeSize);
+  std::swap(_component_count, other._component_count);
+  std::swap(_element_stride, other._element_stride);
+  std::swap(_primitive_type_size, other._primitive_type_size);
   std::swap(_type, other._type);
   std::swap(_flags, other._flags);
   std::swap(_affordances, other._affordances);
 }
 
-inline DataBuffer &DataBuffer::operator=(DataBuffer &&other)
+inline DataBuffer &DataBuffer::operator=(DataBuffer &&other) noexcept
 {
   swap(other);
   return *this;
@@ -260,9 +258,9 @@ inline DataBuffer &DataBuffer::operator=(const DataBuffer &other)
   {
     _stream = other._stream;
     _count = other._count;
-    _componentCount = other._componentCount;
-    _elementStride = other._elementStride;
-    _primitiveTypeSize = other._primitiveTypeSize;
+    _component_count = other._component_count;
+    _element_stride = other._element_stride;
+    _primitive_type_size = other._primitive_type_size;
     _type = other._type;
     _flags = 0;  // Copy assignment. We do not own the pointer.
     _affordances = other._affordances;
@@ -287,21 +285,21 @@ inline const T *DataBuffer::ptrAt(size_t element_index) const
   return nullptr;
 }
 
-inline uint16_t DataBuffer::estimateTransferCount(size_t elementSize, unsigned overhead,
-                                                  unsigned byteLimit)
+inline uint16_t DataBuffer::estimateTransferCount(size_t element_size, unsigned overhead,
+                                                  unsigned byte_limit)
 {
   // FIXME: Without additional overhead padding I was getting missing messages at the client with
   // no obvious error path. For this reason, we use 0xff00u, instead of 0xffffu
   //           packet header           message                 crc
-  const size_t maxTransfer =
-    (0xff00u - (sizeof(PacketHeader) + overhead + sizeof(PacketWriter::CrcType))) / elementSize;
-  size_t count = byteLimit ? byteLimit / elementSize : maxTransfer;
-  if (count > maxTransfer)
+  const size_t max_transfer =
+    (0xff00u - (sizeof(PacketHeader) + overhead + sizeof(PacketWriter::CrcType))) / element_size;
+  size_t count = byte_limit ? byte_limit / element_size : max_transfer;
+  if (count > max_transfer)
   {
-    count = maxTransfer;
+    count = max_transfer;
   }
 
-  return uint16_t(count);
+  return static_cast<uint16_t>(count);
 }
 
 namespace detail
@@ -334,7 +332,7 @@ void DataBufferAffordancesT<T>::takeOwnership(const void **stream_ptr, bool has_
   }
 
   // Allocate a new array.
-  T *new_array = new T[stream.count() * stream.elementStride()];
+  T *new_array = new T[static_cast<size_t>(stream.count()) * stream.elementStride()];
   const T *src_array = static_cast<const T *>(*stream_ptr);
   std::copy(src_array, src_array + stream.count() * stream.elementStride(), new_array);
   *stream_ptr = new_array;
@@ -342,37 +340,37 @@ void DataBufferAffordancesT<T>::takeOwnership(const void **stream_ptr, bool has_
 
 template <typename T>
 uint32_t DataBufferAffordancesT<T>::write(PacketWriter &packet, uint32_t offset,
-                                          DataStreamType write_as_type, unsigned byteLimit,
-                                          uint32_t receiveOffset, const DataBuffer &stream,
+                                          DataStreamType write_as_type, unsigned byte_limit,
+                                          uint32_t receive_offset, const DataBuffer &stream,
                                           double quantisation_unit) const
 {
   switch (write_as_type)
   {
   case DctInt8:
-    return writeAs<int8_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
+    return writeAs<int8_t>(packet, offset, write_as_type, byte_limit, receive_offset, stream);
   case DctUInt8:
-    return writeAs<uint8_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
+    return writeAs<uint8_t>(packet, offset, write_as_type, byte_limit, receive_offset, stream);
   case DctInt16:
-    return writeAs<int16_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
+    return writeAs<int16_t>(packet, offset, write_as_type, byte_limit, receive_offset, stream);
   case DctUInt16:
-    return writeAs<uint16_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
+    return writeAs<uint16_t>(packet, offset, write_as_type, byte_limit, receive_offset, stream);
   case DctInt32:
-    return writeAs<int32_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
+    return writeAs<int32_t>(packet, offset, write_as_type, byte_limit, receive_offset, stream);
   case DctUInt32:
-    return writeAs<uint32_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
+    return writeAs<uint32_t>(packet, offset, write_as_type, byte_limit, receive_offset, stream);
   case DctInt64:
-    return writeAs<int64_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
+    return writeAs<int64_t>(packet, offset, write_as_type, byte_limit, receive_offset, stream);
   case DctUInt64:
-    return writeAs<uint64_t>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
+    return writeAs<uint64_t>(packet, offset, write_as_type, byte_limit, receive_offset, stream);
   case DctFloat32:
-    return writeAs<float>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
+    return writeAs<float>(packet, offset, write_as_type, byte_limit, receive_offset, stream);
   case DctFloat64:
-    return writeAs<double>(packet, offset, write_as_type, byteLimit, receiveOffset, stream);
+    return writeAs<double>(packet, offset, write_as_type, byte_limit, receive_offset, stream);
   case DctPackedFloat16:
-    return writeAsPacked<float, int16_t>(packet, offset, write_as_type, byteLimit, receiveOffset,
+    return writeAsPacked<float, int16_t>(packet, offset, write_as_type, byte_limit, receive_offset,
                                          nullptr, static_cast<float>(quantisation_unit), stream);
   case DctPackedFloat32:
-    return writeAsPacked<double, int32_t>(packet, offset, write_as_type, byteLimit, receiveOffset,
+    return writeAsPacked<double, int32_t>(packet, offset, write_as_type, byte_limit, receive_offset,
                                           nullptr, quantisation_unit, stream);
   default:
     // Throw?
@@ -383,10 +381,10 @@ uint32_t DataBufferAffordancesT<T>::write(PacketWriter &packet, uint32_t offset,
 template <typename T>
 template <typename WriteType>
 uint32_t DataBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t offset,
-                                            DataStreamType write_as_type, unsigned byteLimit,
-                                            uint32_t receiveOffset, const DataBuffer &stream) const
+                                            DataStreamType write_as_type, unsigned byte_limit,
+                                            uint32_t receive_offset, const DataBuffer &stream) const
 {
-  const unsigned itemSize = unsigned(sizeof(WriteType)) * stream.componentCount();
+  const unsigned item_size = static_cast<unsigned>(sizeof(WriteType)) * stream.componentCount();
 
   // Overhead: account for:
   // - uint32_t offset
@@ -398,56 +396,60 @@ uint32_t DataBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t offse
                             sizeof(uint8_t) +   // element stride
                             sizeof(uint8_t);    // data type;
 
-  byteLimit =
-    (byteLimit) ? (byteLimit > overhead ? byteLimit - overhead : 0) : packet.bytesRemaining();
-  uint16_t transferCount = DataBuffer::estimateTransferCount(itemSize, overhead, byteLimit);
-  if (transferCount > stream.count() - offset)
+  byte_limit =
+    (byte_limit) ? (byte_limit > overhead ? byte_limit - overhead : 0) : packet.bytesRemaining();
+  uint16_t transfer_count = DataBuffer::estimateTransferCount(item_size, overhead, byte_limit);
+  if (transfer_count > stream.count() - offset)
   {
-    transferCount = uint16_t(stream.count() - offset);
+    transfer_count = static_cast<uint16_t>(stream.count() - offset);
   }
 
   // Write header
   bool ok = true;
-  ok = packet.writeElement(uint32_t(offset + receiveOffset)) == sizeof(uint32_t) && ok;
-  ok = packet.writeElement(uint16_t(transferCount)) == sizeof(uint16_t) && ok;
-  ok = packet.writeElement(uint8_t(stream.componentCount())) == sizeof(uint8_t) && ok;
-  ok = packet.writeElement(uint8_t(write_as_type)) == sizeof(uint8_t) && ok;
+  ok =
+    packet.writeElement(static_cast<uint32_t>(offset + receive_offset)) == sizeof(uint32_t) && ok;
+  ok = packet.writeElement(static_cast<uint16_t>(transfer_count)) == sizeof(uint16_t) && ok;
+  ok = packet.writeElement(static_cast<uint8_t>(stream.componentCount())) == sizeof(uint8_t) && ok;
+  ok = packet.writeElement(static_cast<uint8_t>(write_as_type)) == sizeof(uint8_t) && ok;
 
   if (!ok)
   {
     return 0;
   }
 
-  const T *src = stream.ptr<T>(offset * stream.elementStride());
-  unsigned writeCount = 0;
+  const T *src = stream.ptr<T>(static_cast<size_t>(offset) * stream.elementStride());
+  unsigned write_count = 0;
   if (DataBufferPrimitiveTypeInfo<T>::type() == DataBufferPrimitiveTypeInfo<WriteType>::type() &&
       stream.elementStride() == stream.componentCount())
   {
     // We can write the array directly if the T/WriteType types match and the source array is
     // densely packed (element stride matches component count).
-    writeCount += unsigned(packet.writeArray(reinterpret_cast<const WriteType *>(src),
-                                             transferCount * stream.componentCount())) /
-                  stream.componentCount();
+    write_count += static_cast<unsigned>(packet.writeArray(
+                     reinterpret_cast<const WriteType *>(src),
+                     static_cast<size_t>(transfer_count) * stream.componentCount())) /
+                   stream.componentCount();
   }
   else
   {
     // We have either a striding mismatch or a type mismatch. Componentwise write
-    for (unsigned i = 0; i < transferCount; ++i)
+    for (unsigned i = 0; i < transfer_count; ++i)
     {
-      unsigned componentWriteCount = 0;
+      unsigned component_write_count = 0;
       for (unsigned j = 0; j < stream.componentCount(); ++j)
       {
-        const WriteType dstValue = static_cast<WriteType>(src[j]);
-        componentWriteCount += unsigned(packet.writeElement(dstValue) / sizeof(dstValue));
+        // NOLINTNEXTLINE(bugprone-signed-char-misuse)
+        const auto dst_value = static_cast<WriteType>(src[j]);
+        component_write_count +=
+          static_cast<unsigned>(packet.writeElement(dst_value) / sizeof(dst_value));
       }
-      writeCount += componentWriteCount / stream.componentCount();
+      write_count += component_write_count / stream.componentCount();
       src += stream.elementStride();
     }
   }
 
-  if (writeCount == transferCount)
+  if (write_count == transfer_count)
   {
-    return writeCount;
+    return write_count;
   }
 
   // Failed to write the expected number of items.
@@ -457,57 +459,58 @@ uint32_t DataBufferAffordancesT<T>::writeAs(PacketWriter &packet, uint32_t offse
 template <typename T>
 template <typename FloatType, typename PackedType>
 uint32_t DataBufferAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32_t offset,
-                                                  DataStreamType write_as_type, unsigned byteLimit,
-                                                  uint32_t receiveOffset,
-                                                  const FloatType *packingOrigin,
-                                                  const FloatType quantisationUnit,
+                                                  DataStreamType write_as_type, unsigned byte_limit,
+                                                  uint32_t receive_offset,
+                                                  const FloatType *packet_origin,
+                                                  const FloatType quantisation_unit,
                                                   const DataBuffer &stream) const
 {
-  // packingOrigin is used to define the packing origin. That is, items are packed releative to
-  // this. quantisationUnit is the divisor used to quantise data. packedType must be either
+  // packet_origin is used to define the packing origin. That is, items are packed releative to
+  // this. quantisation_unit is the divisor used to quantise data. packedType must be either
   // DctPackedFloat16 or DctPackedFloat32 Each component is packed as:
-  //    PackedType((vertex[componentIndex] - packedOrigin[componentIndex]) / quantisationUnit)
-  const unsigned itemSize = unsigned(sizeof(PackedType)) * stream.componentCount();
+  //    PackedType((vertex[componentIndex] - packedOrigin[componentIndex]) / quantisation_unit)
+  const unsigned item_size = static_cast<unsigned>(sizeof(PackedType)) * stream.componentCount();
 
   // Overhead: account for:
   // - uint32_t offset
   // - uint16_t count
   // - uint8_t element stride
   // - uint8_t data type
-  // - FloatType quantisationUnit
-  // - FloatType[stream.componentCount()] packingOrigin
-  const unsigned overhead =
+  // - FloatType quantisation_unit
+  // - FloatType[stream.componentCount()] packet_origin
+  const auto overhead =
     int_cast<unsigned>(sizeof(uint32_t) +                             // offset
                        sizeof(uint16_t) +                             // count
                        sizeof(uint8_t) +                              // element stride
                        sizeof(uint8_t) +                              // data type
-                       sizeof(quantisationUnit) +                     // quantisationUnit
-                       sizeof(FloatType) * stream.componentCount());  // packingOrigin
+                       sizeof(quantisation_unit) +                    // quantisation_unit
+                       sizeof(FloatType) * stream.componentCount());  // packet_origin
 
-  byteLimit = (byteLimit) ? byteLimit : packet.bytesRemaining();
-  uint16_t transferCount = DataBuffer::estimateTransferCount(itemSize, overhead, byteLimit);
-  if (transferCount > stream.count() - offset)
+  byte_limit = (byte_limit) ? byte_limit : packet.bytesRemaining();
+  uint16_t transfer_count = DataBuffer::estimateTransferCount(item_size, overhead, byte_limit);
+  if (transfer_count > stream.count() - offset)
   {
-    transferCount = uint16_t(stream.count() - offset);
+    transfer_count = static_cast<uint16_t>(stream.count() - offset);
   }
 
-  if (transferCount == 0)
+  if (transfer_count == 0)
   {
     return 0;
   }
 
   // Write header
   bool ok = true;
-  ok = packet.writeElement(uint32_t(offset + receiveOffset)) == sizeof(uint32_t) && ok;
-  ok = packet.writeElement(uint16_t(transferCount)) == sizeof(uint16_t) && ok;
-  ok = packet.writeElement(uint8_t(stream.componentCount())) == sizeof(uint8_t) && ok;
-  ok = packet.writeElement(uint8_t(write_as_type)) == sizeof(uint8_t) && ok;
-  const FloatType qUnit{ quantisationUnit };
-  ok = packet.writeElement(qUnit) == sizeof(qUnit) && ok;
+  ok =
+    packet.writeElement(static_cast<uint32_t>(offset + receive_offset)) == sizeof(uint32_t) && ok;
+  ok = packet.writeElement(static_cast<uint16_t>(transfer_count)) == sizeof(uint16_t) && ok;
+  ok = packet.writeElement(static_cast<uint8_t>(stream.componentCount())) == sizeof(uint8_t) && ok;
+  ok = packet.writeElement(static_cast<uint8_t>(write_as_type)) == sizeof(uint8_t) && ok;
+  const FloatType q_unit{ quantisation_unit };
+  ok = packet.writeElement(q_unit) == sizeof(q_unit) && ok;
 
-  if (packingOrigin)
+  if (packet_origin)
   {
-    ok = packet.writeArray(packingOrigin, stream.componentCount()) == stream.componentCount() && ok;
+    ok = packet.writeArray(packet_origin, stream.componentCount()) == stream.componentCount() && ok;
   }
   else
   {
@@ -518,36 +521,36 @@ uint32_t DataBufferAffordancesT<T>::writeAsPacked(PacketWriter &packet, uint32_t
     }
   }
 
-  const T *src = stream.ptr<T>(offset * stream.elementStride());
-  unsigned writeCount = 0;
+  const T *src = stream.ptr<T>(static_cast<size_t>(offset) * stream.elementStride());
+  unsigned write_count = 0;
 
-  const FloatType quantisationFactor = FloatType{ 1 } / FloatType{ quantisationUnit };
-  bool itemOk = true;
-  for (unsigned i = 0; i < transferCount; ++i)
+  const FloatType quantisation_factor = FloatType{ 1 } / FloatType{ quantisation_unit };
+  bool item_ok = true;
+  for (unsigned i = 0; i < transfer_count; ++i)
   {
     for (unsigned j = 0; j < stream.componentCount(); ++j)
     {
-      FloatType dstValue = static_cast<FloatType>(src[j]);
-      if (packingOrigin)
+      auto dst_value = static_cast<FloatType>(src[j]);
+      if (packet_origin)
       {
-        dstValue -= packingOrigin[j];
+        dst_value -= packet_origin[j];
       }
-      dstValue *= quantisationFactor;
-      const PackedType packed = PackedType(std::round(dstValue));
-      if (std::abs(FloatType(packed) - dstValue) > 1)
+      dst_value *= quantisation_factor;
+      const auto packed = static_cast<PackedType>(std::round(dst_value));
+      if (std::abs(static_cast<FloatType>(packed) - dst_value) > 1)
       {
         // Failed: quantisation limit reached.
         return 0;
       }
-      itemOk = itemOk && packet.writeElement(packed) == sizeof(packed);
+      item_ok = item_ok && packet.writeElement(packed) == sizeof(packed);
     }
-    writeCount += !!itemOk;
+    write_count += !!item_ok;
     src += stream.elementStride();
   }
 
-  if (writeCount == transferCount)
+  if (write_count == transfer_count)
   {
-    return writeCount;
+    return write_count;
   }
 
   // Failed to write the expected number of items.
@@ -583,10 +586,10 @@ uint32_t DataBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr
 {
   TES_UNUSED(stream);
   bool ok = true;
-  uint8_t componentCount = 0;  // stream.componentCount();;
-  uint8_t packetType = 0;      // DataBufferPrimitiveTypeInfo<T>::type();
-  ok = packet.readElement(componentCount) == sizeof(componentCount) && ok;
-  ok = packet.readElement(packetType) == sizeof(packetType) && ok;
+  uint8_t component_count = 0;  // stream.componentCount();;
+  uint8_t packet_type = 0;      // DataBufferPrimitiveTypeInfo<T>::type();
+  ok = packet.readElement(component_count) == sizeof(component_count) && ok;
+  ok = packet.readElement(packet_type) == sizeof(packet_type) && ok;
 
   if (!ok)
   {
@@ -597,7 +600,7 @@ uint32_t DataBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr
   if (*stream_ptr == nullptr || !*has_ownership || *stream_size < (offset + count))
   {
     // Current stream too small. Reallocate. Note we allocate with the stream's component count.
-    new_ptr = new T[(offset + count) * stream.componentCount()];
+    new_ptr = new T[static_cast<size_t>(offset + count) * stream.componentCount()];
   }
 
   if (new_ptr)
@@ -605,7 +608,7 @@ uint32_t DataBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr
     if (*stream_ptr)
     {
       std::copy(static_cast<const T *>(*stream_ptr),
-                static_cast<const T *>(*stream_ptr) + (*stream_size) * componentCount, new_ptr);
+                static_cast<const T *>(*stream_ptr) + (*stream_size) * component_count, new_ptr);
       if (*has_ownership)
       {
         delete[] static_cast<const T *>(*stream_ptr);
@@ -617,33 +620,33 @@ uint32_t DataBufferAffordancesT<T>::read(PacketReader &packet, void **stream_ptr
   }
 
   // We can only read what's available and what we have capacity for. Minimise the component count
-  componentCount = std::min(componentCount, static_cast<uint8_t>(stream.componentCount()));
-  switch (packetType)
+  component_count = std::min(component_count, static_cast<uint8_t>(stream.componentCount()));
+  switch (packet_type)
   {
   case DctInt8:
-    return readAs<int8_t>(packet, offset, count, componentCount, stream_ptr);
+    return readAs<int8_t>(packet, offset, count, component_count, stream_ptr);
   case DctUInt8:
-    return readAs<uint8_t>(packet, offset, count, componentCount, stream_ptr);
+    return readAs<uint8_t>(packet, offset, count, component_count, stream_ptr);
   case DctInt16:
-    return readAs<int16_t>(packet, offset, count, componentCount, stream_ptr);
+    return readAs<int16_t>(packet, offset, count, component_count, stream_ptr);
   case DctUInt16:
-    return readAs<uint16_t>(packet, offset, count, componentCount, stream_ptr);
+    return readAs<uint16_t>(packet, offset, count, component_count, stream_ptr);
   case DctInt32:
-    return readAs<int32_t>(packet, offset, count, componentCount, stream_ptr);
+    return readAs<int32_t>(packet, offset, count, component_count, stream_ptr);
   case DctUInt32:
-    return readAs<uint32_t>(packet, offset, count, componentCount, stream_ptr);
+    return readAs<uint32_t>(packet, offset, count, component_count, stream_ptr);
   case DctInt64:
-    return readAs<int64_t>(packet, offset, count, componentCount, stream_ptr);
+    return readAs<int64_t>(packet, offset, count, component_count, stream_ptr);
   case DctUInt64:
-    return readAs<uint64_t>(packet, offset, count, componentCount, stream_ptr);
+    return readAs<uint64_t>(packet, offset, count, component_count, stream_ptr);
   case DctFloat32:
-    return readAs<float>(packet, offset, count, componentCount, stream_ptr);
+    return readAs<float>(packet, offset, count, component_count, stream_ptr);
   case DctFloat64:
-    return readAs<double>(packet, offset, count, componentCount, stream_ptr);
+    return readAs<double>(packet, offset, count, component_count, stream_ptr);
   case DctPackedFloat16:
-    return readAsPacked<float, int16_t>(packet, offset, count, componentCount, stream_ptr);
+    return readAsPacked<float, int16_t>(packet, offset, count, component_count, stream_ptr);
   case DctPackedFloat32:
-    return readAsPacked<double, int32_t>(packet, offset, count, componentCount, stream_ptr);
+    return readAsPacked<double, int32_t>(packet, offset, count, component_count, stream_ptr);
   default:
     // Throw?
     return 0;
@@ -664,7 +667,8 @@ inline size_t affordanceCopy(DST *dst, size_t dst_capacity, const SRC *src,
     for (size_t c = src_component_start; c < src_component_count && wrote < component_read_count;
          ++c)
     {
-      dst[wrote++] = DST(src[(src_elemment_index + e) * src_element_stride + c]);
+      // NOLINTNEXTLINE(bugprone-signed-char-misuse)
+      dst[wrote++] = static_cast<DST>(src[(src_elemment_index + e) * src_element_stride + c]);
     }
     src_component_start = 0;
   }
@@ -759,23 +763,24 @@ size_t DataBufferAffordancesT<T>::get(DataStreamType as_type, size_t element_ind
 template <typename T>
 template <typename ReadType>
 uint32_t DataBufferAffordancesT<T>::readAs(PacketReader &packet, unsigned offset, unsigned count,
-                                           unsigned componentCount, void **stream_ptr) const
+                                           unsigned component_count, void **stream_ptr) const
 {
   T *dst = static_cast<T *>(*stream_ptr);
-  dst += offset * componentCount;
+  dst += offset * component_count;
+  ReadType read_value = {};
 
   for (unsigned i = 0; i < count; ++i)
   {
-    for (unsigned j = 0; j < componentCount; ++j)
+    for (unsigned j = 0; j < component_count; ++j)
     {
-      ReadType readValue;
-      if (packet.readElement(readValue) != sizeof(readValue))
+      if (packet.readElement(read_value) != sizeof(read_value))
       {
         return 0;
       }
-      dst[j] = static_cast<T>(readValue);
+      // NOLINTNEXTLINE(bugprone-signed-char-misuse)
+      dst[j] = static_cast<T>(read_value);
     }
-    dst += componentCount;
+    dst += component_count;
   }
 
   return count;
@@ -784,17 +789,16 @@ uint32_t DataBufferAffordancesT<T>::readAs(PacketReader &packet, unsigned offset
 template <typename T>
 template <typename FloatType, typename ReadType>
 uint32_t DataBufferAffordancesT<T>::readAsPacked(PacketReader &packet, unsigned offset,
-                                                 unsigned count, unsigned componentCount,
+                                                 unsigned count, unsigned component_count,
                                                  void **stream_ptr) const
 {
   // First read the packing origin.
-  std::unique_ptr<FloatType[]> origin = std::make_unique<FloatType[]>(componentCount);
-  // std::vector<FloatType> origin(componentCount);
+  std::vector<FloatType> origin(component_count);
 
   bool ok = true;
-  FloatType quantisationUnit = 1;
-  ok = packet.readElement(quantisationUnit) == sizeof(quantisationUnit) && ok;
-  ok = packet.readArray(origin.get(), componentCount) == componentCount && ok;
+  FloatType quantisation_unit = 1;
+  ok = packet.readElement(quantisation_unit) == sizeof(quantisation_unit) && ok;
+  ok = packet.readArray(origin) == component_count && ok;
 
   if (!ok)
   {
@@ -802,20 +806,20 @@ uint32_t DataBufferAffordancesT<T>::readAsPacked(PacketReader &packet, unsigned 
   }
 
   T *dst = static_cast<T *>(*stream_ptr);
-  dst += offset * componentCount;
+  dst += offset * component_count;
 
   for (unsigned i = 0; i < count; ++i)
   {
-    for (unsigned j = 0; j < componentCount; ++j)
+    for (unsigned j = 0; j < component_count; ++j)
     {
-      ReadType readValue;
-      if (packet.readElement(readValue) != sizeof(readValue))
+      ReadType read_value;
+      if (packet.readElement(read_value) != sizeof(read_value))
       {
         return 0;
       }
-      dst[j] = static_cast<T>(readValue * quantisationUnit + origin[j]);
+      dst[j] = static_cast<T>(read_value * quantisation_unit + origin[j]);
     }
-    dst += componentCount;
+    dst += component_count;
   }
 
   return count;
