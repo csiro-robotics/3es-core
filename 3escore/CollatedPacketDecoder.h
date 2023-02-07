@@ -10,6 +10,8 @@
 #include "Connection.h"
 #include "PacketHeader.h"
 
+#include <memory>
+
 namespace tes
 {
 struct PacketHeader;
@@ -68,16 +70,16 @@ public:
 
   /// Returns the number of bytes which have been decoded from the current primary packet.
   /// @return The number of decompressed bytes decoded.
-  unsigned decodedBytes() const;
+  [[nodiscard]] unsigned decodedBytes() const;
 
   /// Returns the target number of bytes to decode from the current primary packet.
   /// @return The total number of bytes to decompress and decode from the primary packet.
-  unsigned targetBytes() const;
+  [[nodiscard]] unsigned targetBytes() const;
 
   /// True if the decoder is currently decoding a packet. This turns false after the last
   /// of the current packets is extracted from @c next().
   /// @return true while decoding a packet.
-  bool decoding() const;
+  [[nodiscard]] bool decoding() const;
 
   /// Set the primary packet to decode. This may be any packet type, but only a
   /// @c CollatedPacketMessage will generate multiple subsequent packets via @c next().
@@ -92,18 +94,18 @@ public:
   bool setPacket(const PacketHeader *packet);
 
   /// Extract the next packet from the primary packet. This should be called iteratively
-  /// until it returns null. Multiple packets will be extracted by this call when the primary packet,
-  /// set via @c setPacket(), is a @c CollatedPacketMessage. Otherwise the primary @c PacketHeader
-  /// is returned (same as that passed to @c setPacket()) followed by a null result.
+  /// until it returns null. Multiple packets will be extracted by this call when the primary
+  /// packet, set via @c setPacket(), is a @c CollatedPacketMessage. Otherwise the primary @c
+  /// PacketHeader is returned (same as that passed to @c setPacket()) followed by a null result.
   ///
-  /// The returned packet remains valid until the next call to @c next(), a new primary packet is set
-  /// or this object goes out of scope.
+  /// The returned packet remains valid until the next call to @c next(), a new primary packet is
+  /// set or this object goes out of scope.
   ///
   /// @return The next extracted packet or null when there are no more available.
-  const PacketHeader *next();
+  [[nodiscard]] const PacketHeader *next();
 
 private:
-  CollatedPacketDecoderDetail *_detail;
+  std::unique_ptr<CollatedPacketDecoderDetail> _detail;
 };
 }  // namespace tes
 

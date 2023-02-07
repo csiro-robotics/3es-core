@@ -3,6 +3,7 @@
 //
 #include "CollatedPacketDecoder.h"
 
+#include "CoreUtil.h"
 #include "Messages.h"
 #include "PacketBuffer.h"
 #include "PacketHeader.h"
@@ -12,18 +13,17 @@
 
 #include <vector>
 
-using namespace tes;
-
-namespace
-{
-size_t DefaultBufferSize = 4 * 1024u;
-}
-
 namespace tes
 {
+namespace
+{
+constexpr size_t kDefaultBufferSize =
+  4u * 1024u;  // NOLINT(bugprone-implicit-widening-of-multiplication-result)
+}  // namespace
+
 unsigned getPacketSize(const uint8_t *bytes)
 {
-  PacketReader reader(reinterpret_cast<const PacketHeader *>(bytes));
+  const PacketReader reader(reinterpret_cast<const PacketHeader *>(bytes));
   if (reader.marker() != kPacketMarker)
   {
     // Invalid marker bytes. Fail.
@@ -37,9 +37,9 @@ unsigned getPacketSize(const uint8_t *bytes)
 struct CollatedPacketDecoderDetail
 {
   std::vector<uint8_t> buffer;
-  unsigned targetBytes = 0;   // Number of bytes to decode.
-  unsigned decodedBytes = 0;  // Number decoded.
-  unsigned streamBytes = 0;   // Number of bytes in stream.
+  unsigned target_bytes = 0;   // Number of bytes to decode.
+  unsigned decoded_bytes = 0;  // Number decoded.
+  unsigned stream_bytes = 0;   // Number of bytes in stream.
   const PacketHeader *packet = nullptr;
   const uint8_t *stream = nullptr;
   CollatedPacketZip zip = CollatedPacketZip(true);
@@ -55,9 +55,9 @@ struct CollatedPacketDecoderDetail
       return false;
     }
 
-    if (buffer.size() < DefaultBufferSize)
+    if (buffer.size() < kDefaultBufferSize)
     {
-      buffer.resize(DefaultBufferSize);
+      buffer.resize(kDefaultBufferSize);
     }
 
     PacketReader reader(packet);
@@ -78,7 +78,7 @@ struct CollatedPacketDecoderDetail
     else
     {
       initStream(0, 0, nullptr, 0);
-      targetBytes = reader.payloadSize();
+      target_bytes = reader.payloadSize();
     }
     return true;
   }
@@ -90,22 +90,22 @@ struct CollatedPacketDecoderDetail
     zip.reset();
   }
 
-  bool initStream(unsigned messageFlags, unsigned targetDecodeBytes, const uint8_t *bytes,
-                  unsigned byteCount)
+  bool initStream(unsigned message_flags, unsigned target_decode_bytes, const uint8_t *bytes,
+                  unsigned byte_count)
   {
     zip.reset();
     stream = bytes;
-    streamBytes = byteCount;
-    targetBytes = targetDecodeBytes;
-    decodedBytes = 0;
+    stream_bytes = byte_count;
+    target_bytes = target_decode_bytes;
+    decoded_bytes = 0;
 
-    if (buffer.size() < targetDecodeBytes)
+    if (buffer.size() < target_decode_bytes)
     {
-      buffer.resize(targetDecodeBytes);
+      buffer.resize(target_decode_bytes);
     }
 
     ok = false;
-    if (messageFlags & CPFCompress)
+    if (message_flags & CPFCompress)  // NOLINT(hicpp-signed-bitwise)
     {
 #ifdef TES_ZLIB
       ok = true;
@@ -117,7 +117,8 @@ struct CollatedPacketDecoderDetail
       zip.stream.next_in = Z_NULL;
       ok = inflateInit2(&zip.stream,
                         CollatedPacketZip::WindowBits | CollatedPacketZip::GZipEncoding) == Z_OK;
-      zip.stream.avail_in = streamBytes;
+      zip.stream.avail_in = stream_bytes;
+      // NOLINTNEXTLINE(google-readability-casting)
       zip.stream.next_in = (z_const Bytef *)stream;
 #endif  // TES_ZLIB
     }
@@ -138,139 +139,137 @@ struct CollatedPacketDecoderDetail
     return ok;
   }
 
-  const PacketHeader *nextPacket()
+  [[nodiscard]] const PacketHeader *nextPacket()
   {
-    if (decodedBytes >= targetBytes)
+    if (decoded_bytes >= target_bytes)
     {
       return nullptr;
     }
 
     if (compressed)
     {
-#ifdef TES_ZLIB
-      // Deflate into the buffer.
-      int status = 0;
-      // Decode just one header.
-      zip.stream.avail_out = sizeof(PacketHeader);
-      zip.stream.next_out = buffer.data();
-      status = inflate(&zip.stream, Z_NO_FLUSH);
-      if (status == Z_STREAM_ERROR || status == Z_NEED_DICT || status == Z_DATA_ERROR ||
-          status == Z_MEM_ERROR)
-      {
-        return nullptr;
-      }
-
-      if (zip.stream.avail_out != 0)
-      {
-        // Failed to read header.
-        return nullptr;
-      }
-
-      // Validate the header. Use a PacketReader to ensure endian swap as needed.
-      unsigned packetSize = getPacketSize(buffer.data());
-      if (packetSize == 0)
-      {
-        // Validation failed.
-        return nullptr;
-      }
-
-      // Validate read buffer size.
-      if (buffer.size() < packetSize)
-      {
-        buffer.resize(packetSize);
-        zip.stream.next_out = buffer.data() + sizeof(PacketHeader);
-      }
-
-      // Inflate remaining packet bytes.
-      zip.stream.avail_out = uInt(packetSize - sizeof(PacketHeader));
-      status = inflate(&zip.stream, Z_NO_FLUSH);
-
-      if (status == Z_STREAM_ERROR || status == Z_NEED_DICT || status == Z_DATA_ERROR ||
-          status == Z_MEM_ERROR)
-      {
-        return nullptr;
-      }
-
-      if (zip.stream.avail_out)
-      {
-        // Failed to decode target bytes.
-        return nullptr;
-      }
-
-      PacketReader reader(reinterpret_cast<const PacketHeader *>(buffer.data()));
-
-      // Now check the packet.
-      if (reader.packetSize() != zip.stream.total_out - decodedBytes)
-      {
-        return nullptr;
-      }
-
-      decodedBytes = unsigned(zip.stream.total_out);
-
-      if (!reader.checkCrc())
-      {
-        return nullptr;
-      }
-
-      if (decodedBytes == targetBytes)
-      {
-        // Nothing more to decode.
-        finishCurrent();
-      }
-
-      return reinterpret_cast<const PacketHeader *>(buffer.data());
-#else   // TES_ZLIB
-        // Compression unsupported.
-      return nullptr;
-#endif  // TES_ZLIB
+      return nextPacketCompressed();
     }
-    else
+
+    const unsigned packet_size = getPacketSize(stream + decoded_bytes);
+    if (packet_size == 0)
     {
-      unsigned packetSize = getPacketSize(stream + decodedBytes);
-      if (packetSize == 0)
-      {
-        // Validation failed.
-        return nullptr;
-      }
-
-      const PacketHeader *nextPacket =
-        reinterpret_cast<const PacketHeader *>(stream + decodedBytes);
-      decodedBytes += packetSize;
-
-      if (decodedBytes == targetBytes)
-      {
-        // Nothing more to decode.
-        finishCurrent();
-      }
-
-      return nextPacket;
+      // Validation failed.
+      return nullptr;
     }
+
+    const auto *next_packet = reinterpret_cast<const PacketHeader *>(stream + decoded_bytes);
+    decoded_bytes += packet_size;
+
+    if (decoded_bytes == target_bytes)
+    {
+      // Nothing more to decode.
+      finishCurrent();
+    }
+
+    return next_packet;
+  }
+
+private:
+  [[nodiscard]] const PacketHeader *nextPacketCompressed()
+  {
+#ifdef TES_ZLIB
+    // Deflate into the buffer.
+    int status = 0;
+    // Decode just one header.
+    zip.stream.avail_out = sizeof(PacketHeader);
+    zip.stream.next_out = buffer.data();
+    status = inflate(&zip.stream, Z_NO_FLUSH);
+    if (status == Z_STREAM_ERROR || status == Z_NEED_DICT || status == Z_DATA_ERROR ||
+        status == Z_MEM_ERROR)
+    {
+      return nullptr;
+    }
+
+    if (zip.stream.avail_out != 0)
+    {
+      // Failed to read header.
+      return nullptr;
+    }
+
+    // Validate the header. Use a PacketReader to ensure endian swap as needed.
+    const unsigned packet_size = getPacketSize(buffer.data());
+    if (packet_size == 0)
+    {
+      // Validation failed.
+      return nullptr;
+    }
+
+    // Validate read buffer size.
+    if (buffer.size() < packet_size)
+    {
+      buffer.resize(packet_size);
+      zip.stream.next_out = buffer.data() + sizeof(PacketHeader);
+    }
+
+    // Inflate remaining packet bytes.
+    zip.stream.avail_out = int_cast<uInt>(packet_size - sizeof(PacketHeader));
+    status = inflate(&zip.stream, Z_NO_FLUSH);
+
+    if (status == Z_STREAM_ERROR || status == Z_NEED_DICT || status == Z_DATA_ERROR ||
+        status == Z_MEM_ERROR)
+    {
+      return nullptr;
+    }
+
+    if (zip.stream.avail_out)
+    {
+      // Failed to decode target bytes.
+      return nullptr;
+    }
+
+    PacketReader reader(reinterpret_cast<const PacketHeader *>(buffer.data()));
+
+    // Now check the packet.
+    if (reader.packetSize() != zip.stream.total_out - decoded_bytes)
+    {
+      return nullptr;
+    }
+
+    decoded_bytes = int_cast<unsigned>(zip.stream.total_out);
+
+    if (!reader.checkCrc())
+    {
+      return nullptr;
+    }
+
+    if (decoded_bytes == target_bytes)
+    {
+      // Nothing more to decode.
+      finishCurrent();
+    }
+
+    return reinterpret_cast<const PacketHeader *>(buffer.data());
+#else   // TES_ZLIB
+    // Compression not supported.
+    return nullptr;
+#endif  // TES_ZLIB
   }
 };
-}  // namespace tes
 
 CollatedPacketDecoder::CollatedPacketDecoder(const PacketHeader *packet)
-  : _detail(nullptr)
 {
   setPacket(packet);
 }
 
 
-CollatedPacketDecoder::~CollatedPacketDecoder()
-{
-  delete _detail;
-}
+CollatedPacketDecoder::~CollatedPacketDecoder() = default;
 
 
 unsigned CollatedPacketDecoder::decodedBytes() const
 {
-  return (_detail) ? _detail->decodedBytes : 0u;
+  return (_detail) ? _detail->decoded_bytes : 0u;
 }
 
 
 unsigned CollatedPacketDecoder::targetBytes() const
 {
-  return (_detail) ? _detail->targetBytes : 0u;
+  return (_detail) ? _detail->target_bytes : 0u;
 }
 
 
@@ -286,12 +285,12 @@ bool CollatedPacketDecoder::setPacket(const PacketHeader *packet)
   {
     if (!_detail)
     {
-      _detail = new CollatedPacketDecoderDetail;
+      _detail = std::make_unique<CollatedPacketDecoderDetail>();
     }
 
     return _detail->init(packet);
   }
-  else if (_detail)
+  if (_detail)
   {
     _detail->init(nullptr);
   }
@@ -311,10 +310,11 @@ const PacketHeader *CollatedPacketDecoder::next()
     }
 
     const PacketHeader *next = _detail->packet;
-    _detail->decodedBytes = _detail->targetBytes;
+    _detail->decoded_bytes = _detail->target_bytes;
     _detail->packet = nullptr;
     return next;
   }
 
   return nullptr;
 }
+}  // namespace tes
