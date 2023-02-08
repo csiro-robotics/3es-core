@@ -70,10 +70,7 @@ PacketWriter::PacketWriter(PacketWriter &&other) noexcept
 }
 
 
-PacketWriter::~PacketWriter()
-{
-  finalise();
-}
+PacketWriter::~PacketWriter() = default;
 
 
 PacketWriter &PacketWriter::operator=(PacketWriter other)

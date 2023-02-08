@@ -100,8 +100,9 @@ PacketHeader *PacketBuffer::extractPacket(std::vector<uint8_t> &buffer)
     {
       // We have a full packet. Allocate a copy and extract the full packet data.
       const unsigned packet_size = reader.packetSize();
-      // FIXME(KS): why allocate? Can't we hold a pointer in the buffer, then shift bytes on
-      // release?
+      // FIXME(KS): why copy to a new buffer? Can't we hold a pointer in the buffer, then shift
+      // bytes on release?
+      buffer.clear();
       std::copy(_packet_buffer.begin(), _packet_buffer.begin() + packet_size,
                 std::back_inserter(buffer));
 
