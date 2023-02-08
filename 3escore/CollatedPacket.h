@@ -136,6 +136,10 @@ public:
   /// @return True on successful finalisation, false when already finalised.
   bool finalise();
 
+  /// Check if @c finalise() has been called.
+  /// @return True if @c finalise() has been called.
+  [[nodiscard]] bool isFinalised() const { return _finalised; }
+
   /// Access the internal buffer pointer.
   /// @param[out] byte_count Set to the number of used bytes in the collated buffer, including
   ///     the CRC when the packet has been finalised.
@@ -227,6 +231,11 @@ public:
   /// @param allow_collation Ignored in this context.
   /// @return The <tt>packet.packetSize()</tt> on success, or -1 on failure.
   int send(const uint8_t *data, int byte_count, bool allow_collation) override;
+
+  /// Not supported
+  /// @param collated N/A
+  /// @return Throws @c Exception or returns -1 depending on the @c TES_EXCEPTIONS define.
+  int send(const CollatedPacket &collated) override;
 
 private:
   /// Initialise the buffer.

@@ -41,7 +41,7 @@ namespace tes::view
 {
 uint16_t Viewer::defaultPort()
 {
-  return ServerSettings().listenPort;
+  return ServerSettings().listen_port;
 }
 
 Viewer::Viewer(const Arguments &arguments)

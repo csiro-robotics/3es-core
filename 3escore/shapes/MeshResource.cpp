@@ -45,11 +45,11 @@ int MeshResource::create(PacketWriter &packet) const
   ObjectAttributesd attributes;
   Transform transform = this->transform();
 
-  msg.meshId = id();
-  msg.vertexCount = vertexCount();
-  msg.indexCount = indexCount();
+  msg.mesh_id = id();
+  msg.vertex_count = vertexCount();
+  msg.index_count = indexCount();
   msg.flags = 0;
-  msg.drawType = drawType();
+  msg.draw_type = drawType();
 
   if (transform.preferDoublePrecision())
   {
@@ -87,7 +87,7 @@ int MeshResource::destroy(PacketWriter &packet) const
 {
   MeshDestroyMessage destroy;
   packet.reset(typeId(), MeshDestroyMessage::MessageId);
-  destroy.meshId = id();
+  destroy.mesh_id = id();
   destroy.write(packet);
   return 0;
 }
@@ -111,7 +111,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
 
   packet.reset(typeId(), uint16_t(progress.phase));
   MeshComponentMessage msg;
-  msg.meshId = id();
+  msg.mesh_id = id();
   msg.write(packet);
 
   DataBuffer dataSource;
@@ -217,7 +217,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
   case MmtFinalise: {
     MeshFinaliseMessage msg;
     packet.reset(typeId(), MeshFinaliseMessage::MessageId);
-    msg.meshId = id();
+    msg.mesh_id = id();
     msg.flags = (!normals(0).isValid()) ? MffCalculateNormals : 0;
     msg.write(packet);
     // Mark complete.
@@ -336,7 +336,7 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
   }
   }
 
-  if (msg.meshId != id())
+  if (msg.mesh_id != id())
   {
     ok = false;
   }

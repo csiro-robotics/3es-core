@@ -2,11 +2,14 @@
 // Author Kazys Stepanas
 #include "CollatedPacket.h"
 
+#include "Connection.h"
+#include "CoreUtil.h"
 #include "Crc.h"
 #include "Endian.h"
 #include "Maths.h"
 #include "Messages.h"
 #include "PacketWriter.h"
+#include "Throw.h"
 
 #include "private/CollatedPacketZip.h"
 
@@ -614,6 +617,12 @@ int CollatedPacket::send(const uint8_t *data, int byte_count, bool /*allow_colla
   }
 
   return add(data, static_cast<uint16_t>(byte_count));
+}
+
+
+int CollatedPacket::send(const CollatedPacket &collated)
+{
+  TES_THROW(Exception("CollatedPacket::send(CollatedPacket) not supported"), -1);
 }
 
 

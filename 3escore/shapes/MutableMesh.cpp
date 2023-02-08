@@ -287,10 +287,10 @@ void MutableMesh::update(Connection *con)
 
   const Transform transform = (_imp->transformDirty) ? _imp->newTransform : _imp->mesh.transform();
 
-  msg.meshId = _imp->mesh.id();
-  msg.vertexCount = newVertexCount;
-  msg.indexCount = newIndexCount;
-  msg.drawType = _imp->mesh.drawType(0);
+  msg.mesh_id = _imp->mesh.id();
+  msg.vertex_count = newVertexCount;
+  msg.index_count = newIndexCount;
+  msg.draw_type = _imp->mesh.drawType(0);
 
   packet.reset(tes::MtMesh, tes::MeshRedefineMessage::MessageId);
   if (transform.preferDoublePrecision())
@@ -332,7 +332,7 @@ void MutableMesh::update(Connection *con)
   packet.finalise();
   con->send(packet);
 
-  cmpmsg.meshId = _imp->mesh.id();
+  cmpmsg.mesh_id = _imp->mesh.id();
 
   // It would be nice to sort additions/removals to support block updates,
   // however, changes may be interleaved so we have to preserve order.
@@ -404,7 +404,7 @@ void MutableMesh::update(Connection *con)
   migratePending();
 
   // Finalise the modifications.
-  finalmsg.meshId = _imp->mesh.id();
+  finalmsg.mesh_id = _imp->mesh.id();
   // Rely on EDL shader.
   finalmsg.flags = 0;  // tes::MffCalculateNormals;
   packet.reset(tes::MtMesh, finalmsg.MessageId);

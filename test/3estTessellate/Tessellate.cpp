@@ -86,7 +86,7 @@ void createAxes(unsigned &nextId, std::vector<Shape *> &shapes,
 }
 
 
-MeshSet *createMeshShape(unsigned shapeId, unsigned meshId, const std::vector<Vector3f> &vertices,
+MeshSet *createMeshShape(unsigned shapeId, unsigned mesh_id, const std::vector<Vector3f> &vertices,
                          const std::vector<unsigned> &indices, const std::vector<Vector3f> *normals)
 {
   unsigned components = SimpleMesh::Vertex | SimpleMesh::Index;
@@ -95,7 +95,7 @@ MeshSet *createMeshShape(unsigned shapeId, unsigned meshId, const std::vector<Ve
     components |= SimpleMesh::Normal;
   }
   SimpleMesh *resource =
-    new SimpleMesh(meshId, vertices.size(), indices.size(), DtTriangles, components);
+    new SimpleMesh(mesh_id, vertices.size(), indices.size(), DtTriangles, components);
   resource->setVertices(0, vertices.data(), vertices.size());
   resource->setIndices(0, indices.data(), indices.size());
   if (normals)
@@ -241,12 +241,12 @@ int main(int argc, char **argvNonConst)
   ServerInfoMessage info;
   initDefaultServerInfo(&info);
   info.coordinate_frame = XYZ;
-  unsigned serverFlags = SF_DefaultNoCompression;
+  unsigned serverFlags = SFDefaultNoCompression;
   if (haveOption("compress", argc, argv))
   {
-    serverFlags |= SF_Compress;
+    serverFlags |= SFCompress;
   }
-  Server *server = Server::create(ServerSettings(serverFlags), &info);
+  auto server = Server::create(ServerSettings(serverFlags), &info);
 
   std::vector<Shape *> shapes;
   std::vector<const Resource *> resources;
@@ -327,8 +327,7 @@ int main(int argc, char **argvNonConst)
   server->connectionMonitor()->stop();
   server->connectionMonitor()->join();
 
-  server->dispose();
-  server = nullptr;
+  server.reset();
 
   return 0;
 }

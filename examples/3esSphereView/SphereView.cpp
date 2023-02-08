@@ -69,7 +69,10 @@ namespace
 {
 struct SphereVertexHash
 {
-  inline size_t operator()(const Vector3f &v) const { return tes::vhash::hash(v.x(), v.y(), v.z()); }
+  inline size_t operator()(const Vector3f &v) const
+  {
+    return tes::vhash::hash(v.x(), v.y(), v.z());
+  }
 };
 
 typedef std::unordered_multimap<Vector3f, unsigned, SphereVertexHash> SphereVertexMap;
@@ -127,8 +130,8 @@ unsigned insertVertex(const Vector3f &vertex, std::vector<Vector3f> &vertices,
       }
       ++findResult;
     } while (findResult != vertexMap.end() &&
-             tes::vhash::hash(findResult->first.x(), findResult->first.y(), findResult->first.z()) ==
-               hashVal);
+             tes::vhash::hash(findResult->first.x(), findResult->first.y(),
+                              findResult->first.z()) == hashVal);
   }
 
 
@@ -332,14 +335,14 @@ int main(int argc, char **argvNonConst)
 
   // Initialise settings: zero flags: no cache, compression or collation.
 #ifdef TES_ENABLE
-  unsigned serverFlags = tes::SF_NakedFrameMessage;
+  unsigned serverFlags = tes::SFNakedFrameMessage;
   if (haveOption("collate", argc, argv))
   {
-    serverFlags = tes::SF_Collate;
+    serverFlags = tes::SFCollate;
   }
   if (tes::checkFeature(tes::TFeatureCompression) && haveOption("compress", argc, argv))
   {
-    serverFlags = tes::SF_Compress | tes::SF_Collate;
+    serverFlags = tes::SFCompress | tes::SFCollate;
   }
 #endif  // TES_ENABLE
   TES_SETTINGS(settings, serverFlags);

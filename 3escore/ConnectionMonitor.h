@@ -7,6 +7,7 @@
 #include "CoreConfig.h"
 
 #include <functional>
+#include <memory>
 
 namespace tes
 {
@@ -71,7 +72,7 @@ class TES_CORE_API ConnectionMonitor
 {
 protected:
   /// Protected virtual destructor.
-  virtual ~ConnectionMonitor() {}
+  virtual ~ConnectionMonitor();
 
 public:
   /// Controls how the monitor behaves - synchronously or asynchronously.
@@ -87,7 +88,7 @@ public:
   /// This may be TCP specific.
   ///
   /// @return The port connections are being monitored on.
-  virtual unsigned short port() const = 0;
+  [[nodiscard]] virtual unsigned short port() const = 0;
 
   /// Starts the monitor listening in the specified mode.
   ///
@@ -110,7 +111,7 @@ public:
 
   /// Returns true if the connection monitor has start.
   /// @return True if running.
-  virtual bool isRunning() const = 0;
+  [[nodiscard]] virtual bool isRunning() const = 0;
 
   /// Returns the current running mode.
   ///
@@ -121,13 +122,13 @@ public:
   /// drops to @c None on calling @c stop().
   ///
   /// The mode is @c None if not running in either mode.
-  virtual Mode mode() const = 0;
+  [[nodiscard]] virtual Mode mode() const = 0;
 
-  /// Wait up to @p timeoutMs milliseconds for a connection.
+  /// Wait up to @p timeout_ms milliseconds for a connection.
   /// Returns immediately if we already have a connection.
-  /// @param timeoutMs The time out to wait in milliseconds.
+  /// @param timeout_ms The time out to wait in milliseconds.
   /// @return The number of connections on returning. These may need to be committed.
-  virtual int waitForConnection(unsigned timeoutMs) = 0;
+  virtual int waitForConnection(unsigned timeout_ms) = 0;
 
   /// Accepts new connections and checks for expired connections, but
   /// effects neither in the @c Server.
@@ -138,12 +139,12 @@ public:
 
   /// Opens a @c Connection object which serialises directly to the local file system.
   ///
-  /// The connection persisits until either the monitor is stopped, or until @p Connection::close() is called.
-  /// In asynchronous mode, the pointer cannot be used after @c close() is called.
+  /// The connection persisits until either the monitor is stopped, or until @p Connection::close()
+  /// is called. In asynchronous mode, the pointer cannot be used after @c close() is called.
   ///
-  /// @param filePath The path to the file to open/write to.
+  /// @param file_path The path to the file to open/write to.
   /// @return A pointer to a @c Connection object which represents the file stream.
-  virtual Connection *openFileStream(const char *filePath) = 0;
+  virtual std::shared_ptr<Connection> openFileStream(const char *file_path) = 0;
 
   /// Sets the callback invoked for each new connection.
   ///
@@ -157,7 +158,8 @@ public:
   ///
   /// @param callback The callback function pointer.
   /// @param user A user pointer passed to the @c callback whenever it is invoked.
-  virtual void setConnectionCallback(void (*callback)(Server &, Connection &, void *), void *user) = 0;
+  virtual void setConnectionCallback(void (*callback)(Server &, Connection &, void *),
+                                     void *user) = 0;
 
   /// An overload of @p setConnectionCallback() using the C++11 @c funtion object.
   /// Both methods are provided to cater for potential ABI issues.
@@ -166,11 +168,13 @@ public:
   /// for such.
   ///
   /// @param callback The function to invoke for each new connection.
-  virtual void setConnectionCallback(const std::function<void(Server &, Connection &)> &callback) = 0;
+  virtual void setConnectionCallback(
+    const std::function<void(Server &, Connection &)> &callback) = 0;
 
   /// Retrieve a function object representing the connection callback.
   /// @return The current function wrapper invoked for each new connection.
-  virtual const std::function<void(Server &, Connection &)> &connectionCallback() const = 0;
+  [[nodiscard]] virtual const std::function<void(Server &, Connection &)> &connectionCallback()
+    const = 0;
 
   /// Migrates new connections to the owning @c Server and removes expired
   /// connections.

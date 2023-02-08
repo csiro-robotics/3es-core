@@ -202,13 +202,13 @@ int main(int argc, char **argvNonConst)
   ServerInfoMessage info;
   initDefaultServerInfo(&info);
   info.coordinate_frame = XYZ;
-  unsigned serverFlags = SF_DefaultNoCompression;
+  unsigned serverFlags = SFDefaultNoCompression;
   if (haveOption("compress", argc, argv))
   {
-    serverFlags |= SF_Compress | SF_Collate;
+    serverFlags |= SFCompress | SFCollate;
   }
 
-  Server *server = Server::create(ServerSettings(serverFlags), &info);
+  auto server = Server::create(ServerSettings(serverFlags), &info);
 
   server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous);
 
@@ -262,8 +262,7 @@ int main(int argc, char **argvNonConst)
   server->connectionMonitor()->stop();
   server->connectionMonitor()->join();
 
-  server->dispose();
-  server = nullptr;
+  server.reset();
 
   return 0;
 }

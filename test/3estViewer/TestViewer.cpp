@@ -15,7 +15,7 @@ namespace tes::view
 {
 uint16_t TestViewer::defaultPort()
 {
-  return ServerSettings().listenPort;
+  return ServerSettings().listen_port;
 }
 
 TestViewer::TestViewer(const Arguments &arguments)

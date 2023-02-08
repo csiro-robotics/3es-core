@@ -122,6 +122,11 @@ public:
   /// @param id The new shape id.
   Shape &setId(uint32_t id);
 
+  /// Check if this is a transient object.
+  /// Transient objects are only visible for a single update on the client and have a zero @c id() .
+  /// @return True if transient.
+  [[nodiscard]] bool isTransient() const { return id() == 0; }
+
   /// Access the shape category.
   ///
   /// Categories can be used by the viewer to perform collective operations on shapes, such as

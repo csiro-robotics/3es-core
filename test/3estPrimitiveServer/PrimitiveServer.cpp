@@ -189,7 +189,8 @@ bool haveOption(const char *opt, int argc, const char **argv)
 }
 
 
-void defineCategory(Server *server, const char *name, uint16_t id, uint16_t parent_id, bool active)
+void defineCategory(const std::shared_ptr<Server> &server, const char *name, uint16_t id,
+                    uint16_t parent_id, bool active)
 {
   CategoryNameMessage msg;
   msg.category_id = id;
@@ -599,7 +600,8 @@ std::ostream &operator<<(std::ostream &o, const ServerInfoMessage &info)
 
 /// Add @p shape to the @p server and @p shapes, printing it's attributes in JSON to @c stdout.
 template <class T>
-void addShape(T *shape, Server *server, std::vector<Shape *> &shapes, const char *suffix = "")
+void addShape(T *shape, const std::shared_ptr<Server> &server, std::vector<Shape *> &shapes,
+              const char *suffix = "")
 {
   server->create(*shape);
   logShape(std::cout, *shape, suffix) << ",\n";
@@ -637,12 +639,12 @@ int main(int argc, char **argvNonConst)
   ServerInfoMessage info;
   initDefaultServerInfo(&info);
   info.coordinate_frame = XYZ;
-  unsigned serverFlags = SF_DefaultNoCompression;
+  unsigned serverFlags = SFDefaultNoCompression;
   if (haveOption("compress", argc, argv))
   {
-    serverFlags |= SF_Compress;
+    serverFlags |= SFCompress;
   }
-  Server *server = Server::create(ServerSettings(serverFlags), &info);
+  auto server = Server::create(ServerSettings(serverFlags), &info);
 
   std::cout << "{\n";
   std::cout << info << std::endl;
@@ -654,12 +656,12 @@ int main(int argc, char **argvNonConst)
 
   server->updateTransfers(0);
   server->updateFrame(0.0f, true);
-  ConnectionMonitor *_conMon = (server)->connectionMonitor();
-  if (_conMon->mode() == ConnectionMonitor::Synchronous)
+  auto connection_monitor = server->connectionMonitor();
+  if (connection_monitor->mode() == ConnectionMonitor::Synchronous)
   {
-    _conMon->monitorConnections();
+    connection_monitor->monitorConnections();
   }
-  _conMon->commitConnections();
+  connection_monitor->commitConnections();
 
   defineCategory(server, "Root", 0, 0, true);
   defineCategory(server, "Branch1", 1, 0, true);
@@ -724,8 +726,7 @@ int main(int argc, char **argvNonConst)
   server->connectionMonitor()->stop();
   server->connectionMonitor()->join();
 
-  server->dispose();
-  server = nullptr;
+  server.reset();
 
   for (Shape *shape : shapes)
   {

@@ -33,7 +33,7 @@ struct OccupancyMeshDetail;
 class OccupancyMesh : public tes::MeshResource
 {
 public:
-  OccupancyMesh(unsigned meshId, octomap::OcTree &map);
+  OccupancyMesh(unsigned mesh_id, octomap::OcTree &map);
   ~OccupancyMesh();
 
   uint32_t id() const override;

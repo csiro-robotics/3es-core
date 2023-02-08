@@ -162,9 +162,9 @@ void MeshResource::readMessage(PacketReader &reader)
       }
 
       auto resource = search->second.pending;
-      resource->setVertexCount(msg.vertexCount);
-      resource->setIndexCount(msg.indexCount);
-      resource->setDrawType(DrawType(msg.drawType));
+      resource->setVertexCount(msg.vertex_count);
+      resource->setIndexCount(msg.index_count);
+      resource->setDrawType(DrawType(msg.draw_type));
       Transform transform = Transform(Vector3d(attributes.position), Quaterniond(attributes.rotation),
                                       Vector3d(attributes.scale), msg.flags & McfDoublePrecision);
 

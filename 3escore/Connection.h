@@ -11,6 +11,7 @@
 
 namespace tes
 {
+class CollatedPacket;
 class PacketWriter;
 class Resource;
 class Shape;
@@ -121,6 +122,41 @@ public:
 
   /// @overload
   int send(const PacketWriter &packet) { return send(packet, true); }
+
+  /// Send data from a  @c CollatedPacket .
+  ///
+  /// Implementations ensure data from @p collated is sent as a contiguous block. Other @c send()
+  /// calls cannot proceed (from other thread) until @p collated data has finished sending. The
+  /// This allows threads to collect batches of data into a @c CollatedPacket before sending.
+  ///
+  /// Implementations may send data from @p collated as is or may unpack the internals of
+  /// @p collated into separate packets. The latter approach requires that @p collated is not
+  /// compressed, but allows sending of collated data which are larger than any transfer limit.
+  ///
+  /// The packet should be finalised before calling or the function may fail.
+  ///
+  /// @code
+  /// // Sending as is:
+  /// int send(Connection &connection, const CollatedPacket &collated)
+  /// {
+  ///   if (!collated.isFinalised())
+  ///   {
+  ///     return -1;
+  ///   }
+  ///   unsigned byte_count = 0;
+  ///   const uint8_t *bytes = _collation->buffer(byte_count);
+  ///   if (!bytes || !byte_count)
+  ///   {
+  ///     return 0;
+  ///   }
+  ///   // Do not allow collation for this send. It is a collated packet.
+  ///   return connection.send(bytes, static_cast<int>(byte_count), false);
+  /// }
+  /// @endcode
+  ///
+  /// @param collated The @c CollatedPacket data to send. May be empty.
+  /// @return -1 on failure, 0 when there is nothing to do, otherwise the number of bytes sent.
+  virtual int send(const CollatedPacket &collated) = 0;
 
   /// Send pre-prepared message data to all connections.
   /// @param data Data buffer to send.

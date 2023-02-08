@@ -122,7 +122,7 @@ public:
 
   bool readCreate(PacketReader &packet) override;
 
-  // Must peek the meshId before calling this method. Mesh id must match this object.
+  // Must peek the mesh_id before calling this method. Mesh id must match this object.
   bool readTransfer(int messageType, PacketReader &packet) override;
 
 protected:

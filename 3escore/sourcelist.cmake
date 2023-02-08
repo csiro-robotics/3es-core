@@ -105,6 +105,7 @@ list(APPEND SOURCES
   CollatedPacket.cpp
   CollatedPacketDecoder.cpp
   Colour.cpp
+  ConnectionMonitor.cpp
   CoreUtil.cpp
   Crc.cpp
   Endian.cpp

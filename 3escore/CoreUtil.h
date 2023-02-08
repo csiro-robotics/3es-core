@@ -109,6 +109,8 @@ template Colour TES_CORE_API toColour(const Vector4<double> &v);
 template <typename Int, typename SrcInt>
 Int int_cast(SrcInt value)  // NOLINT(readability-identifier-naming)
 {
+  static_assert(std::is_integral<Int>::value, "Expecting integer type");
+  static_assert(std::is_integral<SrcInt>::value, "Expecting integer type");
   // NOLINTNEXTLINE(misc-redundant-expression)
   const auto lowest = std::numeric_limits<Int>::lowest();
   const auto highest = std::numeric_limits<Int>::max();

@@ -10,6 +10,7 @@
 #include "Connection.h"
 
 #include <cstdint>
+#include <memory>
 
 namespace tes
 {
@@ -21,54 +22,62 @@ class Shape;
 struct ServerInfoMessage;
 
 /// Server option flags.
-enum ServerFlag
+enum ServerFlag : uint32_t
 {
   /// Send frame update messages uncompressed and uncollated.
   /// This can be used to clearly demarcate frame boundaries without the need to decode
   /// collated and/or compressed data.
-  SF_NakedFrameMessage = (1 << 0),
+  SFNakedFrameMessage = (1u << 0u),
   /// Set to collate outgoing messages into larger packets.
-  SF_Collate = (1 << 1),
+  SFCollate = (1u << 1u),
   /// Set to compress collated outgoing packets using GZip compression.
-  /// Has no effect if @c SF_Collate is not set or if the library is not built against ZLib.
-  SF_Compress = (1 << 2),
+  /// Has no effect if @c SFCollate is not set or if the library is not built against ZLib.
+  SFCompress = (1u << 2u),
 
-  /// The combination of @c SF_Collate and @c SF_Compress
-  SF_CollateAndCompress = SF_Collate | SF_Compress,
+  /// The combination of @c SFCollate and @c SFCompress
+  SFCollateAndCompress = SFCollate | SFCompress,
   /// The default recommended flags for initialising the server.
   /// This includes collation, compression and naked frame messages.
-  SF_Default = SF_NakedFrameMessage | SF_Collate,
+  SFDefault = SFNakedFrameMessage | SFCollate,
   /// The default recommended flags without compression.
   /// This includes collation, compression and naked frame messages.
-  SF_DefaultNoCompression = (SF_Default & ~SF_Compress),
+  SFDefaultNoCompression = (SFDefault & ~SFCompress),
 };
 
 /// Settings used to create the server.
 struct TES_CORE_API ServerSettings
 {
+  /// Default server port.
+  static constexpr uint16_t kDefaultPort = 33500u;
+  /// Default server buffer size per client.
+  static constexpr uint16_t kDefaultBufferSize = 0xffe0u;
+  static constexpr uint32_t kDefaultAsyncTimeoutMs = 5000u;
+
   /// First port to try listening on.
-  uint16_t listenPort = 33500u;
+  uint16_t listen_port = kDefaultPort;
   /// Additional number of ports the server may try listening on.
-  uint16_t portRange = 0;
+  uint16_t port_range = 0;
   /// @c ServerFlag values.
-  unsigned flags = SF_Default;
-  /// Timeout used to wait for the connection monitor to start (milliseconds). Only for asynchronous mode.
-  unsigned asyncTimeoutMs = 5000u;
+  uint32_t flags = SFDefault;
+  /// Timeout used to wait for the connection monitor to start (milliseconds). Only for asynchronous
+  /// mode.
+  uint32_t async_timeout_ms = kDefaultAsyncTimeoutMs;
   /// Size of the client packet buffers.
-  uint16_t clientBufferSize = 0xffe0u;
+  uint16_t client_buffer_size = kDefaultBufferSize;
   /// Compression level to use if enabled. See @c CompressionLevel.
-  uint16_t compressionLevel = ClDefault;
+  uint16_t compression_level = ClDefault;
 
   ServerSettings() = default;
-  inline ServerSettings(unsigned flags, uint16_t port = 33500u, uint16_t clientBufferSize = 0xffe0u,
-                        CompressionLevel compressionLevel = ClDefault)
-    : listenPort(port)
+  ServerSettings(uint32_t flags, uint16_t port = kDefaultPort,
+                 uint16_t client_buffer_size = kDefaultBufferSize,
+                 CompressionLevel compression_level = ClDefault)
+    : listen_port(port)
     , flags(flags)
-    , clientBufferSize(clientBufferSize)
-    , compressionLevel(compressionLevel)
+    , client_buffer_size(client_buffer_size)
+    , compression_level(compression_level)
   {}
 
-  // TODO: Allowed client IPs.
+  // TODO(KS): Allowed client IPs.
 };
 
 /// Defines the interface for managing a 3es server.
@@ -82,73 +91,40 @@ class TES_CORE_API Server : public Connection
 public:
   /// Creates a server with the given settings.
   ///
-  /// The @p settings affect the local server state, while @p serverInfo describes
-  /// the server to newly connected clients (first message sent). The @p serverInfo
+  /// The @p settings affect the local server state, while @p server_info describes
+  /// the server to newly connected clients (first message sent). The @p server_info
   /// may be omitted to use the defaults.
   ///
   /// @param settings The local server settings.
-  /// @param serverInfo Server settings published to clients. Null to use the defaults.
-  static Server *create(const ServerSettings &settings = ServerSettings(),
-                        const ServerInfoMessage *serverInfo = nullptr);
+  /// @param server_info Server settings published to clients. Null to use the defaults.
+  static std::shared_ptr<Server> create(const ServerSettings &settings = ServerSettings(),
+                                        const ServerInfoMessage *server_info = nullptr);
 
-  /// Destroys the server this method is called on. This ensures correct clean up.
-  virtual void dispose() = 0;
-
-protected:
-  /// Hidden virtual destructor.
-  virtual ~Server() {}
-
-public:
-  /// Retrieve the @c ServerFlag set with which the server was created.
-  virtual unsigned flags() const = 0;
-
-  //---------------------
-  // Connection methods.
-  //---------------------
+  /// Destructor.
+  ~Server() override = default;
 
   using Connection::create;
-  using Connection::send;
 
-  /// Set a completed packet to all clients.
-  ///
-  /// The @p packet must be finalised first.
-  ///
-  /// @param packet The packet to send.
-  /// @param allowCollation True to allow the message to be collated (and compressed) with other messages.
-  virtual int send(const PacketWriter &packet, bool allowCollation = true) = 0;
-
-  /// Send a collated packet to all clients.
-  ///
-  /// This supports sending collections of packets as a single send operation
-  /// while maintaining thread safety.
-  ///
-  /// The collated packet may be larger than the normal send limit as collated
-  /// message is extracted and sent individually. To support this, compression on
-  /// @p collated is not supported.
-  ///
-  /// @par Note sending in this way bypasses the shape and resource caches and
-  /// can only work when the user maintains state.
-  ///
-  /// @param collated Collated packets to send. Compression is not supported.
-  virtual int send(const CollatedPacket &collated) = 0;
+  /// Retrieve the @c ServerFlag set with which the server was created.
+  [[nodiscard]] virtual uint32_t flags() const = 0;
 
   /// Returns the connection monitor object for this @c Server.
   /// Null if connections are not supported (internal only).
-  virtual ConnectionMonitor *connectionMonitor() = 0;
+  virtual std::shared_ptr<ConnectionMonitor> connectionMonitor() = 0;
 
   /// Returns the number of current connections.
   /// @return The current number of connections.
-  virtual unsigned connectionCount() const = 0;
+  [[nodiscard]] virtual unsigned connectionCount() const = 0;
 
   /// Requests the connection at the given index.
   ///
   /// This data may be stale if the @c ConnectionMonitor has yet to update.
   /// @param index The index of the requested connection.
   /// @return The requested connection, or null if @p index is out of range.
-  virtual Connection *connection(unsigned index) = 0;
+  virtual std::shared_ptr<Connection> connection(unsigned index) = 0;
 
   /// @overload
-  virtual const Connection *connection(unsigned index) const = 0;
+  [[nodiscard]] virtual std::shared_ptr<const Connection> connection(unsigned index) const = 0;
 };
 }  // namespace tes
 

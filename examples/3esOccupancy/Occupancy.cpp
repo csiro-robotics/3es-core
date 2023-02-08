@@ -598,7 +598,7 @@ int main(int argc, char *argv[])
   }
 
   // Initialise TES
-  TES_SETTINGS(settings, tes::SF_Default);
+  TES_SETTINGS(settings, tes::SFDefault);
   // Initialise server info.
   TES_SERVER_INFO(info, tes::XYZ);
   // Create the server. Use tesServer declared globally above.

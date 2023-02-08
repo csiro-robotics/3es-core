@@ -60,9 +60,9 @@ void handleShapeMessage(PacketReader &reader, T &shape, const T &referenceShape)
 
 void handleMeshMessage(PacketReader &reader, ResourceMap &resources)
 {
-  uint32_t meshId = 0;
-  reader.peek((uint8_t *)&meshId, sizeof(meshId));
-  auto resIter = resources.find(MeshPlaceholder(meshId).uniqueKey());
+  uint32_t mesh_id = 0;
+  reader.peek((uint8_t *)&mesh_id, sizeof(mesh_id));
+  auto resIter = resources.find(MeshPlaceholder(mesh_id).uniqueKey());
   SimpleMesh *mesh = nullptr;
 
   // If it exists, make sure it's a mesh.
@@ -90,7 +90,7 @@ void handleMeshMessage(PacketReader &reader, ResourceMap &resources)
     // Create message. Should not already exists.
     EXPECT_EQ(mesh, nullptr) << "Recreating exiting mesh.";
     delete mesh;
-    mesh = new SimpleMesh(meshId);
+    mesh = new SimpleMesh(mesh_id);
     EXPECT_TRUE(mesh->readCreate(reader));
     resources.insert(std::make_pair(mesh->uniqueKey(), mesh));
     break;
@@ -250,17 +250,17 @@ void testShape(const T &shape, ServerInfoMessage *infoOut = nullptr,
   initDefaultServerInfo(&info);
   info.coordinate_frame = XYZ;
 
-  unsigned serverFlags = SF_Default | SF_CollateAndCompress;
+  unsigned serverFlags = SFDefault | SFCollateAndCompress;
   ServerSettings serverSettings(serverFlags);
-  serverSettings.portRange = 1000;
-  Server *server = Server::create(serverSettings, &info);
+  serverSettings.port_range = 1000;
+  auto server = Server::create(serverSettings, &info);
 
   if (infoOut)
   {
     *infoOut = info;
   }
 
-  // std::cout << "Start on port " << serverSettings.listenPort << std::endl;
+  // std::cout << "Start on port " << serverSettings.listen_port << std::endl;
   ASSERT_TRUE(server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous));
   // std::cout << "Server listening on port " <<
   // server->connectionMonitor()->port() << std::endl;;
@@ -278,7 +278,7 @@ void testShape(const T &shape, ServerInfoMessage *infoOut = nullptr,
   // Setup saving to file.
   if (saveFilePath && saveFilePath[0])
   {
-    Connection *fileConnection = server->connectionMonitor()->openFileStream(saveFilePath);
+    auto fileConnection = server->connectionMonitor()->openFileStream(saveFilePath);
     ASSERT_NE(fileConnection, nullptr);
     server->connectionMonitor()->commitConnections();
   }
@@ -310,8 +310,7 @@ void testShape(const T &shape, ServerInfoMessage *infoOut = nullptr,
   server->connectionMonitor()->stop();
   server->connectionMonitor()->join();
 
-  server->dispose();
-  server = nullptr;
+  server.reset();
 }
 
 template <class T>

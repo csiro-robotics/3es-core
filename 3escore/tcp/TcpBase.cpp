@@ -7,7 +7,7 @@
 #include <winsock2.h>
 #endif  // WIN32
 
-#include <errno.h> /* Error number definitions */
+#include <cerrno>  /* Error number definitions */
 #include <fcntl.h> /* File control definitions */
 
 #ifdef __linux__
@@ -32,18 +32,14 @@
 #include <sys/stat.h>
 #endif  // !WIN32
 
-using namespace std;
-
-namespace tes
-{
-namespace tcpbase
+namespace tes::tcpbase
 {
 #ifdef WIN32
-typedef DWORD intVal_t;
-typedef int socklen_t;
-#else   // WIN32
-typedef int intVal_t;
-#endif  // WIN32
+using IntVal = DWORD;
+using socklen_t = int;  // NOLINT(readability-identifier-naming)
+#else                   // WIN32
+using IntVal = int;
+#endif                  // WIN32
 
 int create()
 {
@@ -56,13 +52,13 @@ int create()
     return false;
   }
 
-  DWORD optVal;
+  DWORD opt_val = 0;
 #else
-  int optVal;
+  int opt_val = 0;
 #endif
 
   // Create a socket for stream communications
-  sock = (int)::socket(AF_INET, SOCK_STREAM, 0);
+  sock = static_cast<int>(::socket(AF_INET, SOCK_STREAM, 0));
 
   if (sock < 0)
   {
@@ -71,16 +67,17 @@ int create()
 
 #ifdef __APPLE__
   // Don't throw a SIGPIPE signal
-  optVal = 1;
-  if (::setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, &optVal, sizeof(optVal)) < 0)
+  opt_val = 1;
+  if (::setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, &opt_val, sizeof(opt_val)) < 0)
   {
     tcpbase::close(sock);
     return -1;
   }
 #endif  // __APPLE__
 
-  optVal = 1;
-  if (::setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (char *)&optVal, sizeof(optVal)) < 0)
+  opt_val = 1;
+  if (::setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<char *>(&opt_val),
+                   sizeof(opt_val)) < 0)
   {
     tcpbase::close(sock);
     return -1;
@@ -90,15 +87,17 @@ int create()
   // struct linger ling;
   // ling.l_onoff = 0;
   // ling.l_linger = 0;
-  // if (::setsockopt(sock, SOL_SOCKET, SO_LINGER, (char *)&ling, sizeof(ling)) < 0)
+  // if (::setsockopt(sock, SOL_SOCKET, SO_LINGER, reinterpret_cast<char *>(&ling), sizeof(ling)) <
+  // 0)
   //{
   //  tcpbase::close(sock);
   //  return -1;
   //}
 
   // Enable socket re-use (un-bind)
-  int reUse = 1;
-  if (::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&reUse, sizeof(reUse)) < 0)
+  int reuse = 1;
+  if (::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&reuse),
+                   sizeof(reuse)) < 0)
   {
     tcpbase::close(sock);
     return -1;
@@ -124,25 +123,19 @@ void close(int socket)
 }
 
 
-bool setReceiveTimeout(int socket, unsigned timeoutMs)
+bool setReceiveTimeout(int socket, unsigned timeout_ms)
 {
 #ifdef WIN32
-  DWORD tv = timeoutMs;  // milliseconds
-  if (::setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv)) < 0)
-  {
-    return false;
-  }
+  DWORD tv = timeout_ms;  // milliseconds
+  return ::setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&tv),
+                      sizeof(tv)) >= 0;
 #else  // Linux
 
   struct timeval tv;
-  timevalFromMs(tv, timeoutMs);
-  if (::setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0)
-  {
-    return false;
-  }
+  timevalFromMs(tv, timeout_ms);
+  return ::setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char *>(&tv), sizeof(tv)) >=
+         0;
 #endif
-
-  return true;
 }
 
 
@@ -151,45 +144,39 @@ unsigned getReceiveTimeout(int socket)
 #ifdef WIN32
   DWORD tv = 0;  // milliseconds
   socklen_t len = sizeof(tv);
-  if (::getsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, &len) < 0)
+  if (::getsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char *>(&tv), &len) < 0)
   {
     return false;
   }
 
-  return unsigned(tv);
+  return static_cast<unsigned>(tv);
 #else  // Linux
 
   struct timeval tv;
   socklen_t len;
-  if (::getsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, &len) < 0)
+  if (::getsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char *>(&tv), &len) < 0)
   {
     return false;
   }
 
-  return unsigned(1000 * tv.tv_sec + tv.tv_usec / 1000);
+  return static_cast<unsigned>(1000 * tv.tv_sec + tv.tv_usec / 1000);
 #endif
 }
 
 
-bool setSendTimeout(int socket, unsigned timeoutMs)
+bool setSendTimeout(int socket, unsigned timeout_ms)
 {
 #ifdef WIN32
-  DWORD tv = timeoutMs;  // milliseconds
-  if (::setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&tv, sizeof(tv)) < 0)
-  {
-    return false;
-  }
+  DWORD tv = timeout_ms;  // milliseconds
+  return ::setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char *>(&tv),
+                      sizeof(tv)) >= 0;
 #else  // Linux
 
   struct timeval tv;
-  timevalFromMs(tv, timeoutMs);
-  if (::setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)) < 0)
-  {
-    return false;
-  }
+  timevalFromMs(tv, timeout_ms);
+  return ::setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char *>(&tv), sizeof(tv)) >=
+         0;
 #endif
-
-  return true;
 }
 
 
@@ -198,22 +185,22 @@ unsigned getSendTimeout(int socket)
 #ifdef WIN32
   DWORD tv = 0;  // milliseconds
   socklen_t len;
-  if (::getsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, &len) < 0)
+  if (::getsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char *>(&tv), &len) < 0)
   {
     return false;
   }
 
-  return unsigned(tv);
+  return static_cast<unsigned>(tv);
 #else  // Linux
 
   struct timeval tv;
   socklen_t len;
-  if (::getsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, &len) < 0)
+  if (::getsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char *>(&tv), &len) < 0)
   {
     return false;
   }
 
-  return unsigned(1000 * tv.tv_sec + tv.tv_usec / 1000);
+  return static_cast<unsigned>(1000 * tv.tv_sec + tv.tv_usec / 1000);
 #endif
 }
 
@@ -242,125 +229,94 @@ void disableBlocking(int socket)
 void timevalFromMs(timeval &tv, unsigned milliseconds)
 {
   // Split into seconds an micro seconds.
-  tv.tv_sec = milliseconds * 1000;
-  tv.tv_usec = tv.tv_sec % 1000000;  // Convert to microseconds
-  tv.tv_sec /= 1000000;
+  tv.tv_sec = static_cast<decltype(tv.tv_sec)>(milliseconds) * 1000;
+  const auto to_microseconds = 1'000'000;
+  tv.tv_usec = tv.tv_sec % to_microseconds;  // Convert to microseconds
+  tv.tv_sec /= to_microseconds;
 }
 
 
 void dumpSocOpt(int socket, const char *name, int opt)
 {
-  int optVal = 0;
-  socklen_t len = sizeof(optVal);
+  int opt_val = 0;
+  socklen_t len = sizeof(opt_val);
 
-  ::getsockopt(socket, SOL_SOCKET, opt, (char *)&optVal, &len);
-  printf("%s %d\n", name, optVal);
+  ::getsockopt(socket, SOL_SOCKET, opt, reinterpret_cast<char *>(&opt_val), &len);
+  printf("%s %d\n", name, opt_val);
 }
 
 
 void dumpSocketOptions(int socket)
 {
-  int optVal = 0;
-  socklen_t len = sizeof(optVal);
-
-  static struct
+  struct DebugInfo
   {
     const char *name;
     int opt;
-  } dopt[] = {
-    { "SO_DEBUG", SO_DEBUG },
-    { "SO_ACCEPTCONN", SO_ACCEPTCONN },
-    { "SO_REUSEADDR", SO_REUSEADDR },
-    { "SO_KEEPALIVE", SO_KEEPALIVE },
-    { "SO_DONTROUTE", SO_DONTROUTE },
-    { "SO_BROADCAST", SO_BROADCAST },
-    { "SO_OOBINLINE", SO_OOBINLINE },
-#ifndef WIN32
-    { "SO_REUSEPORT", SO_REUSEPORT },
-    { "SO_TIMESTAMP", SO_TIMESTAMP },
-#endif  // WIN32
-    { "SO_SNDBUF", SO_SNDBUF },
-    { "SO_RCVBUF", SO_RCVBUF },
-    { "SO_SNDLOWAT", SO_SNDLOWAT },
-    { "SO_RCVLOWAT", SO_RCVLOWAT },
-    { "SO_SNDTIMEO", SO_SNDTIMEO },
-    { "SO_RCVTIMEO", SO_RCVTIMEO },
-    { "SO_ERROR", SO_ERROR },
-    { "SO_TYPE", SO_TYPE },
-#ifdef __APPLE__
-    { "SO_WANTOOBFLAG", SO_WANTOOBFLAG },
-    { "SO_WANTMORE", SO_WANTMORE },
-    { "SO_DONTTRUNC", SO_DONTTRUNC },
-    { "SO_USELOOPBACK", SO_USELOOPBACK },
-    { "SO_TIMESTAMP_MONOTONIC", SO_TIMESTAMP_MONOTONIC },
-    { "SO_LABEL", SO_LABEL },
-    { "SO_PEERLABEL", SO_PEERLABEL },
-    { "SO_NREAD", SO_NREAD },
-    { "SO_NKE", SO_NKE },
-    { "SO_NOSIGPIPE", SO_NOSIGPIPE },
-    { "SO_NOADDRERR", SO_NOADDRERR },
-    { "SO_NWRITE", SO_NWRITE },
-    { "SO_REUSESHAREUID", SO_REUSESHAREUID },
-    { "SO_NOTIFYCONFLICT", SO_NOTIFYCONFLICT },
-    { "SO_UPCALLCLOSEWAIT", SO_UPCALLCLOSEWAIT },
-    { "SO_LINGER_SEC", SO_LINGER_SEC },
-    { "SO_RANDOMPORT", SO_RANDOMPORT },
-    { "SO_NP_EXTENSIONS", SO_NP_EXTENSIONS },
-#endif  // __APPLE__
   };
+  // Array size varies from platform, so no std::array.
+  static const DebugInfo dopt[] =  // NOLINT(modernize-avoid-c-arrays)
+    {
+      { "SO_DEBUG", SO_DEBUG },
+      { "SO_ACCEPTCONN", SO_ACCEPTCONN },
+      { "SO_REUSEADDR", SO_REUSEADDR },
+      { "SO_KEEPALIVE", SO_KEEPALIVE },
+      { "SO_DONTROUTE", SO_DONTROUTE },
+      { "SO_BROADCAST", SO_BROADCAST },
+      { "SO_OOBINLINE", SO_OOBINLINE },
+#ifndef WIN32
+      { "SO_REUSEPORT", SO_REUSEPORT },
+      { "SO_TIMESTAMP", SO_TIMESTAMP },
+#endif  // WIN32
+      { "SO_SNDBUF", SO_SNDBUF },
+      { "SO_RCVBUF", SO_RCVBUF },
+      { "SO_SNDLOWAT", SO_SNDLOWAT },
+      { "SO_RCVLOWAT", SO_RCVLOWAT },
+      { "SO_SNDTIMEO", SO_SNDTIMEO },
+      { "SO_RCVTIMEO", SO_RCVTIMEO },
+      { "SO_ERROR", SO_ERROR },
+      { "SO_TYPE", SO_TYPE },
+#ifdef __APPLE__
+      { "SO_WANTOOBFLAG", SO_WANTOOBFLAG },
+      { "SO_WANTMORE", SO_WANTMORE },
+      { "SO_DONTTRUNC", SO_DONTTRUNC },
+      { "SO_USELOOPBACK", SO_USELOOPBACK },
+      { "SO_TIMESTAMP_MONOTONIC", SO_TIMESTAMP_MONOTONIC },
+      { "SO_LABEL", SO_LABEL },
+      { "SO_PEERLABEL", SO_PEERLABEL },
+      { "SO_NREAD", SO_NREAD },
+      { "SO_NKE", SO_NKE },
+      { "SO_NOSIGPIPE", SO_NOSIGPIPE },
+      { "SO_NOADDRERR", SO_NOADDRERR },
+      { "SO_NWRITE", SO_NWRITE },
+      { "SO_REUSESHAREUID", SO_REUSESHAREUID },
+      { "SO_NOTIFYCONFLICT", SO_NOTIFYCONFLICT },
+      { "SO_UPCALLCLOSEWAIT", SO_UPCALLCLOSEWAIT },
+      { "SO_LINGER_SEC", SO_LINGER_SEC },
+      { "SO_RANDOMPORT", SO_RANDOMPORT },
+      { "SO_NP_EXTENSIONS", SO_NP_EXTENSIONS },
+#endif  // __APPLE__
+    };
+  static const size_t dopt_size = sizeof(dopt) / sizeof(dopt[0]);
 
-  for (int i = 0; i < int(sizeof(dopt) / sizeof(dopt[0])); ++i)
+  for (const auto &dopt_item : dopt)
   {
-    dumpSocOpt(socket, dopt[i].name, dopt[i].opt);
+    dumpSocOpt(socket, dopt_item.name, dopt_item.opt);
   }
-
-  //    getsockopt(socket, SOL_SOCKET, SO_DEBUG, (char *)&optVal, &len);
-  //    printf("SO_DEBUG %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&optVal, &len);
-  //    printf("SO_REUSEADDR %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_REUSEPORT, (char *)&optVal, &len);
-  //    printf("SO_REUSEPORT %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_KEEPALIVE, (char *)&optVal, &len);
-  //    printf("SO_KEEPALIVE %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_DONTROUTE, (char *)&optVal, &len);
-  //    printf("SO_DONTROUTE %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_BROADCAST, (char *)&optVal, &len);
-  //    printf("SO_BROADCAST %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_OOBINLINE, (char *)&optVal, &len);
-  //    printf("SO_OOBINLINE %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char *)&optVal, &len);
-  //    printf("SO_SNDBUF %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char *)&optVal, &len);
-  //    printf("SO_RCVBUF %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_SNDLOWAT, (char *)&optVal, &len);
-  //    printf("SO_SNDLOWAT %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_RCVLOWAT, (char *)&optVal, &len);
-  //    printf("SO_RCVLOWAT %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&optVal, &len);
-  //    printf("SO_SNDTIMEO %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&optVal, &len);
-  //    printf("SO_RCVTIMEO %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_TYPE, (char *)&optVal, &len);
-  //    printf("SO_TYPE %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_ERROR, (char *)&optVal, &len);
-  //    printf("SO_ERROR %d\n", optVal);
-  //    getsockopt(socket, SOL_SOCKET, SO_NOSIGPIPE, (char *)&optVal, &len);
-  //    printf("SO_NOSIGPIPE %d\n", optVal);
 
   struct linger ling;
   ling.l_onoff = 0;
   ling.l_linger = 0;
-  len = sizeof(ling);
-  getsockopt(socket, SOL_SOCKET, SO_LINGER, (char *)&ling, &len);
+  socklen_t len = sizeof(ling);
+  getsockopt(socket, SOL_SOCKET, SO_LINGER, reinterpret_cast<char *>(&ling), &len);
   printf("SO_LINGER %d:%d\n", ling.l_onoff, ling.l_linger);
 }
 
 
-unsigned short getSocketPort(int socket)
+uint16_t getSocketPort(int socket)
 {
   struct sockaddr_in sin;
   socklen_t len = sizeof(sin);
-  if (getsockname(socket, (struct sockaddr *)&sin, &len) == -1)
+  if (getsockname(socket, reinterpret_cast<struct sockaddr *>(&sin), &len) == -1)
   {
     return 0;
   }
@@ -474,21 +430,22 @@ bool isConnected(int socket)
   }
 
   char ch = 0;
-  int flags = MSG_PEEK;
+  int flags = MSG_PEEK;  // NOLINT(misc-const-correctness)
 #ifndef WIN32
   flags |= MSG_DONTWAIT;
 #endif  // WIN32
-  int read = int(::recv(socket, &ch, 1, flags));
+  const int read = ::recv(socket, &ch, 1, flags);
 
   if (read == 0)
   {
     // Socket has been closed.
     return false;
   }
-  else if (read < 0)
+
+  if (read < 0)
   {
 #ifdef WIN32
-    int err = WSAGetLastError();
+    const int err = WSAGetLastError();
     switch (err)
     {
     case WSANOTINITIALISED:
@@ -505,7 +462,7 @@ bool isConnected(int socket)
       break;
     }
 #else   // WIN32
-    int err = errno;
+    const int err = errno;
     switch (err)
     {
       // Disconnection states.
@@ -523,18 +480,19 @@ bool isConnected(int socket)
 }
 
 
-void setNoDelay(int socket, bool noDelay)
+void setNoDelay(int socket, bool no_delay)
 {
-  intVal_t optVal = (noDelay) ? 1 : 0;
-  ::setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char *)&optVal, sizeof(optVal));
+  IntVal opt_val = (no_delay) ? 1 : 0;
+  ::setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&opt_val),
+               sizeof(opt_val));
 }
 
 bool noDelay(int socket)
 {
-  intVal_t optVal = 0;
-  socklen_t len = sizeof(optVal);
-  ::getsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char *)&optVal, &len);
-  return optVal != 0;
+  IntVal opt_val = 0;
+  socklen_t len = sizeof(opt_val);
+  ::getsockopt(socket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&opt_val), &len);
+  return opt_val != 0;
 }
 
 
@@ -544,7 +502,7 @@ bool checkSend(int socket, int ret)
   if (ret < 0)
   {
 #ifdef WIN32
-    int err = WSAGetLastError();
+    const int err = WSAGetLastError();
     // WSAECONNABORTED
     if (err != WSAEWOULDBLOCK && err != WSAECONNRESET)
     {
@@ -555,7 +513,7 @@ bool checkSend(int socket, int ret)
       return false;
     }
 #else   // WIN32
-    int err = errno;
+    const int err = errno;
     // EPIPE trips on disconnect.
     if (err != EAGAIN && err != EWOULDBLOCK && err != ECONNRESET && err != EPIPE)
     {
@@ -575,14 +533,14 @@ bool checkRecv(int socket, int ret)
   if (ret < 0)
   {
 #ifdef WIN32
-    int err = WSAGetLastError();
+    const int err = WSAGetLastError();
     if (err != WSAEWOULDBLOCK && err != WSAECONNRESET)
     {
       fprintf(stderr, "recv error: %s\n", sockErrStr(err));
       return false;
     }
 #else   // WIN32
-    int err = errno;
+    const int err = errno;
     if (err != EAGAIN && err != EWOULDBLOCK && err != ECONNRESET)
     {
       fprintf(stderr, "recv error: %s\n", sockErrStr(err));
@@ -596,45 +554,38 @@ bool checkRecv(int socket, int ret)
 
 int getSendBufferSize(int socket)
 {
-  intVal_t bufferSize = 0;
-  socklen_t len = sizeof(bufferSize);
-  if (::getsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char *)&bufferSize, &len) < 0)
+  IntVal buffer_size = 0;
+  socklen_t len = sizeof(buffer_size);
+  if (::getsockopt(socket, SOL_SOCKET, SO_SNDBUF, reinterpret_cast<char *>(&buffer_size), &len) < 0)
   {
     return -1;
   }
-  return bufferSize;
+  return static_cast<int>(buffer_size);
 }
 
-bool setSendBufferSize(int socket, int bufferSize)
+bool setSendBufferSize(int socket, int buffer_size)
 {
-  socklen_t len = sizeof(bufferSize);
-  if (::setsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char *)&bufferSize, len) < 0)
-  {
-    return false;
-  }
-  return true;
+  const socklen_t len = sizeof(buffer_size);
+  return ::setsockopt(socket, SOL_SOCKET, SO_SNDBUF, reinterpret_cast<char *>(&buffer_size), len) >=
+         0;
 }
 
 
 int getReceiveBufferSize(int socket)
 {
-  intVal_t bufferSize = 0;
-  socklen_t len = sizeof(bufferSize);
-  if (::getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char *)&bufferSize, &len) < 0)
+  IntVal buffer_size = 0;
+  socklen_t len = sizeof(buffer_size);
+  if (::getsockopt(socket, SOL_SOCKET, SO_RCVBUF, reinterpret_cast<char *>(&buffer_size), &len) < 0)
   {
     return -1;
   }
-  return bufferSize;
+  return static_cast<int>(buffer_size);
 }
 
-bool setReceiveBufferSize(int socket, int bufferSize)
+bool setReceiveBufferSize(int socket, int buffer_size)
 {
-  socklen_t len = sizeof(bufferSize);
-  if (::setsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char *)&bufferSize, len) < 0)
-  {
-    return false;
-  }
-  return true;
+  const socklen_t len = sizeof(buffer_size);
+  return ::setsockopt(socket, SOL_SOCKET, SO_RCVBUF, reinterpret_cast<char *>(&buffer_size), len) >=
+         0;
 }
-}  // namespace tcpbase
-}  // namespace tes
+}  // namespace tes::tcpbase

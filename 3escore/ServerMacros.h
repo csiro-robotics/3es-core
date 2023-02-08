@@ -121,7 +121,7 @@
 /// A helper macro used to declare a @p Server pointer and compile out when TES is not enabled.
 /// Initialises @p server as a @p Server variable with a null value.
 /// @param server The variable name for the @c Server object.
-#define TES_SERVER_DECL(server) tes::Server *server = nullptr
+#define TES_SERVER_DECL(server) std::shared_ptr<tes::Server> server
 
 /// @ingroup tesmacros
 /// A helper macro used to declare and initialise @p ServerSettings and compile out when TES is
@@ -185,17 +185,17 @@
 ///
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ... Arguments for @c Server::updateFrame()
-#define TES_SERVER_UPDATE(server, ...)                               \
-  if (server)                                                        \
-  {                                                                  \
-    (server)->updateTransfers(0);                                    \
-    (server)->updateFrame(__VA_ARGS__);                              \
-    tes::ConnectionMonitor *_conMon = (server)->connectionMonitor(); \
-    if (_conMon->mode() == tes::ConnectionMonitor::Synchronous)      \
-    {                                                                \
-      _conMon->monitorConnections();                                 \
-    }                                                                \
-    _conMon->commitConnections();                                    \
+#define TES_SERVER_UPDATE(server, ...)                              \
+  if (server)                                                       \
+  {                                                                 \
+    (server)->updateTransfers(0);                                   \
+    (server)->updateFrame(__VA_ARGS__);                             \
+    auto tes_con_mon = (server)->connectionMonitor();               \
+    if (tes_con_mon->mode() == tes::ConnectionMonitor::Synchronous) \
+    {                                                               \
+      tes_con_mon->monitorConnections();                            \
+    }                                                               \
+    tes_con_mon->commitConnections();                               \
   }
 
 /// @ingroup tesmacros
@@ -227,7 +227,6 @@
   if (server)                   \
   {                             \
     (server)->close();          \
-    (server)->dispose();        \
     (server) = nullptr;         \
   }
 

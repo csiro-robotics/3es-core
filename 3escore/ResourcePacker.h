@@ -45,7 +45,7 @@ public:
   [[nodiscard]] const Resource *resource() const { return _resource; }
   /// Is there a current @c Resource being packed?
   /// @return True if @c resource() is null.
-  [[nodiscard]] bool isNull() const { return _resource == nullptr; }
+  [[nodiscard]] bool isValid() const { return _resource != nullptr; }
 
   /// Initiate transfer/packing of @p resource.
   /// @param resource The resource to start packing.
@@ -64,9 +64,9 @@ public:
   ///
   /// The first call to this function invokes @c Resource::create() on the current @c Resource.
   /// Subsequent calls invoke @c Resource::transfer() until the final packet is generated. Once
-  /// there are no more packets to generate, the @c lastCompletedId() is set to the @c
-  /// Resource::uniqueKey() and the @c Resource pointer is cleared
-  /// (@c isNull() becomes true. The @c Resource pointer is also cleared on failure.
+  /// there are no more packets to generate, the @c lastCompletedId() is set to the
+  /// @c Resource::uniqueKey() and the @c Resource pointer is cleared
+  /// (@c isValid() becomes false). The @c Resource pointer is also cleared on failure.
   ///
   /// @param packet The packet to write to.
   /// @param byte_limit The maximum number of bytes to write in a single @p packet.

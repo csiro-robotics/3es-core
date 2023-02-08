@@ -454,20 +454,20 @@ void PointCloud::copyOnWrite()
 bool PointCloud::processCreate(const MeshCreateMessage &msg,
                                const ObjectAttributes<double> &attributes)
 {
-  if (msg.drawType != DtPoints)
+  if (msg.draw_type != DtPoints)
   {
     return false;
   }
 
   copyOnWrite();
-  _imp->id = msg.meshId;
+  _imp->id = msg.mesh_id;
 
-  _imp->vertexCount = msg.vertexCount;
+  _imp->vertexCount = msg.vertex_count;
   delete _imp->vertices;
   delete _imp->normals;
   delete _imp->colours;
-  _imp->capacity = msg.vertexCount;
-  _imp->vertices = new Vector3f[msg.vertexCount];
+  _imp->capacity = msg.vertex_count;
+  _imp->vertices = new Vector3f[msg.vertex_count];
   _imp->normals = nullptr;  // Pending.
   _imp->colours = nullptr;  // Pending
 

@@ -553,10 +553,10 @@ void SimpleMesh::copyOnWrite()
 bool SimpleMesh::processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes)
 {
   copyOnWrite();
-  _imp->id = msg.meshId;
-  setVertexCount(msg.vertexCount);
-  setIndexCount(msg.indexCount);
-  setDrawType((DrawType)msg.drawType);
+  _imp->id = msg.mesh_id;
+  setVertexCount(msg.vertex_count);
+  setIndexCount(msg.index_count);
+  setDrawType((DrawType)msg.draw_type);
 
   Transform transform = Transform(Vector3d(attributes.position), Quaterniond(attributes.rotation),
                                   Vector3d(attributes.scale), msg.flags & McfDoublePrecision);

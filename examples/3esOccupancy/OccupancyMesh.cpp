@@ -49,9 +49,9 @@ uint32_t nodeColour(const octomap::OcTree::NodeType *node, const octomap::OcTree
 }
 }  // namespace
 
-OccupancyMesh::OccupancyMesh(unsigned meshId, octomap::OcTree &map)
+OccupancyMesh::OccupancyMesh(unsigned mesh_id, octomap::OcTree &map)
   : _map(map)
-  , _id(meshId)
+  , _id(mesh_id)
   , _detail(new OccupancyMeshDetail)
 {
   // Expose the mesh resource.
@@ -252,7 +252,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
     newVertexCount += newlyOccupied.size() - processedOccupiedCount - _detail->unusedVertexList.size();
   }
 
-  msg.meshId = _id;
+  msg.mesh_id = _id;
   msg.vertexCount = (uint32_t)newVertexCount;
   msg.indexCount = 0;
   msg.drawType = drawType(0);
@@ -265,7 +265,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
   g_tesServer->send(packet);
 
   // Next update changed triangles.
-  cmpmsg.meshId = id();
+  cmpmsg.mesh_id = id();
   cmpmsg.reserved = 0;
   cmpmsg.count = 1;
 
@@ -367,7 +367,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
   }
 
   // Finalise the modifications.
-  finalmsg.meshId = _id;
+  finalmsg.mesh_id = _id;
   // Rely on EDL shader.
   finalmsg.flags = 0;  // tes::MffCalculateNormals;
   packet.reset(tes::MtMesh, finalmsg.MessageId);

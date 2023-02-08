@@ -27,18 +27,18 @@ TcpListenSocket::~TcpListenSocket()
 
 uint16_t TcpListenSocket::port() const
 {
-  return _detail->listenSocket.serverPort();
+  return _detail->listen_socket.serverPort();
 }
 
 
-bool TcpListenSocket::listen(unsigned short port)
+bool TcpListenSocket::listen(uint16_t port)
 {
   if (isListening())
   {
     return false;
   }
 
-  return _detail->listenSocket.listen(QHostAddress::Any, port);
+  return _detail->listen_socket.listen(QHostAddress::Any, port);
 }
 
 
@@ -46,45 +46,35 @@ void TcpListenSocket::close()
 {
   if (isListening())
   {
-    _detail->listenSocket.close();
+    _detail->listen_socket.close();
   }
 }
 
 
 bool TcpListenSocket::isListening() const
 {
-  return _detail->listenSocket.isListening();
+  return _detail->listen_socket.isListening();
 }
 
 
-TcpSocket *TcpListenSocket::accept(unsigned timeoutMs)
+TcpSocket::Ptr tcpListenSocket::accept(unsigned timeout_ms)
 {
-  if (!_detail->listenSocket.waitForNewConnection(timeoutMs))
+  if (!_detail->listen_socket.waitForNewConnection(timeout_ms))
   {
-    return nullptr;
+    return {};
   }
 
-  if (!_detail->listenSocket.hasPendingConnections())
+  if (!_detail->listen_socket.hasPendingConnections())
   {
-    return nullptr;
+    return {};
   }
 
-  QTcpSocket *newSocket = _detail->listenSocket.nextPendingConnection();
-  if (!newSocket)
+  QTcpSocket *new_socket = _detail->listen_socket.nextPendingConnection();
+  if (!new_socket)
   {
-    return nullptr;
+    return {};
   }
   TcpSocketDetail *clientDetail = new TcpSocketDetail;
-  clientDetail->socket = newSocket;
-  return new TcpSocket(clientDetail);
-}
-
-
-void TcpListenSocket::releaseClient(TcpSocket *client)
-{
-  if (client)
-  {
-    client->close();
-    delete client;
-  }
+  clientDetail->socket = new_socket;
+  return std::make_shared<TcpSocket>(clientDetail);
 }

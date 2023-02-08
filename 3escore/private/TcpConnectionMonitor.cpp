@@ -7,6 +7,7 @@
 #include "TcpConnection.h"
 #include "TcpServer.h"
 
+#include <3escore/CoreUtil.h>
 #include <3escore/TcpListenSocket.h>
 #include <3escore/TcpSocket.h>
 
@@ -14,17 +15,10 @@
 #include <cstdio>
 #include <mutex>
 
-using namespace tes;
-
+namespace tes
+{
 TcpConnectionMonitor::TcpConnectionMonitor(TcpServer &server)
   : _server(server)
-  , _listen(nullptr)
-  , _mode(None)
-  , _errorCode(0)
-  , _listenPort(0)
-  , _running(false)
-  , _quitFlag(false)
-  , _thread(nullptr)
 {}
 
 
@@ -32,39 +26,28 @@ TcpConnectionMonitor::~TcpConnectionMonitor()
 {
   stop();
   join();
-
-  for (BaseConnection *con : _expired)
-  {
-    delete con;
-  }
-
-  for (BaseConnection *con : _connections)
-  {
-    delete con;
-  }
-
-  delete _listen;
-  delete _thread;
+  _listen.reset();
+  _thread.reset();
 }
 
 
 int TcpConnectionMonitor::lastErrorCode() const
 {
-  return _errorCode;
+  return _error_code;
 }
 
 
 int TcpConnectionMonitor::clearErrorCode()
 {
-  int lastError = _errorCode;
-  _errorCode = 0;
-  return lastError;
+  const int last_error = _error_code;
+  _error_code = 0;
+  return last_error;
 }
 
 
-unsigned short TcpConnectionMonitor::port() const
+uint16_t TcpConnectionMonitor::port() const
 {
-  return _listenPort;
+  return _listen_port;
 }
 
 
@@ -90,23 +73,23 @@ bool TcpConnectionMonitor::start(Mode mode)
     }
     else
     {
-      _errorCode = CE_ListenFailure;
+      _error_code = CEListenFailure;
       stopListening();
     }
     break;
 
   case Asynchronous: {
-    delete _thread;  // Pointer may linger after quit.
-    _thread = new std::thread(std::bind(&TcpConnectionMonitor::monitorThread, this));
-    // Wait for the thread to start. We look for _running or an _errorCode.
-    auto waitStart = std::chrono::steady_clock::now();
-    unsigned elapsedMs = 0;
-    while (!_running && !_errorCode && elapsedMs <= _server.settings().asyncTimeoutMs)
+    join();  // Pointer may linger after quit.
+    _thread = std::make_unique<std::thread>([this]() { monitorThread(); });
+    // Wait for the thread to start. We look for _running or an _error_code.
+    auto wait_start = std::chrono::steady_clock::now();
+    unsigned elapsed_ms = 0;
+    while (!_running && !_error_code && elapsed_ms <= _server.settings().async_timeout_ms)
     {
       std::this_thread::yield();
-      elapsedMs =
-        (unsigned)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - waitStart)
-          .count();
+      elapsed_ms = int_cast<unsigned>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                        std::chrono::steady_clock::now() - wait_start)
+                                        .count());
     }
 
     // Running will be true if the thread started ok.
@@ -115,9 +98,9 @@ bool TcpConnectionMonitor::start(Mode mode)
       _mode = Asynchronous;
     }
 
-    if (!_running && !_errorCode && elapsedMs >= _server.settings().asyncTimeoutMs)
+    if (!_running && !_error_code && elapsed_ms >= _server.settings().async_timeout_ms)
     {
-      _errorCode = CE_Timeout;
+      _error_code = CETimeout;
     }
     break;
   }
@@ -141,7 +124,7 @@ void TcpConnectionMonitor::stop()
     break;
 
   case Asynchronous:
-    _quitFlag = true;
+    _quit_flag = true;
     break;
 
   default:
@@ -154,13 +137,13 @@ void TcpConnectionMonitor::join()
 {
   if (_thread)
   {
-    if (!_quitFlag && (_mode == Asynchronous || _mode == None))
+    if (!_quit_flag && (_mode == Asynchronous || _mode == None))
     {
-      fprintf(stderr, "ConnectionMonitor::join() called on asynchronous connection monitor without calling stop()\n");
+      fprintf(stderr, "ConnectionMonitor::join() called on asynchronous connection monitor without "
+                      "calling stop()\n");
     }
     _thread->join();
-    delete _thread;
-    _thread = nullptr;
+    _thread.reset();
   }
 }
 
@@ -177,12 +160,12 @@ ConnectionMonitor::Mode TcpConnectionMonitor::mode() const
 }
 
 
-int TcpConnectionMonitor::waitForConnection(unsigned timeoutMs)
+int TcpConnectionMonitor::waitForConnection(unsigned timeout_ms)
 {
-  std::unique_lock<Lock> lock(_connectionLock);
+  std::unique_lock<Lock> lock(_connection_lock);
   if (!_connections.empty())
   {
-    return int(_connections.size());
+    return int_cast<int>(_connections.size());
   }
   lock.unlock();
 
@@ -190,14 +173,14 @@ int TcpConnectionMonitor::waitForConnection(unsigned timeoutMs)
   if (mode() == tes::ConnectionMonitor::Asynchronous)
   {
     while (!isRunning() && mode() != tes::ConnectionMonitor::None)
-      ;
+    {}
   }
 
   // Update connections if required.
-  auto startTime = std::chrono::steady_clock::now();
+  auto start_time = std::chrono::steady_clock::now();
   bool timedout = false;
-  int connectionCount = 0;
-  while (isRunning() && !timedout && connectionCount == 0)
+  int connection_count = 0;
+  while (isRunning() && !timedout && connection_count == 0)
   {
     if (mode() == tes::ConnectionMonitor::Synchronous)
     {
@@ -207,27 +190,27 @@ int TcpConnectionMonitor::waitForConnection(unsigned timeoutMs)
     {
       std::this_thread::yield();
     }
-    timedout =
-      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count() >=
-      timeoutMs;
+    timedout = std::chrono::duration_cast<std::chrono::milliseconds>(
+                 std::chrono::steady_clock::now() - start_time)
+                 .count() >= timeout_ms;
     lock.lock();
-    connectionCount = int(_connections.size());
+    connection_count = int_cast<int>(_connections.size());
     lock.unlock();
   }
 
-  return connectionCount;
+  return connection_count;
 }
 
 
 void TcpConnectionMonitor::monitorConnections()
 {
   // Lock for connection expiry.
-  std::unique_lock<Lock> lock(_connectionLock);
+  std::unique_lock<Lock> lock(_connection_lock);
 
   // Expire lost connections.
   for (auto iter = _connections.begin(); iter != _connections.end();)
   {
-    BaseConnection *connection = *iter;
+    auto connection = *iter;
     if (connection->isConnected())
     {
       ++iter;
@@ -245,74 +228,73 @@ void TcpConnectionMonitor::monitorConnections()
   // Look for new connections.
   if (_listen)
   {
-    if (TcpSocket *newSocket = _listen->accept(0))
+    if (auto new_socket = _listen->accept(0))
     {
       // Options to try and reduce socket latency.
       // Attempt to prevent periodic latency on osx.
-      newSocket->setNoDelay(true);
-      newSocket->setWriteTimeout(0);
-      newSocket->setReadTimeout(0);
+      new_socket->setNoDelay(true);
+      new_socket->setWriteTimeout(0);
+      new_socket->setReadTimeout(0);
 #ifdef __apple__
       // On OSX, set send buffer size. Not sure automatic sizing is working.
       // Remove this code if it is.
-      newSocket->setSendBufferSize(0xffff);
+      new_socket->setSendBufferSize(0xffff);
 #endif  // __apple__
 
-      TcpConnection *newConnection = new TcpConnection(newSocket, _server.settings());
+      auto new_connection = std::make_shared<TcpConnection>(new_socket, _server.settings());
       // Lock for new connection.
       lock.lock();
-      _connections.push_back(newConnection);
+      _connections.push_back(new_connection);
       lock.unlock();
     }
   }
 }
 
 
-Connection *TcpConnectionMonitor::openFileStream(const char *filePath)
+std::shared_ptr<Connection> TcpConnectionMonitor::openFileStream(const char *file_path)
 {
-  FileConnection *newConnection = new FileConnection(filePath, _server.settings());
-  if (!newConnection->isConnected())
+  auto new_connection = std::make_shared<FileConnection>(file_path, _server.settings());
+  if (!new_connection->isConnected())
   {
-    delete newConnection;
     return nullptr;
   }
 
-  std::unique_lock<Lock> lock(_connectionLock);
-  _connections.push_back(newConnection);
-  return newConnection;
+  const std::unique_lock<Lock> lock(_connection_lock);
+  _connections.push_back(new_connection);
+  return new_connection;
 }
 
 
-void TcpConnectionMonitor::setConnectionCallback(void (*callback)(Server &, Connection &, void *), void *user)
+void TcpConnectionMonitor::setConnectionCallback(void (*callback)(Server &, Connection &, void *),
+                                                 void *user)
 {
-  _onNewConnection = std::bind(callback, std::placeholders::_1, std::placeholders::_2, user);
+  _on_new_connection = [callback, user](Server &server, Connection &connection) {
+    (*callback)(server, connection, user);
+  };
 }
 
 
-void TcpConnectionMonitor::setConnectionCallback(const std::function<void(Server &, Connection &)> &callback)
+void TcpConnectionMonitor::setConnectionCallback(
+  const std::function<void(Server &, Connection &)> &callback)
 {
-  _onNewConnection = callback;
+  _on_new_connection = callback;
 }
 
 
 const std::function<void(Server &, Connection &)> &TcpConnectionMonitor::connectionCallback() const
 {
-  return _onNewConnection;
+  return _on_new_connection;
 }
 
 
 void TcpConnectionMonitor::commitConnections()
 {
-  std::unique_lock<Lock> lock(_connectionLock);
-  _server.updateConnections(_connections, _onNewConnection);
+  std::unique_lock<Lock> lock(_connection_lock);
+  _server.updateConnections(_connections, _on_new_connection);
 
   lock.unlock();
 
   // Delete expired connections.
-  for (BaseConnection *con : _expired)
-  {
-    delete con;
-  }
   _expired.clear();
 }
 
@@ -324,17 +306,17 @@ bool TcpConnectionMonitor::listen()
     return true;
   }
 
-  _listen = new TcpListenSocket;
+  _listen = std::make_unique<TcpListenSocket>();
 
   bool listening = false;
 
-  uint16_t port = _server.settings().listenPort;
-  while (!listening && port <= _server.settings().listenPort + _server.settings().portRange)
+  uint16_t port = _server.settings().listen_port;
+  while (!listening && port <= _server.settings().listen_port + _server.settings().port_range)
   {
     listening = _listen->listen(port++);
   }
 
-  _listenPort = (listening) ? _listen->port() : 0;
+  _listen_port = (listening) ? _listen->port() : 0;
 
   return listening;
 }
@@ -342,16 +324,15 @@ bool TcpConnectionMonitor::listen()
 
 void TcpConnectionMonitor::stopListening()
 {
-  _listenPort = 0;
+  _listen_port = 0;
 
   // Close all connections.
-  for (BaseConnection *con : _connections)
+  for (const auto &con : _connections)
   {
     con->close();
   }
 
-  delete _listen;
-  _listen = nullptr;
+  _listen.reset();
 }
 
 
@@ -359,19 +340,21 @@ void TcpConnectionMonitor::monitorThread()
 {
   if (!listen())
   {
-    _errorCode = CE_ListenFailure;
+    _error_code = CEListenFailure;
     stopListening();
     return;
   }
   _running = true;
 
-  while (!_quitFlag)
+  const unsigned sleep_ms = 50;
+  while (!_quit_flag)
   {
     monitorConnections();
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
   }
 
   _running = false;
   stopListening();
   _mode = None;
 }
+}  // namespace tes

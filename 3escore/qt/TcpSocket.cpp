@@ -10,32 +10,30 @@ using namespace tes;
 const unsigned TcpSocket::IndefiniteTimeout = ~unsigned(0u);
 
 TcpSocket::TcpSocket()
-  : _detail(new TcpSocketDetail)
+  : _detail(std::make_unique<TcpSocketDetail>)
 {}
 
 
-TcpSocket::TcpSocket(TcpSocketDetail *detail)
-  : _detail(detail)
+TcpSocket::TcpSocket(std::unique_ptr<TcpSocketDetail> &&detail)
+  : _detail(std::move(detail))
 {}
 
 
 TcpSocket::~TcpSocket()
 {
   close();
-  delete _detail;
 }
 
 
-bool TcpSocket::open(const char *host, unsigned short port)
+bool TcpSocket::open(const char *host, uint16_t port)
 {
   if (_detail->socket)
   {
     return false;
   }
 
-  QTcpSocket *socket;
-  socket = _detail->socket = new QTcpSocket;
-  socket->connectToHost(host, port);
+  _detail->socket = std::make_unique<QTcpSocket>();
+  _detail->socket->connectToHost(host, port);
   return true;
 }
 
@@ -45,8 +43,7 @@ void TcpSocket::close()
   if (_detail->socket)
   {
     _detail->socket->close();
-    delete _detail->socket;
-    _detail->socket = nullptr;
+    _detail->socket.release();
   }
 }
 
@@ -69,11 +66,11 @@ bool TcpSocket::isConnected() const
 }
 
 
-void TcpSocket::setNoDelay(bool noDelay)
+void TcpSocket::setNoDelay(bool no_delay)
 {
   if (_detail->socket)
   {
-    _detail->socket->setSocketOption(QTcpSocket::LowDelayOption, noDelay ? 1 : 0);
+    _detail->socket->setSocketOption(QTcpSocket::LowDelayOption, no_delay ? 1 : 0);
   }
 }
 
@@ -88,39 +85,39 @@ bool TcpSocket::noDelay() const
 }
 
 
-void TcpSocket::setReadTimeout(unsigned timeoutMs)
+void TcpSocket::setReadTimeout(unsigned timeout_ms)
 {
-  _detail->readTimeout = timeoutMs;
+  _detail->read_timeout = timeout_ms;
 }
 
 
 unsigned TcpSocket::readTimeout() const
 {
-  return _detail->readTimeout;
+  return _detail->read_timeout;
 }
 
 
 void TcpSocket::setIndefiniteReadTimeout()
 {
-  _detail->readTimeout = IndefiniteTimeout;
+  _detail->read_timeout = IndefiniteTimeout;
 }
 
 
-void TcpSocket::setWriteTimeout(unsigned timeoutMs)
+void TcpSocket::setWriteTimeout(unsigned timeout_ms)
 {
-  _detail->writeTimeout = timeoutMs;
+  _detail->write_timeout = timeout_ms;
 }
 
 
 unsigned TcpSocket::writeTimeout() const
 {
-  return _detail->writeTimeout;
+  return _detail->write_timeout;
 }
 
 
 void TcpSocket::setIndefiniteWriteTimeout()
 {
-  _detail->writeTimeout = IndefiniteTimeout;
+  _detail->write_timeout = IndefiniteTimeout;
 }
 
 
@@ -164,7 +161,7 @@ int TcpSocket::sendBufferSize() const
 
 int TcpSocket::read(char *buffer, int bufferLength) const
 {
-  if (isConnected() && _detail->socket->waitForReadyRead(_detail->readTimeout))
+  if (isConnected() && _detail->socket->waitForReadyRead(_detail->read_timeout))
   {
     return _detail->socket->read(buffer, bufferLength);
   }
@@ -218,7 +215,7 @@ int TcpSocket::write(const char *buffer, int bufferLength) const
 }
 
 
-unsigned short TcpSocket::port() const
+uint16_t TcpSocket::port() const
 {
   return _detail->socket ? _detail->socket->localPort() : 0;
 }

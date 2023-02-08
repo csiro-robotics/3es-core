@@ -10,6 +10,7 @@
 #include <3escore/SpinLock.h>
 
 #include <atomic>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -19,20 +20,21 @@ class BaseConnection;
 class TcpServer;
 class TcpListenSocket;
 
-/// Implements a @c ConnectionMonitor using the TCP protocol. Intended only for use with a @c TcpServer.
-class TcpConnectionMonitor : public ConnectionMonitor
+/// Implements a @c ConnectionMonitor using the TCP protocol. Intended only for use with a @c
+/// TcpServer.
+class TcpConnectionMonitor final : public ConnectionMonitor
 {
 public:
-  typedef SpinLock Lock;
+  using Lock = std::mutex;
 
   /// Error codes.
   enum ConnectionError
   {
-    CE_None,
+    CENone,
     /// Failed to listen on the requested port.
-    CE_ListenFailure,
+    CEListenFailure,
     /// Timeout has expired.
-    CE_Timeout
+    CETimeout
   };
 
   /// Construct a TCP based connection monitor for @p server.
@@ -40,44 +42,44 @@ public:
   TcpConnectionMonitor(TcpServer &server);
 
   /// Destructor.
-  ~TcpConnectionMonitor();
+  ~TcpConnectionMonitor() final;
 
   /// Get the @c TcpServer which owns this @c ConnectionMonitor.
   /// @return The owning server.
-  inline TcpServer &server() { return _server; }
+  TcpServer &server() { return _server; }
 
   /// @overload
-  inline const TcpServer &server() const { return _server; }
+  [[nodiscard]] const TcpServer &server() const { return _server; }
 
   /// Get the TCP socket used to manage connections.
   /// @return The @c TcpListenSocket the connection monitor listens on.
   ///    May be null when not currently listening (before @c start()).
-  inline const TcpListenSocket *socket() const { return _listen; }
+  [[nodiscard]] const TcpListenSocket *socket() const { return _listen.get(); }
 
   /// Get the last error code.
   /// @return The @c ConnectionError for the last error.
-  int lastErrorCode() const;
+  [[nodiscard]] int lastErrorCode() const;
 
   /// Clear the last error code.
   /// @return The @c ConnectionError for the last error.
-  int clearErrorCode();
+  [[nodiscard]] int clearErrorCode();
 
   /// Report the port on which the connection monitor is listening.
   /// @return The listen port or zero if not listening.
-  unsigned short port() const override;
+  uint16_t port() const final;
 
   /// Starts the monitor thread (asynchronous mode).
-  bool start(Mode mode) override;
+  bool start(Mode mode) final;
   /// Requests termination of the monitor thread.
   /// Safe to call if not running.
-  void stop() override;
+  void stop() final;
   /// Called to join the monitor thread. Returns immediately
   /// if not running.
-  void join() override;
+  void join() final;
 
   /// Returns true if the connection monitor has start.
   /// @return True if running.
-  bool isRunning() const override;
+  bool isRunning() const final;
 
   /// Returns the current running mode.
   ///
@@ -88,29 +90,29 @@ public:
   /// drops to @c None on calling @c stop().
   ///
   /// The mode is @c None if not running in either mode.
-  Mode mode() const override;
+  Mode mode() const final;
 
-  /// Wait up to @p timeoutMs milliseconds for a connection.
+  /// Wait up to @p timeout_ms milliseconds for a connection.
   /// Returns immediately if we already have a connection.
-  /// @param timeoutMs The time out to wait in milliseconds.
+  /// @param timeout_ms The time out to wait in milliseconds.
   /// @return The number of connections on returning. These may need to be committed.
-  int waitForConnection(unsigned timeoutMs) override;
+  [[nodiscard]] int waitForConnection(unsigned timeout_ms) final;
 
   /// Accepts new connections and checks for expired connections, but
   /// effects neither in the @c Server.
   ///
   /// This is either called on the main thread for synchronous operation,
   /// or internally in asynchronous mode.
-  void monitorConnections() override;
+  void monitorConnections() final;
 
   /// Opens a @c Connection object which serialises directly to the local file system.
   ///
-  /// The connection persisits until either the monitor is stopped, or until @p Connection::close() is called.
-  /// In asynchronous mode, the pointer cannot be used after @c close() is called.
+  /// The connection persisits until either the monitor is stopped, or until @p Connection::close()
+  /// is called. In asynchronous mode, the pointer cannot be used after @c close() is called.
   ///
-  /// @param filePath The path to the file to open/write to.
+  /// @param file_path The path to the file to open/write to.
   /// @return A pointer to a @c Connection object which represents the file stream.
-  virtual Connection *openFileStream(const char *filePath) override;
+  std::shared_ptr<Connection> openFileStream(const char *file_path) final;
 
   /// Sets the callback invoked for each new connection.
   ///
@@ -124,7 +126,7 @@ public:
   ///
   /// @param callback The callback function pointer.
   /// @param user A user pointer passed to the @c callback whenever it is invoked.
-  void setConnectionCallback(void (*callback)(Server &, Connection &, void *), void *user) override;
+  void setConnectionCallback(void (*callback)(Server &, Connection &, void *), void *user) final;
 
   /// An overload of @p setConnectionCallback() using the C++11 @c funtion object.
   /// Both methods are provided to cater for potential ABI issues.
@@ -133,11 +135,11 @@ public:
   /// for such.
   ///
   /// @param callback The function to invoke for each new connection.
-  void setConnectionCallback(const std::function<void(Server &, Connection &)> &callback) override;
+  void setConnectionCallback(const std::function<void(Server &, Connection &)> &callback) final;
 
   /// Retrieve a function object representing the connection callback.
   /// @return The current function wrapper invoked for each new connection.
-  const std::function<void(Server &, Connection &)> &connectionCallback() const override;
+  [[nodiscard]] const std::function<void(Server &, Connection &)> &connectionCallback() const final;
 
   /// Migrates new connections to the owning @c Server and removes expired
   /// connections.
@@ -147,7 +149,7 @@ public:
   ///
   /// @param callback When given, called for each new connection.
   /// @param user User argument passed to @p callback.
-  void commitConnections() override;
+  void commitConnections() final;
 
 private:
   bool listen();
@@ -155,17 +157,17 @@ private:
   void monitorThread();
 
   TcpServer &_server;
-  TcpListenSocket *_listen;
-  std::function<void(Server &, Connection &)> _onNewConnection;
-  Mode _mode;  ///< Current execution mode.
-  std::vector<BaseConnection *> _connections;
-  std::vector<BaseConnection *> _expired;
-  std::atomic_int _errorCode;
-  std::atomic_uint16_t _listenPort;
-  std::atomic_bool _running;
-  std::atomic_bool _quitFlag;
-  mutable Lock _connectionLock;
-  std::thread *_thread;
+  std::unique_ptr<TcpListenSocket> _listen;
+  std::function<void(Server &, Connection &)> _on_new_connection;
+  Mode _mode = None;  ///< Current execution mode.
+  std::vector<std::shared_ptr<Connection>> _connections;
+  std::vector<std::shared_ptr<Connection>> _expired;
+  std::atomic_int _error_code = { 0 };
+  std::atomic_uint16_t _listen_port = { 0 };
+  std::atomic_bool _running = { false };
+  std::atomic_bool _quit_flag = { false };
+  mutable Lock _connection_lock;
+  std::unique_ptr<std::thread> _thread;
 };
 }  // namespace tes
 
