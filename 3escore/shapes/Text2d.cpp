@@ -51,10 +51,8 @@ bool Text2D::readCreate(PacketReader &stream)
     return ok;
   }
 
-  _text.resize(text_length + 1);
-  _text[0] = '\0';
+  _text.resize(text_length);
   ok = ok && stream.readArray(_text.data(), text_length) == sizeof(*_text.data()) * text_length;
-  _text[text_length] = '\0';
 
   return ok;
 }
