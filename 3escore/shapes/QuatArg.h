@@ -17,12 +17,20 @@ struct QuatArg
   /// Single precision pointer constructor.
   /// @param v Vector 3 array.
   inline QuatArg(const float q[4])
-    : q(Quaternionf(v))
+    : q(Quaternionf(q))
+  {}
+  /// @overload
+  QuatArg(const std::array<float, 4> &q)
+    : q(q)
   {}
   /// Double precision pointer constructor.
   /// @param v Vector 3  array.
   inline QuatArg(const double q[4])
-    : q(v)
+    : q(q)
+  {}
+  /// @overload
+  QuatArg(const std::array<double, 4> &q)
+    : q(q)
   {}
   /// Single precision vector constructor.
   /// @param v Vector 3 value.

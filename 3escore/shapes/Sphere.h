@@ -38,7 +38,7 @@ public:
   /// Shape to copy.
   Sphere(const Sphere &other);
 
-  inline const char *type() const override { return "sphere"; }
+  [[nodiscard]] const char *type() const override { return "sphere"; }
 
   /// Set the sphere radius. This sets the same scale for all dimensions.
   /// @param radius The sphere radius.
@@ -46,7 +46,7 @@ public:
   Sphere &setRadius(double radius);
   /// Get the sphere radius.
   /// @return The sphere radius.
-  double radius() const;
+  [[nodiscard]] double radius() const;
 
   /// Set the sphere centre coordinate.
   /// @param centre The new sphere centre.
@@ -54,7 +54,7 @@ public:
   Sphere &setCentre(const Vector3d &centre);
   /// Get the sphere centre coordinate.
   /// @return The sphere centre.
-  Vector3d centre() const;
+  [[nodiscard]] Vector3d centre() const;
 };
 
 
@@ -67,9 +67,7 @@ inline Sphere::Sphere(const Id &id, const Transform &transform)
   : Shape(SIdSphere, id, transform)
 {}
 
-inline Sphere::Sphere(const Sphere &other)
-  : Shape(other)
-{}
+inline Sphere::Sphere(const Sphere &other) = default;
 
 
 inline Sphere &Sphere::setRadius(double radius)

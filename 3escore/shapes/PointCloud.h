@@ -17,7 +17,8 @@ struct PointCloudImp;
 
 /// A @c MeshResource which defines a point cloud by its contained vertices..
 ///
-/// The @c PointCloud supports a set of vertices, normals and colours only. Indices, UVs are not supported.
+/// The @c PointCloud supports a set of vertices, normals and colours only. Indices, UVs are not
+/// supported.
 class TES_CORE_API PointCloud : public MeshResource
 {
 protected:
@@ -30,30 +31,31 @@ public:
   /// @param id A user assigned, unique ID for the point cloud resource.
   PointCloud(uint32_t id);
   /// Destructor.
-  ~PointCloud();
+  ~PointCloud() override;
 
   /// @copydoc MeshResource::id()
-  uint32_t id() const override;
+  [[nodiscard]] uint32_t id() const override;
 
   /// Clone the cloud resource.
   ///
-  /// This performs a shallow copy clone with copy on write semantics. That is to say, the copy becomes a deep copy
-  /// if either the clone or the original are modified.
+  /// This performs a shallow copy clone with copy on write semantics. That is to say, the copy
+  /// becomes a deep copy if either the clone or the original are modified.
   ///
   /// @return A clone of the point cloud resource.
-  PointCloud *clone() const override;
+  [[nodiscard]] PointCloud *clone() const override;
 
   /// Always the identity matrix.
   /// @return An identity matrix.
-  Transform transform() const override;
+  [[nodiscard]] Transform transform() const override;
 
   /// Always returns white.
   /// @return White.
-  uint32_t tint() const override;
+  [[nodiscard]] uint32_t tint() const override;
 
   /// Always returns @c DtPoints.
   /// @return @c DtPoints
-  uint8_t drawType(int stream = 0) const override;
+  [[nodiscard]] uint8_t drawType(int stream) const override;
+  using MeshResource::drawType;
 
   /// Reserve sufficient vertex, normal and colour data for @c size points.
   /// @param size The number of points to reserve space for.
@@ -68,39 +70,49 @@ public:
 
   /// Return the number of points allocated memory currently supports.
   /// @return The number of points supported by the current memory allocation.
-  unsigned capacity() const;
+  [[nodiscard]] unsigned capacity() const;
 
   /// @copydoc MeshResource::vertexCount()
-  unsigned vertexCount(int stream = 0) const override;
+  [[nodiscard]] unsigned vertexCount(int stream) const override;
+  using MeshResource::vertexCount;
   /// @copydoc MeshResource::vertices()
-  DataBuffer vertices(int stream = 0) const override;
+  [[nodiscard]] DataBuffer vertices(int stream) const override;
+  using MeshResource::vertices;
   /// Access vertices as a @c Vector3f array.
-  /// @return A pointer to the vertex data as a @c Vector3f array. The number of elements matches @c vertexCount().
-  const Vector3f *vertices() const;
+  /// @return A pointer to the vertex data as a @c Vector3f array. The number of elements matches @c
+  /// vertexCount().
+  [[nodiscard]] const Vector3f *rawVertices() const;
 
   /// Not supported.
   /// @return Zero.
-  unsigned indexCount(int stream = 0) const override;
+  [[nodiscard]] unsigned indexCount(int stream) const override;
+  using MeshResource::indexCount;
 
   /// Not supported.
   /// @return null
-  DataBuffer indices(int stream = 0) const override;
+  [[nodiscard]] DataBuffer indices(int stream) const override;
+  using MeshResource::indices;
 
   /// @copydoc MeshResource::normals()
-  DataBuffer normals(int stream = 0) const override;
+  [[nodiscard]] DataBuffer normals(int stream) const override;
+  using MeshResource::normals;
   /// Access normals as a @c Vector3f array.
-  /// @return A pointer to the normal data as a @c Vector3f array. The number of elements matches @c vertexCount().
-  const Vector3f *normals() const;
+  /// @return A pointer to the normal data as a @c Vector3f array. The number of elements matches
+  /// @c vertexCount().
+  [[nodiscard]] const Vector3f *rawNormals() const;
 
   /// @copydoc MeshResource::colours()
-  DataBuffer colours(int stream = 0) const override;
+  [[nodiscard]] DataBuffer colours(int stream) const override;
+  using MeshResource::colours;
   /// Access colours as a @c Colour array.
-  /// @return A pointer to the colour data as a @c Colour array. The number of elements matches @c vertexCount().
-  const Colour *colours() const;
+  /// @return A pointer to the colour data as a @c Colour array. The number of elements matches
+  /// @c vertexCount().
+  [[nodiscard]] const Colour *rawColours() const;
 
   /// Not supported.
   /// @return null
-  DataBuffer uvs(int stream = 0) const override;
+  [[nodiscard]] DataBuffer uvs(int stream) const override;
+  using MeshResource::uvs;
 
   /// Add a single point to the cloud.
   /// The normal is set to zero and the colour to white.
@@ -133,7 +145,8 @@ public:
   /// @param normals The point normals.
   /// @param colours The point colours.
   /// @param count Number of points in @p points, @p normals and @p colours.
-  void addPoints(const Vector3f *points, const Vector3f *normals, const Colour *colours, const UIntArg &count);
+  void addPoints(const Vector3f *points, const Vector3f *normals, const Colour *colours,
+                 const UIntArg &count);
 
   /// Replace an existing point.
   /// Ignore if out of range.
@@ -152,7 +165,8 @@ public:
   /// @param point The new point coordinate.
   /// @param normal The new point normal.
   /// @param colour The new point colour.
-  void setPoint(const UIntArg &index, const Vector3f &point, const Vector3f &normal, const Colour &colour);
+  void setPoint(const UIntArg &index, const Vector3f &point, const Vector3f &normal,
+                const Colour &colour);
 
   /// Replace an existing point normal.
   /// Ignore if out of range.
@@ -181,7 +195,8 @@ public:
   /// @param points The new point coordinates.
   /// @param normals The new point normals.
   /// @param count The number of points in @p points and @p normals.
-  void setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals, const UIntArg &count);
+  void setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals,
+                 const UIntArg &count);
   /// Replace a set of existing points.
   ///
   /// Overrun points are ignored.
@@ -190,8 +205,8 @@ public:
   /// @param normals The new point normals.
   /// @param colours The new point colours.
   /// @param count The number of points in @p points, @p normals and @p colours.
-  void setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals, const Colour *colours,
-                 const UIntArg &count);
+  void setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals,
+                 const Colour *colours, const UIntArg &count);
 
 private:
   /// Reserve memory for @p capacity points.
@@ -201,12 +216,16 @@ private:
   /// Make a copy of underlying data if currently shared with another instance.
   void copyOnWrite();
 
-  bool processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes) override;
-  bool processVertices(const MeshComponentMessage &msg, unsigned count, const DataBuffer &stream) override;
-  bool processColours(const MeshComponentMessage &msg, unsigned count, const DataBuffer &stream) override;
-  bool processNormals(const MeshComponentMessage &msg, unsigned count, const DataBuffer &stream) override;
+  bool processCreate(const MeshCreateMessage &msg,
+                     const ObjectAttributes<double> &attributes) override;
+  bool processVertices(const MeshComponentMessage &msg, unsigned offset,
+                       const DataBuffer &stream) override;
+  bool processColours(const MeshComponentMessage &msg, unsigned offset,
+                      const DataBuffer &stream) override;
+  bool processNormals(const MeshComponentMessage &msg, unsigned offset,
+                      const DataBuffer &stream) override;
 
-  PointCloudImp *_imp;
+  std::shared_ptr<PointCloudImp> _imp;
 };
 
 
@@ -222,7 +241,8 @@ inline void PointCloud::addPoint(const Vector3f &point, const Vector3f &normal)
 }
 
 
-inline void PointCloud::addPoint(const Vector3f &point, const Vector3f &normal, const Colour &colour)
+inline void PointCloud::addPoint(const Vector3f &point, const Vector3f &normal,
+                                 const Colour &colour)
 {
   addPoints(&point, &normal, &colour, 1);
 }
@@ -234,14 +254,15 @@ inline void PointCloud::setPoint(const UIntArg &index, const Vector3f &point)
 }
 
 
-inline void PointCloud::setPoint(const UIntArg &index, const Vector3f &point, const Vector3f &normal)
+inline void PointCloud::setPoint(const UIntArg &index, const Vector3f &point,
+                                 const Vector3f &normal)
 {
   setPoints(index, &point, &normal, 1);
 }
 
 
-inline void PointCloud::setPoint(const UIntArg &index, const Vector3f &point, const Vector3f &normals,
-                                 const Colour &colours)
+inline void PointCloud::setPoint(const UIntArg &index, const Vector3f &point,
+                                 const Vector3f &normals, const Colour &colours)
 {
   setPoints(index, &point, &normals, &colours, 1);
 }

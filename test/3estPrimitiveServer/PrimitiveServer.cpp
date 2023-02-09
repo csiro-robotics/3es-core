@@ -235,9 +235,8 @@ std::ostream &logShapeExtensions(std::ostream &o, const T &shape, const std::str
 std::ostream &logShapeExtensions(std::ostream &o, const Text2D &shape, const std::string &indent)
 {
   o << ",\n";
-  o << indent << "\"textLength\" : " << shape.textLength() << ",\n";
-  std::string text(shape.text(), shape.textLength());
-  o << indent << "\"text\" : \"" << text << "\"";
+  o << indent << "\"textLength\" : " << shape.text().length() << ",\n";
+  o << indent << "\"text\" : \"" << shape.text() << "\"";
   return o;
 }
 
@@ -245,9 +244,8 @@ std::ostream &logShapeExtensions(std::ostream &o, const Text2D &shape, const std
 std::ostream &logShapeExtensions(std::ostream &o, const Text3D &shape, const std::string &indent)
 {
   o << ",\n";
-  o << indent << "\"textLength\" : " << shape.textLength() << ",\n";
-  std::string text(shape.text(), shape.textLength());
-  o << indent << "\"text\" : \"" << text << "\"";
+  o << indent << "\"textLength\" : " << shape.text().length() << ",\n";
+  o << indent << "\"text\" : \"" << shape.text() << "\"";
   return o;
 }
 

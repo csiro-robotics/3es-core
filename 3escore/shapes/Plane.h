@@ -40,7 +40,7 @@ public:
   /// @param other Object to copy.
   Plane(const Plane &other);
 
-  inline const char *type() const override { return "plane"; }
+  [[nodiscard]] const char *type() const override { return "plane"; }
 
   /// Set the plane normal. Affects @p rotation().
   /// @param axis The new axis to set.
@@ -51,7 +51,7 @@ public:
   /// May not exactly match the axis given via @p setNormal() as the axis is defined by the
   /// quaternion @c rotation().
   /// @return The plane normal.
-  Vector3d normal() const;
+  [[nodiscard]] Vector3d normal() const;
 
   /// Set the plane "scale", which controls the render size.
   ///
@@ -64,7 +64,7 @@ public:
   Plane &setScale(double scale);
   /// Get the plane scaling values.
   /// @return The plane scaling values.
-  double scale() const;
+  [[nodiscard]] double scale() const;
 
   /// Set the plane normal's display length. Alias for @c scale().z()
   /// @param length Display length to set.
@@ -73,7 +73,7 @@ public:
 
   /// Get the plane normal display length.
   /// @return The normal display length.
-  double normalLength() const;
+  [[nodiscard]] double normalLength() const;
 };
 
 
@@ -87,14 +87,12 @@ inline Plane::Plane(const Id &id, const Transform &transform)
 {}
 
 
-inline Plane::Plane(const Plane &other)
-  : Shape(other)
-{}
+inline Plane::Plane(const Plane &other) = default;
 
 
 inline Plane &Plane::setNormal(const Vector3d &normal)
 {
-  Quaterniond rot(Directional::DefaultDirection, normal);
+  const Quaterniond rot(Directional::DefaultDirection, normal);
   setRotation(rot);
   return *this;
 }
@@ -102,7 +100,7 @@ inline Plane &Plane::setNormal(const Vector3d &normal)
 
 inline Vector3d Plane::normal() const
 {
-  Quaterniond rot = rotation();
+  const Quaterniond rot = rotation();
   return rot * Directional::DefaultDirection;
 }
 

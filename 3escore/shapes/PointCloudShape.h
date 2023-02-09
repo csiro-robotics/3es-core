@@ -70,14 +70,16 @@ public:
   ///
   /// Only non-zero when referencing a subset of @c mesh() vertices.
   ///
-  /// @return Zero when using all @c mesh() vertices, non-zero when referencing a subset of @c mesh().
+  /// @return Zero when using all @c mesh() vertices, non-zero when referencing a subset of @c
+  /// mesh().
   unsigned indexCount() const { return _indexCount; }
 
   /// Return the index array when a subset of @c mesh() vertices.
   ///
   /// Indices are only set when overriding indexing from @c mesh().
   ///
-  /// @return An array of indices, length @c indexCount(), or null when referencing all vertices from @c mesh().
+  /// @return An array of indices, length @c indexCount(), or null when referencing all vertices
+  /// from @c mesh().
   const unsigned *indices() const { return _indices; }
 
   /// Sets the (optional) indices for this @c PointCloudShape @c Shape.
@@ -126,7 +128,8 @@ public:
   /// @param resources Resource output array.
   /// @param capacity of @p resources.
   /// @param fetchOffset Indexing offset for the resources in this object.
-  unsigned enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset) const override;
+  unsigned enumerateResources(const Resource **resources, unsigned capacity,
+                              unsigned fetchOffset) const override;
 
   /// Deep copy clone. The source is only cloned if @c ownSource() is true.
   /// It is shared otherwise.

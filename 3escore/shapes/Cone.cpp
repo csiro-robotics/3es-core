@@ -3,4 +3,6 @@
 //
 #include "Cone.h"
 
-using namespace tes;
+namespace tes
+{
+}  // namespace tes

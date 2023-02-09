@@ -9,7 +9,7 @@
 #include "Shape.h"
 
 #include <cstdint>
-#include <cstring>
+#include <string>
 
 namespace tes
 {
@@ -22,80 +22,88 @@ class TES_CORE_API Text3D : public Shape
 public:
   /// Construct a 3D text.
   /// @param text The text to display.
-  /// @param id The shape id and category, with unique id among @c Text3D objects, or zero for a transient shape.
-  /// @param transform Directional transformation for the text. The length is used to control the font size.
-  Text3D(const char *text = "", const Id &id = Id(), const Directional &transform = Directional());
+  /// @param id The shape id and category, with unique id among @c Text3D objects, or zero for a
+  /// transient shape.
+  /// @param transform Directional transformation for the text. The length is used to control the
+  /// font size.
+  Text3D(const std::string &text = {}, const Id &id = Id(),
+         const Directional &transform = Directional());
 
   /// Copy constructor
   Text3D(const Text3D &other);
 
   /// Move constructor
-  Text3D(Text3D &&other);
+  Text3D(Text3D &&other) noexcept;
 
-  ~Text3D();
+  ~Text3D() override;
 
-  inline const char *type() const override { return "text3D"; }
+  [[nodiscard]] const char *type() const override { return "text3D"; }
 
-  bool screenFacing() const;
-  Text3D &setScreenFacing(bool screenFacing);
+  Text3D &setScreenFacing(bool screen_facing);
+  [[nodiscard]] bool screenFacing() const;
 
-  Text3D &setFacing(const Vector3d &toCamera);
-  Vector3d facing() const;
+  Text3D &setFacing(const Vector3d &to_camera);
+  [[nodiscard]] Vector3d facing() const;
 
-  double fontSize() const;
+  [[nodiscard]] double fontSize() const;
   Text3D &setFontSize(double size);
 
-  inline char *text() const { return _text; }
-  inline uint16_t textLength() const { return _textLength; }
+  [[nodiscard]] const std::string &text() const { return _text; }
 
-  Text3D &setText(const char *text, uint16_t textLength);
+  Text3D &setText(const std::string &text)
+  {
+    _text = text;
+    return *this;
+  }
 
-  virtual bool writeCreate(PacketWriter &stream) const override;
+  bool writeCreate(PacketWriter &stream) const override;
 
   bool readCreate(PacketReader &stream) override;
 
   Text3D &operator=(const Text3D &other);
-  Text3D &operator=(Text3D &&other);
+  Text3D &operator=(Text3D &&other) noexcept;
 
-  Shape *clone() const override;
+  [[nodiscard]] Shape *clone() const override;
 
 protected:
   void onClone(Text3D *copy) const;
 
 private:
-  char *_text = nullptr;
-  uint16_t _textLength = 0;
+  std::string _text;
 };
 
 
-inline Text3D::Text3D(const char *text, const Id &id, const Directional &transform)
+inline Text3D::Text3D(const std::string &text, const Id &id, const Directional &transform)
   : Shape(SIdText3D, id, transform)
+  , _text(text)
+{}
+
+
+inline Text3D &Text3D::setScreenFacing(bool screen_facing)
 {
-  setText(text, text ? (uint16_t)strlen(text) : 0);
+  // NOLINTBEGIN(hicpp-signed-bitwise)
+  _data.flags = static_cast<uint16_t>(_data.flags & ~Text3DFScreenFacing);
+  _data.flags = static_cast<uint16_t>(_data.flags | Text3DFScreenFacing * !!screen_facing);
+  // NOLINTEND(hicpp-signed-bitwise)
+  return *this;
 }
 
 
 inline bool Text3D::screenFacing() const
 {
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
   return (_data.flags & Text3DFScreenFacing) != 0;
 }
 
 
-inline Text3D &Text3D::setScreenFacing(bool screenFacing)
-{
-  _data.flags = uint16_t(_data.flags & ~Text3DFScreenFacing);
-  _data.flags = uint16_t(_data.flags | Text3DFScreenFacing * !!screenFacing);
-  return *this;
-}
-
-
-inline Text3D &Text3D::setFacing(const Vector3d &toCamera)
+inline Text3D &Text3D::setFacing(const Vector3d &to_camera)
 {
   setScreenFacing(false);
   Quaterniond rot;
-  if (toCamera.dot(Directional::DefaultDirection) > -0.9998f)
+  const double dir_tolerance = 0.9998;
+  if (to_camera.dot(Directional::DefaultDirection) > -dir_tolerance)
   {
-    rot = Quaterniond(Directional::DefaultDirection, toCamera);
+    rot = Quaterniond(Directional::DefaultDirection, to_camera);
   }
   else
   {
@@ -108,7 +116,7 @@ inline Text3D &Text3D::setFacing(const Vector3d &toCamera)
 
 inline Vector3d Text3D::facing() const
 {
-  Quaterniond rot = rotation();
+  const Quaterniond rot = rotation();
   return rot * Directional::DefaultDirection;
 }
 

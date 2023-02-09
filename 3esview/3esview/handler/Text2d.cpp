@@ -142,7 +142,7 @@ void Text2D::serialise(Connection &out, ServerInfoMessage &info)
 
   const auto write_shape = [&out, &shape](uint32_t id, const TextEntry &text) {
     shape.setId(id);
-    shape.setText(text.text.c_str(), uint16_t(text.text.length()));
+    shape.setText(text.text);
     const auto position = text.transform[3].xyz();
     shape.setPosition(tes::Vector3f(position.x(), position.y(), position.z()));
     shape.setInWorldSpace((text.flags & painter::Text::TextFlag::ScreenProjected) !=

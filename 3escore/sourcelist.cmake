@@ -136,6 +136,7 @@ list(APPEND SOURCES
   DataBuffer.cpp
 
   shapes/Arrow.cpp
+  shapes/Box.cpp
   shapes/Capsule.cpp
   shapes/Cone.cpp
   shapes/Cylinder.cpp
@@ -148,9 +149,12 @@ list(APPEND SOURCES
   shapes/Plane.cpp
   shapes/PointCloud.cpp
   shapes/PointCloudShape.cpp
+  shapes/Pose.cpp
   shapes/Shape.cpp
   shapes/Shapes.cpp
   shapes/SimpleMesh.cpp
+  shapes/Sphere.cpp
+  shapes/Star.cpp
   shapes/Text2d.cpp
   shapes/Text3d.cpp
 

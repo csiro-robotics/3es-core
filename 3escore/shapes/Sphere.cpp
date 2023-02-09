@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "Cylinder.h"
+#include "Sphere.h"
 
 namespace tes
 {

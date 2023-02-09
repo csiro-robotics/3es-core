@@ -5,100 +5,51 @@
 
 #include <3escore/MeshMessages.h>
 #include <3escore/Rotation.h>
-#include <3escore/SpinLock.h>
 
 #include <algorithm>
 #include <cstring>
+#include <iterator>
 #include <mutex>
-
-using namespace tes;
 
 namespace tes
 {
 struct PointCloudImp
 {
-  SpinLock lock;
-  Vector3f *vertices;
-  Vector3f *normals;
-  Colour *colours;
-  unsigned vertexCount;
-  unsigned capacity;
+  std::mutex lock;
+  std::vector<Vector3f> vertices;
+  std::vector<Vector3f> normals;
+  std::vector<Colour> colours;
   uint32_t id;
-  unsigned references;
 
-  inline PointCloudImp(uint32_t id)
-    : vertices(nullptr)
-    , normals(nullptr)
-    , colours(nullptr)
-    , vertexCount(0)
-    , capacity(0)
-    , id(id)
-    , references(1)
+  PointCloudImp(uint32_t id)
+    : id(id)
   {}
 
 
-  inline ~PointCloudImp()
+  [[nodiscard]] std::shared_ptr<PointCloudImp> clone() const
   {
-    delete[] vertices;
-    delete[] normals;
-    delete[] colours;
-  }
-
-
-  inline PointCloudImp *clone() const
-  {
-    PointCloudImp *copy = new PointCloudImp(this->id);
-    copy->vertexCount = copy->capacity = vertexCount;
+    auto copy = std::make_shared<PointCloudImp>(this->id);
     copy->id = id;
-
-    copy->vertices = (vertices && vertexCount) ? new Vector3f[vertexCount] : nullptr;
-    std::copy(vertices, vertices + vertexCount, copy->vertices);
-
-    copy->normals = (normals && vertexCount) ? new Vector3f[vertexCount] : nullptr;
-    if (copy->normals)
-    {
-      std::copy(normals, normals + vertexCount, copy->normals);
-    }
-
-    copy->colours = (colours && vertexCount) ? new Colour[vertexCount] : nullptr;
-    if (copy->colours)
-    {
-      std::copy(colours, colours + vertexCount, copy->colours);
-    }
-
-    copy->references = 1;
+    copy->vertices = vertices;
+    copy->normals = normals;
+    copy->colours = colours;
     return copy;
   }
 };
-}  // namespace tes
 
 PointCloud::PointCloud(const PointCloud &other)
-  : _imp(other._imp)
 {
-  std::unique_lock<SpinLock> guard(_imp->lock);
-  ++_imp->references;
+  const std::scoped_lock guard(other._imp->lock);
+  _imp = other._imp;
 }
 
 
 PointCloud::PointCloud(uint32_t id)
-  : _imp(new PointCloudImp(id))
+  : _imp(std::make_shared<PointCloudImp>(id))
 {}
 
 
-PointCloud::~PointCloud()
-{
-  std::unique_lock<SpinLock> guard(_imp->lock);
-  if (_imp->references == 1)
-  {
-    // Unlock for delete.
-    guard.unlock();
-    delete _imp;
-  }
-  else
-  {
-    --_imp->references;
-  }
-}
+PointCloud::~PointCloud() = default;
 
 
 uint32_t PointCloud::id() const
@@ -109,7 +60,7 @@ uint32_t PointCloud::id() const
 
 PointCloud *PointCloud::clone() const
 {
-  PointCloud *copy = new PointCloud(*this);
+  auto *copy = new PointCloud(*this);
   return copy;
 }
 
@@ -135,7 +86,8 @@ uint8_t PointCloud::drawType(int stream) const
 
 void PointCloud::reserve(const UIntArg &size)
 {
-  if (_imp->capacity < size)
+  const std::scoped_lock guard(_imp->lock);
+  if (_imp->vertices.capacity() < size.i)
   {
     setCapacity(size);
   }
@@ -144,47 +96,49 @@ void PointCloud::reserve(const UIntArg &size)
 
 void PointCloud::resize(const UIntArg &count)
 {
-  if (_imp->capacity < count)
-  {
-    reserve(count);
-  }
-
-  _imp->vertexCount = count;
+  const std::scoped_lock guard(_imp->lock);
+  _imp->vertices.resize(count.i);
+  _imp->normals.resize(count.i);
+  _imp->colours.resize(count.i);
 }
 
 
 void PointCloud::squeeze()
 {
-  if (_imp->capacity > _imp->vertexCount)
-  {
-    setCapacity(_imp->vertexCount);
-  }
+  const std::scoped_lock guard(_imp->lock);
+  _imp->vertices.shrink_to_fit();
+  _imp->normals.shrink_to_fit();
+  _imp->colours.shrink_to_fit();
 }
 
 
 unsigned PointCloud::capacity() const
 {
-  return _imp->capacity;
+  const std::scoped_lock guard(_imp->lock);
+  return int_cast<unsigned>(_imp->vertices.capacity());
 }
 
 
 unsigned PointCloud::vertexCount(int stream) const
 {
+  const std::scoped_lock guard(_imp->lock);
   TES_UNUSED(stream);
-  return _imp->vertexCount;
+  return int_cast<unsigned>(_imp->vertices.size());
 }
 
 
 DataBuffer PointCloud::vertices(int stream) const
 {
+  const std::scoped_lock guard(_imp->lock);
   TES_UNUSED(stream);
-  return DataBuffer(_imp->vertices, _imp->vertexCount);
+  return { _imp->vertices };
 }
 
 
-const Vector3f *PointCloud::vertices() const
+const Vector3f *PointCloud::rawVertices() const
 {
-  return _imp->vertices;
+  const std::scoped_lock guard(_imp->lock);
+  return _imp->vertices.data();
 }
 
 
@@ -198,39 +152,43 @@ unsigned PointCloud::indexCount(int stream) const
 DataBuffer PointCloud::indices(int stream) const
 {
   TES_UNUSED(stream);
-  return DataBuffer();
+  return {};
 }
 
 
 DataBuffer PointCloud::normals(int stream) const
 {
+  const std::scoped_lock guard(_imp->lock);
   TES_UNUSED(stream);
-  return DataBuffer(_imp->normals, _imp->normals ? _imp->vertexCount : 0);
+  return { _imp->normals };
 }
 
 
-const Vector3f *PointCloud::normals() const
+const Vector3f *PointCloud::rawNormals() const
 {
-  return _imp->normals;
+  const std::scoped_lock guard(_imp->lock);
+  return _imp->normals.data();
 }
 
 
 DataBuffer PointCloud::colours(int stream) const
 {
+  const std::scoped_lock guard(_imp->lock);
   TES_UNUSED(stream);
-  return DataBuffer(_imp->colours, _imp->colours ? _imp->vertexCount : 0);
+  return { _imp->colours };
 }
 
 
-const Colour *PointCloud::colours() const
+const Colour *PointCloud::rawColours() const
 {
-  return _imp->colours;
+  const std::scoped_lock guard(_imp->lock);
+  return _imp->colours.data();
 }
 
 
-DataBuffer PointCloud::uvs(int) const
+DataBuffer PointCloud::uvs(int /*stream*/) const
 {
-  return DataBuffer();
+  return {};
 }
 
 
@@ -238,21 +196,15 @@ void PointCloud::addPoints(const Vector3f *points, const UIntArg &count)
 {
   if (count)
   {
+    const std::scoped_lock guard(_imp->lock);
     copyOnWrite();
-    unsigned initial = _imp->vertexCount;
-    resize(_imp->vertexCount + count.i);
-    std::copy(points, points + count.i, _imp->vertices + initial);
 
-    // Initialise other data
-    for (unsigned i = initial; i < _imp->vertexCount; ++i)
+    const Colour white = Colour(Colour::White);
+    for (size_t i = 0; i < count.i; ++i)
     {
-      _imp->normals[i] = Vector3f::Zero;
-    }
-
-    const Colour c = Colour(Colour::White);
-    for (unsigned i = initial; i < _imp->vertexCount; ++i)
-    {
-      _imp->colours[i] = c;
+      _imp->vertices.emplace_back(points[i]);
+      _imp->normals.emplace_back(Vector3f::Zero);
+      _imp->colours.emplace_back(white);
     }
   }
 }
@@ -262,17 +214,15 @@ void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, cons
 {
   if (count)
   {
+    const std::scoped_lock guard(_imp->lock);
     copyOnWrite();
-    unsigned initial = _imp->vertexCount;
-    resize(_imp->vertexCount + count.i);
-    std::copy(points, points + count.i, _imp->vertices + initial);
-    std::copy(normals, normals + count.i, _imp->normals + initial);
 
-    // Initialise other data
-    const Colour c = Colour(Colour::White);
-    for (unsigned i = initial; i < _imp->vertexCount; ++i)
+    const Colour white = Colour(Colour::White);
+    for (size_t i = 0; i < count.i; ++i)
     {
-      _imp->colours[i] = c;
+      _imp->vertices.emplace_back(points[i]);
+      _imp->normals.emplace_back(normals[i]);
+      _imp->colours.emplace_back(white);
     }
   }
 }
@@ -283,19 +233,23 @@ void PointCloud::addPoints(const Vector3f *points, const Vector3f *normals, cons
 {
   if (count)
   {
+    const std::scoped_lock guard(_imp->lock);
     copyOnWrite();
-    unsigned initial = _imp->vertexCount;
-    resize(_imp->vertexCount + count.i);
-    std::copy(points, points + count.i, _imp->vertices + initial);
-    std::copy(normals, normals + count.i, _imp->normals + initial);
-    std::copy(colours, colours + count.i, _imp->colours + initial);
+
+    for (size_t i = 0; i < count.i; ++i)
+    {
+      _imp->vertices.emplace_back(points[i]);
+      _imp->normals.emplace_back(normals[i]);
+      _imp->colours.emplace_back(colours[i]);
+    }
   }
 }
 
 
 void PointCloud::setNormal(const UIntArg &index, const Vector3f &normal)
 {
-  if (index < _imp->vertexCount)
+  const std::scoped_lock guard(_imp->lock);
+  if (index.i < _imp->normals.size())
   {
     copyOnWrite();
     _imp->normals[index.i] = normal;
@@ -305,7 +259,8 @@ void PointCloud::setNormal(const UIntArg &index, const Vector3f &normal)
 
 void PointCloud::setColour(const UIntArg &index, const Colour &colour)
 {
-  if (index < _imp->vertexCount)
+  const std::scoped_lock guard(_imp->lock);
+  if (index.i < _imp->colours.size())
   {
     copyOnWrite();
     _imp->colours[index.i] = colour;
@@ -315,137 +270,98 @@ void PointCloud::setColour(const UIntArg &index, const Colour &colour)
 
 void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const UIntArg &count)
 {
-  if (index >= _imp->vertexCount)
+  const std::scoped_lock guard(_imp->lock);
+  if (index.i >= _imp->vertices.size())
   {
     return;
   }
 
-  unsigned limitedCount = count;
-  if (index.i + limitedCount > _imp->vertexCount)
+  size_t limited_count = count.i;
+  if (index.i + limited_count > _imp->vertices.size())
   {
-    limitedCount = index.i + count.i - _imp->vertexCount;
+    limited_count = index.i + count.i - _imp->vertices.size();
   }
 
-  if (!limitedCount)
+  if (!limited_count)
   {
     return;
   }
 
   copyOnWrite();
-  std::copy(points, points + limitedCount, _imp->vertices + index.i);
+  std::copy(points, points + limited_count, _imp->vertices.begin() + index.i);
 }
 
 
 void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals,
                            const UIntArg &count)
 {
-  if (index >= _imp->vertexCount)
+  const std::scoped_lock guard(_imp->lock);
+  if (index.i >= _imp->vertices.size())
   {
     return;
   }
 
-  unsigned limitedCount = count;
-  if (index.i + limitedCount > _imp->vertexCount)
+  size_t limited_count = count.i;
+  if (index.i + limited_count > _imp->vertices.size())
   {
-    limitedCount = index.i + count.i - _imp->vertexCount;
+    limited_count = index.i + count.i - _imp->vertices.size();
   }
 
-  if (!limitedCount)
+  if (!limited_count)
   {
     return;
   }
 
   copyOnWrite();
-  std::copy(points, points + limitedCount, _imp->vertices + index.i);
-  std::copy(normals, normals + limitedCount, _imp->normals + index.i);
+  std::copy(points, points + limited_count, _imp->vertices.begin() + index.i);
+  std::copy(normals, normals + limited_count, _imp->normals.begin() + index.i);
 }
 
 
 void PointCloud::setPoints(const UIntArg &index, const Vector3f *points, const Vector3f *normals,
                            const Colour *colours, const UIntArg &count)
 {
-  if (index >= _imp->vertexCount)
+  const std::scoped_lock guard(_imp->lock);
+  if (index.i >= _imp->vertices.size())
   {
     return;
   }
 
-  unsigned limitedCount = count;
-  if (index.i + limitedCount > _imp->vertexCount)
+  size_t limited_count = count.i;
+  if (index.i + limited_count > _imp->vertices.size())
   {
-    limitedCount = index.i + count.i - _imp->vertexCount;
+    limited_count = index.i + count.i - _imp->vertices.size();
   }
 
-  if (!limitedCount)
+  if (!limited_count)
   {
     return;
   }
 
   copyOnWrite();
-  std::copy(points, points + limitedCount, _imp->vertices + index.i);
-  std::copy(normals, normals + limitedCount, _imp->normals + index.i);
-  std::copy(colours, colours + limitedCount, _imp->colours + index.i);
+  std::copy(points, points + limited_count, _imp->vertices.begin() + index.i);
+  std::copy(normals, normals + limited_count, _imp->normals.begin() + index.i);
+  std::copy(colours, colours + limited_count, _imp->colours.begin() + index.i);
 }
 
 
-void PointCloud::setCapacity(unsigned size)
+void PointCloud::setCapacity(unsigned capacity)
 {
-  if (_imp->capacity == size)
-  {
-    // Already at the requested size.
-    return;
-  }
-
   copyOnWrite();
   // Check capacity again. The copyOnWrite() may have set them to be the same.
-  if (_imp->capacity != size)
+  if (_imp->vertices.capacity() != capacity)
   {
-    if (!size)
-    {
-      delete[] _imp->vertices;
-      delete[] _imp->normals;
-      delete[] _imp->colours;
-      _imp->vertices = _imp->normals = nullptr;
-      _imp->colours = nullptr;
-      _imp->capacity = 0;
-      _imp->vertexCount = 0;
-      return;
-    }
-
-    Vector3f *points = new Vector3f[size];
-    Vector3f *normals = new Vector3f[size];
-    Colour *colours = new Colour[size];
-
-    unsigned vertexCount = std::min(_imp->vertexCount, size);
-    if (_imp->capacity)
-    {
-      // Copy existing data.
-      if (vertexCount)
-      {
-        std::copy(_imp->vertices, _imp->vertices + vertexCount, points);
-        std::copy(_imp->normals, _imp->normals + vertexCount, normals);
-        std::copy(_imp->colours, _imp->colours + vertexCount, colours);
-      }
-
-      delete[] _imp->vertices;
-      delete[] _imp->normals;
-      delete[] _imp->colours;
-    }
-
-    _imp->vertices = points;
-    _imp->normals = normals;
-    _imp->colours = colours;
-    _imp->capacity = size;
-    _imp->vertexCount = vertexCount;
+    _imp->vertices.reserve(capacity);
+    _imp->normals.reserve(capacity);
+    _imp->colours.reserve(capacity);
   }
 }
 
 
 void PointCloud::copyOnWrite()
 {
-  std::unique_lock<SpinLock> guard(_imp->lock);
-  if (_imp->references > 1)
+  if (_imp.use_count() > 1)
   {
-    --_imp->references;
     _imp = _imp->clone();
   }
 }
@@ -459,20 +375,16 @@ bool PointCloud::processCreate(const MeshCreateMessage &msg,
     return false;
   }
 
+  const std::scoped_lock guard(_imp->lock);
   copyOnWrite();
   _imp->id = msg.mesh_id;
 
-  _imp->vertexCount = msg.vertex_count;
-  delete _imp->vertices;
-  delete _imp->normals;
-  delete _imp->colours;
-  _imp->capacity = msg.vertex_count;
-  _imp->vertices = new Vector3f[msg.vertex_count];
-  _imp->normals = nullptr;  // Pending.
-  _imp->colours = nullptr;  // Pending
+  _imp->vertices.resize(msg.vertex_count);
+  _imp->normals.resize(msg.vertex_count);
+  _imp->colours.resize(msg.vertex_count);
 
-  Transform transform(Vector3d(attributes.position), Quaterniond(attributes.rotation),
-                      Vector3d(attributes.scale), msg.flags & McfDoublePrecision);
+  const Transform transform(Vector3d(attributes.position), Quaterniond(attributes.rotation),
+                            Vector3d(attributes.scale), msg.flags & McfDoublePrecision);
 
   // Does not accept a transform.
   if (!transform.isEqual(Transform::identity()))
@@ -495,10 +407,11 @@ bool PointCloud::processVertices(const MeshComponentMessage &msg, unsigned offse
 {
   TES_UNUSED(msg);
   static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Vertex size mismatch");
+  const std::scoped_lock guard(_imp->lock);
   copyOnWrite();
   unsigned wrote = 0;
 
-  for (unsigned i = 0; i + offset < _imp->vertexCount && i < stream.count(); ++i)
+  for (size_t i = 0; i + offset < _imp->vertices.size() && i < stream.count(); ++i)
   {
     for (int j = 0; j < 3; ++j)
     {
@@ -515,14 +428,11 @@ bool PointCloud::processColours(const MeshComponentMessage &msg, unsigned offset
                                 const DataBuffer &stream)
 {
   TES_UNUSED(msg);
+  const std::scoped_lock guard(_imp->lock);
   copyOnWrite();
   unsigned wrote = 0;
-  if (_imp->colours == nullptr)
-  {
-    _imp->colours = new Colour[_imp->vertexCount];
-  }
 
-  for (unsigned i = 0; i + offset < _imp->vertexCount && i < stream.count(); ++i)
+  for (size_t i = 0; i + offset < _imp->vertices.size() && i < stream.count(); ++i)
   {
     _imp->colours[i + offset] = Colour(stream.get<uint8_t>(i, 0), stream.get<uint8_t>(i, 1),
                                        stream.get<uint8_t>(i, 2), stream.get<uint8_t>(i, 3));
@@ -539,14 +449,11 @@ bool PointCloud::processNormals(const MeshComponentMessage &msg, unsigned offset
   TES_UNUSED(msg);
   static_assert(sizeof(Vector3f) == sizeof(float) * 3, "Normal size mismatch");
 
+  const std::scoped_lock guard(_imp->lock);
   copyOnWrite();
   unsigned wrote = 0;
-  if (_imp->normals == nullptr)
-  {
-    _imp->normals = new Vector3f[_imp->vertexCount];
-  }
 
-  for (unsigned i = 0; i + offset < _imp->vertexCount && i < stream.count(); ++i)
+  for (size_t i = 0; i + offset < _imp->vertices.size() && i < stream.count(); ++i)
   {
     for (int j = 0; j < 3; ++j)
     {
@@ -557,3 +464,4 @@ bool PointCloud::processNormals(const MeshComponentMessage &msg, unsigned offset
 
   return wrote == stream.count();
 }
+}  // namespace tes

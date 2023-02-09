@@ -39,7 +39,7 @@ public:
   /// @param other Object to copy.
   Arrow(const Arrow &other);
 
-  inline const char *type() const override { return "arrow"; }
+  [[nodiscard]] const char *type() const override { return "arrow"; }
 
   /// Set the arrow radius.
   /// @param radius The new arrow radius.
@@ -48,7 +48,7 @@ public:
   /// Get the arrow radius. Defines the shaft radius, while the head flanges to a sightly larger
   /// radius.
   /// @return The arrow body radius.
-  double radius() const;
+  [[nodiscard]] double radius() const;
 
   /// Set the arrow length from base to tip.
   /// @param length Set the length to set.
@@ -56,7 +56,7 @@ public:
   Arrow &setLength(double length);
   /// Get the arrow length from base to tip.
   /// @return The arrow length.
-  double length() const;
+  [[nodiscard]] double length() const;
 
   /// Set the arrow origin. This is the arrow base position.
   ///
@@ -70,7 +70,7 @@ public:
   ///
   /// Note: this aliases @c position().
   /// @return The arrow base position.
-  Vector3d origin() const;
+  [[nodiscard]] Vector3d origin() const;
 
   /// Set the arrow direction vector.
   /// @param direction The direction vector to set. Must be unit length.
@@ -82,7 +82,7 @@ public:
   /// quaternion
   /// @c rotation().
   /// @return The arrow direction vector.
-  Vector3d direction() const;
+  [[nodiscard]] Vector3d direction() const;
 };
 
 
@@ -96,9 +96,7 @@ inline Arrow::Arrow(const Id &id, const Transform &transform)
 {}
 
 
-inline Arrow::Arrow(const Arrow &other)
-  : Shape(other)
-{}
+inline Arrow::Arrow(const Arrow &other) = default;
 
 
 inline Arrow &Arrow::setRadius(double radius)
@@ -147,7 +145,8 @@ inline Vector3d Arrow::origin() const
 inline Arrow &Arrow::setDirection(const Vector3d &direction)
 {
   Quaterniond rot;
-  if (direction.dot(Directional::DefaultDirection) > -0.9998)
+  const double dir_deviation = 0.9998;
+  if (direction.dot(Directional::DefaultDirection) > -dir_deviation)
   {
     rot = Quaterniond(Directional::DefaultDirection, direction);
   }
@@ -162,7 +161,7 @@ inline Arrow &Arrow::setDirection(const Vector3d &direction)
 
 inline Vector3d Arrow::direction() const
 {
-  Quaterniond rot = rotation();
+  const Quaterniond rot = rotation();
   return rot * Directional::DefaultDirection;
 }
 }  // namespace tes

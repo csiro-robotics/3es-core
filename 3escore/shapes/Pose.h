@@ -19,7 +19,8 @@ class TES_CORE_API Pose : public Shape
 {
 public:
   /// Construct a box object.
-  /// @param id The shape id and category, with unique id among @c Pose objects, or zero for a transient shape.
+  /// @param id The shape id and category, with unique id among @c Pose objects, or zero for a
+  /// transient shape.
   /// @param transform The pose transformation matrix.
   Pose(const Id &id = Id(), const Transform &transform = Transform());
 
@@ -27,7 +28,7 @@ public:
   /// @param other Object to copy.
   Pose(const Pose &other);
 
-  inline const char *type() const override { return "pose"; }
+  [[nodiscard]] const char *type() const override { return "pose"; }
 };
 
 
@@ -36,9 +37,7 @@ inline Pose::Pose(const Id &id, const Transform &transform)
 {}
 
 
-inline Pose::Pose(const Pose &other)
-  : Shape(other)
-{}
+inline Pose::Pose(const Pose &other) = default;
 }  // namespace tes
 
 #endif  // TES_CORE_SHAPES_POSE_H

@@ -86,10 +86,12 @@ void Text3D::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &para
   }
 
   _painter->draw3D(
-    _transient.begin(), _transient.end(), [](const std::vector<TextEntry>::iterator &iter) { return *iter; }, params);
+    _transient.begin(), _transient.end(),
+    [](const std::vector<TextEntry>::iterator &iter) { return *iter; }, params);
   _painter->draw3D(
     _text.begin(), _text.end(),
-    [](const std::unordered_map<uint32_t, TextEntry>::iterator &iter) { return iter->second; }, params);
+    [](const std::unordered_map<uint32_t, TextEntry>::iterator &iter) { return iter->second; },
+    params);
 }
 
 
@@ -106,7 +108,7 @@ void Text3D::readMessage(PacketReader &reader)
     }
 
     TextEntry text;
-    text.text = std::string(shape.text(), shape.textLength());
+    text.text = shape.text();
     // Read font size which comes from scale.
     text.font_size = Magnum::Float(shape.fontSize());
     // Remove the font size scaling before we compose the transform.
@@ -144,15 +146,17 @@ void Text3D::serialise(Connection &out, ServerInfoMessage &info)
 
   const auto write_shape = [&out, &shape](uint32_t id, const TextEntry &text) {
     shape.setId(id);
-    shape.setText(text.text.c_str(), uint16_t(text.text.length()));
+    shape.setText(text.text);
     ObjectAttributes attrs = {};
     Message::decomposeTransform(text.transform, attrs);
     shape.setPosition(tes::Vector3f(attrs.position[0], attrs.position[1], attrs.position[2]));
-    shape.setRotation(tes::Quaternionf(attrs.rotation[0], attrs.rotation[1], attrs.rotation[2], attrs.rotation[3]));
+    shape.setRotation(
+      tes::Quaternionf(attrs.rotation[0], attrs.rotation[1], attrs.rotation[2], attrs.rotation[3]));
     shape.setScale(tes::Vector3f(attrs.scale[0], attrs.scale[1], attrs.scale[2]));
     // Set the font size, which will adjust the scale.
     shape.setFontSize(text.font_size);
-    shape.setScreenFacing((text.flags & painter::Text::TextFlag::ScreenFacing) != painter::Text::TextFlag::Zero);
+    shape.setScreenFacing((text.flags & painter::Text::TextFlag::ScreenFacing) !=
+                          painter::Text::TextFlag::Zero);
     if (out.create(shape) < 0)
     {
       log::error("Error writing text 3D shape.");

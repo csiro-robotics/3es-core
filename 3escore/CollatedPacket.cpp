@@ -622,6 +622,7 @@ int CollatedPacket::send(const uint8_t *data, int byte_count, bool /*allow_colla
 
 int CollatedPacket::send(const CollatedPacket &collated)
 {
+  TES_UNUSED(collated);
   TES_THROW(Exception("CollatedPacket::send(CollatedPacket) not supported"), -1);
 }
 

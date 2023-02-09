@@ -217,8 +217,7 @@ template <typename T>
 void validateText(const T &shape, const T &reference, const ResourceMap &resources)
 {
   validateShape(static_cast<const Shape>(shape), static_cast<const Shape>(reference), resources);
-  EXPECT_EQ(shape.textLength(), reference.textLength());
-  EXPECT_STREQ(shape.text(), reference.text());
+  EXPECT_EQ(shape.text(), reference.text());
 }
 
 

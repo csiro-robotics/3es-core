@@ -38,7 +38,7 @@ public:
   /// @param other Object to copy.
   Star(const Star &other);
 
-  inline const char *type() const override { return "star"; }
+  [[nodiscard]] const char *type() const override { return "star"; }
 
   /// Set the star radial extents.
   /// @param radius The star radius.
@@ -46,7 +46,7 @@ public:
   Star &setRadius(double radius);
   /// Get the star radial extents.
   /// @return The star radius.
-  double radius() const;
+  [[nodiscard]] double radius() const;
 
   /// Set the star centre coordinate.
   /// @param centre The new star centre.
@@ -54,7 +54,7 @@ public:
   Star &setCentre(const Vector3d &centre);
   /// Get the star centre coordinate.
   /// @return The star centre.
-  Vector3d centre() const;
+  [[nodiscard]] Vector3d centre() const;
 };
 
 
@@ -68,9 +68,7 @@ inline Star::Star(const Id &id, const Transform &transform)
 {}
 
 
-inline Star::Star(const Star &other)
-  : Shape(other)
-{}
+inline Star::Star(const Star &other) = default;
 
 
 inline Star &Star::setRadius(double radius)

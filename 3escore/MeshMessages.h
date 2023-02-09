@@ -113,7 +113,7 @@ namespace tes
 {
 /// @ingroup meshmsg
 /// Flag values for @c MeshCreateMessage .
-enum MeshCreateFlag
+enum MeshCreateFlag : unsigned
 {
   /// Indicates the use of double precision floating point values.
   McfDoublePrecision = (1u << 0u),
@@ -121,7 +121,7 @@ enum MeshCreateFlag
 
 /// @ingroup meshmsg
 /// Flag values for @c MeshFinaliseMessage .
-enum MeshFinaliseFlag
+enum MeshFinaliseFlag : unsigned
 {
   /// Calculate normals on receive. Overwrites normals if present.
   MffCalculateNormals = (1u << 0u),
@@ -130,7 +130,7 @@ enum MeshFinaliseFlag
 /// @ingroup meshmsg
 /// The possible @c MeshComponentMessage::elementType values. Identifies the the data type use dto
 /// pack the payload.
-enum MeshComponentElementType
+enum MeshComponentElementType : unsigned
 {
   McetInt8,     ///< Elements packed using 8-bit signed integers.
   McetUInt8,    ///< Elements packed using 8-bit unsigned integers.
@@ -164,7 +164,7 @@ template <> inline uint8_t meshComponentElementType<double>() { return McetFloat
 
 /// @ingroup meshmsg
 /// Defines the messageIDs for mesh message routing.
-enum MeshMessageType
+enum MeshMessageType : unsigned
 {
   MmtInvalid,
   MmtDestroy,
@@ -193,7 +193,7 @@ enum MeshMessageType
 
 /// @ingroup meshmsg
 /// Defines the primitives for a mesh.
-enum DrawType
+enum DrawType : unsigned
 {
   DtPoints,
   DtLines,
@@ -215,7 +215,7 @@ enum DrawType
 struct MeshCreateMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = MmtCreate
   };
@@ -240,6 +240,7 @@ struct MeshCreateMessage
     ok = reader.readElement(index_count) == sizeof(index_count) && ok;
     ok = reader.readElement(flags) == sizeof(flags) && ok;
     ok = reader.readElement(draw_type) == sizeof(draw_type) && ok;
+    // NOLINTNEXTLINE(hicpp-signed-bitwise)
     ok = attributes.read(reader, flags & McfDoublePrecision) && ok;
     return ok;
   }
@@ -258,6 +259,7 @@ struct MeshCreateMessage
     ok = writer.writeElement(index_count) == sizeof(index_count) && ok;
     ok = writer.writeElement(flags) == sizeof(flags) && ok;
     ok = writer.writeElement(draw_type) == sizeof(draw_type) && ok;
+    // NOLINTNEXTLINE(hicpp-signed-bitwise)
     ok = attributes.write(writer, flags & McfDoublePrecision) && ok;
     return ok;
   }
@@ -268,7 +270,7 @@ struct MeshCreateMessage
 struct MeshRedefineMessage : MeshCreateMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = MmtRedefine
   };
@@ -279,7 +281,7 @@ struct MeshRedefineMessage : MeshCreateMessage
 struct MeshDestroyMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = MmtDestroy
   };
@@ -339,7 +341,7 @@ struct MeshComponentMessage
 struct Material
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = MmtSetMaterial
   };
@@ -381,7 +383,7 @@ struct Material
 struct MeshFinaliseMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = MmtFinalise
   };

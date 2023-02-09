@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "Cylinder.h"
+#include "Box.h"
 
 namespace tes
 {

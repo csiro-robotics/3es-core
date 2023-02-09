@@ -41,7 +41,7 @@ public:
   /// @param other Object to copy.
   Cone(const Cone &other);
 
-  inline const char *type() const override { return "cone"; }
+  [[nodiscard]] const char *type() const override { return "cone"; }
 
   /// Sets the cone radius at the base.
   /// @param radius The base radius.
@@ -49,7 +49,7 @@ public:
   Cone &setRadius(double radius);
   /// Get the cone angle at the apex (radians).
   /// @return The cone angle (radians).
-  double radius() const;
+  [[nodiscard]] double radius() const;
 
   /// Set the cone length, apex to base.
   /// @param length The length to set.
@@ -57,7 +57,7 @@ public:
   Cone &setLength(double length);
   /// Get the cone length, apex to base.
   /// @return The cone length.
-  double length() const;
+  [[nodiscard]] double length() const;
 
   /// Set the position of the cone apex.
   /// @param point The apex coordinate.
@@ -65,7 +65,7 @@ public:
   Cone &setPoint(const Vector3d &point);
   /// Get the position of the cone apex.
   /// @return point The apex coordinate.
-  Vector3d point() const;
+  [[nodiscard]] Vector3d point() const;
 
   /// Set the cone direction vector.
   /// @param direction The direction vector to set. Must be unit length.
@@ -77,7 +77,7 @@ public:
   /// quaternion
   /// @c rotation().
   /// @return The arrow direction vector.
-  Vector3d direction() const;
+  [[nodiscard]] Vector3d direction() const;
 };
 
 
@@ -91,9 +91,7 @@ inline Cone::Cone(const Id &id, const Transform &transform)
 {}
 
 
-inline Cone::Cone(const Cone &other)
-  : Shape(other)
-{}
+inline Cone::Cone(const Cone &other) = default;
 
 
 inline Cone &Cone::setRadius(double radius)
@@ -142,7 +140,8 @@ inline Vector3d Cone::point() const
 inline Cone &Cone::setDirection(const Vector3d &dir)
 {
   Quaterniond rot;
-  if (dir.dot(Directional::DefaultDirection) > -0.9998)
+  const double dir_deviation = 0.9998;
+  if (dir.dot(Directional::DefaultDirection) > -dir_deviation)
   {
     rot = Quaterniond(Directional::DefaultDirection, dir);
   }
@@ -157,7 +156,7 @@ inline Cone &Cone::setDirection(const Vector3d &dir)
 
 inline Vector3d Cone::direction() const
 {
-  Quaterniond rot = rotation();
+  const Quaterniond rot = rotation();
   return rot * Directional::DefaultDirection;
 }
 }  // namespace tes

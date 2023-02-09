@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "Cylinder.h"
+#include "Star.h"
 
 namespace tes
 {

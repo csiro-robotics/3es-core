@@ -3,6 +3,7 @@
 //
 #include "MeshResource.h"
 
+#include <3escore/CoreUtil.h>
 #include <3escore/MeshMessages.h>
 #include <3escore/Rotation.h>
 #include <3escore/TransferProgress.h>
@@ -11,27 +12,26 @@
 #include <algorithm>
 #include <vector>
 
-using namespace tes;
-
-uint16_t MeshResource::estimateTransferCount(size_t elementSize, unsigned byteLimit,
+namespace tes
+{
+uint16_t MeshResource::estimateTransferCount(size_t element_size, unsigned byte_limit,
                                              unsigned overhead)
 {
   //                                    packet header           message                         crc
-  const size_t maxTransfer =
-    (0xffffu - (sizeof(PacketHeader) + overhead + sizeof(uint16_t))) / elementSize;
-  size_t count = byteLimit ? byteLimit / elementSize : maxTransfer;
+  const size_t max_transfer =
+    (0xffffu - (sizeof(PacketHeader) + overhead + sizeof(uint16_t))) / element_size;
+  size_t count = byte_limit ? byte_limit / element_size : max_transfer;
   if (count < 1)
   {
     count = 1;
   }
-  else if (count > maxTransfer)
+  else if (count > max_transfer)
   {
-    count = maxTransfer;
+    count = max_transfer;
   }
 
-  return uint16_t(count);
+  return int_cast<uint16_t>(count);
 }
-
 
 uint16_t MeshResource::typeId() const
 {
@@ -43,7 +43,7 @@ int MeshResource::create(PacketWriter &packet) const
 {
   MeshCreateMessage msg;
   ObjectAttributesd attributes;
-  Transform transform = this->transform();
+  const Transform transform = this->transform();
 
   msg.mesh_id = id();
   msg.vertex_count = vertexCount();
@@ -53,14 +53,15 @@ int MeshResource::create(PacketWriter &packet) const
 
   if (transform.preferDoublePrecision())
   {
+    // NOLINTNEXTLINE(hicpp-signed-bitwise)
     msg.flags |= McfDoublePrecision;
   }
 
   packet.reset(typeId(), MeshCreateMessage::MessageId);
 
-  const Vector3d pos(transform.position());
-  const Quaterniond rot(transform.rotation());
-  const Vector3d scale(transform.scale());
+  const Vector3d &pos = transform.position();
+  const Quaterniond &rot = transform.rotation();
+  const Vector3d &scale = transform.scale();
 
   attributes.colour = tint();
   attributes.position[0] = pos[0];
@@ -93,7 +94,8 @@ int MeshResource::destroy(PacketWriter &packet) const
 }
 
 
-int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+int MeshResource::transfer(PacketWriter &packet, unsigned byte_limit,
                            TransferProgress &progress) const
 {
   // packet.reset(typeId(), 0);
@@ -109,18 +111,18 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
     }
   }
 
-  packet.reset(typeId(), uint16_t(progress.phase));
+  packet.reset(typeId(), int_cast<uint16_t>(progress.phase));
   MeshComponentMessage msg;
   msg.mesh_id = id();
   msg.write(packet);
 
-  DataBuffer dataSource;
-  unsigned writeCount = 0;
+  DataBuffer data_source;
+  unsigned write_count = 0;
   switch (progress.phase)
   {
   case MmtVertex:
-    dataSource = vertices(0);
-    switch (dataSource.type())
+    data_source = vertices(0);
+    switch (data_source.type())
     {
     case DctFloat32:
     case DctFloat64:
@@ -130,7 +132,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
     default:
       TES_THROW(Exception("Bad vertex position type", __FILE__, __LINE__), -1);
     }
-    if (dataSource.componentCount() != 3)
+    if (data_source.componentCount() != 3)
     {
       TES_THROW(Exception("Bad vertex position component count", __FILE__, __LINE__), -1);
     }
@@ -138,8 +140,8 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
 
   case MmtVertexColour: {
     unsigned expected_component_count = 1;
-    dataSource = colours(0);
-    switch (dataSource.type())
+    data_source = colours(0);
+    switch (data_source.type())
     {
     case DctUInt32:
       expected_component_count = 1;
@@ -150,15 +152,15 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
     default:
       TES_THROW(Exception("Bad vertex colour type", __FILE__, __LINE__), -1);
     }
-    if (dataSource.componentCount() != expected_component_count)
+    if (data_source.componentCount() != expected_component_count)
     {
       TES_THROW(Exception("Bad vertex colour component count", __FILE__, __LINE__), -1);
     }
     break;
   }
   case MmtIndex:
-    dataSource = indices(0);
-    switch (dataSource.type())
+    data_source = indices(0);
+    switch (data_source.type())
     {
     case DctInt8:
     case DctUInt8:
@@ -172,15 +174,15 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
     default:
       TES_THROW(Exception("Bad index type", __FILE__, __LINE__), -1);
     }
-    if (dataSource.componentCount() != 1)
+    if (data_source.componentCount() != 1)
     {
       TES_THROW(Exception("Bad index component count", __FILE__, __LINE__), -1);
     }
     break;
 
   case MmtNormal:
-    dataSource = normals(0);
-    switch (dataSource.type())
+    data_source = normals(0);
+    switch (data_source.type())
     {
     case DctFloat32:
     case DctFloat64:
@@ -190,15 +192,15 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
     default:
       TES_THROW(Exception("Bad vertex normal type", __FILE__, __LINE__), -1);
     }
-    if (dataSource.componentCount() != 3)
+    if (data_source.componentCount() != 3)
     {
       TES_THROW(Exception("Bad vertex normal component count", __FILE__, __LINE__), -1);
     }
     break;
 
   case MmtUv:
-    dataSource = uvs(0);
-    switch (dataSource.type())
+    data_source = uvs(0);
+    switch (data_source.type())
     {
     case DctFloat32:
     case DctFloat64:
@@ -208,7 +210,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
     default:
       TES_THROW(Exception("Bad vertex UV type", __FILE__, __LINE__), -1);
     }
-    if (dataSource.componentCount() != 2)
+    if (data_source.componentCount() != 2)
     {
       TES_THROW(Exception("Bad vertex UV component count", __FILE__, __LINE__), -1);
     }
@@ -231,20 +233,20 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byteLimit,
     break;
   }
 
-  if (dataSource.isValid())
+  if (data_source.isValid())
   {
-    writeCount = dataSource.write(packet, uint32_t(progress.progress), byteLimit);
+    write_count = data_source.write(packet, int_cast<uint32_t>(progress.progress), byte_limit);
 
-    if (writeCount == 0 && dataSource.count() > 0)
+    if (write_count == 0 && data_source.count() > 0)
     {
       // Failed to write when we should have.
       return -1;
     }
 
-    progress.progress += writeCount;
+    progress.progress += write_count;
   }
 
-  if (!progress.complete && progress.progress >= dataSource.count())
+  if (!progress.complete && progress.progress >= data_source.count())
   {
     // Phase complete. Progress to the next phase.
     nextPhase(progress);
@@ -264,7 +266,7 @@ bool MeshResource::readCreate(PacketReader &packet)
 }
 
 
-bool MeshResource::readTransfer(int messageType, PacketReader &packet)
+bool MeshResource::readTransfer(int message_type, PacketReader &packet)
 {
   MeshComponentMessage msg;
   bool ok = true;
@@ -273,8 +275,6 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
   {
     return false;
   }
-
-  DataBuffer readStream;
 
   // Read offset and count
   uint32_t offset = 0;
@@ -287,51 +287,52 @@ bool MeshResource::readTransfer(int messageType, PacketReader &packet)
   // If we need to peek the stream data type and component count we can do by invoking
   // peek_stream_info(). On success, component_count and packet_type will be valid.
   std::array<uint8_t, 2> component_count_and_packet_type;
-  uint8_t &component_count = component_count_and_packet_type[0];
-  uint8_t &packet_type = component_count_and_packet_type[1];
+  const uint8_t &component_count = component_count_and_packet_type[0];
+  const uint8_t &packet_type = component_count_and_packet_type[1];
   const auto peek_stream_info = [&packet, &component_count_and_packet_type] {
     return packet.peek(component_count_and_packet_type.data(),
                        component_count_and_packet_type.size(),
                        false) == sizeof(component_count_and_packet_type);
   };
 
-  switch (messageType)
+  DataBuffer read_stream;
+  switch (message_type)
   {
   case MmtVertex: {
-    readStream = DataBuffer(static_cast<Vector3d *>(nullptr), 0);
+    read_stream = DataBuffer(static_cast<Vector3d *>(nullptr), 0);
     // Read the expected number of items.
-    readStream.read(packet, 0, count);
-    ok = processVertices(msg, offset, readStream) && ok;
+    read_stream.read(packet, 0, count);
+    ok = processVertices(msg, offset, read_stream) && ok;
     break;
   }
   case MmtIndex: {
-    readStream = DataBuffer(DctUInt32);
+    read_stream = DataBuffer(DctUInt32);
     // Read the expected number of items.
-    readStream.read(packet, 0, count);
-    ok = processIndices(msg, offset, readStream) && ok;
+    read_stream.read(packet, 0, count);
+    ok = processIndices(msg, offset, read_stream) && ok;
     break;
   }
   case MmtVertexColour: {
     // Peek stream info. We may have uint32_t or uint8_t streams.
     ok = peek_stream_info() && ok;
-    readStream = DataBuffer(static_cast<DataStreamType>(packet_type), component_count);
+    read_stream = DataBuffer(static_cast<DataStreamType>(packet_type), component_count);
     // Read the expected number of items.
-    readStream.read(packet, 0, count);
-    ok = processColours(msg, offset, readStream) && ok;
+    read_stream.read(packet, 0, count);
+    ok = processColours(msg, offset, read_stream) && ok;
     break;
   }
   case MmtNormal: {
-    readStream = DataBuffer(static_cast<Vector3d *>(nullptr), 0);
+    read_stream = DataBuffer(static_cast<Vector3d *>(nullptr), 0);
     // Read the expected number of items.
-    readStream.read(packet, 0, count);
-    ok = processNormals(msg, offset, readStream) && ok;
+    read_stream.read(packet, 0, count);
+    ok = processNormals(msg, offset, read_stream) && ok;
     break;
   }
   case MmtUv: {
-    readStream = DataBuffer(DctFloat64, 2);
+    read_stream = DataBuffer(DctFloat64, 2);
     // Read the expected number of items.
-    readStream.read(packet, 0, count);
-    ok = processUVs(msg, offset, readStream) && ok;
+    read_stream.read(packet, 0, count);
+    ok = processUVs(msg, offset, read_stream) && ok;
     break;
   }
   }
@@ -456,3 +457,4 @@ bool MeshResource::processUVs(const MeshComponentMessage &msg, unsigned offset,
   TES_UNUSED(stream);
   return false;
 }
+}  // namespace tes

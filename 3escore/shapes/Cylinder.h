@@ -39,7 +39,7 @@ public:
   /// @param other Object to copy.
   Cylinder(const Cylinder &other);
 
-  inline const char *type() const override { return "cylinder"; }
+  [[nodiscard]] const char *type() const override { return "cylinder"; }
 
   /// Set the cylinder body radius.
   /// @param radius The radius to set.
@@ -47,15 +47,15 @@ public:
   Cylinder &setRadius(double radius);
   /// Get the cylinder radius.
   /// @return The cylinder radius.
-  double radius() const;
+  [[nodiscard]] double radius() const;
 
   /// Set the cylinder body length.
   /// @param length The body length to set.
   /// @return @c *this
-  Cylinder &setLength(double radius);
+  Cylinder &setLength(double length);
   /// Get the cylinder body length.
   /// @param The body length.
-  double length() const;
+  [[nodiscard]] double length() const;
 
   /// Set the position fo the cylinder centre.
   /// @param centre The centre coordinate.
@@ -63,7 +63,7 @@ public:
   Cylinder &setCentre(const Vector3d &centre);
   /// Get the cylinder centre position.
   /// @return The centre coordinate.
-  Vector3d centre() const;
+  [[nodiscard]] Vector3d centre() const;
 
   /// Set the cylinder primary axis. Affects @p rotation().
   /// @param axis The new axis to set.
@@ -74,7 +74,7 @@ public:
   /// May not exactly match the axis given via @p setAxis() as the axis is defined by the quaternion
   /// @c rotation().
   /// @return The primary axis.
-  Vector3d axis() const;
+  [[nodiscard]] Vector3d axis() const;
 };
 
 
@@ -88,9 +88,7 @@ inline Cylinder::Cylinder(const Id &id, const Transform &transform)
 {}
 
 
-inline Cylinder::Cylinder(const Cylinder &other)
-  : Shape(other)
-{}
+inline Cylinder::Cylinder(const Cylinder &other) = default;
 
 
 inline Cylinder &Cylinder::setRadius(double radius)
@@ -139,7 +137,8 @@ inline Vector3d Cylinder::centre() const
 inline Cylinder &Cylinder::setAxis(const Vector3d &axis)
 {
   Quaterniond rot;
-  if (axis.dot(Directional::DefaultDirection) > -0.9998f)
+  const double dir_deviation = 0.9998;
+  if (axis.dot(Directional::DefaultDirection) > -dir_deviation)
   {
     rot = Quaterniond(Directional::DefaultDirection, axis);
   }
@@ -154,7 +153,7 @@ inline Cylinder &Cylinder::setAxis(const Vector3d &axis)
 
 inline Vector3d Cylinder::axis() const
 {
-  Quaterniond rot = rotation();
+  const Quaterniond rot = rotation();
   return rot * Directional::DefaultDirection;
 }
 }  // namespace tes

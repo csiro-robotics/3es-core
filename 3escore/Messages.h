@@ -23,7 +23,7 @@ namespace tes
 /// Limited to 2^16 - 1.
 ///
 /// @todo Rename to RoutingIDs that is used first then a message ID is assigned.
-enum MessageTypeIDs
+enum MessageTypeIDs : unsigned
 {
   MtNull,
   MtServerInfo,
@@ -44,7 +44,7 @@ enum MessageTypeIDs
 };
 
 /// Default/built in renderers (routing IDs).
-enum ShapeHandlerIDs
+enum ShapeHandlerIDs : unsigned
 {
   SIdSphere = ShapeHandlersIDStart,
   SIdBox,
@@ -65,7 +65,7 @@ enum ShapeHandlerIDs
 };
 
 /// Message IDs for a @c ControlMessage.
-enum ControlId
+enum ControlId : unsigned
 {
   CIdNull,
   /// Marks a change of frame. Pending objects changes are applied Defines a new
@@ -97,13 +97,13 @@ enum ControlId
 };
 
 /// Message IDs for @c MtCategory routing.
-enum CategoryMessageId
+enum CategoryMessageId : unsigned
 {
   CMIdName,  ///< Category name definition.
 };
 
 /// Object/shape management message ID. Used with @c ShapeHandlerIDs routing IDs.
-enum ObjectMessageId
+enum ObjectMessageId : unsigned
 {
   OIdNull,
   OIdCreate,
@@ -145,7 +145,7 @@ enum ObjectFlag : unsigned
 };
 
 /// Additional attributes for point data sources.
-enum PointsAttributeFlag
+enum PointsAttributeFlag : unsigned
 {
   PAFNone = 0,              ///< No additional data (points only)
   PAFNormals = (1u << 0u),  ///< Per point normals.
@@ -153,7 +153,7 @@ enum PointsAttributeFlag
 };
 
 /// @c ObjectFlag extensions for Text2D rendering.
-enum Text2DFlag
+enum Text2DFlag : unsigned
 {
   Text2DFWorldSpace = OFUser  ///< Position is given in world space and mapped to screen space.
                               ///< Otherwise in screen space with (0, 0, z) at the top left corner
@@ -161,13 +161,13 @@ enum Text2DFlag
 };
 
 /// @c ObjectFlag extensions for Text2D rendering.
-enum Text3DFlag
+enum Text3DFlag : unsigned
 {
   Text3DFScreenFacing = OFUser  ///< Text is oriented to face the screen.
 };
 
 /// @c ObjectFlag extensions for @c MeshShape.
-enum MeshShapeFlag
+enum MeshShapeFlag : unsigned
 {
   MeshShapeCalculateNormals = OFUser  ///< Calculate normals and rendering with lighting.
 };
@@ -187,13 +187,13 @@ enum UpdateFlag : unsigned
 };
 
 /// Flags for @c CollatedPacketMessage.
-enum CollatedPacketFlag
+enum CollatedPacketFlag : unsigned
 {
   CPFCompress = (1u << 0u),
 };
 
 /// Flags for various @c ControlId messages.
-enum ControlFlag
+enum ControlFlag : unsigned
 {
   /// Flag for @c CIdFrame indicating transient objects should be maintained and not flushed for
   /// this frame.
@@ -203,7 +203,7 @@ enum ControlFlag
 /// Data type identifies for any data stream type. Also used in @c DataBuffer to identify the
 /// contained data type. Note the packed types are not valid to be held in a @c DataBuffer and are
 /// only used in transmission.
-enum DataStreamType
+enum DataStreamType : unsigned
 {
   DctNone,     ///< No type: invalid.
   DctInt8,     ///< Elements using 8-bit signed integers.
@@ -326,7 +326,7 @@ struct TES_CORE_API ControlMessage
 struct TES_CORE_API CategoryNameMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = CMIdName
   };
@@ -573,7 +573,7 @@ using ObjectAttributesd = ObjectAttributes<double>;
 struct TES_CORE_API CreateMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = OIdCreate
   };
@@ -622,7 +622,7 @@ struct TES_CORE_API CreateMessage
 struct TES_CORE_API DataMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = OIdData
   };
@@ -657,7 +657,7 @@ struct TES_CORE_API DataMessage
 struct TES_CORE_API UpdateMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = OIdUpdate
   };
@@ -700,7 +700,7 @@ struct TES_CORE_API UpdateMessage
 struct TES_CORE_API DestroyMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = OIdDestroy
   };

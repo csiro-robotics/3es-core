@@ -39,7 +39,7 @@ public:
   /// @param other Object to copy.
   Capsule(const Capsule &other);
 
-  inline const char *type() const override { return "capsule"; }
+  [[nodiscard]] const char *type() const override { return "capsule"; }
 
   /// Set the capsule body radius.
   /// @param radius The radius to set.
@@ -47,15 +47,15 @@ public:
   Capsule &setRadius(double radius);
   /// Get the capsule radius.
   /// @return The capsule radius.
-  double radius() const;
+  [[nodiscard]] double radius() const;
 
   /// Set the capsule body length. The end caps extend beyond this by the radius at each end.
   /// @param length The body length to set.
   /// @return @c *this
-  Capsule &setLength(double radius);
+  Capsule &setLength(double length);
   /// Get the capsule body length.
   /// @param The body length.
-  double length() const;
+  [[nodiscard]] double length() const;
 
   /// Set the position fo the capsule centre.
   /// @param centre The centre coordinate.
@@ -63,7 +63,7 @@ public:
   Capsule &setCentre(const Vector3d &centre);
   /// Get the capsule centre position.
   /// @return The centre coordinate.
-  Vector3d centre() const;
+  [[nodiscard]] Vector3d centre() const;
 
   /// Set the capsule primary axis. Affects @p rotation().
   /// @param axis The new axis to set.
@@ -74,7 +74,7 @@ public:
   /// May not exactly match the axis given via @p setAxis() as the axis is defined by the quaternion
   /// @c rotation().
   /// @return The primary axis.
-  Vector3d axis() const;
+  [[nodiscard]] Vector3d axis() const;
 };
 
 
@@ -88,9 +88,7 @@ inline Capsule::Capsule(const Id &id, const Transform &transform)
 {}
 
 
-inline Capsule::Capsule(const Capsule &other)
-  : Shape(other)
-{}
+inline Capsule::Capsule(const Capsule &other) = default;
 
 
 inline Capsule &Capsule::setRadius(double radius)
@@ -145,7 +143,7 @@ inline Capsule &Capsule::setAxis(const Vector3d &axis)
 
 inline Vector3d Capsule::axis() const
 {
-  Quaterniond rot = rotation();
+  const Quaterniond rot = rotation();
   return rot * Directional::DefaultDirection;
 }
 }  // namespace tes

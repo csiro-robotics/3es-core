@@ -3,4 +3,6 @@
 //
 #include "Arrow.h"
 
-using namespace tes;
+namespace tes
+{
+}  // namespace tes
