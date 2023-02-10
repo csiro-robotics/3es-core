@@ -108,7 +108,7 @@ void Text2D::readMessage(PacketReader &reader)
     }
 
     TextEntry text;
-    text.text = std::string(shape.text(), shape.textLength());
+    text.text = shape.text();
     text.transform = Magnum::Matrix4::translation(convert(shape.position()));
     text.colour = convert(shape.colour());
     if (shape.inWorldSpace())

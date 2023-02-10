@@ -212,6 +212,11 @@ void Text::draw(const TextEntry &text, const Matrix &full_projection_matrix, Ren
 {
   using namespace Magnum::Math::Literals;
 
+  if (text.text.empty())
+  {
+    return;
+  }
+
   if (text.text.length() <= renderer.capacity())
   {
     renderer.render(text.text);
