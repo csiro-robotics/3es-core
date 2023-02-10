@@ -122,6 +122,7 @@ list(APPEND SOURCES
   PacketStream.cpp
   PacketStreamReader.cpp
   PacketWriter.cpp
+  PlaneGeom.cpp
   Quaternion.cpp
   Resource.cpp
   ResourcePacker.cpp
@@ -131,6 +132,7 @@ list(APPEND SOURCES
   Throw.cpp
   Timer.cpp
   Transform.cpp
+  TriGeom.cpp
   Vector3.cpp
   Vector4.cpp
   DataBuffer.cpp

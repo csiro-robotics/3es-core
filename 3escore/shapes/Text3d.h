@@ -26,8 +26,7 @@ public:
   /// transient shape.
   /// @param transform Directional transformation for the text. The length is used to control the
   /// font size.
-  Text3D(const std::string &text = {}, const Id &id = Id(),
-         const Directional &transform = Directional());
+  Text3D(std::string text = {}, const Id &id = Id(), const Directional &transform = Directional());
 
   /// Copy constructor
   Text3D(const Text3D &other);
@@ -73,9 +72,9 @@ private:
 };
 
 
-inline Text3D::Text3D(const std::string &text, const Id &id, const Directional &transform)
+inline Text3D::Text3D(std::string text, const Id &id, const Directional &transform)
   : Shape(SIdText3D, id, transform)
-  , _text(text)
+  , _text(std::move(text))
 {}
 
 

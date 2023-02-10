@@ -70,9 +70,6 @@ PacketWriter::PacketWriter(PacketWriter &&other) noexcept
 }
 
 
-PacketWriter::~PacketWriter() = default;
-
-
 PacketWriter &PacketWriter::operator=(PacketWriter other)
 {
   other.swap(*this);

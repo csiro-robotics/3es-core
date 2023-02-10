@@ -75,7 +75,7 @@ public:
   PacketWriter(PacketWriter &&other) noexcept;
 
   /// Destructor, ensuring the CRC is calculated.
-  ~PacketWriter();
+  ~PacketWriter() = default;
 
   /// Assignment operator. Simple as neither writer owns the underlying memory.
   /// Both point to the same underlying memory, but only one should be used.

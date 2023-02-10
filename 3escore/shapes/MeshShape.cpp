@@ -4,7 +4,6 @@
 #include "MeshShape.h"
 
 #include "MeshResource.h"
-#include "MeshSet.h"
 
 #include <3escore/CoreUtil.h>
 #include <3escore/PacketWriter.h>
@@ -13,7 +12,6 @@
 
 namespace tes
 {
-
 namespace
 {
 // Helper for automating data sending.
@@ -121,9 +119,9 @@ bool MeshShape::Resource::readCreate(PacketReader &packet)
 }
 
 
-bool MeshShape::Resource::readTransfer(int messageType, PacketReader &packet)
+bool MeshShape::Resource::readTransfer(int message_type, PacketReader &packet)
 {
-  (void)messageType;
+  (void)message_type;
   (void)packet;
   return false;
 }
@@ -136,20 +134,19 @@ MeshShape::MeshShape(const MeshShape &other)
 }
 
 
-MeshShape::MeshShape(MeshShape &&other)
+MeshShape::MeshShape(MeshShape &&other) noexcept
   : Shape(other)
   , _vertices(std::move(other._vertices))
   , _normals(std::move(other._normals))
   , _colours(std::move(other._colours))
   , _indices(std::move(other._indices))
-  , _quantisationUnit(std::exchange(other._quantisationUnit, 0.0))
-  , _drawScale(std::exchange(other._drawScale, 0.0f))
-  , _drawType(std::exchange(other._drawType, DtPoints))
+  , _quantisation_unit(std::exchange(other._quantisation_unit, 0.0))
+  , _draw_scale(std::exchange(other._draw_scale, 0.0f))
+  , _draw_type(std::exchange(other._draw_type, DtPoints))
 {}
 
 
-MeshShape::~MeshShape()
-{}
+MeshShape::~MeshShape() = default;
 
 
 MeshShape &MeshShape::setNormals(const DataBuffer &normals)
@@ -163,8 +160,8 @@ MeshShape &MeshShape::setNormals(const DataBuffer &normals)
 MeshShape &MeshShape::setUniformNormal(const Vector3f &normal)
 {
   setCalculateNormals(false);
-  Vector3f *n = new Vector3f(normal);
-  _normals = std::move(DataBuffer(n->storage().data(), 1, 3, 3, false));
+  const std::array<Vector3f, 1> source = { normal };
+  _normals = std::move(DataBuffer(source));
   _normals.duplicate();
   return *this;
 }
@@ -176,7 +173,8 @@ void expandVertices(DataBuffer &vertices, DataBuffer &indices)
   if (vertices.isValid())
   {
     // First unpack all vertices and stop indexing.
-    T *verts = new T[vertices.componentCount() * indices.count()];
+    const size_t element_count = static_cast<size_t>(vertices.componentCount()) * indices.count();
+    T *verts = new T[element_count];
     T *dst = verts;
     for (unsigned i = 0; i < indices.count(); ++i)
     {
@@ -232,14 +230,14 @@ bool MeshShape::writeCreate(PacketWriter &packet) const
   ok = packet.writeElement(count) == sizeof(count) && ok;
   count = _indices.count();
   ok = packet.writeElement(count) == sizeof(count) && ok;
-  ok = packet.writeElement(_drawScale) == sizeof(_drawScale) && ok;
-  uint8_t drawType = _drawType;
-  ok = packet.writeElement(drawType) == sizeof(drawType) && ok;
+  ok = packet.writeElement(_draw_scale) == sizeof(_draw_scale) && ok;
+  const uint8_t draw_type = _draw_type;
+  ok = packet.writeElement(draw_type) == sizeof(draw_type) && ok;
   return ok;
 }
 
 
-int MeshShape::writeData(PacketWriter &packet, unsigned &progressMarker) const
+int MeshShape::writeData(PacketWriter &packet, unsigned &progress_marker) const
 {
   bool ok = true;
   DataMessage msg;
@@ -251,73 +249,73 @@ int MeshShape::writeData(PacketWriter &packet, unsigned &progressMarker) const
   uint32_t offset;
 
   // Resolve what we are currently sending.
-  unsigned phaseIndex = 0;
-  unsigned previousPhaseOffset = 0;
+  unsigned phase_index = 0;
+  unsigned previous_phase_offset = 0;
 
   // Order to send data in and information required to automate sending.
-  const DataPhase phases[] = { { SDT_Vertices, _vertices.type(), &_vertices },
-                               { SDT_Indices, _indices.type(), &_indices },
-                               { SDT_Normals, _normals.type(), &_normals },
-                               { SDT_Colours, _colours.type(), &_colours } };
+  const std::array<DataPhase, 4> phases = { DataPhase{ SDTVertices, _vertices.type(), &_vertices },
+                                            DataPhase{ SDTIndices, _indices.type(), &_indices },
+                                            DataPhase{ SDTNormals, _normals.type(), &_normals },
+                                            DataPhase{ SDTColours, _colours.type(), &_colours } };
 
-  // While progressMarker is greater than or equal to the sum of the previous phase counts and the
+  // While progress_marker is greater than or equal to the sum of the previous phase counts and the
   // current phase count. Also terminate of out of phases.
-  while (phaseIndex < sizeof(phases) / sizeof(phases[0]) &&
-         progressMarker >= previousPhaseOffset + phases[phaseIndex].stream->count())
+  while (phase_index < phases.size() &&
+         progress_marker >= previous_phase_offset + phases[phase_index].stream->count())
   {
-    previousPhaseOffset += phases[phaseIndex].stream->count();
-    ++phaseIndex;
+    previous_phase_offset += phases[phase_index].stream->count();
+    ++phase_index;
   }
 
-  offset = progressMarker - previousPhaseOffset;
+  offset = progress_marker - previous_phase_offset;
 
   bool done = false;
-  unsigned writeCount = 0;
-  switch (phaseIndex)
+  unsigned write_count = 0;
+  switch (phase_index)
   {
-  case SDT_Vertices:
-    ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
-    if (_quantisationUnit > 0)
+  case SDTVertices:
+    ok = packet.writeElement(static_cast<uint16_t>(phase_index)) == sizeof(uint16_t) && ok;
+    if (_quantisation_unit > 0)
     {
-      writeCount = _vertices.writePacked(packet, offset, _quantisationUnit);
+      write_count = _vertices.writePacked(packet, offset, _quantisation_unit);
     }
     else
     {
-      writeCount = _vertices.write(packet, offset);
+      write_count = _vertices.write(packet, offset);
     }
     break;
-  case SDT_Indices:
-    ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
-    writeCount = _indices.write(packet, offset);
+  case SDTIndices:
+    ok = packet.writeElement(static_cast<uint16_t>(phase_index)) == sizeof(uint16_t) && ok;
+    write_count = _indices.write(packet, offset);
     break;
-  case SDT_Normals:
-    ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
-    if (_quantisationUnit > 0)
+  case SDTNormals:
+    ok = packet.writeElement(static_cast<uint16_t>(phase_index)) == sizeof(uint16_t) && ok;
+    if (_quantisation_unit > 0)
     {
-      writeCount = _normals.writePacked(packet, offset, 1.0f / float(0xffff));
+      write_count = _normals.writePacked(packet, offset, 1.0f / static_cast<float>(0xffff));
     }
     else
     {
-      writeCount = _normals.write(packet, offset);
+      write_count = _normals.write(packet, offset);
     }
     break;
-  case SDT_Colours:
-    ok = packet.writeElement(uint16_t(phaseIndex)) == sizeof(uint16_t) && ok;
-    writeCount = _colours.write(packet, offset);
+  case SDTColours:
+    ok = packet.writeElement(static_cast<uint16_t>(phase_index)) == sizeof(uint16_t) && ok;
+    write_count = _colours.write(packet, offset);
     break;
 
   default:
     // Either all done or no data to send.
-    ok = packet.writeElement(uint16_t(SDT_End)) == sizeof(uint16_t) && ok;
+    ok = packet.writeElement(static_cast<uint16_t>(SDTEnd)) == sizeof(uint16_t) && ok;
     // Write zero offset (4-bytes) and count (2-bytes) for consistency.
-    ok = packet.writeElement(uint32_t(0)) == sizeof(uint32_t) && ok;
-    ok = packet.writeElement(uint16_t(0)) == sizeof(uint16_t) && ok;
+    ok = packet.writeElement(static_cast<uint32_t>(0)) == sizeof(uint32_t) && ok;
+    ok = packet.writeElement(static_cast<uint16_t>(0)) == sizeof(uint16_t) && ok;
     done = true;
     break;
   }
 
-  progressMarker += writeCount;
-  ok = done || writeCount > 0;
+  progress_marker += write_count;
+  ok = (done || write_count > 0) && ok;
 
   if (!ok)
   {
@@ -337,23 +335,23 @@ bool MeshShape::readCreate(PacketReader &packet)
     return false;
   }
 
-  uint32_t vertexCount = 0;
-  uint32_t indexCount = 0;
-  uint8_t drawType = 0;
+  uint32_t vertex_count = 0;
+  uint32_t index_count = 0;
+  uint8_t draw_type = 0;
   bool ok = true;
 
-  ok = ok && packet.readElement(vertexCount) == sizeof(vertexCount);
-  ok = ok && packet.readElement(indexCount) == sizeof(indexCount);
+  ok = ok && packet.readElement(vertex_count) == sizeof(vertex_count);
+  ok = ok && packet.readElement(index_count) == sizeof(index_count);
 
   _vertices.set(static_cast<float *>(nullptr), 0, 3);
   _normals.set(static_cast<float *>(nullptr), 0, 3);
   _indices.set(static_cast<uint32_t *>(nullptr), 0);
   _colours.set(static_cast<uint32_t *>(nullptr), 0);
 
-  ok = ok && packet.readElement(_drawScale) == sizeof(_drawScale);
+  ok = ok && packet.readElement(_draw_scale) == sizeof(_draw_scale);
 
-  ok = ok && packet.readElement(drawType) == sizeof(drawType);
-  _drawType = (DrawType)drawType;
+  ok = ok && packet.readElement(draw_type) == sizeof(draw_type);
+  _draw_type = static_cast<DrawType>(draw_type);
 
   return ok;
 }
@@ -362,36 +360,34 @@ bool MeshShape::readCreate(PacketReader &packet)
 bool MeshShape::readData(PacketReader &packet)
 {
   DataMessage msg;
-  uint16_t dataType = 0;
+  uint16_t data_type = 0;
   bool ok = true;
 
   ok = ok && msg.read(packet);
-  ok = ok && packet.readElement(dataType) == sizeof(dataType);
+  ok = ok && packet.readElement(data_type) == sizeof(data_type);
 
   // Record and mask out end flags.
-  dataType = dataType;
+  data_type = data_type;
 
-  unsigned endReadCount = 0;
-  switch (dataType)
+  switch (data_type)
   {
-  case SDT_Vertices:
+  case SDTVertices:
     ok = _vertices.read(packet) > 0 && ok;
     break;
 
-  case SDT_Indices:
+  case SDTIndices:
     ok = _indices.read(packet) > 0 && ok;
-    ok = ok && endReadCount != ~0u;
     break;
 
     // Normals handled together.
-  case SDT_Normals:
+  case SDTNormals:
     ok = _normals.read(packet) > 0 && ok;
     break;
 
-  case SDT_Colours:
+  case SDTColours:
     ok = _colours.read(packet) > 0 && ok;
     break;
-  case SDT_End:
+  case SDTEnd:
     // Ensure we have zero offset and count.
     {
       uint32_t offset{};
@@ -413,7 +409,7 @@ bool MeshShape::readData(PacketReader &packet)
 
 Shape *MeshShape::clone() const
 {
-  MeshShape *triangles = new MeshShape();
+  auto *triangles = new MeshShape();
   onClone(triangles);
   triangles->_data = _data;
   return triangles;
@@ -431,8 +427,8 @@ void MeshShape::onClone(MeshShape *copy) const
   copy->_indices.duplicate();
   copy->_colours = DataBuffer(_indices);
   copy->_colours.duplicate();
-  copy->_quantisationUnit = _quantisationUnit;
-  copy->_drawScale = _drawScale;
-  copy->_drawType = _drawType;
+  copy->_quantisation_unit = _quantisation_unit;
+  copy->_draw_scale = _draw_scale;
+  copy->_draw_type = _draw_type;
 }
 }  // namespace tes

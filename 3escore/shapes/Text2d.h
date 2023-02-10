@@ -27,7 +27,7 @@ public:
   /// @param id The shape id and category, with unique id among @c Text2D objects, or zero for a
   /// transient shape.
   /// @param pos The position of the text.
-  Text2D(const std::string &text = {}, const Id &id = Id(), const Spherical &pos = Spherical());
+  Text2D(std::string text = {}, const Id &id = Id(), const Spherical &pos = Spherical());
 
   /// Copy constructor
   /// @param other Object to copy.
@@ -70,10 +70,9 @@ private:
 };
 
 
-// NOLINTNEXTLINE(modernize-pass-by-value)
-inline Text2D::Text2D(const std::string &text, const Id &id, const Spherical &pos)
+inline Text2D::Text2D(std::string text, const Id &id, const Spherical &pos)
   : Shape(SIdText2D, id, pos)
-  , _text(text)
+  , _text(std::move(text))
 {}
 
 inline bool Text2D::inWorldSpace() const
