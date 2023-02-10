@@ -143,8 +143,6 @@ public:
 private:
   std::unique_ptr<TcpSocketDetail> _detail;  ///< Implementation detail.
 };
-
-using TcpSocketPtr = std::shared_ptr<TcpSocket>;
 }  // namespace tes
 
 #endif  // TES_CORE_TCP_SOCKET_H

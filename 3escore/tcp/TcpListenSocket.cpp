@@ -127,7 +127,7 @@ bool TcpListenSocket::isListening() const
 }
 
 
-TcpSocketPtr TcpListenSocket::accept(unsigned timeout_ms)
+std::shared_ptr<TcpSocket> TcpListenSocket::accept(unsigned timeout_ms)
 {
   struct timeval timeout;
   fd_set fd_read = {};

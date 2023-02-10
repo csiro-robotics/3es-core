@@ -57,7 +57,7 @@ bool TcpListenSocket::isListening() const
 }
 
 
-TcpSocket::Ptr tcpListenSocket::accept(unsigned timeout_ms)
+std::shared_ptr<TcpSocket> tcpListenSocket::accept(unsigned timeout_ms)
 {
   if (!_detail->listen_socket.waitForNewConnection(timeout_ms))
   {

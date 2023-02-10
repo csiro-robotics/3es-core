@@ -7,7 +7,8 @@
 
 namespace tes
 {
-TcpConnection::TcpConnection(TcpSocketPtr client_socket, const ServerSettings &settings)
+TcpConnection::TcpConnection(std::shared_ptr<TcpSocket> client_socket,
+                             const ServerSettings &settings)
   : BaseConnection(settings)
   , _client(std::move(client_socket))
 {}
