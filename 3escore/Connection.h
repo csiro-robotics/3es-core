@@ -6,8 +6,11 @@
 
 #include "CoreConfig.h"
 
+#include "Ptr.h"
+
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 
 namespace tes
 {
@@ -21,6 +24,8 @@ struct ServerInfoMessage;
 class TES_CORE_API Connection
 {
 public:
+  using ResourcePtr = Ptr<const Resource>;
+
   /// Virtual destructor.
   virtual ~Connection() = default;
 
@@ -93,23 +98,30 @@ public:
 
   /// Add a resource to this connection.
   ///
-  /// The resource is either added with a reference count of 1, or the resource
-  /// reference count is incremented. The @p resource pointer must remain valid until
-  /// the reference count returns to zero. A newly added resource is pushed into the
-  /// resource queue for transfer.
+  /// If this is the first time this resource has been referenced, then the resource is transmitted
+  /// to the connected client. The resource remains active until @c releaseResource() is called a
+  /// number of times equal to the @c referenceResource() calls. Note the reference counting
+  /// performed here is for the connection and manages transmitting creation and destruction
+  /// messages, rather managing the @c Resource object. The latter is managed by the @c shared_ptr .
+  ///
+  /// Resource reference counts also increase when creating non transient shapes which have
+  /// resources (see @c Shape::enumerateResources() ).
   ///
   /// @param resource The resource to reference.
-  /// @return The resource reference count after adjustment.
-  virtual unsigned referenceResource(const Resource *resource) = 0;
+  /// @return The resource reference count after adding this resource.
+  virtual unsigned referenceResource(const ResourcePtr &resource) = 0;
 
   /// Release a resource within this connection.
   ///
   /// If found, the resource has its reference count reduced. A destroy message is sent for
   /// the resource if the count becomes zero.
   ///
+  /// Resource reference counts also decrease when destroying non transient shapes which have
+  /// resources (see @c Shape::enumerateResources() ).
+  ///
   /// @param resource The resource to release.
   /// @return The resource reference count after adjustment.
-  virtual unsigned releaseResource(const Resource *resource) = 0;
+  virtual unsigned releaseResource(const ResourcePtr &resource) = 0;
 
   /// Send server details to the client.
   virtual bool sendServerInfo(const ServerInfoMessage &info) = 0;

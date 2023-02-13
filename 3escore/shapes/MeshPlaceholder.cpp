@@ -87,8 +87,8 @@ DataBuffer MeshPlaceholder::colours(int stream) const
 }
 
 
-Resource *MeshPlaceholder::clone() const
+std::shared_ptr<Resource> MeshPlaceholder::clone() const
 {
-  return new MeshPlaceholder(_id);
+  return std::make_shared<MeshPlaceholder>(_id);
 }
 }  // namespace tes

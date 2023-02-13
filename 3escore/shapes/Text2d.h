@@ -60,10 +60,10 @@ public:
   Text2D &operator=(const Text2D &other);
   Text2D &operator=(Text2D &&other) noexcept;
 
-  [[nodiscard]] Shape *clone() const override;
+  [[nodiscard]] std::shared_ptr<Shape> clone() const override;
 
 protected:
-  void onClone(Text2D *copy) const;
+  void onClone(Text2D &copy) const;
 
 private:
   std::string _text;

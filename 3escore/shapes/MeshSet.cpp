@@ -11,51 +11,36 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iterator>
 
 namespace tes
 {
 MeshSet::MeshSet(const Id &id, const UIntArg &part_count)
   : Shape(SIdMeshSet, id)
-  , _part_count(part_count)
 {
-  _parts = new Part[part_count.i];
-  if (part_count)
-  {
-    for (unsigned i = 0; i < part_count; ++i)
-    {
-      _parts[i].transform = Transform::identity();
-    }
-  }
+  _parts.resize(part_count.i);
 }
 
 
-MeshSet::MeshSet(const MeshResource *part, const Id &id)
+MeshSet::MeshSet(MeshResourcePtr part, const Id &id)
   : Shape(SIdMeshSet, id)
-  , _parts(new Part[1])
-  , _part_count(1)
 {
-  _parts[0].resource = part;
+  _parts.emplace_back();
+  _parts[0].resource = std::move(part);
 }
 
 
 MeshSet::MeshSet(const MeshSet &other)
   : Shape(other)
 {
-  other.onClone(this);
+  other.onClone(*this);
 }
 
 
-MeshSet::MeshSet(MeshSet &&other) noexcept
-  : Shape(other)
-  , _parts(std::exchange(other._parts, nullptr))
-  , _part_count(std::exchange(other._part_count, 0))
-  , _own_part_resources(std::exchange(other._own_part_resources, false))
-{}
+MeshSet::MeshSet(MeshSet &&other) noexcept = default;
 
-MeshSet::~MeshSet()
-{
-  cleanupParts();
-}
+
+MeshSet::~MeshSet() = default;
 
 
 bool MeshSet::writeCreate(PacketWriter &stream) const
@@ -125,33 +110,17 @@ bool MeshSet::readCreate(PacketReader &stream)
 
   // Setup attributes to support double precision. Actual read depends on the CreateMessage flag
   // OFDoublePrecision.
-  ObjectAttributesd attr;
+  ObjectAttributesd attr = {};
   uint32_t part_id = 0;
   uint16_t number_of_parts = 0;
 
   bool ok = true;
 
-  std::memset(&attr, 0, sizeof(attr));
-
   ok = ok && stream.readElement(number_of_parts) == sizeof(number_of_parts);
-
-  if (ok && number_of_parts > _part_count)
-  {
-    cleanupParts();
-
-    _parts = new Part[number_of_parts];
-    _own_part_resources = true;
-
-    for (unsigned i = 0; i < number_of_parts; ++i)
-    {
-      _parts[i] = Part();
-    }
-
-    _part_count = number_of_parts;
-  }
+  _parts.resize(number_of_parts);
 
   const bool expect_double_precision = (_data.flags & OFDoublePrecision) != 0;
-  for (unsigned i = 0; i < _part_count; ++i)
+  for (unsigned i = 0; i < number_of_parts; ++i)
   {
     ok = ok && stream.readElement(part_id) == sizeof(part_id);
     ok = ok && attr.read(stream, expect_double_precision);
@@ -161,8 +130,8 @@ bool MeshSet::readCreate(PacketReader &stream)
       _parts[i].transform =
         Transform(Vector3d(attr.position), Quaterniond(attr.rotation), Vector3d(attr.scale));
       _parts[i].transform.setPreferDoublePrecision(expect_double_precision);
-      // We can only reference dummy meshes here.
-      _parts[i].resource = new MeshPlaceholder(part_id);
+      // We can only reference dummy resources here.
+      _parts[i].resource = std::make_shared<MeshPlaceholder>(part_id);
       _parts[i].colour = Colour(attr.colour);
     }
   }
@@ -171,72 +140,28 @@ bool MeshSet::readCreate(PacketReader &stream)
 }
 
 
-unsigned MeshSet::enumerateResources(const Resource **resources, unsigned capacity,
-                                     unsigned fetch_offset) const
+unsigned MeshSet::enumerateResources(std::vector<ResourcePtr> &resources) const
 {
-  if (!resources || !capacity)
+  for (const auto &part : _parts)
   {
-    return _part_count;
+    resources.emplace_back(part.resource);
   }
-
-  if (fetch_offset >= _part_count)
-  {
-    return 0;
-  }
-
-  const unsigned copy_count = std::min(capacity, _part_count - fetch_offset);
-  const Part *parts = _parts + fetch_offset;
-  const Resource **dst = resources;
-  for (unsigned i = 0; i < copy_count; ++i)
-  {
-    *dst++ = parts->resource;
-    ++parts;
-  }
-  return copy_count;
+  return int_cast<unsigned>(_parts.size());
 }
 
 
-Shape *MeshSet::clone() const
+std::shared_ptr<Shape> MeshSet::clone() const
 {
-  auto *copy = new MeshSet(_part_count);
-  onClone(copy);
+  auto copy = std::make_shared<MeshSet>();
+  onClone(*copy);
   return copy;
 }
 
 
-void MeshSet::onClone(MeshSet *copy) const
+void MeshSet::onClone(MeshSet &copy) const
 {
   Shape::onClone(copy);
-  if (copy->_part_count != _part_count)
-  {
-    delete[] copy->_parts;
-    if (_part_count)
-    {
-      copy->_parts = new Part[_part_count];
-    }
-    else
-    {
-      copy->_parts = nullptr;
-    }
-  }
-  copy->_own_part_resources = false;
-  std::copy(_parts, _parts + _part_count, copy->_parts);
-}
-
-
-void MeshSet::cleanupParts()
-{
-  if (_own_part_resources && _parts)
-  {
-    for (unsigned i = 0; i < _part_count; ++i)
-    {
-      delete _parts[i].resource;
-    }
-  }
-
-  delete[] _parts;
-
-  _parts = nullptr;
-  _own_part_resources = false;
+  copy._parts.clear();
+  std::copy(_parts.begin(), _parts.end(), std::back_inserter(copy._parts));
 }
 }  // namespace tes

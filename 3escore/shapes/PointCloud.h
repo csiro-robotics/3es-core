@@ -21,15 +21,15 @@ struct PointCloudImp;
 /// supported.
 class TES_CORE_API PointCloud : public MeshResource
 {
-protected:
-  /// A shallow copy constructor, supporting copy on write semantics.
-  /// @param other The cloud to copy.
-  PointCloud(const PointCloud &other);
-
 public:
   /// Create a @c PointCloud resource with the given ID.
   /// @param id A user assigned, unique ID for the point cloud resource.
   PointCloud(uint32_t id);
+
+  /// A shallow copy constructor, supporting copy on write semantics.
+  /// @param other The cloud to copy.
+  PointCloud(const PointCloud &other);
+
   /// Destructor.
   ~PointCloud() override;
 
@@ -42,7 +42,7 @@ public:
   /// becomes a deep copy if either the clone or the original are modified.
   ///
   /// @return A clone of the point cloud resource.
-  [[nodiscard]] PointCloud *clone() const override;
+  [[nodiscard]] std::shared_ptr<Resource> clone() const override;
 
   /// Always the identity matrix.
   /// @return An identity matrix.

@@ -59,7 +59,7 @@ public:
   using MeshResource::colours;
 
   /// @copydoc Resource::clone()
-  [[nodiscard]] Resource *clone() const override;
+  [[nodiscard]] std::shared_ptr<Resource> clone() const override;
 
 private:
   uint32_t _id;

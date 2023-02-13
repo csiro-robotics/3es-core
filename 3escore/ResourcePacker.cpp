@@ -25,10 +25,10 @@ ResourcePacker::~ResourcePacker()
 }
 
 
-void ResourcePacker::transfer(const Resource *resource)
+void ResourcePacker::transfer(ResourcePtr resource)
 {
   cancel();
-  _resource = resource;
+  _resource = std::move(resource);
 }
 
 

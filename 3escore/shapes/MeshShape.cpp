@@ -38,9 +38,9 @@ uint32_t MeshShape::Resource::id() const
 }
 
 
-Resource *MeshShape::Resource::clone() const
+std::shared_ptr<tes::Resource> MeshShape::Resource::clone() const
 {
-  return new MeshShape::Resource(_shape, _resource_id);
+  return std::make_shared<MeshShape::Resource>(_shape, _resource_id);
 }
 
 
@@ -130,7 +130,7 @@ bool MeshShape::Resource::readTransfer(int message_type, PacketReader &packet)
 MeshShape::MeshShape(const MeshShape &other)
   : Shape(other)
 {
-  other.onClone(this);
+  other.onClone(*this);
 }
 
 
@@ -407,28 +407,28 @@ bool MeshShape::readData(PacketReader &packet)
 }
 
 
-Shape *MeshShape::clone() const
+std::shared_ptr<Shape> MeshShape::clone() const
 {
-  auto *triangles = new MeshShape();
-  onClone(triangles);
+  auto triangles = std::make_shared<MeshShape>();
+  onClone(*triangles);
   triangles->_data = _data;
   return triangles;
 }
 
 
-void MeshShape::onClone(MeshShape *copy) const
+void MeshShape::onClone(MeshShape &copy) const
 {
   Shape::onClone(copy);
-  copy->_vertices = DataBuffer(_vertices);
-  copy->_vertices.duplicate();
-  copy->_normals = DataBuffer(_indices);
-  copy->_normals.duplicate();
-  copy->_indices = DataBuffer(_indices);
-  copy->_indices.duplicate();
-  copy->_colours = DataBuffer(_indices);
-  copy->_colours.duplicate();
-  copy->_quantisation_unit = _quantisation_unit;
-  copy->_draw_scale = _draw_scale;
-  copy->_draw_type = _draw_type;
+  copy._vertices = DataBuffer(_vertices);
+  copy._vertices.duplicate();
+  copy._normals = DataBuffer(_indices);
+  copy._normals.duplicate();
+  copy._indices = DataBuffer(_indices);
+  copy._indices.duplicate();
+  copy._colours = DataBuffer(_indices);
+  copy._colours.duplicate();
+  copy._quantisation_unit = _quantisation_unit;
+  copy._draw_scale = _draw_scale;
+  copy._draw_type = _draw_type;
 }
 }  // namespace tes

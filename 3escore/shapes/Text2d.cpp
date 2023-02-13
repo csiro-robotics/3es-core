@@ -63,16 +63,17 @@ Text2D &Text2D::operator=(const Text2D &other) = default;
 
 Text2D &Text2D::operator=(Text2D &&other) noexcept = default;
 
-Shape *Text2D::clone() const
+std::shared_ptr<Shape> Text2D::clone() const
 {
-  auto *copy = new Text2D(text(), Id());
-  onClone(copy);
+  auto copy = std::make_shared<Text2D>(std::string(), Id());
+  onClone(*copy);
   return copy;
 }
 
 
-void Text2D::onClone(Text2D *copy) const
+void Text2D::onClone(Text2D &copy) const
 {
   Shape::onClone(copy);
+  copy._text = _text;
 }
 }  // namespace tes

@@ -248,7 +248,7 @@ bool TcpServer::sendServerInfo(const ServerInfoMessage &info)
 }
 
 
-unsigned TcpServer::referenceResource(const Resource *resource)
+unsigned TcpServer::referenceResource(const ResourcePtr &resource)
 {
   if (!_active)
   {
@@ -265,7 +265,7 @@ unsigned TcpServer::referenceResource(const Resource *resource)
 }
 
 
-unsigned TcpServer::releaseResource(const Resource *resource)
+unsigned TcpServer::releaseResource(const ResourcePtr &resource)
 {
   if (!_active)
   {

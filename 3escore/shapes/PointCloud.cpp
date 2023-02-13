@@ -37,16 +37,16 @@ struct PointCloudImp
   }
 };
 
+PointCloud::PointCloud(uint32_t id)
+  : _imp(std::make_shared<PointCloudImp>(id))
+{}
+
+
 PointCloud::PointCloud(const PointCloud &other)
 {
   const std::scoped_lock guard(other._imp->lock);
   _imp = other._imp;
 }
-
-
-PointCloud::PointCloud(uint32_t id)
-  : _imp(std::make_shared<PointCloudImp>(id))
-{}
 
 
 PointCloud::~PointCloud() = default;
@@ -58,9 +58,9 @@ uint32_t PointCloud::id() const
 }
 
 
-PointCloud *PointCloud::clone() const
+std::shared_ptr<Resource> PointCloud::clone() const
 {
-  auto *copy = new PointCloud(*this);
+  auto copy = std::make_shared<PointCloud>(*this);
   return copy;
 }
 

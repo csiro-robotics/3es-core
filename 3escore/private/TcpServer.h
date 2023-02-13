@@ -66,12 +66,12 @@ public:
   /// Override
   /// @param resource The resource to reference.
   /// @return The count from the last connection.
-  unsigned referenceResource(const Resource *resource) final;
+  unsigned referenceResource(const ResourcePtr &resource) final;
 
   /// Override
   /// @param resource The resource to release.
   /// @return The count from the last connection.
-  unsigned releaseResource(const Resource *resource) final;
+  unsigned releaseResource(const ResourcePtr &resource) final;
 
   /// Ignored. Controlled by this class.
   /// @param info Ignored.

@@ -55,7 +55,8 @@ void MeshResource::beginFrame(const FrameStamp &stamp)
   // For OpenGL this must be on beginFrame() as this is the main thread.
   // With Vulkan we could do it in endFrame().
 
-  // Move resources from the pending list. This may replace existing items, such as when we redefine an existing mesh.
+  // Move resources from the pending list. This may replace existing items, such as when we redefine
+  // an existing mesh.
   for (auto &[id, resource] : _pending)
   {
     _resources[id] = resource;
@@ -139,12 +140,14 @@ void MeshResource::readMessage(PacketReader &reader)
     {
       // Note(KS): we can get a redefine message before we've ever rendered the item.
       // In this case, current will be null, so we just modify the pending item.
-      // We can also get multiple redefines after having rendered at least once. In this case, both current and pending
-      // will be valid. However, the Ready flag will only be set the first time, so this becomes our cloning condition.
-      // Note: this cloning can become very expensive.
-      if (search->second.current && (search->second.flags & ResourceFlag::Ready) == ResourceFlag::Ready)
+      // We can also get multiple redefines after having rendered at least once. In this case, both
+      // current and pending will be valid. However, the Ready flag will only be set the first time,
+      // so this becomes our cloning condition. Note: this cloning can become very expensive.
+      if (search->second.current &&
+          (search->second.flags & ResourceFlag::Ready) == ResourceFlag::Ready)
       {
-        search->second.pending = std::shared_ptr<SimpleMesh>(search->second.current->clone());
+        search->second.pending =
+          std::dynamic_pointer_cast<SimpleMesh>(search->second.current->clone());
       }
       search->second.flags &= ~ResourceFlag::Ready;
       MeshRedefineMessage msg = {};
@@ -165,8 +168,9 @@ void MeshResource::readMessage(PacketReader &reader)
       resource->setVertexCount(msg.vertex_count);
       resource->setIndexCount(msg.index_count);
       resource->setDrawType(DrawType(msg.draw_type));
-      Transform transform = Transform(Vector3d(attributes.position), Quaterniond(attributes.rotation),
-                                      Vector3d(attributes.scale), msg.flags & McfDoublePrecision);
+      Transform transform =
+        Transform(Vector3d(attributes.position), Quaterniond(attributes.rotation),
+                  Vector3d(attributes.scale), msg.flags & McfDoublePrecision);
 
       resource->setTransform(transform);
       resource->setTint(attributes.colour);
@@ -194,7 +198,7 @@ void MeshResource::serialise(Connection &out, ServerInfoMessage &info)
   {
     if (resource.current)
     {
-      out.referenceResource(resource.current.get());
+      out.referenceResource(Ptr<const tes::Resource>(resource.current));
       if (out.updateTransfers(0) == -1)
       {
         log::error("Error serialising mesh resource: ", resource.current->id());
@@ -204,7 +208,8 @@ void MeshResource::serialise(Connection &out, ServerInfoMessage &info)
 }
 
 
-unsigned MeshResource::draw(const DrawParams &params, const std::vector<DrawItem> &drawables, DrawFlag flags)
+unsigned MeshResource::draw(const DrawParams &params, const std::vector<DrawItem> &drawables,
+                            DrawFlag flags)
 {
   std::lock_guard guard(_resource_lock);
 
@@ -215,8 +220,9 @@ unsigned MeshResource::draw(const DrawParams &params, const std::vector<DrawItem
 
   if ((flags & DrawFlag::Transparent) != DrawFlag::Zero)
   {
-    Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::SourceAlpha,
-                                           Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
+    Magnum::GL::Renderer::setBlendFunction(
+      Magnum::GL::Renderer::BlendFunction::SourceAlpha,
+      Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
   }
 
   // Update the known shader matrices.
@@ -269,17 +275,20 @@ void MeshResource::updateResources()
   mesh::ConvertOptions options = {};
   for (auto &[id, resource] : _resources)
   {
-    // Note: this is a very inefficient way to manage large meshes with changing sub-sections as we duplicate and
-    // recreate the entire mesh. Better would be to only touch the changed sections, but that can wait.
+    // Note: this is a very inefficient way to manage large meshes with changing sub-sections as we
+    // duplicate and recreate the entire mesh. Better would be to only touch the changed sections,
+    // but that can wait.
     if ((resource.flags & ResourceFlag::Ready) != ResourceFlag::Zero)
     {
       if (resource.pending)
       {
         resource.current = resource.pending;
-        resource.mesh = std::make_shared<Magnum::GL::Mesh>(mesh::convert(*resource.current, resource.bounds, options));
+        resource.mesh = std::make_shared<Magnum::GL::Mesh>(
+          mesh::convert(*resource.current, resource.bounds, options));
         // Update to spherical bounds.
         resource.bounds.convertToSpherical();
-        resource.shader = _shader_library->lookupForDrawType(DrawType(resource.current->drawType(0)));
+        resource.shader =
+          _shader_library->lookupForDrawType(DrawType(resource.current->drawType(0)));
       }
       resource.flags &= ~ResourceFlag::Ready;
     }

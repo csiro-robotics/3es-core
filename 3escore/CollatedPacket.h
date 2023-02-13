@@ -209,11 +209,11 @@ public:
 
   /// Not supported.
   /// @return 0;
-  unsigned referenceResource(const Resource *resource) override;
+  unsigned referenceResource(const ResourcePtr &resource) override;
 
   /// Not supported.
   /// @return 0;
-  unsigned releaseResource(const Resource *resource) override;
+  unsigned releaseResource(const ResourcePtr &resource) override;
 
   /// Pack the given @p info into the packet.
   /// @param info Details on the server.

@@ -92,27 +92,24 @@ bool Shape::readData(PacketReader &stream)
 }
 
 
-unsigned Shape::enumerateResources(const Resource **resources, unsigned capacity,
-                                   unsigned fetch_offset) const
+unsigned Shape::enumerateResources(std::vector<ResourcePtr> &resources) const
 {
   TES_UNUSED(resources);
-  TES_UNUSED(capacity);
-  TES_UNUSED(fetch_offset);
   return 0;
 }
 
 
-Shape *Shape::clone() const
+std::shared_ptr<Shape> Shape::clone() const
 {
-  auto *copy = new Shape(_routing_id);
-  onClone(copy);
+  auto copy = std::make_shared<Shape>(_routing_id);
+  onClone(*copy);
   return copy;
 }
 
 
-void Shape::onClone(Shape *copy) const
+void Shape::onClone(Shape &copy) const
 {
-  copy->_data = _data;
-  copy->_attributes = _attributes;
+  copy._data = _data;
+  copy._attributes = _attributes;
 }
 }  // namespace tes

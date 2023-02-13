@@ -226,20 +226,14 @@ int BaseConnection::destroy(const Shape &shape)
   // won't correctly release the resources. Check the ID because I'm paranoid.
   if (shape.id() && !shape.skipResources())
   {
-    const unsigned resource_capacity = 8;
-    std::array<const Resource *, resource_capacity> resources;
-    unsigned total_resources = 0;
-    unsigned resource_count = 0;
-    do
+    _resource_buffer.clear();
+    const unsigned resource_count = shape.enumerateResources(_resource_buffer);
+    for (const auto &resource : _resource_buffer)
     {
-      resource_count =
-        shape.enumerateResources(resources.data(), resource_capacity, total_resources);
-      for (unsigned i = 0; i < resource_count; ++i)
-      {
-        releaseResource(resources[i]->uniqueKey());
-      }
-      total_resources += resource_count;
-    } while (resource_count);
+      releaseResource(resource->uniqueKey());
+    }
+    // clear buffer to avoid holding references.
+    _resource_buffer.clear();
   }
 
   if (shape.writeDestroy(*_packet))
@@ -295,7 +289,7 @@ int BaseConnection::updateTransfers(unsigned byte_limit)
         auto resource_info = _resources.find(next_resource);
         if (resource_info != _resources.end())
         {
-          const Resource *resource = resource_info->second.resource;
+          auto &resource = resource_info->second.resource;
           resource_info->second.started = true;
           _current_resource->transfer(resource);
         }
@@ -355,7 +349,7 @@ int BaseConnection::updateFrame(float dt, bool flush)
 }
 
 
-unsigned BaseConnection::referenceResource(const Resource *resource)
+unsigned BaseConnection::referenceResource(const ResourcePtr &resource)
 {
   if (!_active)
   {
@@ -381,7 +375,7 @@ unsigned BaseConnection::referenceResource(const Resource *resource)
 }
 
 
-unsigned BaseConnection::releaseResource(const Resource *resource)
+unsigned BaseConnection::releaseResource(const ResourcePtr &resource)
 {
   if (!_active)
   {
@@ -438,46 +432,36 @@ unsigned BaseConnection::queueResources(const Shape &shape)
     return 0;
   }
 
-  const unsigned resource_capacity = 16;
-  std::array<const Resource *, resource_capacity> resources;
-  unsigned total_resources = 0;
-  unsigned resource_count = 0;
-  do
+  _resource_buffer.clear();
+  const unsigned resource_count = shape.enumerateResources(_resource_buffer);
+  for (const auto &resource : _resource_buffer)
   {
-    resource_count = shape.enumerateResources(resources.data(), resource_capacity, total_resources);
-    for (unsigned i = 0; i < resource_count; ++i)
-    {
-      referenceResource(resources[i]);
-    }
-    total_resources += resource_count;
-  } while (resource_count);
+    referenceResource(resource);
+  }
+  // clear buffer to avoid holding references.
+  _resource_buffer.clear();
 
-  return total_resources;
+  return resource_count;
 }
 
 
 bool BaseConnection::checkResources(const Shape &shape)
 {
   bool all_present = true;
-  const unsigned resource_capacity = 16;
-  std::array<const Resource *, resource_capacity> resources;
-  unsigned total_resources = 0;
-  unsigned resource_count = 0;
-  do
+  _resource_buffer.clear();
+  const unsigned resource_count = shape.enumerateResources(_resource_buffer);
+  for (const auto &resource : _resource_buffer)
   {
-    resource_count = shape.enumerateResources(resources.data(), resource_capacity, total_resources);
-    for (unsigned i = 0; i < resource_count; ++i)
+    const auto search = _resources.find(resource->uniqueKey());
+    if (search == _resources.end())
     {
-      const auto search = _resources.find(resources[i]->uniqueKey());
-      if (search == _resources.end())
-      {
-        all_present = false;
-        log::warn("Shape ", shape.routingId(), ":", shape.id(), " missing resource ",
-                  resources[i]->typeId(), ":", resources[i]->id());
-      }
+      all_present = false;
+      log::warn("Shape ", shape.routingId(), ":", shape.id(), " missing resource ",
+                resource->typeId(), ":", resource->id());
     }
-    total_resources += resource_count;
-  } while (resource_count);
+  }
+  // clear buffer to avoid holding references.
+  _resource_buffer.clear();
 
   return all_present;
 }

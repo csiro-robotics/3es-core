@@ -44,12 +44,10 @@ public:
   SimpleMesh(uint32_t id, size_t vertex_count = 0u, size_t index_count = 0u,
              DrawType draw_type = DtTriangles, unsigned components = Vertex | Index);
 
-protected:
   /// Copy constructor supporting initial, shallow copy with copy on write semantics.
   /// @param other The mesh to copy.
   SimpleMesh(const SimpleMesh &other);
 
-public:
   /// Destructor.
   ~SimpleMesh() override;
 
@@ -84,7 +82,7 @@ public:
   /// Performs a shallow copy of this mesh. Note that any modification
   /// of the mesh data results in a copy of the existing data. Otherwise
   /// @c SimpleMesh objects can share their data.
-  [[nodiscard]] SimpleMesh *clone() const override;
+  [[nodiscard]] std::shared_ptr<Resource> clone() const override;
 
   /// @copydoc::MeshResource::drawType()
   [[nodiscard]] uint8_t drawType(int stream) const override;

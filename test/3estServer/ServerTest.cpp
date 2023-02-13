@@ -69,17 +69,17 @@ enum Categories
 class ShapeMover
 {
 public:
-  ShapeMover(Shape *shape)
-    : _shape(shape)
+  ShapeMover(std::shared_ptr<Shape> shape)
+    : _shape(std::move(shape))
   {}
 
   virtual inline ~ShapeMover() {}
 
-  inline Shape *shape() { return _shape; }
-  inline const Shape *shape() const { return _shape; }
-  inline void setShape(Shape *shape)
+  inline std::shared_ptr<Shape> shape() { return _shape; }
+  inline std::shared_ptr<const Shape> shape() const { return _shape; }
+  inline void setShape(std::shared_ptr<Shape> shape)
   {
-    _shape = shape;
+    _shape = std::move(shape);
     onShapeChange();
   }
 
@@ -95,21 +95,25 @@ protected:
   virtual void onShapeChange() {}
 
 private:
-  Shape *_shape;
+  std::shared_ptr<Shape> _shape;
 };
 
 
 class Oscilator : public ShapeMover
 {
 public:
-  inline Oscilator(Shape *shape, float amplitude = 1.0f, float period = 5.0f,
+  inline Oscilator(std::shared_ptr<Shape> shape, float amplitude = 1.0f, float period = 5.0f,
                    const Vector3f &axis = Vector3f(0, 0, 1))
-    : ShapeMover(shape)
-    , _referencePos(shape ? Vector3f(shape->position()) : Vector3f::Zero)
+    : ShapeMover(std::move(shape))
+    , _referencePos(Vector3f::Zero)
     , _axis(axis)
     , _amplitude(amplitude)
     , _period(period)
   {
+    if (!this->shape())
+    {
+      _referencePos = Vector3f(this->shape()->position());
+    }
     onShapeChange();
   }
 
@@ -141,10 +145,10 @@ private:
 };
 
 
-MeshResource *createTestMesh()
+std::shared_ptr<MeshResource> createTestMesh()
 {
-  SimpleMesh *mesh = new SimpleMesh(1, 4, 6, DtTriangles,
-                                    SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Colour);
+  auto mesh = std::make_shared<SimpleMesh>(
+    1, 4, 6, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Colour);
   mesh->setVertex(0, Vector3f(-0.5f, 0, -0.5f));
   mesh->setVertex(1, Vector3f(0.5f, 0, -0.5f));
   mesh->setVertex(2, Vector3f(0.5f, 0, 0.5f));
@@ -171,9 +175,9 @@ MeshResource *createTestMesh()
 }
 
 
-MeshResource *createTestCloud()
+std::shared_ptr<MeshResource> createTestCloud()
 {
-  PointCloud *cloud = new PointCloud(2);  // Considered a Mesh for ID purposes.
+  auto cloud = std::make_shared<PointCloud>(2);  // Considered a Mesh for ID purposes.
   cloud->resize(8);
 
   cloud->setPoint(0, Vector3f(0, 0, 0), Vector3f(0, 0, 1), Colour(0, 255, 255));
@@ -203,8 +207,9 @@ bool haveOption(const char *opt, int argc, const char **argv)
 }
 
 
-void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<ShapeMover *> &movers,
-                std::vector<Resource *> &resources, int argc, const char **argv)
+void createAxes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
+                std::vector<std::shared_ptr<ShapeMover>> &movers,
+                std::vector<std::shared_ptr<Resource>> &resources, int argc, const char **argv)
 {
   TES_UNUSED(movers);
   TES_UNUSED(resources);
@@ -213,25 +218,29 @@ void createAxes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Shap
     const float arrowLength = 1.0f;
     const float arrowRadius = 0.025f;
     const Vector3f pos(0.0f);
-    Arrow *arrow;
+    std::shared_ptr<Arrow> arrow;
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(1, 0, 0), arrowRadius, arrowLength));
+    arrow = std::make_shared<Arrow>(nextId++,
+                                    Directional(pos, Vector3f(1, 0, 0), arrowRadius, arrowLength));
     arrow->setColour(Colour(Colour::Red));
     shapes.emplace_back(arrow);
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 1, 0), arrowRadius, arrowLength));
+    arrow = std::make_shared<Arrow>(nextId++,
+                                    Directional(pos, Vector3f(0, 1, 0), arrowRadius, arrowLength));
     arrow->setColour(Colour(Colour::ForestGreen));
     shapes.emplace_back(arrow);
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 0, 1), arrowRadius, arrowLength));
+    arrow = std::make_shared<Arrow>(nextId++,
+                                    Directional(pos, Vector3f(0, 0, 1), arrowRadius, arrowLength));
     arrow->setColour(Colour(Colour::DodgerBlue));
     shapes.emplace_back(arrow);
   }
 }
 
 
-void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<ShapeMover *> &movers,
-                  std::vector<Resource *> &resources, int argc, const char **argv)
+void createShapes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
+                  std::vector<std::shared_ptr<ShapeMover>> &movers,
+                  std::vector<std::shared_ptr<Resource>> &resources, int argc, const char **argv)
 {
   bool allShapes = haveOption("all", argc, argv);
   bool noMove = haveOption("nomove", argc, argv);
@@ -239,70 +248,70 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
 
   if (allShapes || haveOption("arrow", argc, argv))
   {
-    Arrow *arrow = new Arrow(Id(nextId++, CatArrow));
+    auto arrow = std::make_shared<Arrow>(Id(nextId++, CatArrow));
     arrow->setRadius(0.5f);
     arrow->setLength(1.0f);
     arrow->setColour(Colour(Colour::SeaGreen));
     shapes.emplace_back(arrow);
     if (!noMove)
     {
-      movers.emplace_back(new Oscilator(arrow, 2.0f, 2.5f));
+      movers.emplace_back(std::make_shared<Oscilator>(arrow, 2.0f, 2.5f));
     }
   }
 
   if (allShapes || haveOption("box", argc, argv))
   {
-    Box *box = new Box(Id(nextId++, CatBox));
+    auto box = std::make_shared<Box>(Id(nextId++, CatBox));
     box->setScale(Vector3f(0.45f));
     box->setColour(Colour(Colour::MediumSlateBlue));
     shapes.emplace_back(box);
     if (!noMove)
     {
-      movers.emplace_back(new Oscilator(box, 2.0f, 2.5f));
+      movers.emplace_back(std::make_shared<Oscilator>(box, 2.0f, 2.5f));
     }
   }
 
   if (allShapes || haveOption("capsule", argc, argv))
   {
-    Capsule *capsule = new Capsule(Id(nextId++, CatCapsule), Directional::identity());
+    auto capsule = std::make_shared<Capsule>(Id(nextId++, CatCapsule), Directional::identity());
     capsule->setLength(2.0f);
     capsule->setRadius(0.3f);
     capsule->setColour(Colour(Colour::LavenderBlush));
     shapes.emplace_back(capsule);
     if (!noMove)
     {
-      movers.emplace_back(new Oscilator(capsule, 2.0f, 2.5f));
+      movers.emplace_back(std::make_shared<Oscilator>(capsule, 2.0f, 2.5f));
     }
   }
 
   if (allShapes || haveOption("cone", argc, argv))
   {
-    Cone *cone = new Cone(Id(nextId++, CatCone));
+    auto cone = std::make_shared<Cone>(Id(nextId++, CatCone));
     cone->setLength(2.0f);
     cone->setRadius(0.25f);
     cone->setColour(Colour(Colour::SandyBrown));
     shapes.emplace_back(cone);
     if (!noMove)
     {
-      movers.emplace_back(new Oscilator(cone, 2.0f, 2.5f));
+      movers.emplace_back(std::make_shared<Oscilator>(cone, 2.0f, 2.5f));
     }
   }
 
   if (allShapes || haveOption("cylinder", argc, argv))
   {
-    Cylinder *cylinder = new Cylinder(Id(nextId++, CatCylinder));
+    auto cylinder = std::make_shared<Cylinder>(Id(nextId++, CatCylinder));
     cylinder->setScale(Vector3f(0.45f));
     cylinder->setColour(Colour(Colour::FireBrick));
     shapes.emplace_back(cylinder);
     if (!noMove)
     {
-      movers.emplace_back(new Oscilator(cylinder, 2.0f, 2.5f));
+      movers.emplace_back(std::make_shared<Oscilator>(cylinder, 2.0f, 2.5f));
     }
   }
 
   if (allShapes || haveOption("plane", argc, argv))
   {
-    Plane *plane = new Plane(Id(nextId++, CatPlane));
+    auto plane = std::make_shared<Plane>(Id(nextId++, CatPlane));
     plane->setNormal(Vector3f(1.0f, 1.0f, 0.0f).normalised());
     plane->setScale(1.5f);
     plane->setNormalLength(0.5f);
@@ -310,42 +319,42 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     shapes.emplace_back(plane);
     if (!noMove)
     {
-      movers.emplace_back(new Oscilator(plane, 2.0f, 2.5f));
+      movers.emplace_back(std::make_shared<Oscilator>(plane, 2.0f, 2.5f));
     }
   }
 
   if (allShapes || haveOption("pose", argc, argv))
   {
-    Pose *pose = new Pose(Id(nextId++, CatPose));
+    auto pose = std::make_shared<Pose>(Id(nextId++, CatPose));
     pose->setRotation(Quaternionf().setAxisAngle(Vector3f::AxisZ, float(0.25 * M_PI)));
     shapes.emplace_back(pose);
     if (!noMove)
     {
-      movers.emplace_back(new Oscilator(pose, 2.0f, 2.5f));
+      movers.emplace_back(std::make_shared<Oscilator>(pose, 2.0f, 2.5f));
     }
   }
 
   if (allShapes || haveOption("sphere", argc, argv))
   {
-    Sphere *sphere = new Sphere(Id(nextId++, CatSphere));
+    auto sphere = std::make_shared<Sphere>(Id(nextId++, CatSphere));
     sphere->setRadius(0.75f);
     sphere->setColour(Colour(Colour::Coral));
     shapes.emplace_back(sphere);
     if (!noMove)
     {
-      movers.emplace_back(new Oscilator(sphere, 2.0f, 2.5f));
+      movers.emplace_back(std::make_shared<Oscilator>(sphere, 2.0f, 2.5f));
     }
   }
 
   if (allShapes || haveOption("star", argc, argv))
   {
-    Star *star = new Star(Id(nextId++, CatStar));
+    auto star = std::make_shared<Star>(Id(nextId++, CatStar));
     star->setRadius(0.75f);
     star->setColour(Colour(Colour::DarkGreen));
     shapes.emplace_back(star);
     if (!noMove)
     {
-      movers.emplace_back(new Oscilator(star, 2.0f, 2.5f));
+      movers.emplace_back(std::make_shared<Oscilator>(star, 2.0f, 2.5f));
     }
   }
 
@@ -355,12 +364,12 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
                                         Vector3f(0, 0, 1), Vector3f(0.25f, 0, 0.8f),
                                         Vector3f(0, 0, 1), Vector3f(-0.25f, 0, 0.8f) };
     const unsigned lineVertexCount = sizeof(lineSet) / sizeof(lineSet[0]);
-    MeshShape *lines =
-      new MeshShape(DtLines, Id(nextId++, CatLines), DataBuffer(lineSet, lineVertexCount));
+    auto lines = std::make_shared<MeshShape>(DtLines, Id(nextId++, CatLines),
+                                             DataBuffer(lineSet, lineVertexCount));
     shapes.emplace_back(lines);
     // if (!noMove)
     // {
-    //   movers.emplace_back(new Oscilator(mesh, 2.0f, 2.5f));
+    //   movers.emplace_back(std::make_shared<Oscilator>(mesh, 2.0f, 2.5f));
     // }
   }
 
@@ -380,29 +389,29 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
       Colour(Colour::Blue).colour32(),  Colour(Colour::White).colour32(),
       Colour(Colour::White).colour32(), Colour(Colour::White).colour32()
     };
-    MeshShape *triangles = new MeshShape(DtTriangles, Id(nextId++, CatTriangles),
-                                         DataBuffer(triangleSet, triVertexCount));
+    auto triangles = std::make_shared<MeshShape>(DtTriangles, Id(nextId++, CatTriangles),
+                                                 DataBuffer(triangleSet, triVertexCount));
     triangles->setColours(colours);
     triangles->duplicateArrays();
     shapes.emplace_back(triangles);
     // if (!noMove)
     // {
-    //   movers.emplace_back(new Oscilator(mesh, 2.0f, 2.5f));
+    //   movers.emplace_back(std::make_shared<Oscilator>(mesh, 2.0f, 2.5f));
     // }
   }
 
   if (allShapes || haveOption("mesh", argc, argv))
   {
-    MeshResource *meshRes = createTestMesh();
+    auto meshRes = createTestMesh();
     resources.emplace_back(meshRes);
     const unsigned partCount = 2;
-    MeshSet *mesh = new MeshSet(Id(nextId++, CatMesh), partCount);
+    auto mesh = std::make_shared<MeshSet>(Id(nextId++, CatMesh), partCount);
     mesh->setPart(0, meshRes, Matrix4f::Identity, Colour(Colour::YellowGreen));
     mesh->setPart(1, meshRes, Matrix4f::translation(Vector3f(0, 0, 1.5f)), Colour(Colour::SkyBlue));
     shapes.emplace_back(mesh);
     // if (!noMove)
     // {
-    //   movers.emplace_back(new Oscilator(mesh, 2.0f, 2.5f));
+    //   movers.emplace_back(std::make_shared<Oscilator>(mesh, 2.0f, 2.5f));
     // }
     std::cout << "make mesh" << std::endl;
   }
@@ -418,14 +427,14 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
                                         Colour(Colour::Green).colour32(),
                                         Colour(Colour::Blue).colour32(),
                                         Colour(Colour::White).colour32() };
-    MeshShape *points =
-      new MeshShape(DtPoints, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
+    auto points =
+      std::make_shared<MeshShape>(DtPoints, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
     points->setColours(colours);
     points->setDrawScale(3.0f);
     shapes.emplace_back(points);
     // if (!noMove)
     // {
-    //   movers.emplace_back(new Oscilator(mesh, 2.0f, 2.5f));
+    //   movers.emplace_back(std::make_shared<Oscilator>(mesh, 2.0f, 2.5f));
     // }
   }
 
@@ -440,22 +449,22 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
                                         Colour(Colour::Green).colour32(),
                                         Colour(Colour::Blue).colour32(),
                                         Colour(Colour::White).colour32() };
-    MeshShape *points =
-      new MeshShape(DtVoxels, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
+    auto points =
+      std::make_shared<MeshShape>(DtVoxels, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
     points->setColours(colours);
     points->setDrawScale(0.2f);
     // points->setUniformNormal(tes::Vector3f(0.2f));
     shapes.emplace_back(points);
     // if (!noMove)
     // {
-    //   movers.emplace_back(new Oscilator(mesh, 2.0f, 2.5f));
+    //   movers.emplace_back(std::make_shared<Oscilator>(mesh, 2.0f, 2.5f));
     // }
   }
 
   if (allShapes || haveOption("cloud", argc, argv) || haveOption("cloudpart", argc, argv))
   {
-    MeshResource *cloud = createTestCloud();
-    PointCloudShape *points = new PointCloudShape(cloud, Id(nextId++, CatPoints), 1.25f);
+    auto cloud = createTestCloud();
+    auto points = std::make_shared<PointCloudShape>(cloud, Id(nextId++, CatPoints), 1.25f);
     if (haveOption("cloudpart", argc, argv))
     {
       // Partial indexing.
@@ -467,13 +476,13 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
         partialIndices[i] = nextIndex;
         nextIndex += 2;
       }
-      points->setIndices(partialIndices.begin(), (uint32_t)partialIndices.size());
+      points->setIndices(partialIndices.begin(), partialIndices.end());
     }
     shapes.emplace_back(points);
     resources.emplace_back(cloud);
     // if (!noMove)
     // {
-    //   movers.emplace_back(new Oscilator(points, 2.0f, 2.5f));
+    //   movers.emplace_back(std::make_shared<Oscilator>(points, 2.0f, 2.5f));
     // }
   }
 
@@ -485,7 +494,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
     const float separation = 0.3f;
     const float blockOffset = -0.5f * blockSize * separation;
 
-    std::vector<Shape *> manyShapes(manyCount);
+    std::vector<std::shared_ptr<Shape>> manyShapes(manyCount);
     unsigned id = nextId++;
     unsigned i = 0;
     for (int z = 0; z < blockSize; ++z)
@@ -499,7 +508,8 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
           pos.y() = blockOffset + float(y) * separation;
           pos.z() = blockOffset + float(z) * separation;
 
-          Capsule *capsule = new Capsule(Id(id, CatCapsule), Directional::identity(false));
+          auto capsule =
+            std::make_shared<Capsule>(Id(id, CatCapsule), Directional::identity(false));
           capsule->setLength(0.4f);
           capsule->setRadius(0.15f);
           capsule->setColour(ColourSet::predefined(ColourSet::Standard).cycle(i));
@@ -509,8 +519,9 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
       }
     }
 
-    MultiShape *shape = new MultiShape(manyShapes.data(), manyShapes.size(), Vector3f(0, 10.0f, 0));
-    shape->takeOwnership();
+    auto shape =
+      std::make_shared<MultiShape>(manyShapes.begin(), manyShapes.end(), Vector3f(0, 10.0f, 0));
+    // shape->takeOwnership();
     shapes.emplace_back(shape);
 
     // Clone the array for a second set and change the ID.
@@ -520,7 +531,8 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
       manyShapes[i] = manyShapes[i]->clone();
       manyShapes[i]->setId(id);
     }
-    shape = new MultiShape(manyShapes.data(), manyShapes.size(), Vector3f(-10.0f, 5.0f, 0));
+    shape =
+      std::make_shared<MultiShape>(manyShapes.begin(), manyShapes.end(), Vector3f(-10.0f, 5.0f, 0));
     shape->takeOwnership();
     shapes.emplace_back(shape);
   }
@@ -550,7 +562,7 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
       }
     }
 
-    for (ShapeMover *mover : movers)
+    for (auto &mover : movers)
     {
       mover->reset();
     }
@@ -560,24 +572,25 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes, std::vector<Sh
   // Add text after positioning and mover changes to keep fixed positions.
   if (allShapes || haveOption("text2d", argc, argv))
   {
-    Text2D *text;
-    text =
-      new Text2D("Hello Screen", Id(nextId++, CatText2D), Spherical(Vector3f(0.25f, 0.75f, 0.0f)));
+    std::shared_ptr<Text2D> text;
+    text = std::make_shared<Text2D>("Hello Screen", Id(nextId++, CatText2D),
+                                    Spherical(Vector3f(0.25f, 0.75f, 0.0f)));
     shapes.emplace_back(text);
-    text =
-      new Text2D("Hello World 2D", Id(nextId++, CatText2D), Spherical(Vector3f(1.0f, 1.0f, 1.0f)));
+    text = std::make_shared<Text2D>("Hello World 2D", Id(nextId++, CatText2D),
+                                    Spherical(Vector3f(1.0f, 1.0f, 1.0f)));
     text->setInWorldSpace(true);
     shapes.emplace_back(text);
   }
 
   if (allShapes || haveOption("text3d", argc, argv))
   {
-    Text3D *text;
-    text = new Text3D("Hello World 3D", Id(nextId++, CatText3D),
-                      Directional(Vector3f(-1.0f, -1.0f, 1.0f), Vector3f(0, 1, 0), 1.0f, 8.0f));
+    std::shared_ptr<Text3D> text;
+    text = std::make_shared<Text3D>(
+      "Hello World 3D", Id(nextId++, CatText3D),
+      Directional(Vector3f(-1.0f, -1.0f, 1.0f), Vector3f(0, 1, 0), 1.0f, 8.0f));
     shapes.emplace_back(text);
-    text = new Text3D("Hello World 3D Facing", Id(nextId++, CatText3D),
-                      Directional(Vector3f(-1.0f, -1.0f, 0.0f), 1.0f, 8.0f));
+    text = std::make_shared<Text3D>("Hello World 3D Facing", Id(nextId++, CatText3D),
+                                    Directional(Vector3f(-1.0f, -1.0f, 0.0f), 1.0f, 8.0f));
     text->setScreenFacing(true);
     shapes.emplace_back(text);
   }
@@ -654,9 +667,9 @@ int main(int argc, char **argvNonConst)
   }
   auto server = Server::create(ServerSettings(serverFlags), &info);
 
-  std::vector<Shape *> shapes;
-  std::vector<ShapeMover *> movers;
-  std::vector<Resource *> resources;
+  std::vector<std::shared_ptr<Shape>> shapes;
+  std::vector<std::shared_ptr<ShapeMover>> movers;
+  std::vector<std::shared_ptr<Resource>> resources;
 
   unsigned nextId = 1;
   createAxes(nextId, shapes, movers, resources, argc, argv);
@@ -687,7 +700,7 @@ int main(int argc, char **argvNonConst)
     TES_CATEGORY(c, "Text2D", CatText2D, CatText, true);
     TES_CATEGORY(c, "Text3D", CatText3D, CatText, true);
     TES_CATEGORY(c, "Triangles", CatTriangles, CatComplex3D, true);
-    for (Shape *shape : shapes)
+    for (auto &shape : shapes)
     {
       connection.create(*shape);
     }
@@ -709,7 +722,7 @@ int main(int argc, char **argvNonConst)
   }
 
   // Register shapes with server.
-  for (Shape *shape : shapes)
+  for (auto &shape : shapes)
   {
     server->create(*shape);
   }
@@ -724,7 +737,7 @@ int main(int argc, char **argvNonConst)
       float(std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()) * 1e-6f;
     time += dt;
 
-    for (ShapeMover *mover : movers)
+    for (auto &mover : movers)
     {
       mover->update(time, dt);
       server->update(*mover->shape());
@@ -749,23 +762,12 @@ int main(int argc, char **argvNonConst)
     std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
   }
 
-  for (ShapeMover *mover : movers)
-  {
-    delete mover;
-  }
   movers.clear();
-
-  for (Shape *shape : shapes)
+  for (auto &shape : shapes)
   {
     server->destroy(*shape);
-    delete shape;
   }
   shapes.clear();
-
-  for (Resource *resource : resources)
-  {
-    delete resource;
-  }
   resources.clear();
 
   server->close();

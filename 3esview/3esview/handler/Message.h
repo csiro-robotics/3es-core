@@ -26,12 +26,14 @@ namespace tes::view::handler
 /// The base class for a 3es message handler.
 ///
 /// @par Thread safety
-/// A @c Message handler will typically have functions called from at least two different threads. In particular the
-/// @c readMessage() function is called from the data processing thread, while @c beginFrame(), @c endFrame(),
-/// and @c draw() are called from the render thread - likely the main thread. Other functions are called from the main
-/// thread.
+/// A @c Message handler will typically have functions called from at least two different threads.
+/// In particular the
+/// @c readMessage() function is called from the data processing thread, while @c beginFrame(), @c
+/// endFrame(), and @c draw() are called from the render thread - likely the main thread. Other
+/// functions are called from the main thread.
 ///
-/// As such, the @c readMessage() function must be thread safe with respect to @c beginFrame(), @c endFrame() and
+/// As such, the @c readMessage() function must be thread safe with respect to @c beginFrame(), @c
+/// endFrame() and
 /// @c draw().
 class TES_VIEWER_API Message
 {
@@ -103,8 +105,8 @@ public:
 
   /// Called at the start of a new frame, before processing new messages.
   ///
-  /// In practice, this method is called when the @c ControlId::CIdEnd message arrives, just prior to processing all
-  /// messages for the completed frame.
+  /// In practice, this method is called when the @c ControlId::CIdEnd message arrives, just prior
+  /// to processing all messages for the completed frame.
   ///
   /// @param frame_stamp The frame render stamp to begin.
   /// @param render_mark The rendering mark which was used to cull the current frame.
@@ -121,8 +123,10 @@ public:
 
   /// Read a message which has been predetermined to be belong to this handler.
   ///
-  /// Any changes described by the message must not be effected until the next call to @c beginFrame() with matching
-  /// @p frame_number. Additionally, see thread safety requirements described in the class documentation.
+  /// Any changes described by the message must not be effected until the next call to @c
+  /// beginFrame() with matching
+  /// @p frame_number. Additionally, see thread safety requirements described in the class
+  /// documentation.
   ///
   /// @param reader The message data reader.
   virtual void readMessage(PacketReader &reader) = 0;
@@ -132,8 +136,9 @@ public:
     ServerInfoMessage info = {};
     serialise(out, info);
   }
-  /// Serialise a snapshot of the renderable objects for the specified frame. Serialisation is performed using the
-  /// messages required to restore the current state.
+
+  /// Serialise a snapshot of the renderable objects for the specified frame. Serialisation is
+  /// performed using the messages required to restore the current state.
   /// @param out Stream to write to.
   /// @param[out] info Provides information about about the serialisation.
   virtual void serialise(Connection &out, ServerInfoMessage &info) = 0;

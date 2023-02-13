@@ -6,14 +6,20 @@
 
 #include <3escore/CoreConfig.h>
 
-#include "MeshSet.h"
 #include "Shape.h"
 
-//
+#include <3escore/CoreUtil.h>
 #include <3escore/IntArg.h>
+#include <3escore/Ptr.h>
+
+#include <algorithm>
+#include <iterator>
+#include <vector>
 
 namespace tes
 {
+class MeshResource;
+
 /// A @c Shape which renders a set of points as in a point cloud.
 ///
 /// The points are contained in a @c MeshResource (e.g., @c PointCloud)
@@ -32,13 +38,19 @@ namespace tes
 class TES_CORE_API TES_CORE_DEPRECATED PointCloudShape : public Shape
 {
 public:
+  /// Pointer type used for referencing a @c MeshResource. Uses the @c Ptr type to allow borrowed
+  /// or shared semantics.
+  using MeshResourcePtr = Ptr<const MeshResource>;
+
+  /// Default constructor.
+  PointCloudShape();
+
   /// Construct a point cloud shape object.
   /// mesh The mesh resource to render point data from. See class comments.
   /// @param id The shape ID, unique among @c Arrow objects, or zero for a transient shape.
   /// @param category The category grouping for the shape used for filtering.
   /// @param point_scale Desired point render scale. Use zero or one for the default scale.
-  PointCloudShape(const MeshResource *mesh = nullptr, const Id &id = Id(),
-                  float point_scale = 0.0f);
+  PointCloudShape(MeshResourcePtr mesh, const Id &id = Id(), float point_scale = 0.0f);
 
   /// Destructor.
   ~PointCloudShape() override;
@@ -73,7 +85,7 @@ public:
   ///
   /// @return Zero when using all @c mesh() vertices, non-zero when referencing a subset of @c
   /// mesh().
-  [[nodiscard]] unsigned indexCount() const { return _index_count; }
+  [[nodiscard]] unsigned indexCount() const { return int_cast<unsigned>(_indices.size()); }
 
   /// Return the index array when a subset of @c mesh() vertices.
   ///
@@ -81,7 +93,7 @@ public:
   ///
   /// @return An array of indices, length @c indexCount(), or null when referencing all vertices
   /// from @c mesh().
-  [[nodiscard]] const unsigned *indices() const { return _indices; }
+  [[nodiscard]] const std::vector<unsigned> &indices() const { return _indices; }
 
   /// Sets the (optional) indices for this @c PointCloudShape @c Shape.
   /// This shape will only visualise the indexed points from its @c PointSource.
@@ -93,15 +105,15 @@ public:
   ///
   /// @tparam I An iterable item. Must support dereferencing to an unsigned integer and
   ///   an increment operator.
-  /// @param iter The index iterator.
-  /// @param index_count The number of elements to copy from @p iter.
+  /// @param begin_iter Iterator to the first index.
+  /// @param end_iter End iterator (one beyond the last).
   /// @return This.
   template <typename I>
-  PointCloudShape &setIndices(I iter, const UIntArg &index_count);
+  PointCloudShape &setIndices(I begin_iter, I end_iter);
 
   /// Get the mesh resource containing the point data to render.
   /// @return The point cloud mesh resource.
-  [[nodiscard]] const MeshResource *mesh() const { return _mesh; }
+  [[nodiscard]] MeshResourcePtr mesh() const { return _mesh; }
 
   /// Writes the standard create message and appends the point cloud ID (@c uint32_t).
   /// @param stream The stream to write to.
@@ -125,38 +137,30 @@ public:
   /// @return @c true
   [[nodiscard]] bool isComplex() const override { return true; }
 
-  /// Enumerates the mesh resource given on construction. See @c Shape::enumerateResources().
-  /// @param resources Resource output array.
-  /// @param capacity of @p resources.
-  /// @param fetch_offset Indexing offset for the resources in this object.
-  unsigned enumerateResources(const Resource **resources, unsigned capacity,
-                              unsigned fetch_offset) const override;
+  unsigned enumerateResources(std::vector<ResourcePtr> &resources) const override;
 
   /// Deep copy clone. The source is only cloned if @c ownSource() is true.
   /// It is shared otherwise.
   /// @return A deep copy.
-  [[nodiscard]] Shape *clone() const override;
+  [[nodiscard]] std::shared_ptr<Shape> clone() const override;
 
 private:
-  void onClone(PointCloudShape *copy) const;
+  void onClone(PointCloudShape &copy) const;
 
-  /// Reallocate the index array preserving current data.
-  /// @param count The new element size for the array.
-  void reallocateIndices(uint32_t count);
-  [[nodiscard]] static uint32_t *allocateIndices(uint32_t count);
-  static void freeIndices(const uint32_t *indices);
-
-  const MeshResource *_mesh = nullptr;
-  uint32_t *_indices = nullptr;
-  uint32_t _index_count = 0;
+  MeshResourcePtr _mesh;
+  std::vector<uint32_t> _indices;
   float _point_scale = 0.0f;
-  bool _own_mesh = false;
 };
 
 
-inline PointCloudShape::PointCloudShape(const MeshResource *mesh, const Id &id, float point_scale)
+inline PointCloudShape::PointCloudShape()
+  : Shape(SIdPointCloud)
+{}
+
+
+inline PointCloudShape::PointCloudShape(MeshResourcePtr mesh, const Id &id, float point_scale)
   : Shape(SIdPointCloud, id)
-  , _mesh(mesh)
+  , _mesh(std::move(mesh))
   , _point_scale(point_scale)
 {
   setColourByHeight(true);
@@ -184,21 +188,10 @@ inline bool PointCloudShape::colourByHeight() const
 
 
 template <typename I>
-PointCloudShape &PointCloudShape::setIndices(I iter, const UIntArg &index_count)
+PointCloudShape &PointCloudShape::setIndices(I begin_iter, I end_iter)
 {
-  freeIndices(_indices);
-  _indices = nullptr;
-  _index_count = index_count;
-  if (index_count)
-  {
-    _indices = allocateIndices(index_count);
-    uint32_t *ind = _indices;
-    for (uint32_t i = 0; i < index_count; ++i, ++ind, ++iter)
-    {
-      *ind = *iter;
-    }
-  }
-
+  _indices.clear();
+  std::copy(begin_iter, end_iter, std::back_inserter(_indices));
   return *this;
 }
 }  // namespace tes

@@ -10,9 +10,12 @@
 
 #include <3escore/Colour.h>
 #include <3escore/Messages.h>
+#include <3escore/Ptr.h>
 #include <3escore/Transform.h>
 
 #include <cstdint>
+#include <memory>
+#include <vector>
 
 #ifdef WIN32
 #pragma warning(push)
@@ -77,6 +80,8 @@ class Resource;
 class TES_CORE_API Shape
 {
 public:
+  using ResourcePtr = Ptr<const Resource>;
+
   /// Create a new shape with the given @c routingId and instance @c id .
   /// @param routingId Identifies the shape type.
   /// @param id The shape instance id.
@@ -318,36 +323,16 @@ public:
   /// Enumerate the resources used by this shape. Resources are most commonly used by
   /// mesh shapes to expose the mesh data, where the shape simply positions the mesh.
   ///
-  /// The function is called to fetch the shape's resources into @p resources,
-  /// up to the given @p capacity. Repeated calls may be used to fetch all resources
-  /// into a smaller array by using the @p fetch_offset parameter as a marker indicating
-  /// how many items have already been fetched. Regardless, data are always written to
-  /// @p resources starting at index zero.
-  ///
-  /// This function may also be called with a @c nullptr for @p resources and/or
-  /// a zero @p capacity. In this case the return value indicates the number of
-  /// resources used by the shape.
-  ///
-  /// @param resources The array to populate with this shape's resources.
-  /// @param capacity The element count capacity of @p resources.
-  /// @param fetch_offset An offset used to fetch resources into an array too small to
-  ///   hold all available resources. It is essentially the running sum of resources
-  ///   fetched so far.
+  /// @param resources The array to populate with this shape's resources. Expected empty before
+  ///   calling.
   /// @return The number of items added to @p resources when @p resources and @p capacity
   ///   are non zero. When @p resources is null or @p capacity zero, the return value
   ///   indicates the total number of resources used by the shape.
-  virtual unsigned enumerateResources(const Resource **resources, unsigned capacity,
-                                      unsigned fetch_offset) const;
-
-  /// @overload
-  unsigned enumerateResources(const Resource **resources, unsigned capacity) const
-  {
-    return enumerateResources(resources, capacity);
-  }
+  virtual unsigned enumerateResources(std::vector<ResourcePtr> &resources) const;
 
   /// Deep copy clone.
   /// @return A deep copy.
-  [[nodiscard]] virtual Shape *clone() const;
+  [[nodiscard]] virtual std::shared_ptr<Shape> clone() const;
 
 protected:
   /// Called when @p copy is created from this object to copy appropriate attributes to @p copy.
@@ -356,7 +341,7 @@ protected:
   /// concrete type, then call @c onClone() to copy data. The advantage is that @p onClone()
   /// can recursively call up the class hierarchy.
   /// @param copy The newly cloned object to copy data to. Must not be null.
-  void onClone(Shape *copy) const;
+  void onClone(Shape &copy) const;
 
   void init(const Id &id, const Transform &transform, uint16_t flags = 0);
 

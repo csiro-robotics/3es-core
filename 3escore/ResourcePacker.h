@@ -6,6 +6,8 @@
 
 #include "CoreConfig.h"
 
+#include "Ptr.h"
+
 #include <cstdint>
 #include <memory>
 
@@ -35,6 +37,8 @@ class PacketWriter;
 class TES_CORE_API ResourcePacker
 {
 public:
+  using ResourcePtr = Ptr<const Resource>;
+
   /// Constructor.
   ResourcePacker();
   /// Destructor.
@@ -42,14 +46,14 @@ public:
 
   /// Query the current resource being packed (if any).
   /// @return The current resource.
-  [[nodiscard]] const Resource *resource() const { return _resource; }
+  [[nodiscard]] const ResourcePtr &resource() const { return _resource; }
   /// Is there a current @c Resource being packed?
   /// @return True if @c resource() is null.
   [[nodiscard]] bool isValid() const { return _resource != nullptr; }
 
   /// Initiate transfer/packing of @p resource.
   /// @param resource The resource to start packing.
-  void transfer(const Resource *resource);
+  void transfer(ResourcePtr resource);
 
   /// Cancel packing of the current @c Resource. This releases the current resource and resets
   /// progress. Note that @c lastCompletedId() will not change.
@@ -76,7 +80,7 @@ public:
   [[nodiscard]] bool nextPacket(PacketWriter &packet, unsigned byte_limit);
 
 private:
-  const Resource *_resource = nullptr;          ///< Current resource pointer (borrowed).
+  ResourcePtr _resource;                        ///< Current resource pointer (borrowed or shared).
   std::unique_ptr<TransferProgress> _progress;  ///< Progress tracker for resource packing.
   uint64_t _last_completed_id = 0;              ///< Last completed resource key.
   bool _started = false;                        ///< Has the current resource been started?

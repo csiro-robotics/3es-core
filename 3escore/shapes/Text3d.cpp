@@ -65,16 +65,17 @@ Text3D &Text3D::operator=(const Text3D &other) = default;
 
 Text3D &Text3D::operator=(Text3D &&other) noexcept = default;
 
-Shape *Text3D::clone() const
+std::shared_ptr<Shape> Text3D::clone() const
 {
-  auto *copy = new Text3D(text(), Id());
-  onClone(copy);
+  auto copy = std::make_shared<Text3D>(std::string(), Id());
+  onClone(*copy);
   return copy;
 }
 
 
-void Text3D::onClone(Text3D *copy) const
+void Text3D::onClone(Text3D &copy) const
 {
   Shape::onClone(copy);
+  copy._text = _text;
 }
 }  // namespace tes

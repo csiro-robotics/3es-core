@@ -7,6 +7,7 @@
 #include "CoreConfig.h"
 
 #include <cstdint>
+#include <memory>
 
 namespace tes
 {
@@ -58,7 +59,7 @@ public:
   /// object pointer and the clone operation simply copies the wrapped pointer.
   /// Obviously, the existing mesh object must outlive the resource use.
   /// @return A (preferably shallow) copy of this resource.
-  [[nodiscard]] virtual Resource *clone() const = 0;
+  [[nodiscard]] virtual std::shared_ptr<Resource> clone() const = 0;
 
   /// Generate a creation packet to send to a connected client.
   ///

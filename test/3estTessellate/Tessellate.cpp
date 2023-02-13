@@ -60,8 +60,9 @@ bool haveOption(const char *opt, int argc, const char **argv)
 }
 
 
-void createAxes(unsigned &nextId, std::vector<Shape *> &shapes,
-                std::vector<const Resource *> &resources, int argc, const char **argv)
+void createAxes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
+                std::vector<std::shared_ptr<const Resource>> &resources, int argc,
+                const char **argv)
 {
   TES_UNUSED(resources);
   if (!haveOption("noaxes", argc, argv))
@@ -69,33 +70,38 @@ void createAxes(unsigned &nextId, std::vector<Shape *> &shapes,
     const float arrowLength = 1.0f;
     const float arrowRadius = 0.025f;
     const Vector3f pos(0.0f);
-    Arrow *arrow;
+    std::shared_ptr<Arrow> arrow;
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(1, 0, 0), arrowRadius, arrowLength));
+    arrow = std::make_shared<Arrow>(nextId++,
+                                    Directional(pos, Vector3f(1, 0, 0), arrowRadius, arrowLength));
     arrow->setColour(Colour(Colour::Red));
     shapes.push_back(arrow);
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 1, 0), arrowRadius, arrowLength));
+    arrow = std::make_shared<Arrow>(nextId++,
+                                    Directional(pos, Vector3f(0, 1, 0), arrowRadius, arrowLength));
     arrow->setColour(Colour(Colour::ForestGreen));
     shapes.push_back(arrow);
 
-    arrow = new Arrow(nextId++, Directional(pos, Vector3f(0, 0, 1), arrowRadius, arrowLength));
+    arrow = std::make_shared<Arrow>(nextId++,
+                                    Directional(pos, Vector3f(0, 0, 1), arrowRadius, arrowLength));
     arrow->setColour(Colour(Colour::DodgerBlue));
     shapes.push_back(arrow);
   }
 }
 
 
-MeshSet *createMeshShape(unsigned shapeId, unsigned mesh_id, const std::vector<Vector3f> &vertices,
-                         const std::vector<unsigned> &indices, const std::vector<Vector3f> *normals)
+std::shared_ptr<MeshSet> createMeshShape(unsigned shapeId, unsigned mesh_id,
+                                         const std::vector<Vector3f> &vertices,
+                                         const std::vector<unsigned> &indices,
+                                         const std::vector<Vector3f> *normals)
 {
   unsigned components = SimpleMesh::Vertex | SimpleMesh::Index;
   if (normals)
   {
     components |= SimpleMesh::Normal;
   }
-  SimpleMesh *resource =
-    new SimpleMesh(mesh_id, vertices.size(), indices.size(), DtTriangles, components);
+  auto resource =
+    std::make_shared<SimpleMesh>(mesh_id, vertices.size(), indices.size(), DtTriangles, components);
   resource->setVertices(0, vertices.data(), vertices.size());
   resource->setIndices(0, indices.data(), indices.size());
   if (normals)
@@ -103,13 +109,14 @@ MeshSet *createMeshShape(unsigned shapeId, unsigned mesh_id, const std::vector<V
     resource->setNormals(0, normals->data(), normals->size());
   }
 
-  MeshSet *meshShape = new MeshSet(resource, shapeId);
+  auto meshShape = std::make_shared<MeshSet>(resource, shapeId);
   return meshShape;
 }
 
 
-void createShapes(unsigned &nextId, std::vector<Shape *> &shapes,
-                  std::vector<const Resource *> &resources, int argc, const char **argv)
+void createShapes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
+                  std::vector<std::shared_ptr<const Resource>> &resources, int argc,
+                  const char **argv)
 {
   bool allShapes = haveOption("all", argc, argv) || argc == 1;
   size_t initialShapeCount = shapes.size();
@@ -122,10 +129,10 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes,
   {
     tes::arrow::solid(vertices, indices, normals, 16, 0.2f, 0.1f, 0.7f, 1.0f,
                       Vector3f(1, 0.8f, -0.2f).normalised());
-    MeshSet *mesh =
+    auto mesh =
       createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
     shapes.push_back(mesh);
-    resources.push_back(mesh->partResource(0));
+    resources.push_back(mesh->partResource(0).shared());
   }
 
   vertices.clear();
@@ -135,10 +142,10 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes,
   if (allShapes || haveOption("box", argc, argv))
   {
     tes::box::solid(vertices, indices, normals);
-    MeshSet *mesh =
+    auto mesh =
       createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
     shapes.push_back(mesh);
-    resources.push_back(mesh->partResource(0));
+    resources.push_back(mesh->partResource(0).shared());
   }
 
   vertices.clear();
@@ -149,10 +156,10 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes,
   {
     tes::cone::solid(vertices, indices, normals, Vector3f(0.5), Vector3f(1, 1, 0).normalised(),
                      1.5f, float(M_PI / 6.0), 12);
-    MeshSet *mesh =
+    auto mesh =
       createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
     shapes.push_back(mesh);
-    resources.push_back(mesh->partResource(0));
+    resources.push_back(mesh->partResource(0).shared());
   }
 
   vertices.clear();
@@ -162,10 +169,10 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes,
   if (allShapes || haveOption("cylinder", argc, argv))
   {
     tes::cylinder::solid(vertices, indices, normals, Vector3f(0, 0, 1), 2.2f, 0.3f, 18, false);
-    MeshSet *mesh =
+    auto mesh =
       createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
     shapes.push_back(mesh);
-    resources.push_back(mesh->partResource(0));
+    resources.push_back(mesh->partResource(0).shared());
   }
 
   vertices.clear();
@@ -175,10 +182,10 @@ void createShapes(unsigned &nextId, std::vector<Shape *> &shapes,
   if (allShapes || haveOption("sphere", argc, argv))
   {
     tes::sphere::solid(vertices, indices, normals, 0.7f);
-    MeshSet *mesh =
+    auto mesh =
       createMeshShape(nextId++, unsigned(resources.size() + 1u), vertices, indices, &normals);
     shapes.push_back(mesh);
-    resources.push_back(mesh->partResource(0));
+    resources.push_back(mesh->partResource(0).shared());
   }
 
   vertices.clear();
@@ -248,8 +255,8 @@ int main(int argc, char **argvNonConst)
   }
   auto server = Server::create(ServerSettings(serverFlags), &info);
 
-  std::vector<Shape *> shapes;
-  std::vector<const Resource *> resources;
+  std::vector<std::shared_ptr<Shape>> shapes;
+  std::vector<std::shared_ptr<const Resource>> resources;
 
   unsigned nextId = 1;
   createAxes(nextId, shapes, resources, argc, argv);
@@ -259,7 +266,7 @@ int main(int argc, char **argvNonConst)
   float time = 0;
   auto lastTime = std::chrono::system_clock::now();
   auto onNewConnection = [&shapes](Server & /*server*/, Connection &connection) {
-    for (Shape *shape : shapes)
+    for (auto &shape : shapes)
     {
       connection.create(*shape);
     }
@@ -277,7 +284,7 @@ int main(int argc, char **argvNonConst)
   std::cout << "Listening on port " << server->connectionMonitor()->port() << std::endl;
 
   // Register shapes with server.
-  for (Shape *shape : shapes)
+  for (auto &shape : shapes)
   {
     server->create(*shape);
   }
@@ -309,17 +316,11 @@ int main(int argc, char **argvNonConst)
   }
 
 
-  for (Shape *shape : shapes)
+  for (auto &shape : shapes)
   {
     server->destroy(*shape);
-    delete shape;
   }
   shapes.clear();
-
-  for (const Resource *resource : resources)
-  {
-    delete resource;
-  }
   resources.clear();
 
   server->close();

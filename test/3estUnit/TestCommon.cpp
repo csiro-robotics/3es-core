@@ -365,7 +365,7 @@ void validateShape(const PointCloudShape &shape, const PointCloudShape &referenc
   ASSERT_NE(resIter, resources.end());
   ASSERT_EQ(resIter->second->typeId(), reference.mesh()->typeId());
 
-  const MeshResource *mesh = static_cast<const MeshResource *>(resIter->second);
+  auto mesh = std::dynamic_pointer_cast<const MeshResource>(resIter->second);
   validateMesh(*mesh, *reference.mesh());
 }
 
@@ -385,8 +385,8 @@ void validateShape(const MeshSet &shape, const MeshSet &reference, const Resourc
     ASSERT_NE(resIter, resources.end());
     ASSERT_EQ(resIter->second->typeId(), reference.partResource(i)->typeId());
 
-    const MeshResource *part = static_cast<const MeshResource *>(resIter->second);
-    const MeshResource *refPart = reference.partResource(i);
+    auto part = std::dynamic_pointer_cast<const MeshResource>(resIter->second);
+    auto refPart = reference.partResource(i);
 
     EXPECT_TRUE(shape.partTransform(i).isEqual(reference.partTransform(i)));
     EXPECT_EQ(shape.partColour(i), reference.partColour(i));

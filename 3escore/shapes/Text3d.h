@@ -62,10 +62,10 @@ public:
   Text3D &operator=(const Text3D &other);
   Text3D &operator=(Text3D &&other) noexcept;
 
-  [[nodiscard]] Shape *clone() const override;
+  [[nodiscard]] std::shared_ptr<Shape> clone() const override;
 
 protected:
-  void onClone(Text3D *copy) const;
+  void onClone(Text3D &copy) const;
 
 private:
   std::string _text;

@@ -8,6 +8,7 @@
 #include <3escore/Vector3.h>
 
 #include <cinttypes>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -23,7 +24,7 @@ class Shape;
 class Text2D;
 class Text3D;
 
-using ResourceMap = std::unordered_map<uint64_t, Resource *>;
+using ResourceMap = std::unordered_map<uint64_t, std::shared_ptr<Resource>>;
 
 void makeHiResSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
                      std::vector<Vector3f> *normals);

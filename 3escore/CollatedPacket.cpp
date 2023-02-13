@@ -525,14 +525,14 @@ int CollatedPacket::updateFrame(float dt, bool flush)
 }
 
 
-unsigned tes::CollatedPacket::referenceResource(const Resource *resource)
+unsigned tes::CollatedPacket::referenceResource(const ResourcePtr &resource)
 {
   TES_UNUSED(resource);
   return 0;
 }
 
 
-unsigned tes::CollatedPacket::releaseResource(const Resource *resource)
+unsigned tes::CollatedPacket::releaseResource(const ResourcePtr &resource)
 {
   TES_UNUSED(resource);
   return 0;

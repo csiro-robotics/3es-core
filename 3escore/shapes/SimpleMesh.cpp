@@ -173,9 +173,9 @@ void SimpleMesh::setTint(uint32_t tint)
 }
 
 
-SimpleMesh *SimpleMesh::clone() const
+std::shared_ptr<Resource> SimpleMesh::clone() const
 {
-  return new SimpleMesh(*this);
+  return std::make_shared<SimpleMesh>(*this);
 }
 
 

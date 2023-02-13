@@ -63,13 +63,13 @@ void handleMeshMessage(PacketReader &reader, ResourceMap &resources)
   uint32_t mesh_id = 0;
   reader.peek((uint8_t *)&mesh_id, sizeof(mesh_id));
   auto resIter = resources.find(MeshPlaceholder(mesh_id).uniqueKey());
-  SimpleMesh *mesh = nullptr;
+  std::shared_ptr<SimpleMesh> mesh = nullptr;
 
   // If it exists, make sure it's a mesh.
   if (resIter != resources.end())
   {
     ASSERT_TRUE(resIter->second->typeId() == MtMesh);
-    mesh = static_cast<SimpleMesh *>(resIter->second);
+    mesh = std::dynamic_pointer_cast<SimpleMesh>(resIter->second);
   }
 
   switch (reader.messageId())
@@ -79,7 +79,7 @@ void handleMeshMessage(PacketReader &reader, ResourceMap &resources)
     break;
 
   case MmtDestroy:
-    delete mesh;
+    mesh.reset();
     if (resIter != resources.end())
     {
       resources.erase(resIter);
@@ -89,8 +89,7 @@ void handleMeshMessage(PacketReader &reader, ResourceMap &resources)
   case MmtCreate:
     // Create message. Should not already exists.
     EXPECT_EQ(mesh, nullptr) << "Recreating exiting mesh.";
-    delete mesh;
-    mesh = new SimpleMesh(mesh_id);
+    mesh = std::make_shared<SimpleMesh>(mesh_id);
     EXPECT_TRUE(mesh->readCreate(reader));
     resources.insert(std::make_pair(mesh->uniqueKey(), mesh));
     break;
@@ -223,11 +222,6 @@ void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape,
   if (shapeMsgRead)
   {
     validateShape(shape, referenceShape, resources);
-  }
-
-  for (auto &&resource : resources)
-  {
-    delete resource.second;
   }
 }
 
@@ -389,7 +383,7 @@ TEST(Shapes, MeshSet)
   std::vector<unsigned> wireIndices;
   std::vector<Vector3f> normals;
   std::vector<uint32_t> colours;
-  std::vector<SimpleMesh *> meshes;
+  std::vector<std::shared_ptr<SimpleMesh>> meshes;
   makeHiResSphere(vertices, indices, &normals);
 
   // Build per vertex colours by colour cycling.
@@ -411,19 +405,20 @@ TEST(Shapes, MeshSet)
   }
 
   // Build a number of meshes to include in the mesh set.
-  SimpleMesh *mesh = nullptr;
+  std::shared_ptr<SimpleMesh> mesh = nullptr;
   unsigned nextMeshId = 1;
 
   // Vertices and indices only.
-  mesh =
-    new SimpleMesh(nextMeshId++, unsigned(vertices.size()), unsigned(indices.size()), DtTriangles);
+  mesh = std::make_shared<SimpleMesh>(nextMeshId++, unsigned(vertices.size()),
+                                      unsigned(indices.size()), DtTriangles);
   mesh->setVertices(0, vertices.data(), unsigned(vertices.size()));
   mesh->setIndices(0, indices.data(), unsigned(indices.size()));
   meshes.push_back(mesh);
 
   // Vertices, indices and colours
-  mesh = new SimpleMesh(nextMeshId++, unsigned(vertices.size()), unsigned(indices.size()),
-                        DtTriangles, SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Colour);
+  mesh = std::make_shared<SimpleMesh>(nextMeshId++, unsigned(vertices.size()),
+                                      unsigned(indices.size()), DtTriangles,
+                                      SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Colour);
   mesh->setVertices(0, vertices.data(), unsigned(vertices.size()));
   mesh->setNormals(0, normals.data(), unsigned(normals.size()));
   mesh->setColours(0, colours.data(), unsigned(colours.size()));
@@ -431,21 +426,22 @@ TEST(Shapes, MeshSet)
   meshes.push_back(mesh);
 
   // Points and colours only (essentially a point cloud)
-  mesh = new SimpleMesh(nextMeshId++, unsigned(vertices.size()), unsigned(indices.size()), DtPoints,
-                        SimpleMesh::Vertex | SimpleMesh::Colour);
+  mesh =
+    std::make_shared<SimpleMesh>(nextMeshId++, unsigned(vertices.size()), unsigned(indices.size()),
+                                 DtPoints, SimpleMesh::Vertex | SimpleMesh::Colour);
   mesh->setVertices(0, vertices.data(), unsigned(vertices.size()));
   mesh->setColours(0, colours.data(), unsigned(colours.size()));
   meshes.push_back(mesh);
 
   // Lines.
-  mesh =
-    new SimpleMesh(nextMeshId++, unsigned(vertices.size()), unsigned(wireIndices.size()), DtLines);
+  mesh = std::make_shared<SimpleMesh>(nextMeshId++, unsigned(vertices.size()),
+                                      unsigned(wireIndices.size()), DtLines);
   mesh->setVertices(0, vertices.data(), unsigned(vertices.size()));
   mesh->setIndices(0, wireIndices.data(), unsigned(wireIndices.size()));
   meshes.push_back(mesh);
 
   // One with the lot.
-  mesh = new SimpleMesh(
+  mesh = std::make_shared<SimpleMesh>(
     nextMeshId++, unsigned(vertices.size()), unsigned(indices.size()), DtTriangles,
     SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Normal | SimpleMesh::Colour);
   mesh->setVertices(0, vertices.data(), unsigned(vertices.size()));
@@ -475,10 +471,7 @@ TEST(Shapes, MeshSet)
     testShape(set);
   }
 
-  for (auto &&mesh : meshes)
-  {
-    delete mesh;
-  }
+  meshes.clear();
 }
 
 TEST(Shapes, Mesh)
@@ -561,11 +554,11 @@ TEST(Shapes, PointCloud)
   std::vector<Vector3f> normals;
   makeHiResSphere(vertices, indices, &normals);
 
-  PointCloud cloud(42);
-  cloud.addPoints(vertices.data(), unsigned(vertices.size()));
+  auto cloud = std::make_shared<PointCloud>(42);
+  cloud->addPoints(vertices.data(), unsigned(vertices.size()));
 
   // Full res cloud.
-  testShape(PointCloudShape(&cloud, Id(42u), 8));
+  testShape(PointCloudShape(cloud, Id(42u), 8));
 
   // Indexed (sub-sampled) cloud. Just use half the points.
   indices.clear();
@@ -573,8 +566,7 @@ TEST(Shapes, PointCloud)
   {
     indices.push_back(i);
   }
-  testShape(
-    PointCloudShape(&cloud, Id(42u, 1), 8).setIndices(indices.data(), unsigned(indices.size())));
+  testShape(PointCloudShape(cloud, Id(42u, 1), 8).setIndices(indices.begin(), indices.end()));
 }
 
 TEST(Shapes, Pose)

@@ -44,7 +44,7 @@ public:
 
     [[nodiscard]] uint32_t id() const override;
 
-    [[nodiscard]] tes::Resource *clone() const override;
+    [[nodiscard]] std::shared_ptr<tes::Resource> clone() const override;
 
     [[nodiscard]] Transform transform() const override;
     [[nodiscard]] uint32_t tint() const override;
@@ -260,10 +260,10 @@ public:
 
   /// Deep copy clone.
   /// @return A deep copy.
-  [[nodiscard]] Shape *clone() const override;
+  [[nodiscard]] std::shared_ptr<Shape> clone() const override;
 
 protected:
-  void onClone(MeshShape *copy) const;
+  void onClone(MeshShape &copy) const;
 
   DataBuffer _vertices;  ///< Mesh vertices.
   /// Normal stream. Expect zero, one per vertex or one to apply to all vertices.

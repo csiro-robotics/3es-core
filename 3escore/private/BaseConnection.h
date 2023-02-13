@@ -66,22 +66,26 @@ public:
   int updateFrame(float dt, bool flush) override;
   using Connection::updateFrame;
 
-  unsigned referenceResource(const Resource *resource) override;
-  unsigned releaseResource(const Resource *resource) override;
+  unsigned referenceResource(const ResourcePtr &resource) override;
+  unsigned releaseResource(const ResourcePtr &resource) override;
 
 protected:
   virtual int writeBytes(const uint8_t *data, int byte_count) = 0;
 
+  /// Internal structure for managing a resource.
   struct ResourceInfo
   {
-    const Resource *resource = nullptr;
+    ResourcePtr resource;  ///< Resource pointer.
+    /// Number of active references. This increases when @c referenceResource() is called and
+    /// decreases when @c releaseResource() is called. It also changes as non-transient shapes
+    /// with resources are created and destroyed.
     unsigned reference_count = 0;
     bool started = false;  ///< Started sending?
     bool sent = false;     ///< Completed sending?
 
     ResourceInfo() = default;
-    ResourceInfo(const Resource *resource)
-      : resource(resource)
+    ResourceInfo(ResourcePtr resource)
+      : resource(std::move(resource))
       , reference_count(1)
     {}
   };
@@ -149,6 +153,8 @@ protected:
   std::unique_ptr<ResourcePacker> _current_resource;  ///< Current resource being transmitted.
   std::list<uint64_t> _resource_queue;
   std::unordered_map<uint64_t, ResourceInfo> _resources;
+  /// Buffer used when calling @c Shape::enumerateResources() . Use is transient.
+  std::vector<ResourcePtr> _resource_buffer;
   ServerInfoMessage _server_info = {};
   float _seconds_to_time_unit = 0;
   unsigned _server_flags = 0;

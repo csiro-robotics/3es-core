@@ -8,18 +8,11 @@
 #include <3escore/CoreUtil.h>
 #include <3escore/PacketWriter.h>
 
-#include <algorithm>
+#include <iterator>
 
 namespace tes
 {
-PointCloudShape::~PointCloudShape()
-{
-  freeIndices(_indices);
-  if (_own_mesh)
-  {
-    delete _mesh;
-  }
-}
+PointCloudShape::~PointCloudShape() = default;
 
 
 bool PointCloudShape::writeCreate(PacketWriter &stream) const
@@ -29,7 +22,7 @@ bool PointCloudShape::writeCreate(PacketWriter &stream) const
   uint32_t value_u32 = _mesh->id();
   ok = stream.writeElement(value_u32) == sizeof(value_u32) && ok;
   // Write the index count.
-  value_u32 = _index_count;
+  value_u32 = int_cast<uint32_t>(_indices.size());
   ok = stream.writeElement(value_u32) == sizeof(value_u32) && ok;
   // Write point size.
   ok = stream.writeElement(_point_scale) == sizeof(_point_scale) && ok;
@@ -49,7 +42,8 @@ int PointCloudShape::writeData(PacketWriter &stream, unsigned &progress_marker) 
 
   // Write indices for this view into the cloud.
   const uint32_t offset = progress_marker;
-  uint32_t count = _index_count - progress_marker;
+  const uint32_t index_count = int_cast<uint32_t>(_indices.size());
+  uint32_t count = index_count - progress_marker;
   if (count > max_items)
   {
     count = max_items;
@@ -61,7 +55,7 @@ int PointCloudShape::writeData(PacketWriter &stream, unsigned &progress_marker) 
 
   if (count)
   {
-    ok = stream.writeArray(_indices + offset, count) == count && ok;
+    ok = stream.writeArray(_indices.data() + offset, count) == count && ok;
   }
 
   if (!ok)
@@ -70,7 +64,7 @@ int PointCloudShape::writeData(PacketWriter &stream, unsigned &progress_marker) 
   }
 
   progress_marker += count;
-  return (progress_marker < _index_count) ? 1 : 0;
+  return (progress_marker < index_count) ? 1 : 0;
 }
 
 
@@ -87,21 +81,11 @@ bool PointCloudShape::readCreate(PacketReader &stream)
 
   // Mesh ID.
   ok = ok && stream.readElement(value_u32) == sizeof(value_u32);
-  if (_own_mesh)
-  {
-    delete _mesh;
-  }
-  _mesh = new MeshPlaceholder(value_u32);
-  _own_mesh = true;
+  _mesh = std::make_shared<MeshPlaceholder>(value_u32);
 
   // Index count.
   ok = ok && stream.readElement(value_u32) == sizeof(value_u32);
-  if (_index_count < value_u32)
-  {
-    freeIndices(_indices);
-    _indices = allocateIndices(value_u32);
-  }
-  _index_count = value_u32;
+  _indices.resize(value_u32);
 
   // Point size.
   if (stream.versionMajor() > 0 || stream.versionMajor() == 0 && stream.versionMinor() >= 2)
@@ -140,93 +124,39 @@ bool PointCloudShape::readData(PacketReader &stream)
 
   if (count)
   {
-    if (count + offset > _index_count)
+    if (count + offset > _indices.size())
     {
-      reallocateIndices(count + offset);
-      _index_count = count + offset;
+      _indices.resize(count + offset);
     }
 
-    ok = ok && stream.readArray(_indices + offset, count) == count;
+    ok = ok && stream.readArray(_indices.data() + offset, count) == count;
   }
 
   return ok;
 }
 
 
-unsigned PointCloudShape::enumerateResources(const Resource **resources, unsigned capacity,
-                                             unsigned fetch_offset) const
+unsigned PointCloudShape::enumerateResources(std::vector<ResourcePtr> &resources) const
 {
-  if (!resources || !capacity)
-  {
-    return 1;
-  }
-
-  if (fetch_offset == 0)
-  {
-    resources[0] = _mesh;
-    return 1;
-  }
-
-  return 0;
+  resources.emplace_back(_mesh);
+  return 1;
 }
 
 
-Shape *PointCloudShape::clone() const
+std::shared_ptr<Shape> PointCloudShape::clone() const
 {
-  auto *copy = new PointCloudShape(_mesh);
-  onClone(copy);
+  auto copy = std::make_shared<PointCloudShape>(_mesh);
+  onClone(*copy);
   return copy;
 }
 
 
-void PointCloudShape::onClone(PointCloudShape *copy) const
+void PointCloudShape::onClone(PointCloudShape &copy) const
 {
   Shape::onClone(copy);
-  if (_index_count)
-  {
-    copy->_indices = allocateIndices(_index_count);
-    std::memcpy(copy->_indices, _indices, sizeof(*_indices) * _index_count);
-    copy->_index_count = _index_count;
-  }
-  copy->_mesh = _mesh;
-  copy->_point_scale = _point_scale;
-}
-
-
-void PointCloudShape::reallocateIndices(uint32_t count)
-{
-  if (count)
-  {
-    uint32_t *new_indices = allocateIndices(count);
-    if (_indices)
-    {
-      if (_index_count)
-      {
-        std::memcpy(new_indices, _indices, sizeof(*_indices) * std::min(count, _index_count));
-      }
-      freeIndices(_indices);
-    }
-    _indices = new_indices;
-  }
-  else
-  {
-    freeIndices(_indices);
-    _indices = nullptr;
-  }
-  _index_count = count;
-}
-
-
-uint32_t *PointCloudShape::allocateIndices(uint32_t count)
-{
-  // Hidden for consistent allocator usage.
-  return new uint32_t[count];
-}
-
-
-void PointCloudShape::freeIndices(const uint32_t *indices)
-{
-  // Hidden for consistent allocator usage.
-  delete[] indices;
+  copy._indices.clear();
+  std::copy(_indices.begin(), _indices.end(), std::back_inserter(copy._indices));
+  copy._mesh = _mesh;
+  copy._point_scale = _point_scale;
 }
 }  // namespace tes
