@@ -35,7 +35,8 @@ class MeshResource;
 /// because of the amount of work required by the viewer in order to duplicate resources with
 /// a different set of indices and the functionality is sufficiently covered by the aforementioned
 /// alternative classes.
-class TES_CORE_API TES_CORE_DEPRECATED PointCloudShape : public Shape
+class TES_CORE_API PointCloudShape : public Shape
+// class TES_CORE_API TES_CORE_DEPRECATED PointCloudShape : public Shape
 {
 public:
   /// Pointer type used for referencing a @c MeshResource. Uses the @c Ptr type to allow borrowed

@@ -79,7 +79,7 @@ public:
 private:
   void migratePending();
 
-  MutableMeshImp *_imp;
+  std::unique_ptr<MutableMeshImp> _imp;
 };
 }  // namespace tes
 

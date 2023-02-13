@@ -332,10 +332,10 @@ void DataBufferAffordancesT<T>::takeOwnership(const void **stream_ptr, bool has_
   }
 
   // Allocate a new array.
-  T *new_array = new T[static_cast<size_t>(stream.count()) * stream.elementStride()];
   const T *src_array = static_cast<const T *>(*stream_ptr);
-  std::copy(src_array, src_array + stream.count() * stream.elementStride(), new_array);
+  T *new_array = new T[static_cast<size_t>(stream.count()) * stream.elementStride()];
   *stream_ptr = new_array;
+  std::copy(src_array, src_array + stream.count() * stream.elementStride(), new_array);
 }
 
 template <typename T>

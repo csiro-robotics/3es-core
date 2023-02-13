@@ -55,7 +55,7 @@ public:
   std::shared_ptr<TcpSocket> accept(unsigned timeout_ms = 0);
 
 private:
-  TcpListenSocketDetail *_detail;  ///< Implementation detail.
+  std::unique_ptr<TcpListenSocketDetail> _detail;  ///< Implementation detail.
 };
 
 }  // namespace tes

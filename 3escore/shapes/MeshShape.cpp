@@ -175,6 +175,10 @@ void expandVertices(DataBuffer &vertices, DataBuffer &indices)
     // First unpack all vertices and stop indexing.
     const size_t element_count = static_cast<size_t>(vertices.componentCount()) * indices.count();
     T *verts = new T[element_count];
+    // Set vertices to hold the new pointer as soon as we can for RAII
+    vertices.set(verts, indices.count(), vertices.componentCount(), vertices.componentCount(),
+                 true);
+
     T *dst = verts;
     for (unsigned i = 0; i < indices.count(); ++i)
     {
@@ -184,8 +188,6 @@ void expandVertices(DataBuffer &vertices, DataBuffer &indices)
         *dst = vertices.ptr<T>(vind)[j];
       }
     }
-    vertices.set(verts, indices.count(), vertices.componentCount(), vertices.componentCount(),
-                 true);
   }
 }
 

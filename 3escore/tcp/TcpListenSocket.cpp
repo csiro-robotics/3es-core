@@ -56,14 +56,13 @@ bool acceptConnection(TcpListenSocketDetail &server, TcpSocketDetail &client)
 }  // namespace
 
 TcpListenSocket::TcpListenSocket()
-  : _detail(new TcpListenSocketDetail)
+  : _detail(std::make_unique<TcpListenSocketDetail>())
 {}
 
 
 TcpListenSocket::~TcpListenSocket()
 {
   close();
-  delete _detail;
 }
 
 

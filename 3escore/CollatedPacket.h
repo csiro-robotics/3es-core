@@ -11,6 +11,8 @@
 #include "Connection.h"
 #include "PacketHeader.h"
 
+#include <vector>
+
 namespace tes
 {
 struct CollatedPacketMessage;
@@ -246,16 +248,16 @@ private:
 
   /// Expand the internal buffer size by @p expand_by bytes up to @c maxPacketSize().
   /// @param expand_by Minimum number of bytes to expand by.
-  static void expand(unsigned expand_by, uint8_t *&buffer, unsigned &buffer_size,
-                     unsigned current_data_count, unsigned max_packet_size);
+  static void expand(unsigned expand_by, std::vector<uint8_t> &buffer, unsigned current_data_count,
+                     unsigned max_packet_size);
 
-  CollatedPacketZip *_zip = nullptr;  ///< Present and used when compression is enabled.
-  uint8_t *_buffer = nullptr;         ///< Internal buffer.
+  std::unique_ptr<CollatedPacketZip> _zip;  ///< Present and used when compression is enabled.
+  std::vector<uint8_t> _buffer;             ///< Internal buffer.
   /// Buffer used to finalise collation. Deflating may not be successful, so we can try and fail
   /// with this buffer.
-  uint8_t *_final_buffer = nullptr;
-  unsigned _buffer_size = 0;                ///< current size of @c _buffer.
-  unsigned _final_buffer_size = 0;          ///< current size of @c _final_buffer.
+  std::vector<uint8_t> _final_buffer;
+  // unsigned _buffer_size = 0;                ///< current size of @c _buffer.
+  // unsigned _final_buffer_size = 0;          ///< current size of @c _final_buffer.
   unsigned _final_packet_cursor = 0;        ///< End of data in @c _final_buffer
   unsigned _cursor = 0;                     ///< Current write position in @c _buffer.
   unsigned _max_packet_size = 0;            ///< Maximum @p _buffer_size.

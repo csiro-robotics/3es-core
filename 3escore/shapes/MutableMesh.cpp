@@ -57,13 +57,10 @@ struct MutableMeshImp
 };
 
 MutableMesh::MutableMesh(uint32_t id, DrawType draw_type, unsigned components)
-  : _imp(new MutableMeshImp(id, draw_type, components))
+  : _imp(std::make_unique<MutableMeshImp>(id, draw_type, components))
 {}
 
-MutableMesh::~MutableMesh()
-{
-  delete _imp;
-}
+MutableMesh::~MutableMesh() = default;
 
 const SimpleMesh &MutableMesh::meshResource() const
 {
