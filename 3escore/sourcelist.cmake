@@ -35,6 +35,7 @@ list(APPEND PUBLIC_HEADERS
   PacketStreamReader.h
   PacketWriter.h
   PlaneGeom.h
+  Ptr.h
   Quaternion.h
   Quaternion.inl
   QuaternionArg.h
@@ -123,6 +124,7 @@ list(APPEND SOURCES
   PacketStreamReader.cpp
   PacketWriter.cpp
   PlaneGeom.cpp
+  Ptr.cpp
   Quaternion.cpp
   Resource.cpp
   ResourcePacker.cpp
