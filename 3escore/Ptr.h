@@ -7,12 +7,16 @@
 
 #include "CoreConfig.h"
 
-#include <any>
 #include <memory>
 
 namespace tes
 {
 /// An abstraction for having either a borrowed or shared pointer to something of type @c T .
+///
+/// The @p Ptr class is used extensively in order to support multiple use case scenarios for
+/// pointers passed to @c tes objects. It enabled both shared and borrowed semantics without
+/// forcing the API exclusively into one or the other.
+///
 /// @tparam T The type being pointed stored by address.
 template <typename T>
 class Ptr
@@ -47,6 +51,28 @@ public:
   {
     *this = other;
   }
+  /// Construct from a either a non-const @c shard_ptr<T> or using upcasting.
+  /// @tparam U The type to cast from. Must be implicitly convertible to @c T.
+  /// @param other Object to copy.
+  template <typename U>
+  Ptr(const std::shared_ptr<U> &ptr)
+    : _shared(ptr)
+  {}
+  /// Construct from a either a non-const @c T* or using upcasting.
+  /// @tparam U The type to cast from. Must be implicitly convertible to @c T.
+  /// @param other Object to copy.
+  template <typename U>
+  Ptr(U *ptr)
+    : _borrowed(ptr)
+  {}
+  /// Construct from another @c Ptr supporting upcasting.
+  ///
+  /// Note there is no downcasting support.
+  ///
+  /// @tparam U The type to cast from, must be derived from @p T .
+  /// @param other The pointer to assign from.
+  template <typename U>
+  Ptr(const Ptr<U> &other);
   /// Destructor.
   ~Ptr() = default;
 
@@ -76,6 +102,35 @@ public:
     _borrowed = other.borrowed();
     return *this;
   }
+  /// Assign from a either a non-const @c shard_ptr<T> or using upcasting.
+  /// @tparam U The type to cast from. Must be implicitly convertible to @c T.
+  /// @param other Object to copy.
+  template <typename U>
+  Ptr &operator=(const std::shared_ptr<U> &ptr)
+  {
+    _shared = ptr;
+    _borrowed = nullptr;
+    return *this;
+  }
+  /// Assign from a either a non-const @c T* or using upcasting.
+  /// @tparam U The type to cast from. Must be implicitly convertible to @c T.
+  /// @param other Object to copy.
+  template <typename U>
+  Ptr &operator=(U *ptr)
+  {
+    _shared = {};
+    _borrowed = ptr;
+    return *this;
+  }
+  /// Assignment from another @c Ptr supporting upcasting.
+  ///
+  /// Note there is no downcasting support.
+  ///
+  /// @tparam U The type to cast from, must be derived from @p T .
+  /// @param other The pointer to assign from.
+  /// @return @c @this
+  template <typename U>
+  Ptr &operator=(const Ptr<U> &other);
 
   /// Dereference operator.
   ///
@@ -127,15 +182,51 @@ public:
 
   /// Check if empty.
   /// @return True when empty.
-  inline bool empty() const { return !_shared && !_borrowed; }
+  bool empty() const { return !_shared && !_borrowed; }
 
   /// Boolean conversion.
   /// @return True when not empty.
-  inline operator bool() const { return !empty(); }
+  operator bool() const { return !empty(); }
 
   /// Logical negation.
   /// @return True not empty.
-  inline bool operator!() const { return empty(); }
+  bool operator!() const { return empty(); }
+
+  /// Equality operator.
+  /// @param other Object to check equivalence with.
+  /// @return True when equivalent.
+  bool operator==(const Ptr<T> &other) const
+  {
+    return _shared == other._shared && _borrowed == other._borrowed;
+  }
+
+  /// Inequality operator.
+  /// @param other Object to check equivalence with.
+  /// @return False when equivalent.
+  bool operator!=(const Ptr<T> &other) const { return !operator==(other); }
+
+  /// Equality comparison with raw pointer.
+  /// @param ptr Pointer to compare
+  /// @return True if @p ptr matches either the @c borrowed() or @c shared() pointers.
+  bool operator==(const T *ptr) { return _borrowed == ptr || _shared.get() == ptr; }
+
+  /// Inequality comparison with raw pointer.
+  /// @param ptr Pointer to compare
+  /// @return False if @p ptr matches either the @c borrowed() or @c shared() pointers.
+  bool operator!=(const T *ptr) { return !operator==(ptr) }
+
+  /// Equality comparison with raw pointer.
+  /// @param ptr Pointer to compare
+  /// @return True if @p ptr matches either the @c borrowed() or @c shared() pointers.
+  bool operator==(const std::shared_ptr<const T> &ptr)
+  {
+    return _borrowed == ptr.get() || _shared.get() == ptr.get();
+  }
+
+  /// Inequality comparison with raw pointer.
+  /// @param ptr Pointer to compare
+  /// @return False if @p ptr matches either the @c borrowed() or @c shared() pointers.
+  bool operator!=(const std::shared_ptr<const T> &ptr){ return !operator==(ptr) }
 
   /// Get a raw pointer from either a shared or borrowed pointer.
   ///
@@ -149,6 +240,13 @@ public:
   /// returned when @c status() is @c Status::Empty.
   /// @return The pointer or null if empty.
   const T *get() const;
+
+  /// Reset this pointer to a null/empty status
+  void reset()
+  {
+    _shared.reset();
+    _borrowed = nullptr;
+  }
 
   /// Query the type of pointer being help.
   /// @return The pointer type.
@@ -177,6 +275,14 @@ inline Ptr<T>::Ptr(std::shared_ptr<T> ptr)
 
 
 template <typename T>
+template <typename U>
+Ptr<T>::Ptr(const Ptr<U> &other)
+{
+  operator=(other);
+}
+
+
+template <typename T>
 inline Ptr<T> &Ptr<T>::operator=(T *ptr)
 {
   _shared.reset();
@@ -190,6 +296,17 @@ inline Ptr<T> &Ptr<T>::operator=(std::shared_ptr<T> ptr)
 {
   _shared = ptr;
   _borrowed = nullptr;
+  return *this;
+}
+
+
+template <typename T>
+template <typename U>
+Ptr<T> &Ptr<T>::operator=(const Ptr<U> &other)
+{
+  reset();
+  _shared = other.shared();
+  _borrowed = other.borrowed();
   return *this;
 }
 

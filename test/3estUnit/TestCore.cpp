@@ -1,17 +1,18 @@
 //
 // author: Kazys Stepanas
 //
-#include <gtest/gtest.h>
-
 #include "TestCommon.h"
 
 #include <3escore/IntArg.h>
 #include <3escore/Ptr.h>
 #include <3escore/V3Arg.h>
+#include <3escore/shapes/SimpleMesh.h>
 
 #include <algorithm>
 #include <cinttypes>
 #include <iterator>
+
+#include <gtest/gtest.h>
 
 namespace tes
 {
@@ -73,7 +74,7 @@ TEST(Core, V3Arg)
   TestV3Arg(vd, vf);
 }
 
-TEST(Core, Ptr)
+TEST(Core, PtrManagement)
 {
   struct Datum
   {
@@ -169,5 +170,50 @@ TEST(Core, Ptr)
   // Release everything.
   EXPECT_NO_THROW(ptr_set.clear());
   EXPECT_EQ(item_count, 0u);
+}
+
+// To test implicit argument conversion
+template <typename T, typename U>
+inline void testImplicitArgConvert(const Ptr<T> &ptr, const std::shared_ptr<U> &src)
+{
+  EXPECT_EQ(ptr.get(), src.get());
+}
+
+template <typename T, typename U>
+inline void testPtrCast(const std::shared_ptr<U> &src)
+{
+  size_t use_count = src.use_count();
+
+  // Assign to Ptr
+  auto ptr_shared = Ptr<T>(src);          // shared
+  auto ptr_borrowed = Ptr<T>(src.get());  // borrowed.
+  ++use_count;
+
+  EXPECT_EQ(src.use_count(), use_count);
+  EXPECT_EQ(ptr_shared.get(), src.get());
+  EXPECT_EQ(ptr_borrowed.get(), src.get());
+  EXPECT_EQ(ptr_shared.shared(), src);
+  EXPECT_EQ(ptr_borrowed.borrowed(), src.get());
+  EXPECT_EQ(ptr_shared.borrowed(), nullptr);
+  EXPECT_EQ(ptr_borrowed.shared(), std::shared_ptr<T>());
+}
+
+TEST(Core, PtrAssign)
+{
+  // Test assigning from various sources with up casting and const addition.
+  auto mesh = std::make_shared<SimpleMesh>(0u);
+
+  // Test assignment to the same type.
+  testPtrCast<SimpleMesh>(mesh);
+  testImplicitArgConvert<SimpleMesh>(mesh, mesh);
+  // Test assignment to const
+  testPtrCast<const SimpleMesh>(mesh);
+  testImplicitArgConvert<const SimpleMesh>(mesh, mesh);
+  // Test upcast
+  testPtrCast<Resource>(mesh);
+  testImplicitArgConvert<Resource>(mesh, mesh);
+  // Test const upcast
+  testPtrCast<const Resource>(mesh);
+  testImplicitArgConvert<const Resource>(mesh, mesh);
 }
 }  // namespace tes
