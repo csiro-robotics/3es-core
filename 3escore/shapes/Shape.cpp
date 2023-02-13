@@ -64,15 +64,15 @@ bool Shape::readUpdate(PacketReader &stream)
       // Partial update.
       if (update.flags & UFPosition)
       {
-        memcpy(_attributes.position, attrs.position, sizeof(attrs.position));
+        std::memcpy(_attributes.position, attrs.position, sizeof(attrs.position));
       }
       if (update.flags & UFRotation)
       {
-        memcpy(_attributes.rotation, attrs.rotation, sizeof(attrs.rotation));
+        std::memcpy(_attributes.rotation, attrs.rotation, sizeof(attrs.rotation));
       }
       if (update.flags & UFScale)
       {
-        memcpy(_attributes.scale, attrs.scale, sizeof(attrs.scale));
+        std::memcpy(_attributes.scale, attrs.scale, sizeof(attrs.scale));
       }
       if (update.flags & UFColour)
       {
