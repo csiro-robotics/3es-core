@@ -89,8 +89,6 @@ TEST(Core, Ptr)
     ~Datum() { --data_count; }
   };
 
-  std::cout << "Ptr size: " << sizeof(Ptr<Datum>) << std::endl;
-
   // This variable tracks how many Datum objects we have allocated.
   unsigned item_count = 0;
 
