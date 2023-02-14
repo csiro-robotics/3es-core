@@ -255,7 +255,7 @@ void testShape(const T &shape, ServerInfoMessage *infoOut = nullptr,
   }
 
   // std::cout << "Start on port " << serverSettings.listen_port << std::endl;
-  ASSERT_TRUE(server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous));
+  ASSERT_TRUE(server->connectionMonitor()->start(tes::ConnectionMode::Asynchronous));
   // std::cout << "Server listening on port " <<
   // server->connectionMonitor()->port() << std::endl;;
 

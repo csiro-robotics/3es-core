@@ -210,7 +210,7 @@ int main(int argc, char **argvNonConst)
 
   auto server = Server::create(ServerSettings(serverFlags), &info);
 
-  server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous);
+  server->connectionMonitor()->start(tes::ConnectionMode::Asynchronous);
 
   const unsigned durationHistorySize = 100;
   TimingClock::duration durationWindow[durationHistorySize];
@@ -230,7 +230,7 @@ int main(int argc, char **argvNonConst)
     server->create(shape);
 
     server->updateFrame(0.0f);
-    if (server->connectionMonitor()->mode() == tes::ConnectionMonitor::Synchronous)
+    if (server->connectionMonitor()->mode() == tes::ConnectionMode::Synchronous)
     {
       server->connectionMonitor()->monitorConnections();
     }

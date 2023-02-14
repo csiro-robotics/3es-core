@@ -53,6 +53,10 @@ public:
   /// @param point_scale Desired point render scale. Use zero or one for the default scale.
   PointCloudShape(MeshResourcePtr mesh, const Id &id = Id(), float point_scale = 0.0f);
 
+  /// Move constructor.
+  /// @param other Object to move.
+  PointCloudShape(PointCloudShape &&other) noexcept = default;
+
   /// Destructor.
   ~PointCloudShape() override;
 

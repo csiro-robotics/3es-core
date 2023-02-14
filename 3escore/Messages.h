@@ -141,7 +141,7 @@ enum ObjectFlag : unsigned
   /// maintained with proper create/destroy command pairs.
   OFSkipResources = (1u << 6u),
 
-  OFUser = (1u << 8u)  ///< User flags start here.
+  OFExtended = (1u << 8u)  ///< User flags start here.
 };
 
 /// Additional attributes for point data sources.
@@ -155,21 +155,21 @@ enum PointsAttributeFlag : unsigned
 /// @c ObjectFlag extensions for Text2D rendering.
 enum Text2DFlag : unsigned
 {
-  Text2DFWorldSpace = OFUser  ///< Position is given in world space and mapped to screen space.
-                              ///< Otherwise in screen space with (0, 0, z) at the top left corner
-                              ///< and (1, 1, z) at the bottom right.
+  Text2DFWorldSpace = OFExtended  ///< Position is given in world space and mapped to screen space.
+                                  ///< Otherwise in screen space with (0, 0, z) at the top left
+                                  ///< corner and (1, 1, z) at the bottom right.
 };
 
 /// @c ObjectFlag extensions for Text2D rendering.
 enum Text3DFlag : unsigned
 {
-  Text3DFScreenFacing = OFUser  ///< Text is oriented to face the screen.
+  Text3DFScreenFacing = OFExtended  ///< Text is oriented to face the screen.
 };
 
 /// @c ObjectFlag extensions for @c MeshShape.
 enum MeshShapeFlag : unsigned
 {
-  MeshShapeCalculateNormals = OFUser  ///< Calculate normals and rendering with lighting.
+  MeshShapeCalculateNormals = OFExtended  ///< Calculate normals and rendering with lighting.
 };
 
 /// Flags controlling the creation and appearance of an object.
@@ -177,13 +177,15 @@ enum UpdateFlag : unsigned
 {
   // NOLINTBEGIN(hicpp-signed-bitwise)
   UFUpdateMode =
-    (OFUser
+    (OFExtended
      << 1u),  ///< Update attributes using only explicitly specified flags from the following.
-  UFPosition = (OFUser << 2u),  ///< Update position data.
-  UFRotation = (OFUser << 3u),  ///< Update rotation data.
-  UFScale = (OFUser << 4u),     ///< Update scale data.
-  UFColour = (OFUser << 5u),    ///< Update colour data.
-                                // NOLINTEND(hicpp-signed-bitwise)
+  UFPosition = (OFExtended << 2u),  ///< Update position data.
+  UFRotation = (OFExtended << 3u),  ///< Update rotation data.
+  UFScale = (OFExtended << 4u),     ///< Update scale data.
+  UFColour = (OFExtended << 5u),    ///< Update colour data.
+  UFPosRotScaleColour = UFPosition | UFRotation | UFScale | UFColour,
+
+  // NOLINTEND(hicpp-signed-bitwise)
 };
 
 /// Flags for @c CollatedPacketMessage.

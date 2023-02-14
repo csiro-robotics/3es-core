@@ -36,7 +36,11 @@ public:
 
   /// Copy constructor.
   /// Shape to copy.
-  Sphere(const Sphere &other);
+  Sphere(const Sphere &other) = default;
+
+  /// Move constructor.
+  /// @param other Object to move.
+  Sphere(Sphere &&other) noexcept = default;
 
   [[nodiscard]] const char *type() const override { return "sphere"; }
 
@@ -66,8 +70,6 @@ inline Sphere::Sphere(const Id &id, const Spherical &transform)
 inline Sphere::Sphere(const Id &id, const Transform &transform)
   : Shape(SIdSphere, id, transform)
 {}
-
-inline Sphere::Sphere(const Sphere &other) = default;
 
 
 inline Sphere &Sphere::setRadius(double radius)

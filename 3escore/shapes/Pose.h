@@ -26,7 +26,11 @@ public:
 
   /// Copy constructor
   /// @param other Object to copy.
-  Pose(const Pose &other);
+  Pose(const Pose &other) = default;
+
+  /// Move constructor.
+  /// @param other Object to move.
+  Pose(Pose &&other) noexcept = default;
 
   [[nodiscard]] const char *type() const override { return "pose"; }
 };
@@ -35,9 +39,6 @@ public:
 inline Pose::Pose(const Id &id, const Transform &transform)
   : Shape(SIdPose, id, transform)
 {}
-
-
-inline Pose::Pose(const Pose &other) = default;
 }  // namespace tes
 
 #endif  // TES_CORE_SHAPES_POSE_H

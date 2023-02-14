@@ -29,12 +29,12 @@ public:
   Text3D(std::string text = {}, const Id &id = Id(), const Directional &transform = Directional());
 
   /// Copy constructor
-  Text3D(const Text3D &other);
+  Text3D(const Text3D &other) = default;
 
   /// Move constructor
-  Text3D(Text3D &&other) noexcept;
+  Text3D(Text3D &&other) noexcept = default;
 
-  ~Text3D() override;
+  ~Text3D() override = default;
 
   [[nodiscard]] const char *type() const override { return "text3D"; }
 
@@ -59,8 +59,8 @@ public:
 
   bool readCreate(PacketReader &stream) override;
 
-  Text3D &operator=(const Text3D &other);
-  Text3D &operator=(Text3D &&other) noexcept;
+  Text3D &operator=(const Text3D &other) = default;
+  Text3D &operator=(Text3D &&other) noexcept = default;
 
   [[nodiscard]] std::shared_ptr<Shape> clone() const override;
 

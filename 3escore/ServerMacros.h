@@ -163,8 +163,8 @@
 ///
 /// After this call, the server can accept connections.
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
-/// @param mode The server mode: @c ConnectionMonitor::Synchronous or @c
-/// ConnectionMonitor::Asynchronous.
+/// @param mode The server mode: @c ConnectionMode::Synchronous or
+/// @c ConnectionMode::Asynchronous.
 #define TES_SERVER_START(server, mode)          \
   if (server)                                   \
   {                                             \
@@ -185,17 +185,17 @@
 ///
 /// @param server The @c Server or @c Connection object. Must be a pointer type.
 /// @param ... Arguments for @c Server::updateFrame()
-#define TES_SERVER_UPDATE(server, ...)                              \
-  if (server)                                                       \
-  {                                                                 \
-    (server)->updateTransfers(0);                                   \
-    (server)->updateFrame(__VA_ARGS__);                             \
-    auto tes_con_mon = (server)->connectionMonitor();               \
-    if (tes_con_mon->mode() == tes::ConnectionMonitor::Synchronous) \
-    {                                                               \
-      tes_con_mon->monitorConnections();                            \
-    }                                                               \
-    tes_con_mon->commitConnections();                               \
+#define TES_SERVER_UPDATE(server, ...)                           \
+  if (server)                                                    \
+  {                                                              \
+    (server)->updateTransfers(0);                                \
+    (server)->updateFrame(__VA_ARGS__);                          \
+    auto tes_con_mon = (server)->connectionMonitor();            \
+    if (tes_con_mon->mode() == tes::ConnectionMode::Synchronous) \
+    {                                                            \
+      tes_con_mon->monitorConnections();                         \
+    }                                                            \
+    tes_con_mon->commitConnections();                            \
   }
 
 /// @ingroup tesmacros

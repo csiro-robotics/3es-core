@@ -39,7 +39,11 @@ public:
 
   /// Copy constructor
   /// @param other Object to copy.
-  Cone(const Cone &other);
+  Cone(const Cone &other) = default;
+
+  /// Move constructor.
+  /// @param other Object to move.
+  Cone(Cone &&other) noexcept = default;
 
   [[nodiscard]] const char *type() const override { return "cone"; }
 
@@ -89,9 +93,6 @@ inline Cone::Cone(const Id &id, const Directional &transform)
 inline Cone::Cone(const Id &id, const Transform &transform)
   : Shape(SIdCone, id, transform)
 {}
-
-
-inline Cone::Cone(const Cone &other) = default;
 
 
 inline Cone &Cone::setRadius(double radius)

@@ -51,9 +51,9 @@ uint16_t TcpConnectionMonitor::port() const
 }
 
 
-bool TcpConnectionMonitor::start(Mode mode)
+bool TcpConnectionMonitor::start(ConnectionMode mode)
 {
-  if (mode == None || _mode != None && mode != _mode)
+  if (mode == ConnectionMode::None || _mode != ConnectionMode::None && mode != _mode)
   {
     return false;
   }
@@ -65,11 +65,11 @@ bool TcpConnectionMonitor::start(Mode mode)
 
   switch (mode)
   {
-  case Synchronous:
+  case ConnectionMode::Synchronous:
     if (listen())
     {
       _running = true;
-      _mode = Synchronous;
+      _mode = ConnectionMode::Synchronous;
     }
     else
     {
@@ -78,7 +78,7 @@ bool TcpConnectionMonitor::start(Mode mode)
     }
     break;
 
-  case Asynchronous: {
+  case ConnectionMode::Asynchronous: {
     join();  // Pointer may linger after quit.
     _thread = std::make_unique<std::thread>([this]() { monitorThread(); });
     // Wait for the thread to start. We look for _running or an _error_code.
@@ -95,7 +95,7 @@ bool TcpConnectionMonitor::start(Mode mode)
     // Running will be true if the thread started ok.
     if (_running)
     {
-      _mode = Asynchronous;
+      _mode = ConnectionMode::Asynchronous;
     }
 
     if (!_running && !_error_code && elapsed_ms >= _server.settings().async_timeout_ms)
@@ -109,7 +109,7 @@ bool TcpConnectionMonitor::start(Mode mode)
     break;
   }
 
-  return _mode != None;
+  return _mode != ConnectionMode::None;
 }
 
 
@@ -117,13 +117,13 @@ void TcpConnectionMonitor::stop()
 {
   switch (_mode)
   {
-  case Synchronous:
+  case ConnectionMode::Synchronous:
     _running = false;
     stopListening();
-    _mode = None;
+    _mode = ConnectionMode::None;
     break;
 
-  case Asynchronous:
+  case ConnectionMode::Asynchronous:
     _quit_flag = true;
     break;
 
@@ -137,7 +137,7 @@ void TcpConnectionMonitor::join()
 {
   if (_thread)
   {
-    if (!_quit_flag && (_mode == Asynchronous || _mode == None))
+    if (!_quit_flag && (_mode == ConnectionMode::Asynchronous || _mode == ConnectionMode::None))
     {
       fprintf(stderr, "ConnectionMonitor::join() called on asynchronous connection monitor without "
                       "calling stop()\n");
@@ -154,7 +154,7 @@ bool TcpConnectionMonitor::isRunning() const
 }
 
 
-ConnectionMonitor::Mode TcpConnectionMonitor::mode() const
+ConnectionMode TcpConnectionMonitor::mode() const
 {
   return _mode;
 }
@@ -170,9 +170,9 @@ int TcpConnectionMonitor::waitForConnection(unsigned timeout_ms)
   lock.unlock();
 
   // Wait for start.
-  if (mode() == tes::ConnectionMonitor::Asynchronous)
+  if (mode() == ConnectionMode::Asynchronous)
   {
-    while (!isRunning() && mode() != tes::ConnectionMonitor::None)
+    while (!isRunning() && mode() != ConnectionMode::None)
     {}
   }
 
@@ -182,7 +182,7 @@ int TcpConnectionMonitor::waitForConnection(unsigned timeout_ms)
   int connection_count = 0;
   while (isRunning() && !timedout && connection_count == 0)
   {
-    if (mode() == tes::ConnectionMonitor::Synchronous)
+    if (mode() == ConnectionMode::Synchronous)
     {
       monitorConnections();
     }
@@ -251,7 +251,7 @@ void TcpConnectionMonitor::monitorConnections()
 }
 
 
-std::shared_ptr<Connection> TcpConnectionMonitor::openFileStream(const char *file_path)
+std::shared_ptr<Connection> TcpConnectionMonitor::openFileStream(const std::string &file_path)
 {
   auto new_connection = std::make_shared<FileConnection>(file_path, _server.settings());
   if (!new_connection->isConnected())
@@ -355,6 +355,6 @@ void TcpConnectionMonitor::monitorThread()
 
   _running = false;
   stopListening();
-  _mode = None;
+  _mode = ConnectionMode::None;
 }
 }  // namespace tes

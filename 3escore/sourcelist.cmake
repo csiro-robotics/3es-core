@@ -44,6 +44,7 @@ list(APPEND PUBLIC_HEADERS
   Rotation.h
   Rotation.inl
   Server.h
+  ServerApi.h
   ServerMacros.h
   ServerUtil.h
   StreamUtil.h
@@ -128,7 +129,8 @@ list(APPEND SOURCES
   Resource.cpp
   ResourcePacker.cpp
   Rotation.cpp
-  SpinLock.cpp
+  ServerApi.cpp
+  ServerApiOff.cpp
   StreamUtil.cpp
   Throw.cpp
   Timer.cpp

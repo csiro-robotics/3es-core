@@ -20,7 +20,7 @@ public:
   /// Create a new connection using the given @p clientSocket.
   /// @param filename Path to the file to write to.
   /// @param settings Various server settings to initialise with.
-  FileConnection(const char *filename, const ServerSettings &settings);
+  FileConnection(const std::string &filename, const ServerSettings &settings);
 
   // See cpp file for details on disabling bugprone-exception-escape
   ~FileConnection() final;  // NOLINT(bugprone-exception-escape)

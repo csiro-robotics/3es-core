@@ -352,7 +352,7 @@ int main(int argc, char **argvNonConst)
   TES_SERVER_CREATE(tesServer, settings, &info);
 
   // Start the server and wait for the connection monitor to start.
-  TES_SERVER_START(tesServer, tes::ConnectionMonitor::Asynchronous);
+  TES_SERVER_START(tesServer, tes::ConnectionMode::Asynchronous);
   TES_SERVER_START_WAIT(tesServer, 1000);
 
 #ifdef TES_ENABLE

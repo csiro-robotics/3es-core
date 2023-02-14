@@ -7,12 +7,21 @@
 #include "CoreConfig.h"
 
 #include <functional>
+#include <string>
 #include <memory>
 
 namespace tes
 {
 class Connection;
 class Server;
+
+/// Controls how the monitor behaves - synchronously or asynchronously.
+enum class ConnectionMode
+{
+  None,         ///< Invalid
+  Synchronous,  ///< The @c ConnectionMonitor requires synchronous calls.
+  Asynchronous  ///< The @c ConnectionMonitor runs as a background thread..
+};
 
 /// A utility class for monitoring new connections for a @c Server.
 ///
@@ -35,7 +44,7 @@ class Server;
 /// @code
 /// float dt = 0;
 /// Server *server = Server::create()
-/// server->connectionMonitor()->start(tes::ConnectionMonitor::Synchronous);
+/// server->connectionMonitor()->start(tes::ConnectionMode::Synchronous);
 /// for (;;)
 /// {
 ///   // Prepare frame.
@@ -53,7 +62,7 @@ class Server;
 /// @code
 /// float dt = 0;
 /// Server *server = Server::create()
-/// server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous);
+/// server->connectionMonitor()->start(tes::ConnectionMode::Asynchronous);
 /// for (;;)
 /// {
 ///   // Prepare frame.
@@ -75,14 +84,6 @@ protected:
   virtual ~ConnectionMonitor();
 
 public:
-  /// Controls how the monitor behaves - synchronously or asynchronously.
-  enum Mode
-  {
-    None,         ///< Invalid
-    Synchronous,  ///< The @c ConnectionMonitor requires synchronous calls.
-    Asynchronous  ///< The @c ConnectionMonitor runs as a background thread..
-  };
-
   /// Report the port being used by the connection monitor.
   ///
   /// This may be TCP specific.
@@ -92,13 +93,13 @@ public:
 
   /// Starts the monitor listening in the specified mode.
   ///
-  /// The listening thread is started if @p mode is @c Asynchronous.
-  /// @param mode The listening mode. Mode @c Node is ignored.
+  /// The listening thread is started if @p mode is @c tes::ConnectionMode::Asynchronous.
+  /// @param mode The listening mode. Mode @c None is ignored.
   /// @return True if listening is running in the specified @p mode.
   /// This includes both newly started and if it was already running in that
   /// mode. False is returned if @p mode is @c None, or differs from the
   /// running mode.
-  virtual bool start(Mode mode) = 0;
+  virtual bool start(ConnectionMode mode) = 0;
 
   /// Stops listening for further connections. This requests termination
   /// of the monitor thread if running.
@@ -115,14 +116,16 @@ public:
 
   /// Returns the current running mode.
   ///
-  /// @c Asynchronous mode is set as soon as @c start(Asynchronous) is called and
-  /// drops to @c None after calling @c stop() once the thread has stopped.
+  /// @c ConnectionMode::Asynchronous mode is set as soon as @c
+  /// start(tes::ConnectionMode::Asynchronous) is called and drops to @c None after calling
+  /// @c stop() once the thread has stopped.
   ///
-  /// @c Synchronous mode is set as soon as @c start(Synchronous) is called and
-  /// drops to @c None on calling @c stop().
+  /// @c ConnectionMode::Synchronous mode is set as soon as
+  /// @c start(tes::ConnectionMode::Synchronous) is called and drops to @c ConnectionMode::None
+  /// on calling @c stop().
   ///
-  /// The mode is @c None if not running in either mode.
-  [[nodiscard]] virtual Mode mode() const = 0;
+  /// The mode is @c ConnectionMode::None if not running in either mode.
+  [[nodiscard]] virtual ConnectionMode mode() const = 0;
 
   /// Wait up to @p timeout_ms milliseconds for a connection.
   /// Returns immediately if we already have a connection.
@@ -144,7 +147,7 @@ public:
   ///
   /// @param file_path The path to the file to open/write to.
   /// @return A pointer to a @c Connection object which represents the file stream.
-  virtual std::shared_ptr<Connection> openFileStream(const char *file_path) = 0;
+  virtual std::shared_ptr<Connection> openFileStream(const std::string &file_path) = 0;
 
   /// Sets the callback invoked for each new connection.
   ///

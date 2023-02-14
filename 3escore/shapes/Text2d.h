@@ -31,13 +31,13 @@ public:
 
   /// Copy constructor
   /// @param other Object to copy.
-  Text2D(const Text2D &other);
+  Text2D(const Text2D &other) = default;
 
   /// Move constructor
   /// @param other Object to move.
-  Text2D(Text2D &&other) noexcept;
+  Text2D(Text2D &&other) noexcept = default;
 
-  ~Text2D() override;
+  ~Text2D() override = default;
 
   [[nodiscard]] const char *type() const override { return "text2D"; }
 
@@ -57,8 +57,8 @@ public:
 
   bool readCreate(PacketReader &stream) override;
 
-  Text2D &operator=(const Text2D &other);
-  Text2D &operator=(Text2D &&other) noexcept;
+  Text2D &operator=(const Text2D &other) = default;
+  Text2D &operator=(Text2D &&other) noexcept = default;
 
   [[nodiscard]] std::shared_ptr<Shape> clone() const override;
 

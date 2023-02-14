@@ -248,8 +248,7 @@ private:
 
   /// Expand the internal buffer size by @p expand_by bytes up to @c maxPacketSize().
   /// @param expand_by Minimum number of bytes to expand by.
-  static void expand(unsigned expand_by, std::vector<uint8_t> &buffer, unsigned current_data_count,
-                     unsigned max_packet_size);
+  static void expand(unsigned expand_by, std::vector<uint8_t> &buffer, unsigned max_packet_size);
 
   std::unique_ptr<CollatedPacketZip> _zip;  ///< Present and used when compression is enabled.
   std::vector<uint8_t> _buffer;             ///< Internal buffer.

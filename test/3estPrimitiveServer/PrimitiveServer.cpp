@@ -659,7 +659,7 @@ int main(int argc, char **argvNonConst)
   server->updateTransfers(0);
   server->updateFrame(0.0f, true);
   auto connection_monitor = server->connectionMonitor();
-  if (connection_monitor->mode() == ConnectionMonitor::Synchronous)
+  if (connection_monitor->mode() == ConnectionMode::Synchronous)
   {
     connection_monitor->monitorConnections();
   }

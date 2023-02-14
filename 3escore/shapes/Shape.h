@@ -91,6 +91,10 @@ public:
   /// @param other Object to copy.
   Shape(const Shape &other) = default;
 
+  /// Move constructor.
+  /// @param other Object to move.
+  Shape(Shape &&other) noexcept = default;
+
   /// Virtual destructor.
   virtual ~Shape() = default;
 
@@ -345,9 +349,9 @@ protected:
 
   void init(const Id &id, const Transform &transform, uint16_t flags = 0);
 
-  uint16_t _routing_id;
-  CreateMessage _data;
-  ObjectAttributesd _attributes;
+  uint16_t _routing_id = 0;
+  CreateMessage _data = {};
+  ObjectAttributesd _attributes = {};
 };
 
 

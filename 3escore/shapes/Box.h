@@ -34,7 +34,11 @@ public:
 
   /// Copy constructor
   /// @param other Object to copy.
-  Box(const Box &other);
+  Box(const Box &other) = default;
+
+  /// Move constructor.
+  /// @param other Object to move.
+  Box(Box &&other) noexcept = default;
 
   [[nodiscard]] const char *type() const override { return "box"; }
 };
@@ -43,9 +47,6 @@ public:
 inline Box::Box(const Id &id, const Transform &transform)
   : Shape(SIdBox, id, transform)
 {}
-
-
-inline Box::Box(const Box &other) = default;
 }  // namespace tes
 
 #endif  // TES_CORE_SHAPES_BOX_H

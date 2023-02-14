@@ -37,7 +37,11 @@ public:
 
   /// Copy constructor
   /// @param other Object to copy.
-  Capsule(const Capsule &other);
+  Capsule(const Capsule &other) = default;
+
+  /// Move constructor.
+  /// @param other Object to move.
+  Capsule(Capsule &&other) noexcept = default;
 
   [[nodiscard]] const char *type() const override { return "capsule"; }
 
@@ -86,9 +90,6 @@ inline Capsule::Capsule(const Id &id, const Directional &transform)
 inline Capsule::Capsule(const Id &id, const Transform &transform)
   : Shape(SIdCapsule, id, transform)
 {}
-
-
-inline Capsule::Capsule(const Capsule &other) = default;
 
 
 inline Capsule &Capsule::setRadius(double radius)

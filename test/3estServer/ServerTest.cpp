@@ -708,7 +708,7 @@ int main(int argc, char **argvNonConst)
 
   server->connectionMonitor()->setConnectionCallback(onNewConnection);
 
-  if (!server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous))
+  if (!server->connectionMonitor()->start(tes::ConnectionMode::Asynchronous))
   {
     std::cerr << "Failed to start listening." << std::endl;
     return 1;
@@ -744,7 +744,7 @@ int main(int argc, char **argvNonConst)
     }
 
     server->updateFrame(dt);
-    if (server->connectionMonitor()->mode() == tes::ConnectionMonitor::Synchronous)
+    if (server->connectionMonitor()->mode() == tes::ConnectionMode::Synchronous)
     {
       server->connectionMonitor()->monitorConnections();
     }

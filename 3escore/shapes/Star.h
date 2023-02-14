@@ -36,7 +36,11 @@ public:
 
   /// Copy constructor
   /// @param other Object to copy.
-  Star(const Star &other);
+  Star(const Star &other) = default;
+
+  /// Move constructor.
+  /// @param other Object to move.
+  Star(Star &&other) noexcept = default;
 
   [[nodiscard]] const char *type() const override { return "star"; }
 
@@ -66,9 +70,6 @@ inline Star::Star(const Id &id, const Spherical &transform)
 inline Star::Star(const Id &id, const Transform &transform)
   : Shape(SIdStar, id, transform)
 {}
-
-
-inline Star::Star(const Star &other) = default;
 
 
 inline Star &Star::setRadius(double radius)

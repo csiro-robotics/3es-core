@@ -9,13 +9,6 @@
 
 namespace tes
 {
-Text3D::Text3D(const Text3D &other) = default;
-
-Text3D::Text3D(Text3D &&other) noexcept = default;
-
-Text3D::~Text3D() = default;
-
-
 bool Text3D::writeCreate(PacketWriter &stream) const
 {
   bool ok = true;
@@ -59,11 +52,6 @@ bool Text3D::readCreate(PacketReader &stream)
   return ok;
 }
 
-
-Text3D &Text3D::operator=(const Text3D &other) = default;
-
-
-Text3D &Text3D::operator=(Text3D &&other) noexcept = default;
 
 std::shared_ptr<Shape> Text3D::clone() const
 {

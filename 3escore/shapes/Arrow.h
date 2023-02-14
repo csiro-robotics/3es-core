@@ -37,7 +37,11 @@ public:
 
   /// Copy constructor
   /// @param other Object to copy.
-  Arrow(const Arrow &other);
+  Arrow(const Arrow &other) = default;
+
+  /// Move constructor.
+  /// @param other Object to move.
+  Arrow(Arrow &&other) noexcept = default;
 
   [[nodiscard]] const char *type() const override { return "arrow"; }
 
@@ -94,9 +98,6 @@ inline Arrow::Arrow(const Id &id, const Directional &transform)
 inline Arrow::Arrow(const Id &id, const Transform &transform)
   : Shape(SIdArrow, id, transform)
 {}
-
-
-inline Arrow::Arrow(const Arrow &other) = default;
 
 
 inline Arrow &Arrow::setRadius(double radius)

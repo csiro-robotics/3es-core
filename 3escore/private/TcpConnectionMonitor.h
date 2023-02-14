@@ -7,7 +7,6 @@
 #include <3escore/CoreConfig.h>
 
 #include <3escore/ConnectionMonitor.h>
-#include <3escore/SpinLock.h>
 
 #include <atomic>
 #include <mutex>
@@ -69,7 +68,7 @@ public:
   uint16_t port() const final;
 
   /// Starts the monitor thread (asynchronous mode).
-  bool start(Mode mode) final;
+  bool start(ConnectionMode mode) final;
   /// Requests termination of the monitor thread.
   /// Safe to call if not running.
   void stop() final;
@@ -90,7 +89,7 @@ public:
   /// drops to @c None on calling @c stop().
   ///
   /// The mode is @c None if not running in either mode.
-  Mode mode() const final;
+  ConnectionMode mode() const final;
 
   /// Wait up to @p timeout_ms milliseconds for a connection.
   /// Returns immediately if we already have a connection.
@@ -112,7 +111,7 @@ public:
   ///
   /// @param file_path The path to the file to open/write to.
   /// @return A pointer to a @c Connection object which represents the file stream.
-  std::shared_ptr<Connection> openFileStream(const char *file_path) final;
+  std::shared_ptr<Connection> openFileStream(const std::string &file_path) final;
 
   /// Sets the callback invoked for each new connection.
   ///
@@ -159,7 +158,7 @@ private:
   TcpServer &_server;
   std::unique_ptr<TcpListenSocket> _listen;
   std::function<void(Server &, Connection &)> _on_new_connection;
-  Mode _mode = None;  ///< Current execution mode.
+  ConnectionMode _mode = ConnectionMode::None;  ///< Current execution mode.
   std::vector<std::shared_ptr<Connection>> _connections;
   std::vector<std::shared_ptr<Connection>> _expired;
   std::atomic_int _error_code = { 0 };

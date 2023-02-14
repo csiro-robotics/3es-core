@@ -7,13 +7,6 @@
 
 namespace tes
 {
-Text2D::Text2D(const Text2D &other) = default;
-
-Text2D::Text2D(Text2D &&other) noexcept = default;
-
-Text2D::~Text2D() = default;
-
-
 bool Text2D::writeCreate(PacketWriter &stream) const
 {
   bool ok = true;
@@ -57,11 +50,6 @@ bool Text2D::readCreate(PacketReader &stream)
   return ok;
 }
 
-
-Text2D &Text2D::operator=(const Text2D &other) = default;
-
-
-Text2D &Text2D::operator=(Text2D &&other) noexcept = default;
 
 std::shared_ptr<Shape> Text2D::clone() const
 {

@@ -81,7 +81,7 @@ const char *TcpServer::address() const
 
 uint16_t TcpServer::port() const
 {
-  return _monitor->mode() != ConnectionMonitor::None ? _settings.listen_port : 0;
+  return _monitor->mode() != ConnectionMode::None ? _settings.listen_port : 0;
 }
 
 
@@ -205,7 +205,7 @@ int TcpServer::updateFrame(float dt, bool flush)
   // create messages. Alternatively, if the server is not in collated mode, the
   // we'll get different behaviour between collated and uncollated modes.
   guard.unlock();
-  if (_monitor->mode() == tes::ConnectionMonitor::Asynchronous)
+  if (_monitor->mode() == ConnectionMode::Asynchronous)
   {
     _monitor->commitConnections();
   }

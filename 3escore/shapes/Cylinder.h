@@ -37,7 +37,11 @@ public:
 
   /// Copy constructor
   /// @param other Object to copy.
-  Cylinder(const Cylinder &other);
+  Cylinder(const Cylinder &other) = default;
+
+  /// Move constructor.
+  /// @param other Object to move.
+  Cylinder(Cylinder &&other) noexcept = default;
 
   [[nodiscard]] const char *type() const override { return "cylinder"; }
 
@@ -86,9 +90,6 @@ inline Cylinder::Cylinder(const Id &id, const Directional &transform)
 inline Cylinder::Cylinder(const Id &id, const Transform &transform)
   : Shape(SIdCylinder, id, transform)
 {}
-
-
-inline Cylinder::Cylinder(const Cylinder &other) = default;
 
 
 inline Cylinder &Cylinder::setRadius(double radius)

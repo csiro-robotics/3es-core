@@ -9,7 +9,7 @@
 
 namespace tes
 {
-FileConnection::FileConnection(const char *filename, const ServerSettings &settings)
+FileConnection::FileConnection(const std::string &filename, const ServerSettings &settings)
   : BaseConnection(settings)
   // NOLINTNEXTLINE(hicpp-signed-bitwise)
   , _out_file(filename, std::ios::binary | std::ios::out | std::ios::in | std::ios::trunc)

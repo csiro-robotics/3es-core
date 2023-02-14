@@ -38,7 +38,11 @@ public:
 
   /// Copy constructor
   /// @param other Object to copy.
-  Plane(const Plane &other);
+  Plane(const Plane &other) = default;
+
+  /// Move constructor.
+  /// @param other Object to move.
+  Plane(Plane &&other) noexcept = default;
 
   [[nodiscard]] const char *type() const override { return "plane"; }
 
@@ -85,9 +89,6 @@ inline Plane::Plane(const Id &id, const Directional &transform)
 inline Plane::Plane(const Id &id, const Transform &transform)
   : Shape(SIdPlane, id, transform)
 {}
-
-
-inline Plane::Plane(const Plane &other) = default;
 
 
 inline Plane &Plane::setNormal(const Vector3d &normal)

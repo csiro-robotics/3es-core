@@ -134,7 +134,7 @@ int CollatedPacket::add(const uint8_t *buffer, uint16_t byte_count)
   if (_buffer.size() < collatedBytes() + byte_count + Overhead)
   {
     // Buffer too small.
-    expand(byte_count + Overhead, _buffer, _cursor, _max_packet_size);
+    expand(byte_count + Overhead, _buffer, _max_packet_size);
   }
 
   std::copy(buffer, buffer + byte_count, _buffer.begin() + _cursor);
@@ -311,7 +311,7 @@ int CollatedPacket::create(const Shape &shape)
     else if (!expanded)
     {
       // Try resize.
-      expand(1024u, _buffer, _cursor, _max_packet_size);
+      expand(1024u, _buffer, _max_packet_size);
       expanded = true;
       writer = PacketWriter(_buffer.data() + _cursor,
                             static_cast<uint16_t>(std::min<size_t>(
@@ -363,7 +363,7 @@ int CollatedPacket::create(const Shape &shape)
         // Failed to write. Try resize.
         if (_buffer.size() < maxPacketSize())
         {
-          expand(1024u, _buffer, _cursor, _max_packet_size);
+          expand(1024u, _buffer, _max_packet_size);
           writer =
             PacketWriter(_buffer.data() + _cursor,
                          static_cast<uint16_t>(std::min<size_t>(
@@ -424,7 +424,7 @@ int CollatedPacket::destroy(const Shape &shape)
     else if (!expanded)
     {
       // Try resize.
-      expand(1024u, _buffer, _cursor, _max_packet_size);
+      expand(1024u, _buffer, _max_packet_size);
       expanded = true;
       writer = PacketWriter(_buffer.data() + _cursor,
                             static_cast<uint16_t>(std::min<size_t>(
@@ -482,7 +482,7 @@ int CollatedPacket::update(const Shape &shape)
     else if (!expanded)
     {
       // Try resize.
-      expand(1024u, _buffer, _cursor, _max_packet_size);
+      expand(1024u, _buffer, _max_packet_size);
       expanded = true;
       writer = PacketWriter(_buffer.data() + _cursor,
                             static_cast<uint16_t>(std::min<size_t>(
@@ -570,7 +570,7 @@ bool CollatedPacket::sendServerInfo(const ServerInfoMessage &info)
     else if (!expanded)
     {
       // Try resize.
-      expand(1024u, _buffer, _cursor, _max_packet_size);
+      expand(1024u, _buffer, _max_packet_size);
       expanded = true;
       writer = PacketWriter(_buffer.data() + _cursor,
                             static_cast<uint16_t>(std::min<size_t>(
@@ -645,7 +645,7 @@ void CollatedPacket::init(bool compress, unsigned buffer_size, unsigned max_pack
 
 
 void CollatedPacket::expand(unsigned expand_by, std::vector<uint8_t> &buffer,
-                            unsigned current_data_count, unsigned max_packet_size)
+                            unsigned max_packet_size)
 {
   // Buffer too small.
   const auto new_buffer_size = std::min(
