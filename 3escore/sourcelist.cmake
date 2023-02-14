@@ -46,7 +46,6 @@ list(APPEND PUBLIC_HEADERS
   Server.h
   ServerMacros.h
   ServerUtil.h
-  SpinLock.h
   StreamUtil.h
   TcpListenSocket.h
   TcpSocket.h
