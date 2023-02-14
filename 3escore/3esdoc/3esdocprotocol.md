@@ -1,4 +1,4 @@
-// Documentation of the messagging protocol.
+// Documentation of the messaging protocol.
 
 // clang-format off
 
@@ -38,7 +38,7 @@ The routing and message IDs are used to identify how the packet is to be handled
 identifies the recipient while the message ID identifies the packet content. Routing IDs must uniquely identify the
 receiver, while message IDs have different meanings depending on the routing ID.
 
-The packet header is layed out as follows (16-bytes).
+The packet header is laid out as follows (16-bytes).
 
 Datum             | Byte Size | Description
 ----------------- | --------: | -------------------------------------------------------------------
