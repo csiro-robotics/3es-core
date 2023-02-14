@@ -17,7 +17,7 @@
 #include <3escore/tessellate/Sphere.h>
 
 #define TES_ENABLE
-#include <3escore/ServerMacros.h>
+#include <3escore/ServerApi.h>
 
 #include <3escore/Timer.h>
 #include <3escore/Vector3.h>
@@ -190,27 +190,6 @@ bool haveOption(const char *opt, int argc, const char **argv)
   }
 
   return false;
-}
-
-
-void defineCategory(const std::shared_ptr<Server> &server, const char *name, uint16_t id,
-                    uint16_t parent_id, bool active)
-{
-  CategoryNameMessage msg;
-  msg.category_id = id;
-  msg.parent_id = parent_id;
-  msg.default_active = (active) ? 1 : 0;
-  const size_t nameLen = (name) ? strlen(name) : 0u;
-  msg.name_length = (uint16_t)((nameLen <= 0xffffu) ? nameLen : 0xffffu);
-  msg.name = name;
-  sendMessage(*(server), MtCategory, CategoryNameMessage::MessageId, msg);
-  std::cout << "  \"category-" << name << "\" : {\n"
-            << "    \"category_id\" : " << id << ",\n"
-            << "    \"parent_id\" : " << parent_id << ",\n"
-            << "    \"default_active\" : " << (active ? "true" : "false") << ",\n"
-            << "    \"name_length\" : " << msg.name_length << ",\n"
-            << "    \"name\" : \"" << msg.name << "\"\n"
-            << "  },\n";
 }
 
 

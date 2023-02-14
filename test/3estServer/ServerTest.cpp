@@ -10,7 +10,7 @@
 #include <3escore/shapes/Shapes.h>
 
 #define TES_ENABLE
-#include <3escore/ServerMacros.h>
+#include <3escore/ServerApi.h>
 
 #include <3escore/Timer.h>
 #include <3escore/Vector3.h>
@@ -680,26 +680,25 @@ int main(int argc, char **argvNonConst)
   auto lastTime = std::chrono::system_clock::now();
   auto onNewConnection = [&shapes](Server & /*server*/, Connection &connection) {
     // Test categories API.
-    TES_STMT(Connection *c = &connection);  // Avoid compiler warning.
-    TES_CATEGORY(c, "3D", Cat3D, CatRoot, true);
-    TES_CATEGORY(c, "Text", CatText, CatRoot, true);
-    TES_CATEGORY(c, "Primitives", CatSimple3D, Cat3D, true);
-    TES_CATEGORY(c, "Mesh Based", CatComplex3D, Cat3D, true);
-    TES_CATEGORY(c, "Arrows", CatArrow, CatSimple3D, true);
-    TES_CATEGORY(c, "Boxes", CatBox, CatSimple3D, true);
-    TES_CATEGORY(c, "Capsules", CatCapsule, CatSimple3D, true);
-    TES_CATEGORY(c, "Cylinders", CatCylinder, CatSimple3D, true);
-    TES_CATEGORY(c, "Cones", CatCone, CatSimple3D, true);
-    TES_CATEGORY(c, "Lines", CatLines, CatComplex3D, true);
-    TES_CATEGORY(c, "Meshes", CatMesh, CatComplex3D, true);
-    TES_CATEGORY(c, "Planes", CatPlane, CatSimple3D, true);
-    TES_CATEGORY(c, "Points", CatPoints, CatComplex3D, true);
-    TES_CATEGORY(c, "Pose", CatPose, CatSimple3D, true);
-    TES_CATEGORY(c, "Spheres", CatSphere, CatSimple3D, true);
-    TES_CATEGORY(c, "Stars", CatStar, CatSimple3D, true);
-    TES_CATEGORY(c, "Text2D", CatText2D, CatText, true);
-    TES_CATEGORY(c, "Text3D", CatText3D, CatText, true);
-    TES_CATEGORY(c, "Triangles", CatTriangles, CatComplex3D, true);
+    defineCategory(&connection, "3D", Cat3D, CatRoot, true);
+    defineCategory(&connection, "Text", CatText, CatRoot, true);
+    defineCategory(&connection, "Primitives", CatSimple3D, Cat3D, true);
+    defineCategory(&connection, "Mesh Based", CatComplex3D, Cat3D, true);
+    defineCategory(&connection, "Arrows", CatArrow, CatSimple3D, true);
+    defineCategory(&connection, "Boxes", CatBox, CatSimple3D, true);
+    defineCategory(&connection, "Capsules", CatCapsule, CatSimple3D, true);
+    defineCategory(&connection, "Cylinders", CatCylinder, CatSimple3D, true);
+    defineCategory(&connection, "Cones", CatCone, CatSimple3D, true);
+    defineCategory(&connection, "Lines", CatLines, CatComplex3D, true);
+    defineCategory(&connection, "Meshes", CatMesh, CatComplex3D, true);
+    defineCategory(&connection, "Planes", CatPlane, CatSimple3D, true);
+    defineCategory(&connection, "Points", CatPoints, CatComplex3D, true);
+    defineCategory(&connection, "Pose", CatPose, CatSimple3D, true);
+    defineCategory(&connection, "Spheres", CatSphere, CatSimple3D, true);
+    defineCategory(&connection, "Stars", CatStar, CatSimple3D, true);
+    defineCategory(&connection, "Text2D", CatText2D, CatText, true);
+    defineCategory(&connection, "Text3D", CatText3D, CatText, true);
+    defineCategory(&connection, "Triangles", CatTriangles, CatComplex3D, true);
     for (auto &shape : shapes)
     {
       connection.create(*shape);

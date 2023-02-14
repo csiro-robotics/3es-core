@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef TES_CORE_VECTOR_HASH_H
 #define TES_CORE_VECTOR_HASH_H
 
+#include "CoreConfig.h"
+
 #include <cinttypes>
 #include <cmath>
 #include <unordered_map>

@@ -9,9 +9,6 @@
 #include <3escore/Server.h>
 #include <3escore/shapes/Shapes.h>
 
-#define TES_ENABLE
-#include <3escore/ServerMacros.h>
-
 #include <3escore/shapes/MeshShape.h>
 #include <3escore/shapes/SimpleMesh.h>
 #include <3escore/Timer.h>

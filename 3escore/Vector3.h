@@ -111,9 +111,9 @@ public:
   template <typename U>
   Vector3<T> &operator=(const Vector3<U> &other)
   {
-    _storage[0] = static_cast<T>(other._storage[0]);
-    _storage[1] = static_cast<T>(other._storage[1]);
-    _storage[2] = static_cast<T>(other._storage[2]);
+    _storage[0] = static_cast<T>(other.storage()[0]);
+    _storage[1] = static_cast<T>(other.storage()[1]);
+    _storage[2] = static_cast<T>(other.storage()[2]);
     return *this;
   }
 

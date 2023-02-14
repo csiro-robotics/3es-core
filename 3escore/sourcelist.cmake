@@ -45,7 +45,7 @@ list(APPEND PUBLIC_HEADERS
   Rotation.inl
   Server.h
   ServerApi.h
-  ServerMacros.h
+  ServerApiMinial.h
   ServerUtil.h
   StreamUtil.h
   TcpListenSocket.h

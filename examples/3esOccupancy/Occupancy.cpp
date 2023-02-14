@@ -6,7 +6,7 @@
 #include <3escore/Vector3.h>
 
 #include <3escore/Colour.h>
-#include <3escore/ServerMacros.h>
+#include <3escore/ServerApi.h>
 
 #include "OccupancyLoader.h"
 #include "OccupancyMesh.h"
@@ -26,7 +26,7 @@
 
 using namespace tes;
 
-TES_SERVER_DECL(g_tesServer);
+tes::ServerPtr g_tes_server;
 
 namespace
 {
@@ -61,35 +61,22 @@ enum SampleLevel
 
 struct Options
 {
-  std::string cloudFile;
-  std::string trajectoryFile;
-  std::string outStream;
-  uint64_t pointLimit;
-  double startTime;
-  double endTime;
-  float resolution;
-  float probHit;
-  float probMiss;
-  unsigned batchSize;
-  int rays;
-  int samples;
-  bool quiet;
-
-  inline Options()
-    : pointLimit(0)
-    , startTime(0)
-    , endTime(0)
-    , resolution(0.1f)
-    , probHit(0.7f)
-    , probMiss(0.49f)
-    , batchSize(1000)
-    , rays(Rays_Lines)
-    , samples(Samples_Voxels)
-    , quiet(false)
-  {}
+  std::string cloud_file;
+  std::string trajectory_file;
+  std::string out_stream;
+  uint64_t point_limit = 0;
+  double start_time = 0;
+  double end_time = 0;
+  float resolution = 0.1f;
+  float prob_hit = 0.7f;
+  float prob_miss = 0.49f;
+  unsigned batch_size = 1000;
+  int rays = Rays_Lines;
+  int samples = Samples_Voxels;
+  bool quiet = false;
 };
 
-typedef std::unordered_set<octomap::OcTreeKey, octomap::OcTreeKey::KeyHash> KeySet;
+using KeySet = std::unordered_set<octomap::OcTreeKey, octomap::OcTreeKey::KeyHash>;
 
 
 bool matchArg(const char *arg, const char *expect)
@@ -149,8 +136,9 @@ void renderVoxels(const UnorderedKeySet &keys, const octomap::OcTree &map,
     }
 
     // Render slightly smaller than the actual voxel size.
-    TES_VOXELS(g_tesServer, colour, 0.95f * float(map.getResolution()), tes::Id(0u, category),
-               tes::DataBuffer(centres));
+    create(g_tes_server, MeshShape(tes::DtVoxels, tes::Id(0u, category), centres)
+                           .setUniformNormal(0.95f * float(map.getResolution()))
+                           .setColour(colour));
   }
 }
 #endif  // TES_ENABLE
@@ -159,56 +147,59 @@ void renderVoxels(const UnorderedKeySet &keys, const octomap::OcTree &map,
 
 int populateMap(const Options &opt)
 {
-  printf("Loading points from %s with trajectory %s \n", opt.cloudFile.c_str(),
-         opt.trajectoryFile.c_str());
+  printf("Loading points from %s with trajectory %s \n", opt.cloud_file.c_str(),
+         opt.trajectory_file.c_str());
 
   OccupancyLoader loader;
-  if (!loader.open(opt.cloudFile.c_str(), opt.trajectoryFile.c_str()))
+  if (!loader.open(opt.cloud_file.c_str(), opt.trajectory_file.c_str()))
   {
-    fprintf(stderr, "Error loading cloud %s with trajectory %s \n", opt.cloudFile.c_str(),
-            opt.trajectoryFile.c_str());
+    fprintf(stderr, "Error loading cloud %s with trajectory %s \n", opt.cloud_file.c_str(),
+            opt.trajectory_file.c_str());
     return -2;
   }
 
-  octomap::KeyRay rayKeys;
+  octomap::KeyRay ray_keys;
   octomap::OcTree map(opt.resolution);
   octomap::OcTreeKey key;
-  tes::Vector3f origin, sample;
-  tes::Vector3f voxel, ext(opt.resolution);
+  tes::Vector3f origin;
+  tes::Vector3f sample;
+  tes::Vector3f voxel;
+  tes::Vector3f ext(opt.resolution);
   double timestamp;
-  uint64_t pointCount = 0;
-  size_t keyIndex;
+  uint64_t point_count = 0;
+  size_t key_index = 0;
   // Update map visualisation every N samples.
-  const size_t rayBatchSize = opt.batchSize;
+  const size_t ray_batch_size = opt.batch_size;
   double timebase = -1;
-  double firstBatchTimestamp = -1;
-  double lastTimestamp = -1;
+  double first_batch_timestamp = -1;
+  double last_timestamp = -1;
 #ifdef TES_ENABLE
-  char timeStrBuffer[256];
+  char time_str_buffer[256];
   // Keys of voxels touched in the current batch.
-  UnorderedKeySet becomeOccupied;
-  UnorderedKeySet becomeFree;
-  UnorderedKeySet touchedFree;
-  UnorderedKeySet touchedOccupied;
+  UnorderedKeySet become_occupied;
+  UnorderedKeySet become_free;
+  UnorderedKeySet touched_free;
+  UnorderedKeySet touched_occupied;
   std::vector<Vector3f> rays;
   std::vector<Vector3f> samples;
-  OccupancyMesh mapMesh(RES_MapMesh, map);
+  OccupancyMesh map_mesh(RES_MapMesh, map);
 #endif  // TES_ENABLE
 
-  map.setProbHit(opt.probHit);
-  map.setProbMiss(opt.probMiss);
+  map.setProbHit(opt.prob_hit);
+  map.setProbMiss(opt.prob_miss);
 
   // Prevent ready saturation to free.
   map.setClampingThresMin(0.01);
   // printf("min: %g\n", map.getClampingThresMinLog());
 
-  TES_POINTCLOUDSHAPE(g_tesServer, TES_COLOUR(SteelBlue), &mapMesh, tes::Id(RES_Map, CAT_Map));
+  TES_STMT(
+    create(g_tes_server, MeshSet(&map_mesh, Id(RES_Map, CAT_Map)).setColour(Colour::SteelBlue)));
   // Ensure mesh is created for later update.
-  TES_SERVER_UPDATE(g_tesServer, 0.0f);
+  TES_STMT(updateServer(g_tes_server));
 
   // Load the first point.
-  bool havePoint = loader.nextPoint(sample, origin, &timestamp);
-  if (!havePoint)
+  bool have_point = loader.nextPoint(sample, origin, &timestamp);
+  if (!have_point)
   {
     printf("No data to load\n");
     return -1;
@@ -216,13 +207,13 @@ int populateMap(const Options &opt)
 
   timebase = timestamp;
 
-  if (opt.startTime > 0)
+  if (opt.start_time > 0)
   {
     // Get to the start time.
-    printf("Skipping to start time offset: %g\n", opt.startTime);
-    while ((havePoint = loader.nextPoint(sample, origin, &timestamp)))
+    printf("Skipping to start time offset: %g\n", opt.start_time);
+    while ((have_point = loader.nextPoint(sample, origin, &timestamp)))
     {
-      if (timestamp - timebase >= opt.startTime)
+      if (timestamp - timebase >= opt.start_time)
       {
         break;
       }
@@ -230,9 +221,9 @@ int populateMap(const Options &opt)
   }
 
   printf("Populating map\n");
-  while (havePoint)
+  while (have_point)
   {
-    ++pointCount;
+    ++point_count;
     TES_IF(opt.rays & Rays_Lines)
     {
       TES_STMT(rays.push_back(origin));
@@ -243,15 +234,15 @@ int populateMap(const Options &opt)
       TES_STMT(samples.push_back(sample));
     }
 
-    if (firstBatchTimestamp < 0)
+    if (first_batch_timestamp < 0)
     {
-      firstBatchTimestamp = timestamp;
+      first_batch_timestamp = timestamp;
     }
     // Compute free ray.
-    map.computeRayKeys(p2p(origin), p2p(sample), rayKeys);
+    map.computeRayKeys(p2p(origin), p2p(sample), ray_keys);
     // Draw intersected voxels.
-    keyIndex = 0;
-    for (auto key : rayKeys)
+    key_index = 0;
+    for (auto key : ray_keys)
     {
       if (octomap::OcTree::NodeType *node = map.search(key))
       {
@@ -261,9 +252,7 @@ int populateMap(const Options &opt)
         if (initiallyOccupied && !map.isNodeOccupied(node))
         {
           // Node became free.
-#ifdef TES_ENABLE
-          shiftToSet(becomeFree, becomeOccupied, key);
-#endif  // TES_ENABLE
+          TES_STMT(shiftToSet(become_free, become_occupied, key));
         }
       }
       else
@@ -273,8 +262,8 @@ int populateMap(const Options &opt)
       }
       voxel = p2p(map.keyToCoord(key));
       // Collate for render.
-      TES_STMT(touchedFree.insert(key));
-      ++keyIndex;
+      TES_STMT(touched_free.insert(key));
+      ++key_index;
     }
 
     // Update the sample node.
@@ -287,7 +276,7 @@ int populateMap(const Options &opt)
       if (!initiallyOccupied && map.isNodeOccupied(node))
       {
         // Node became occupied.
-        TES_STMT(shiftToSet(becomeOccupied, becomeFree, key));
+        TES_STMT(shiftToSet(become_occupied, become_free, key));
       }
     }
     else
@@ -295,98 +284,98 @@ int populateMap(const Options &opt)
       // New node.
       map.updateNode(key, true, true);
       // Collate for render.
-      TES_STMT(shiftToSet(becomeOccupied, becomeFree, key));
+      TES_STMT(shiftToSet(become_occupied, become_free, key));
     }
-    TES_STMT(shiftToSet(touchedOccupied, touchedFree, key));
+    TES_STMT(shiftToSet(touched_occupied, touched_free, key));
 
-    if (pointCount % rayBatchSize == 0 || quit)
+    if (point_count % ray_batch_size == 0 || quit)
     {
       //// Collapse the map.
       // map.isNodeCollapsible()
 #ifdef TES_ENABLE
-      double elapsedTime =
-        (lastTimestamp >= 0) ? timestamp - lastTimestamp : timestamp - firstBatchTimestamp;
+      double elapsed_time =
+        (last_timestamp >= 0) ? timestamp - last_timestamp : timestamp - first_batch_timestamp;
       // Handle time jumps back.
-      elapsedTime = std::max(elapsedTime, 0.0);
+      elapsed_time = std::max(elapsed_time, 0.0);
       // Cull large time differences.
-      elapsedTime = std::min(elapsedTime, 1.0);
-      firstBatchTimestamp = -1;
+      elapsed_time = std::min(elapsed_time, 1.0);
+      first_batch_timestamp = -1;
 
 #ifdef _MSC_VER
-      sprintf_s(timeStrBuffer, "%g", timestamp - timebase);
+      sprintf_s(time_str_buffer, "%g", timestamp - timebase);
 #else   // _MSC_VER
-      sprintf(timeStrBuffer, "%g", timestamp - timebase);
+      sprintf(time_str_buffer, "%g", timestamp - timebase);
 #endif  // _MSC_VER
-      TES_TEXT2D_SCREEN(g_tesServer, TES_COLOUR(White), timeStrBuffer, tes::Id(0u, CAT_Info),
-                        Vector3f(0.05f, 0.1f, 0.0f));
+
+      create(g_tes_server, Text2D(time_str_buffer, Id(0u, CAT_Info), Vector3f(0.05f, 0.1f, 0.0f)));
       // Draw sample lines.
       if (opt.rays & Rays_Lines)
       {
-        TES_LINES(g_tesServer, TES_COLOUR(DarkOrange), tes::Id(0u, CAT_Rays),
-                  tes::DataBuffer(rays));
+        create(g_tes_server,
+               MeshShape(DtLines, Id(0u, CAT_Rays), rays).setColour(Colour::DarkOrange));
       }
       rays.clear();
       // Render touched voxels in bulk.
       if (opt.rays & Rays_Voxels)
       {
-        renderVoxels(touchedFree, map, tes::Colour(tes::Colour::MediumSpringGreen), CAT_FreeCells);
+        renderVoxels(touched_free, map, tes::Colour(tes::Colour::MediumSpringGreen), CAT_FreeCells);
       }
       if (opt.samples & Samples_Voxels)
       {
-        renderVoxels(touchedOccupied, map, tes::Colour(tes::Colour::Turquoise), CAT_OccupiedCells);
+        renderVoxels(touched_occupied, map, tes::Colour(tes::Colour::Turquoise), CAT_OccupiedCells);
       }
       if (opt.samples)
       {
-        TES_POINTS(g_tesServer, TES_COLOUR(Orange), tes::Id(0u, CAT_OccupiedCells),
-                   tes::DataBuffer(samples));
+        create(g_tes_server,
+               MeshShape(DtPoints, Id(0u, CAT_OccupiedCells), samples).setColour(Colour::Orange));
       }
       samples.clear();
-      // TES_SERVER_UPDATE(g_tesServer, 0.0f);
+      // updateServer(g_tes_server);
 
-      // Ensure touchedOccupied does not contain newly occupied nodes for mesh update.
-      for (auto key : becomeOccupied)
+      // Ensure touched_occupied does not contain newly occupied nodes for mesh update.
+      for (auto key : become_occupied)
       {
-        auto search = touchedOccupied.find(key);
-        if (search != touchedOccupied.end())
+        auto search = touched_occupied.find(key);
+        if (search != touched_occupied.end())
         {
-          touchedOccupied.erase(search);
+          touched_occupied.erase(search);
         }
       }
 
       // Render changes to the map.
-      mapMesh.update(becomeOccupied, becomeFree, touchedOccupied);
+      map_mesh.update(become_occupied, become_free, touched_occupied);
 
-      touchedFree.clear();
-      touchedOccupied.clear();
-      becomeOccupied.clear();
-      becomeFree.clear();
-      TES_SERVER_UPDATE(g_tesServer, float(elapsedTime));
-      if (opt.pointLimit && pointCount >= opt.pointLimit ||
-          opt.endTime > 0 && lastTimestamp - timebase >= opt.endTime || quit)
+      touched_free.clear();
+      touched_occupied.clear();
+      become_occupied.clear();
+      become_free.clear();
+      updateServer(g_tes_server, static_cast<float>(elapsed_time));
+      if (opt.point_limit && point_count >= opt.point_limit ||
+          opt.end_time > 0 && last_timestamp - timebase >= opt.end_time || quit)
       {
         break;
       }
 #endif  // TES_ENABLE
 
-      lastTimestamp = timestamp;
+      last_timestamp = timestamp;
       if (!opt.quiet)
       {
-        printf("\r%g        ", lastTimestamp - timebase);
+        printf("\r%g        ", last_timestamp - timebase);
         // fflush(stdout);
       }
     }
 
-    havePoint = loader.nextPoint(sample, origin, &timestamp);
+    have_point = loader.nextPoint(sample, origin, &timestamp);
   }
 
-  TES_SERVER_UPDATE(g_tesServer, 0.0f);
+  TES_STMT(updateServer(g_tes_server));
 
   if (!opt.quiet)
   {
     printf("\n");
   }
 
-  printf("Processed %" PRIu64 " points.\n", pointCount);
+  printf("Processed %" PRIu64 " points.\n", point_count);
 
   // Save the occupancy map.
   printf("Saving map");
@@ -409,11 +398,11 @@ void usage(const Options &opt)
   printf("Third Eye Scene render commands are interspersed throughout the code to visualise the "
          "generation process\n\n");
   printf("Options:\n");
-  printf("-b=<batch-size> (%u)\n", opt.batchSize);
+  printf("-b=<batch-size> (%u)\n", opt.batch_size);
   printf("  The number of points to process in each batch. Controls debug display.\n");
-  printf("-h=<hit-probability> (%g)\n", opt.probHit);
+  printf("-h=<hit-probability> (%g)\n", opt.prob_hit);
   printf("  The occupancy probability due to a hit. Must be >= 0.5.\n");
-  printf("-m=<miss-probability> (%g)\n", opt.probMiss);
+  printf("-m=<miss-probability> (%g)\n", opt.prob_miss);
   printf("  The occupancy probability due to a miss. Must be < 0.5.\n");
   printf("-o=<stream-file>\n");
   printf("  Specifies a file to write a 3es stream to directly without the need for an external "
@@ -424,11 +413,11 @@ void usage(const Options &opt)
   printf("  Run in quiet mode. Suppresses progress messages.\n");
   printf("-r=<resolution> (%g)\n", opt.resolution);
   printf("  The voxel resolution of the generated map.\n");
-  printf("-s=<time> (%g)\n", opt.startTime);
+  printf("-s=<time> (%g)\n", opt.start_time);
   printf("  Specifies a time offset for the start time. Ignore points until the time offset from "
          "the first point "
          "exceeds this value.\n");
-  printf("-e=<time> (%g)\n", opt.endTime);
+  printf("-e=<time> (%g)\n", opt.end_time);
   printf("  Specifies an end time relative to the first point. Stop after processing time interval "
          "of points.\n");
   printf("--rays=[off,lines,voxels,all] (lines)\n");
@@ -447,21 +436,25 @@ void usage(const Options &opt)
 
 void initialiseDebugCategories(const Options &opt)
 {
-  TES_CATEGORY(g_tesServer, "Map", CAT_Map, 0, true);
-  TES_CATEGORY(g_tesServer, "Populate", CAT_Populate, 0, true);
-  TES_IF(opt.rays & Rays_Lines)
+#ifdef TES_ENABLE
+  defineCategory(g_tes_server, "Map", CAT_Map, 0, true);
+  defineCategory(g_tes_server, "Populate", CAT_Populate, 0, true);
+  if (opt.rays & Rays_Lines)
   {
-    TES_CATEGORY(g_tesServer, "Rays", CAT_Rays, CAT_Populate, (opt.rays & Rays_Lines) != 0);
+    defineCategory(g_tes_server, "Rays", CAT_Rays, CAT_Populate, (opt.rays & Rays_Lines) != 0);
   }
-  TES_IF(opt.rays & Rays_Voxels)
+  if (opt.rays & Rays_Voxels)
   {
-    TES_CATEGORY(g_tesServer, "Free", CAT_FreeCells, CAT_Populate, (opt.rays & Rays_Lines) == 0);
+    defineCategory(g_tes_server, "Free", CAT_FreeCells, CAT_Populate, (opt.rays & Rays_Lines) == 0);
   }
-  TES_IF(opt.samples)
+  if (opt.samples)
   {
-    TES_CATEGORY(g_tesServer, "Occupied", CAT_OccupiedCells, CAT_Populate, true);
+    defineCategory(g_tes_server, "Occupied", CAT_OccupiedCells, CAT_Populate, true);
   }
-  TES_CATEGORY(g_tesServer, "Info", CAT_Info, 0, true);
+  defineCategory(g_tes_server, "Info", CAT_Info, 0, true);
+#else   // TES_ENABLE
+  (void)opt;
+#endif  // TES_ENABLE
 }
 
 int main(int argc, char *argv[])
@@ -485,22 +478,22 @@ int main(int argc, char *argv[])
       switch (argv[i][1])
       {
       case 'b':  // batch size
-        ok = optionValue(argv[i] + 2, argc, argv, opt.batchSize);
+        ok = optionValue(argv[i] + 2, argc, argv, opt.batch_size);
         break;
       case 'e':  // start time
-        ok = optionValue(argv[i] + 2, argc, argv, opt.endTime);
+        ok = optionValue(argv[i] + 2, argc, argv, opt.end_time);
         break;
       case 'h':
-        ok = optionValue(argv[i] + 2, argc, argv, opt.probHit);
+        ok = optionValue(argv[i] + 2, argc, argv, opt.prob_hit);
         break;
       case 'm':
-        ok = optionValue(argv[i] + 2, argc, argv, opt.probMiss);
+        ok = optionValue(argv[i] + 2, argc, argv, opt.prob_miss);
         break;
       case 'o':
-        ok = optionValue(argv[i] + 2, argc, argv, opt.outStream);
+        ok = optionValue(argv[i] + 2, argc, argv, opt.out_stream);
         break;
       case 'p':  // point limit
-        ok = optionValue(argv[i] + 2, argc, argv, opt.pointLimit);
+        ok = optionValue(argv[i] + 2, argc, argv, opt.point_limit);
         break;
       case 'q':  // quiet
         opt.quiet = true;
@@ -509,7 +502,7 @@ int main(int argc, char *argv[])
         ok = optionValue(argv[i] + 2, argc, argv, opt.resolution);
         break;
       case 's':  // start time
-        ok = optionValue(argv[i] + 2, argc, argv, opt.startTime);
+        ok = optionValue(argv[i] + 2, argc, argv, opt.start_time);
         break;
       case '-':  // Long option name.
       {
@@ -576,51 +569,48 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Failed to read %s option value.\n", argv[i]);
       }
     }
-    else if (opt.cloudFile.empty())
+    else if (opt.cloud_file.empty())
     {
-      opt.cloudFile = argv[i];
+      opt.cloud_file = argv[i];
     }
-    else if (opt.trajectoryFile.empty())
+    else if (opt.trajectory_file.empty())
     {
-      opt.trajectoryFile = argv[i];
+      opt.trajectory_file = argv[i];
     }
   }
 
-  if (opt.cloudFile.empty())
+  if (opt.cloud_file.empty())
   {
     fprintf(stderr, "Missing input cloud (-i)\n");
     return -1;
   }
-  if (opt.trajectoryFile.empty())
+  if (opt.trajectory_file.empty())
   {
     fprintf(stderr, "Missing trajectory file (-t)\n");
     return -1;
   }
 
+#ifdef TES_ENABLE
   // Initialise TES
-  TES_SETTINGS(settings, tes::SFDefault);
-  // Initialise server info.
-  TES_SERVER_INFO(info, tes::XYZ);
-  // Create the server. Use tesServer declared globally above.
-  TES_SERVER_CREATE(g_tesServer, settings, &info);
+  g_tes_server = createServer(ServerSettings(SFDefault), XYZ);
 
   // Start the server and wait for the connection monitor to start.
-  TES_SERVER_START(g_tesServer, tes::ConnectionMonitor::Asynchronous);
-  TES_SERVER_START_WAIT(g_tesServer, 1000);
+  startServer(g_tes_server, ConnectionMode::Asynchronous);
+  waitForConnection(g_tes_server, 1000u);
 
-#ifdef TES_ENABLE
-  if (!opt.outStream.empty())
+  if (!opt.out_stream.empty())
   {
-    g_tesServer->connectionMonitor()->openFileStream(opt.outStream.c_str());
-    g_tesServer->connectionMonitor()->commitConnections();
+    g_tes_server->connectionMonitor()->openFileStream(opt.out_stream.c_str());
+    g_tes_server->connectionMonitor()->commitConnections();
   }
 
-  std::cout << "Starting with " << g_tesServer->connectionCount() << " connection(s)." << std::endl;
+  std::cout << "Starting with " << g_tes_server->connectionCount() << " connection(s)."
+            << std::endl;
 #endif  // TES_ENABLE
 
   initialiseDebugCategories(opt);
 
   int res = populateMap(opt);
-  TES_SERVER_STOP(g_tesServer);
+  TES_STMT(stopServer(g_tes_server));
   return res;
 }

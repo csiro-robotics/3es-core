@@ -144,7 +144,7 @@ struct OccupancyLoaderDetail
   std::string sampleFilePath;
   std::string trajectoryFilePath;
   std::ifstream sampleFile;
-  std::ifstream trajectoryFile;
+  std::ifstream trajectory_file;
   TrajectoryPoint trajectoryBuffer[2];
 
   inline OccupancyLoaderDetail() { memset(&trajectoryBuffer, 0, sizeof(trajectoryBuffer)); }
@@ -169,7 +169,7 @@ bool OccupancyLoader::open(const char *sampleFilePath, const char *trajectoryFil
   _imp->trajectoryFilePath = trajectoryFilePath;
 
   _imp->sampleFile.open(_imp->sampleFilePath, std::ios::binary | std::ios::in);
-  _imp->trajectoryFile.open(_imp->trajectoryFilePath, std::ios::binary | std::ios::in);
+  _imp->trajectory_file.open(_imp->trajectoryFilePath, std::ios::binary | std::ios::in);
 
   if (!sampleFileIsOpen() || !trajectoryFileIsOpen())
   {
@@ -178,13 +178,13 @@ bool OccupancyLoader::open(const char *sampleFilePath, const char *trajectoryFil
   }
 
   _imp->sampleReader.plyFile.parse_header(_imp->sampleFile);
-  _imp->trajectoryReader.plyFile.parse_header(_imp->trajectoryFile);
+  _imp->trajectoryReader.plyFile.parse_header(_imp->trajectory_file);
 
   _imp->sampleReader.bindProperties();
   _imp->trajectoryReader.bindProperties();
 
   _imp->sampleReader.plyFile.read(_imp->sampleFile);
-  _imp->trajectoryReader.plyFile.read(_imp->trajectoryFile);
+  _imp->trajectoryReader.plyFile.read(_imp->trajectory_file);
 
   // Prime the trajectory buffer.
   bool trajectoryPrimed = true;
@@ -212,7 +212,7 @@ void OccupancyLoader::close()
   _imp->sampleReader.close();
   _imp->trajectoryReader.close();
   _imp->sampleFile.close();
-  _imp->trajectoryFile.close();
+  _imp->trajectory_file.close();
   _imp->sampleFilePath.clear();
   _imp->trajectoryFilePath.clear();
 }
@@ -226,13 +226,14 @@ bool OccupancyLoader::sampleFileIsOpen() const
 
 bool OccupancyLoader::trajectoryFileIsOpen() const
 {
-  return _imp->trajectoryFile.is_open();
+  return _imp->trajectory_file.is_open();
 }
 
 
 bool OccupancyLoader::nextPoint(tes::Vector3f &sample, tes::Vector3f &origin, double *timestamp)
 {
-  tes::Vector3d sd, od;
+  tes::Vector3d sd;
+  tes::Vector3d od;
   if (!nextPoint(sd, od, timestamp))
   {
     return false;

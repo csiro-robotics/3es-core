@@ -7,7 +7,7 @@
 
 #ifdef TES_ENABLE
 #include <3escore/Colour.h>
-#include <3escore/ServerMacros.h>
+#include <3escore/ServerApi.h>
 #include <3escore/TransferProgress.h>
 
 using namespace tes;
@@ -20,9 +20,9 @@ struct OccupancyMeshDetail
   std::vector<uint32_t> colours;
   // std::vector<uint32_t> indices;
   /// Tracks indices of unused vertices in the vertex array.
-  std::vector<uint32_t> unusedVertexList;
+  std::vector<uint32_t> unused_vertex_list;
   /// Maps voxel keys to their vertex indices.
-  KeyToIndexMap voxelIndexMap;
+  KeyToIndexMap voxel_index_map;
 };
 
 namespace
@@ -42,27 +42,27 @@ namespace
 
 uint32_t nodeColour(const octomap::OcTree::NodeType *node, const octomap::OcTree &map)
 {
-  const float intensity = float((node->getOccupancy() - map.getOccupancyThres()) / (1.0 - map.getOccupancyThres()));
+  const float intensity =
+    float((node->getOccupancy() - map.getOccupancyThres()) / (1.0 - map.getOccupancyThres()));
   // const float intensity = (node) ? float(node->getOccupancy()) : 0;
   const int c = int(255 * intensity);
-  return tes::Colour(c, c, c).c;
+  return tes::Colour(c, c, c).colour32();
 }
 }  // namespace
 
 OccupancyMesh::OccupancyMesh(unsigned mesh_id, octomap::OcTree &map)
   : _map(map)
   , _id(mesh_id)
-  , _detail(new OccupancyMeshDetail)
+  , _detail(std::make_unique<OccupancyMeshDetail>())
 {
   // Expose the mesh resource.
-  g_tesServer->referenceResource(this);
+  referenceResource(g_tes_server, shared_from_this());
 }
 
 
 OccupancyMesh::~OccupancyMesh()
 {
-  g_tesServer->releaseResource(this);
-  delete _detail;
+  releaseResource(g_tes_server, shared_from_this());
 }
 
 uint32_t OccupancyMesh::id() const
@@ -138,18 +138,19 @@ DataBuffer OccupancyMesh::colours(int stream) const
   return DataBuffer(_detail->colours);
 }
 
-tes::Resource *OccupancyMesh::clone() const
+std::shared_ptr<tes::Resource> OccupancyMesh::clone() const
 {
-  OccupancyMesh *copy = new OccupancyMesh(_id, _map);
+  auto copy = std::make_shared<OccupancyMesh>(_id, _map);
   *copy->_detail = *_detail;
   return copy;
 }
 
 
-int OccupancyMesh::transfer(tes::PacketWriter &packet, unsigned byteLimit, tes::TransferProgress &progress) const
+int OccupancyMesh::transfer(tes::PacketWriter &packet, unsigned byte_limit,
+                            tes::TransferProgress &progress) const
 {
   // Build the voxel set if required.
-  if (_detail->voxelIndexMap.empty())
+  if (_detail->voxel_index_map.empty())
   {
     _detail->vertices.clear();
     _detail->colours.clear();
@@ -158,7 +159,8 @@ int OccupancyMesh::transfer(tes::PacketWriter &packet, unsigned byteLimit, tes::
       if (_map.isNodeOccupied(*node))
       {
         // Add voxel.
-        _detail->voxelIndexMap.insert(std::make_pair(node.getKey(), uint32_t(_detail->vertices.size())));
+        _detail->voxel_index_map.insert(
+          std::make_pair(node.getKey(), uint32_t(_detail->vertices.size())));
         _detail->vertices.push_back(p2p(_map.keyToCoord(node.getKey())));
         // Normals represent voxel half extents.
         _detail->normals.push_back(Vector3f(float(0.5f * _map.getResolution())));
@@ -167,69 +169,69 @@ int OccupancyMesh::transfer(tes::PacketWriter &packet, unsigned byteLimit, tes::
     }
   }
 
-  return tes::MeshResource::transfer(packet, byteLimit, progress);
+  return tes::MeshResource::transfer(packet, byte_limit, progress);
 }
 
 
-void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const UnorderedKeySet &newlyFree,
-                           const UnorderedKeySet &touchedOccupied)
+void OccupancyMesh::update(const UnorderedKeySet &newly_occupied, const UnorderedKeySet &newly_free,
+                           const UnorderedKeySet &touched_occupied)
 {
-  if (newlyOccupied.empty() && newlyFree.empty() && touchedOccupied.empty())
+  if (newly_occupied.empty() && newly_free.empty() && touched_occupied.empty())
   {
     // Nothing to do.
     return;
   }
 
-  if (g_tesServer->connectionCount() == 0)
+  if (!g_tes_server || g_tes_server->connectionCount() == 0)
   {
     // No-one to send to.
     _detail->vertices.clear();
     _detail->normals.clear();
     _detail->colours.clear();
     //_detail->indices.clear();
-    _detail->unusedVertexList.clear();
-    _detail->voxelIndexMap.clear();
+    _detail->unused_vertex_list.clear();
+    _detail->voxel_index_map.clear();
     return;
   }
 
   // Start by removing freed nodes.
-  size_t initialUnusedVertexCount = _detail->unusedVertexList.size();
-  std::vector<uint32_t> modifiedVertices;
-  for (const octomap::OcTreeKey &key : newlyFree)
+  size_t initial_unused_vertex_count = _detail->unused_vertex_list.size();
+  std::vector<uint32_t> modified_vertices;
+  for (const auto &key : newly_free)
   {
     // Resolve the index for this voxel.
-    auto voxelLookup = _detail->voxelIndexMap.find(key);
-    if (voxelLookup != _detail->voxelIndexMap.end())
+    auto voxelLookup = _detail->voxel_index_map.find(key);
+    if (voxelLookup != _detail->voxel_index_map.end())
     {
       // Invalidate the voxel.
       _detail->colours[voxelLookup->second] = 0u;
-      _detail->unusedVertexList.push_back(voxelLookup->second);
-      modifiedVertices.push_back(voxelLookup->second);
-      _detail->voxelIndexMap.erase(voxelLookup);
+      _detail->unused_vertex_list.push_back(voxelLookup->second);
+      modified_vertices.push_back(voxelLookup->second);
+      _detail->voxel_index_map.erase(voxelLookup);
     }
   }
 
   // Now added occupied nodes, initially from the free list.
-  size_t processedOccupiedCount = 0;
-  auto occupiedIter = newlyOccupied.begin();
-  while (!_detail->unusedVertexList.empty() && occupiedIter != newlyOccupied.end())
+  size_t processed_occupied_count = 0;
+  auto occupied_iter = newly_occupied.begin();
+  while (!_detail->unused_vertex_list.empty() && occupied_iter != newly_occupied.end())
   {
-    const uint32_t vertexIndex = _detail->unusedVertexList.back();
-    const octomap::OcTreeKey key = *occupiedIter;
+    const uint32_t vertex_index = _detail->unused_vertex_list.back();
+    const octomap::OcTreeKey key = *occupied_iter;
     const octomap::OcTree::NodeType *node = _map.search(key);
-    const bool markAsModified = _detail->unusedVertexList.size() <= initialUnusedVertexCount;
-    _detail->unusedVertexList.pop_back();
-    ++occupiedIter;
-    ++processedOccupiedCount;
-    _detail->vertices[vertexIndex] = p2p(_map.keyToCoord(key));
-    // validateVertex(_detail->vertices[vertexIndex]);
-    _detail->colours[vertexIndex] = nodeColour(node, _map);
-    _detail->voxelIndexMap.insert(std::make_pair(key, vertexIndex));
+    const bool mark_as_modified = _detail->unused_vertex_list.size() <= initial_unused_vertex_count;
+    _detail->unused_vertex_list.pop_back();
+    ++occupied_iter;
+    ++processed_occupied_count;
+    _detail->vertices[vertex_index] = p2p(_map.keyToCoord(key));
+    // validateVertex(_detail->vertices[vertex_index]);
+    _detail->colours[vertex_index] = nodeColour(node, _map);
+    _detail->voxel_index_map.insert(std::make_pair(key, vertex_index));
     // Only mark as modified if this vertex wasn't just invalidate by removal.
     // It will already be on the list otherwise.
-    if (markAsModified)
+    if (mark_as_modified)
     {
-      modifiedVertices.push_back(vertexIndex);
+      modified_vertices.push_back(vertex_index);
     }
   }
 
@@ -237,66 +239,67 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
   // Start a mesh redefinition message.
   std::vector<uint8_t> buffer(0xffffu);
   tes::PacketWriter packet(buffer.data(), (uint16_t)buffer.size());
-  tes::MeshRedefineMessage msg;
-  tes::MeshComponentMessage cmpmsg;
-  tes::MeshFinaliseMessage finalmsg;
-  tes::ObjectAttributesd attributes;
+  tes::MeshRedefineMessage msg = {};
+  tes::MeshComponentMessage cmp_msg = {};
+  tes::MeshFinaliseMessage final_msg = {};
+  tes::ObjectAttributesd attributes = {};
 
   // Work out how many vertices we'll have after all modifications are done.
-  size_t oldVertexCount = _detail->vertices.size();
-  size_t newVertexCount = _detail->vertices.size();
-  if (newlyOccupied.size() - processedOccupiedCount > _detail->unusedVertexList.size())
+  size_t old_vertex_count = _detail->vertices.size();
+  size_t new_vertex_count = _detail->vertices.size();
+  if (newly_occupied.size() - processed_occupied_count > _detail->unused_vertex_list.size())
   {
     // We have more occupied vertices than available in the free list.
     // This means we will add new vertices.
-    newVertexCount += newlyOccupied.size() - processedOccupiedCount - _detail->unusedVertexList.size();
+    new_vertex_count +=
+      newly_occupied.size() - processed_occupied_count - _detail->unused_vertex_list.size();
   }
 
   msg.mesh_id = _id;
-  msg.vertexCount = (uint32_t)newVertexCount;
-  msg.indexCount = 0;
-  msg.drawType = drawType(0);
+  msg.vertex_count = (uint32_t)new_vertex_count;
+  msg.index_count = 0;
+  msg.draw_type = drawType(0);
   attributes.identity();
 
   packet.reset(tes::MtMesh, tes::MeshRedefineMessage::MessageId);
   msg.write(packet, attributes);
 
   packet.finalise();
-  g_tesServer->send(packet);
+  g_tes_server->send(packet);
 
   // Next update changed triangles.
-  cmpmsg.mesh_id = id();
-  cmpmsg.reserved = 0;
-  cmpmsg.count = 1;
+  cmp_msg.mesh_id = id();
 
+  const float quantisation_unit = 0.001f;
   // Update modified vertices, one at a time.
-  for (uint32_t vertexIndex : modifiedVertices)
+  for (uint32_t vertex_index : modified_vertices)
   {
-    cmpmsg.offset = vertexIndex;
     packet.reset(tes::MtMesh, tes::MmtVertex);
-    cmpmsg.elementType = McetFloat32;
-    cmpmsg.write(packet);
-    // Write the invalid value.
-    packet.writeArray<float>(_detail->vertices[vertexIndex].v, 3);
-    packet.finalise();
-    g_tesServer->send(packet);
+    cmp_msg.write(packet);
+    DataBuffer data_buffer(_detail->vertices);
+    data_buffer.writePacked(packet, 0, quantisation_unit);
+    if (packet.finalise())
+    {
+      g_tes_server->send(packet);
+    }
 
     // Send colour and position update.
     packet.reset(tes::MtMesh, tes::MmtVertexColour);
-    cmpmsg.elementType = McetUInt32;
-    cmpmsg.write(packet);
-    // Write the invalid value.
-    packet.writeArray<uint32_t>(&_detail->colours[vertexIndex], 1);
-    packet.finalise();
-    g_tesServer->send(packet);
+    cmp_msg.write(packet);
+    data_buffer = DataBuffer(_detail->colours);
+    data_buffer.write(packet, 0);
+    if (packet.finalise())
+    {
+      g_tes_server->send(packet);
+    }
   }
 
   // Add remaining vertices and send a bulk modification message.
-  for (; occupiedIter != newlyOccupied.end(); ++occupiedIter, ++processedOccupiedCount)
+  for (; occupied_iter != newly_occupied.end(); ++occupied_iter, ++processed_occupied_count)
   {
-    const uint32_t vertexIndex = uint32_t(_detail->vertices.size());
-    const octomap::OcTreeKey key = *occupiedIter;
-    _detail->voxelIndexMap.insert(std::make_pair(key, vertexIndex));
+    const uint32_t vertex_index = uint32_t(_detail->vertices.size());
+    const octomap::OcTreeKey key = *occupied_iter;
+    _detail->voxel_index_map.insert(std::make_pair(key, vertex_index));
     //_detail->indices.push_back(uint32_t(_detail->vertices.size()));
     _detail->vertices.push_back(p2p(_map.keyToCoord(key)));
     // validateVertex(_detail->vertices.back());
@@ -306,74 +309,78 @@ void OccupancyMesh::update(const UnorderedKeySet &newlyOccupied, const Unordered
   }
 
   // Send bulk messages for new vertices.
-  if (oldVertexCount != newVertexCount)
+  if (old_vertex_count != new_vertex_count)
   {
     const uint16_t transferLimit = 5001;
     // Send colour and position update.
-    cmpmsg.offset = uint32_t(oldVertexCount);
+    uint32_t offset = uint32_t(old_vertex_count);
 
-    while (cmpmsg.offset < newVertexCount)
+    while (offset < new_vertex_count)
     {
-      cmpmsg.count = uint16_t(std::min<size_t>(transferLimit, newVertexCount - cmpmsg.offset));
+      auto count = uint16_t(std::min<size_t>(transferLimit, new_vertex_count - offset));
 
-      cmpmsg.elementType = McetFloat32;
       packet.reset(tes::MtMesh, tes::MmtVertex);
-      cmpmsg.write(packet);
-      packet.writeArray<float>(_detail->vertices[cmpmsg.offset].v, cmpmsg.count * 3);
-      packet.finalise();
-      g_tesServer->send(packet);
+      cmp_msg.write(packet);
+      DataBuffer(&_detail->vertices[offset], count)
+        .writePacked(packet, 0, quantisation_unit, 0, offset);
+      if (packet.finalise())
+      {
+        g_tes_server->send(packet);
+      }
 
-      cmpmsg.elementType = McetFloat32;
       packet.reset(tes::MtMesh, tes::MmtNormal);
-      cmpmsg.write(packet);
-      packet.writeArray<float>(_detail->normals[cmpmsg.offset].v, cmpmsg.count * 3);
-      packet.finalise();
-      g_tesServer->send(packet);
+      cmp_msg.write(packet);
+      DataBuffer(&_detail->normals[offset], count)
+        .writePacked(packet, 0, quantisation_unit, 0, offset);
+      if (packet.finalise())
+      {
+        g_tes_server->send(packet);
+      }
 
-      cmpmsg.elementType = McetUInt32;
       packet.reset(tes::MtMesh, tes::MmtVertexColour);
-      cmpmsg.write(packet);
-      packet.writeArray<uint32_t>(&_detail->colours[cmpmsg.offset], cmpmsg.count);
-      packet.finalise();
-      g_tesServer->send(packet);
+      cmp_msg.write(packet);
+      DataBuffer(&_detail->colours[offset], count).write(packet, 0, 0, offset);
+      if (packet.finalise())
+      {
+        g_tes_server->send(packet);
+      }
 
       // Calculate next batch.
-      cmpmsg.offset += cmpmsg.count;
+      offset += count;
     }
   }
 
   // Update colours for touched occupied
-  if (!touchedOccupied.empty())
+  if (!touched_occupied.empty())
   {
-    for (auto key : touchedOccupied)
+    for (auto key : touched_occupied)
     {
       const octomap::OcTree::NodeType *node = _map.search(key);
-      auto indexSearch = _detail->voxelIndexMap.find(key);
-      if (node && indexSearch != _detail->voxelIndexMap.end())
+      auto index_search = _detail->voxel_index_map.find(key);
+      if (node && index_search != _detail->voxel_index_map.end())
       {
-        const unsigned voxelIndex = indexSearch->second;
-        _detail->colours[voxelIndex] = nodeColour(node, _map);
+        const unsigned voxel_index = index_search->second;
+        _detail->colours[voxel_index] = nodeColour(node, _map);
 
         packet.reset(tes::MtMesh, tes::MmtVertexColour);
-        cmpmsg.offset = voxelIndex;
-        cmpmsg.count = 1;
-        cmpmsg.elementType = McetUInt32;
-        cmpmsg.write(packet);
-        packet.writeArray<uint32_t>(&_detail->colours[voxelIndex], 1);
-        packet.finalise();
-        g_tesServer->send(packet);
+        cmp_msg.write(packet);
+        DataBuffer(&_detail->colours[voxel_index], 1).write(packet, 0, 0, voxel_index);
+        if (packet.finalise())
+        {
+          g_tes_server->send(packet);
+        }
       }
     }
   }
 
   // Finalise the modifications.
-  finalmsg.mesh_id = _id;
+  final_msg.mesh_id = _id;
   // Rely on EDL shader.
-  finalmsg.flags = 0;  // tes::MffCalculateNormals;
-  packet.reset(tes::MtMesh, finalmsg.MessageId);
-  finalmsg.write(packet);
+  final_msg.flags = 0;  // tes::MffCalculateNormals;
+  packet.reset(tes::MtMesh, final_msg.MessageId);
+  final_msg.write(packet);
   packet.finalise();
-  g_tesServer->send(packet);
+  g_tes_server->send(packet);
 }
 
 #endif  // TES_ENABLE
