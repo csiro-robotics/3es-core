@@ -63,6 +63,13 @@ uint8_t MeshShape::Resource::drawType(int stream) const
 }
 
 
+float MeshShape::Resource::drawScale(int stream) const
+{
+  (void)stream;
+  return _shape.drawScale();
+}
+
+
 unsigned MeshShape::Resource::vertexCount(int stream) const
 {
   (void)stream;

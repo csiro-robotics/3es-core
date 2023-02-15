@@ -112,14 +112,14 @@ std::shared_ptr<MeshShape> createVoxelsMesh(unsigned id)
 }
 
 
-std::shared_ptr<PointCloudShape> createCloud(unsigned id, const std::vector<Vector3f> &vertices,
-                                             std::vector<std::shared_ptr<MeshResource>> &resources)
+std::shared_ptr<MeshSet> createCloud(unsigned id, const std::vector<Vector3f> &vertices,
+                                     std::vector<std::shared_ptr<MeshResource>> &resources)
 {
   auto mesh = std::make_shared<PointCloud>(id * 100);
   resources.push_back(mesh);
 
   mesh->addPoints(vertices.data(), unsigned(vertices.size()));
-  auto shape = std::make_shared<PointCloudShape>(mesh, id);
+  auto shape = std::make_shared<MeshSet>(mesh, id);
 
   return shape;
 }
@@ -451,39 +451,6 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
   }
 
   o << '\n' << indent << "}";
-
-  return o;
-}
-
-
-std::ostream &logShapeExtensions(std::ostream &o, const PointCloudShape &shape,
-                                 const std::string &indent)
-{
-  o << ",\n";
-  o << indent << "\"pointScale\" : " << int(shape.pointScale()) << ",\n";
-
-  logMeshResource(o, *shape.mesh(), indent, true);
-
-  if (shape.indexCount())
-  {
-    o << ",\n";
-    o << indent << "\"indices\" : [";
-    for (unsigned i = 0; i < shape.indexCount(); ++i)
-    {
-      if (i % 20 == 0)
-      {
-        o << '\n' << indent;
-      }
-
-      if (i > 0)
-      {
-        o << ',';
-      }
-
-      o << shape.indices()[i];
-    }
-    o << indent << "\n]";
-  }
 
   return o;
 }

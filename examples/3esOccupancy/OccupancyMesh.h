@@ -42,15 +42,23 @@ public:
   tes::Transform transform() const final;
   uint32_t tint() const final;
   uint8_t drawType(int stream) const final;
+  using tes::MeshResource::drawType;
+  float drawScale(int stream) const final;
+  using tes::MeshResource::drawScale;
 
   unsigned vertexCount(int stream) const final;
   unsigned indexCount(int stream) const final;
 
   tes::DataBuffer vertices(int stream) const final;
+  using tes::MeshResource::vertices;
   tes::DataBuffer indices(int stream) const final;
+  using tes::MeshResource::indices;
   tes::DataBuffer normals(int stream) const final;
+  using tes::MeshResource::normals;
   tes::DataBuffer uvs(int stream) const final;
+  using tes::MeshResource::uvs;
   tes::DataBuffer colours(int stream) const final;
+  using tes::MeshResource::colours;
 
   std::shared_ptr<tes::Resource> clone() const final;
 

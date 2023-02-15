@@ -163,7 +163,7 @@ public:
   ///
   /// The result is a null/empty pointer when @c status() is not @c Status::Shared.
   /// @return The shared pointer.
-  std::shared_ptr<const T> shared() const { return _shared; }
+  [[nodiscard]] std::shared_ptr<const T> shared() const { return _shared; }
 
   /// Retrieve the pointer as a borrowed/raw pointer.
   ///
@@ -178,19 +178,19 @@ public:
   ///
   /// Behaviour is undefined if the source of the raw pointer has gone out of scope.
   /// @return The raw pointer.
-  const T *borrowed() const { return _borrowed; }
+  [[nodiscard]] const T *borrowed() const { return _borrowed; }
 
   /// Check if empty.
   /// @return True when empty.
-  bool empty() const { return !_shared && !_borrowed; }
+  [[nodiscard]] bool empty() const { return !_shared && !_borrowed; }
 
   /// Boolean conversion.
   /// @return True when not empty.
-  operator bool() const { return !empty(); }
+  [[nodiscard]] operator bool() const { return !empty(); }
 
   /// Logical negation.
   /// @return True not empty.
-  bool operator!() const { return empty(); }
+  [[nodiscard]] bool operator!() const { return empty(); }
 
   /// Equality operator.
   /// @param other Object to check equivalence with.
@@ -203,22 +203,22 @@ public:
   /// Inequality operator.
   /// @param other Object to check equivalence with.
   /// @return False when equivalent.
-  bool operator!=(const Ptr<T> &other) const { return !operator==(other); }
+  [[nodiscard]] bool operator!=(const Ptr<T> &other) const { return !operator==(other); }
 
   /// Equality comparison with raw pointer.
   /// @param ptr Pointer to compare
   /// @return True if @p ptr matches either the @c borrowed() or @c shared() pointers.
-  bool operator==(const T *ptr) { return _borrowed == ptr || _shared.get() == ptr; }
+  [[nodiscard]] bool operator==(const T *ptr) { return _borrowed == ptr || _shared.get() == ptr; }
 
   /// Inequality comparison with raw pointer.
   /// @param ptr Pointer to compare
   /// @return False if @p ptr matches either the @c borrowed() or @c shared() pointers.
-  bool operator!=(const T *ptr) { return !operator==(ptr) }
+  [[nodiscard]] bool operator!=(const T *ptr) { return !operator==(ptr) }
 
   /// Equality comparison with raw pointer.
   /// @param ptr Pointer to compare
   /// @return True if @p ptr matches either the @c borrowed() or @c shared() pointers.
-  bool operator==(const std::shared_ptr<const T> &ptr)
+  [[nodiscard]] bool operator==(const std::shared_ptr<const T> &ptr)
   {
     return _borrowed == ptr.get() || _shared.get() == ptr.get();
   }
@@ -226,7 +226,7 @@ public:
   /// Inequality comparison with raw pointer.
   /// @param ptr Pointer to compare
   /// @return False if @p ptr matches either the @c borrowed() or @c shared() pointers.
-  bool operator!=(const std::shared_ptr<const T> &ptr){ return !operator==(ptr) }
+  [[nodiscard]] bool operator!=(const std::shared_ptr<const T> &ptr){ return !operator==(ptr) }
 
   /// Get a raw pointer from either a shared or borrowed pointer.
   ///
@@ -239,7 +239,7 @@ public:
   /// This returns either @c shared() or @c borrowed() depending on status. A null pointer is
   /// returned when @c status() is @c Status::Empty.
   /// @return The pointer or null if empty.
-  const T *get() const;
+  [[nodiscard]] const T *get() const;
 
   /// Reset this pointer to a null/empty status
   void reset()
@@ -250,7 +250,7 @@ public:
 
   /// Query the type of pointer being help.
   /// @return The pointer type.
-  Status status() const;
+  [[nodiscard]] Status status() const;
 
 private:
   // Note(KS): this seems to be the simplest and smallest implementation without using a union.

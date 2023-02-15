@@ -54,17 +54,17 @@ public:
 
   /// Access the minimum extents.
   /// @return The minimal corder of the bounding box.
-  const Vector3<T> &minimum() const;
+  [[nodiscard]] const Vector3<T> &minimum() const;
   /// Access the maximum extents.
   /// @return The maximal corder of the bounding box.
-  const Vector3<T> &maximum() const;
+  [[nodiscard]] const Vector3<T> &maximum() const;
 
   /// Get the bounds centre point.
   /// @return The bounds centre.
-  Vector3<T> centre() const;
+  [[nodiscard]] Vector3<T> centre() const;
   /// Get the bounds half extents, from centre to max.
   /// @return The half extents, centre to max.
-  Vector3<T> halfExtents() const;
+  [[nodiscard]] Vector3<T> halfExtents() const;
 
   /// Converts the bounds from defining an AABB to being more spherical in nature.
   ///
@@ -214,7 +214,8 @@ inline void Bounds<T>::expand(const Bounds<T> &other)
 template <typename T>
 inline bool Bounds<T>::isValid() const
 {
-  return _minimum.x() <= _maximum.x() && _minimum.y() <= _maximum.y() && _minimum.z() <= _maximum.z();
+  return _minimum.x() <= _maximum.x() && _minimum.y() <= _maximum.y() &&
+         _minimum.z() <= _maximum.z();
 }
 
 

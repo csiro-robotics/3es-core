@@ -84,6 +84,7 @@ public:
   /// @c SimpleMesh objects can share their data.
   [[nodiscard]] std::shared_ptr<Resource> clone() const override;
 
+  using MeshResource::drawType;
   /// @copydoc::MeshResource::drawType()
   [[nodiscard]] uint8_t drawType(int stream) const override;
 
@@ -92,6 +93,14 @@ public:
   /// Set the draw type as a @c DrawType value.
   /// @param type The draw type to set.
   void setDrawType(DrawType type);
+
+  using MeshResource::drawScale;
+  /// @copydoc::MeshResource::drawScale()
+  [[nodiscard]] float drawScale(int stream) const override;
+
+  /// Set the @c drawScale().
+  /// @param scale The draw scale: must be zero or positive.
+  void setDrawScale(float scale);
 
   /// Query the @c ComponentFlag components used by this mesh.
   /// @return The @c ComponentFlag values.
@@ -116,8 +125,8 @@ public:
   inline bool setVertex(size_t at, const Vector3f &v) { return setVertices(at, &v, 1u) == 1u; }
   unsigned setVertices(size_t at, const Vector3f *v, size_t count);
   [[nodiscard]] const Vector3f *rawVertices() const;
-  [[nodiscard]] DataBuffer vertices(int stream) const override;
   using MeshResource::vertices;
+  [[nodiscard]] DataBuffer vertices(int stream) const override;
 
   using MeshResource::indexCount;
   [[nodiscard]] unsigned indexCount(int stream) const override;
@@ -129,20 +138,20 @@ public:
   inline bool setIndex(size_t at, uint32_t i) { return setIndices(at, &i, 1u) == 1u; }
   unsigned setIndices(size_t at, const uint32_t *idx, size_t count);
   [[nodiscard]] const uint32_t *rawIndices() const;
-  [[nodiscard]] DataBuffer indices(int stream) const override;
   using MeshResource::indices;
+  [[nodiscard]] DataBuffer indices(int stream) const override;
 
   inline bool setNormal(size_t at, const Vector3f &n) { return setNormals(at, &n, 1u) == 1u; }
   unsigned setNormals(size_t at, const Vector3f *n, size_t count);
   [[nodiscard]] const Vector3f *rawNormals() const;
-  [[nodiscard]] DataBuffer normals(int stream) const override;
   using MeshResource::normals;
+  [[nodiscard]] DataBuffer normals(int stream) const override;
 
   inline bool setColour(size_t at, uint32_t c) { return setColours(at, &c, 1u) == 1u; }
   unsigned setColours(size_t at, const uint32_t *c, size_t count);
   [[nodiscard]] const uint32_t *rawColours() const;
-  [[nodiscard]] DataBuffer colours(int stream) const override;
   using MeshResource::colours;
+  [[nodiscard]] DataBuffer colours(int stream) const override;
 
   inline bool setUv(size_t at, float u, float v)
   {
@@ -151,13 +160,14 @@ public:
   }
   unsigned setUvs(size_t at, const float *uvs, size_t count);
   [[nodiscard]] const float *rawUvs() const;
-  [[nodiscard]] DataBuffer uvs(int stream) const override;
   using MeshResource::uvs;
+  [[nodiscard]] DataBuffer uvs(int stream) const override;
 
 private:
   void copyOnWrite();
 
-  bool processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes) override;
+  bool processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes,
+                     float draw_scale) override;
   bool processVertices(const MeshComponentMessage &msg, unsigned offset,
                        const DataBuffer &stream) override;
   bool processIndices(const MeshComponentMessage &msg, unsigned offset,

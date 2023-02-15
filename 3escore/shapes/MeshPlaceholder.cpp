@@ -40,6 +40,12 @@ uint8_t MeshPlaceholder::drawType(int /* stream */) const
 }
 
 
+float MeshPlaceholder::drawScale(int /* stream */) const
+{
+  return 0;
+}
+
+
 unsigned MeshPlaceholder::vertexCount(int /* stream */) const
 {
   return 0;

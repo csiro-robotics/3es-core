@@ -38,7 +38,8 @@ public:
   {
   public:
     inline ResourceReference() = default;
-    inline ResourceReference(const Bounds &bounds, std::shared_ptr<const tes::MeshResource> resource,
+    inline ResourceReference(const Bounds &bounds,
+                             std::shared_ptr<const tes::MeshResource> resource,
                              std::shared_ptr<Magnum::GL::Mesh> mesh)
       : _bounds(bounds)
       , _resource(std::move(resource))
@@ -57,8 +58,9 @@ public:
 
     /// Get the mesh bounds.
     ///
-    /// The bounds are spherical in nature rather than an AABB, with the half extends being equal on all axes. This
-    /// obviates the need to traverse the mesh in order to calculate tight bounds for each instance of this mesh.
+    /// The bounds are spherical in nature rather than an AABB, with the half extends being equal on
+    /// all axes. This obviates the need to traverse the mesh in order to calculate tight bounds for
+    /// each instance of this mesh.
     ///
     /// @return The mesh bounds.
     inline const Bounds &bounds() const { return _bounds; }
@@ -110,7 +112,8 @@ public:
   /// @param params Current draw parameters.
   /// @param drawables Defines what to draw.
   /// @return The number of resources successfully resolved and drawn from @p drawables.
-  unsigned draw(const DrawParams &params, const std::vector<DrawItem> &drawables, DrawFlag flags = DrawFlag::Zero);
+  unsigned draw(const DrawParams &params, const std::vector<DrawItem> &drawables,
+                DrawFlag flags = DrawFlag::Zero);
 
   enum class ResourceFlag : unsigned
   {
@@ -120,13 +123,34 @@ public:
   };
 
 private:
+  /// Update pending resources to current if ready.
   void updateResources();
+
+  /// Calculate normals for @p mesh provided it does not already have normals.
+  ///
+  /// Vertex normals are calculated by averaging the triangle normals adjacent to the vertex.
+  ///
+  /// Does nothing if @p mesh already has normals, unless @c force is given.
+  ///
+  /// Can only be calculated for @c DtTriangles draw type.
+  ///
+  /// @param mesh The mesh to calculate normals for.
+  static void calculateNormals(SimpleMesh &mesh, bool force);
+
+  /// Calculate colours for @p mesh using a colour spectrum along the specified axis.
+  ///
+  /// Does nothing if @p mesh already has colours.
+  ///
+  /// @param mesh The mesh to calculate normals for.
+  /// @param axis The axis to colour along XYZ, [0, 2].
+  static void colourByAxis(SimpleMesh &mesh, int axis);
 
   /// A resource entry.
   struct Resource
   {
-    /// Mesh bounds. The semantics are spherical rather than defining an AABB since we don't know how it will be
-    /// transformed and don't want to traverse the mesh just to get tight instance bounds.
+    /// Mesh bounds. The semantics are spherical rather than defining an AABB since we don't know
+    /// how it will be transformed and don't want to traverse the mesh just to get tight instance
+    /// bounds.
     Bounds bounds = {};
     /// The current mesh resource data. This is what the main thread will render.
     std::shared_ptr<SimpleMesh> current;
@@ -141,7 +165,8 @@ private:
   mutable std::mutex _resource_lock;
   std::unordered_map<uint32_t, Resource> _resources;
   std::unordered_map<uint32_t, Resource> _pending;
-  /// Garbage list populated on @c reset() from background thread so main thread can release on @c beginFrame().
+  /// Garbage list populated on @c reset() from background thread so main thread can release on @c
+  /// beginFrame().
   std::vector<std::shared_ptr<Magnum::GL::Mesh>> _garbage_list;
   std::shared_ptr<shaders::ShaderLibrary> _shader_library;
 };

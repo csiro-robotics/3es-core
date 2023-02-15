@@ -28,6 +28,7 @@ struct SimpleMeshImp
   uint32_t tint = 0xffffffffu;
   unsigned components = 0;
   DrawType draw_type = DtTriangles;
+  float draw_scale = 0;
 
   inline SimpleMeshImp(unsigned components)
     : components(components)
@@ -47,6 +48,7 @@ struct SimpleMeshImp
     copy->tint = tint;
     copy->components = components;
     copy->draw_type = draw_type;
+    copy->draw_scale = draw_scale;
     return copy;
   }
 
@@ -58,6 +60,7 @@ struct SimpleMeshImp
     tint = 0xffffffffu;
     components = component_flags;
     draw_type = DtTriangles;
+    draw_scale = 0;
   }
 
   inline void clearArrays()
@@ -195,6 +198,19 @@ void SimpleMesh::setDrawType(DrawType type)
 {
   copyOnWrite();
   _imp->draw_type = type;
+}
+
+
+float SimpleMesh::drawScale(int /*stream*/) const
+{
+  return _imp->draw_scale;
+}
+
+
+void SimpleMesh::setDrawScale(float scale)
+{
+  copyOnWrite();
+  _imp->draw_scale = scale;
 }
 
 
@@ -508,10 +524,12 @@ void SimpleMesh::copyOnWrite()
 }
 
 
-bool SimpleMesh::processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes)
+bool SimpleMesh::processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes,
+                               float draw_scale)
 {
   copyOnWrite();
   _imp->id = msg.mesh_id;
+  _imp->draw_scale = draw_scale;
   setVertexCount(msg.vertex_count);
   setIndexCount(msg.index_count);
   setDrawType(static_cast<DrawType>(msg.draw_type));

@@ -264,11 +264,12 @@ Resource ID       | 4         | The resource ID of the mesh to create. Zero is a
 Vertex Count      | 4         | Specifies the number of vertices in the mesh.
 Index Count       | 4         | Specifies the number of indices in the mesh.
 Flags             | 2         | Creation flags
-Scale Factor      | 4         | Identifies the mesh topology. See TODO
+Draw Type         | 1         | Identifies the mesh topology. See [mesh topology](#mesh-topology).
 Tint              | 4         | Mesh tint colour. See [colour encoding](#colour-encoding).
 Translation       | 12 or 24  | 3 32 or 64-bit floats identifying the translation component of the overall mesh transformation.
 Rotation          | 16 or 32  | 4 32 or 64-bit floats identifying the quaternion rotation of the overall mesh transformation.
 Scale             | 12 or 24  | 3 32 or 64-bit floats identifying the scale component of the overall mesh transformation.
+[Draw scale]      | 4         | Optional 32-bit float draw scaling - line width, point size or voxel size. Present when the draw scale creation flag is set.
 
 The Flag value 1 is used to indicate that the Translation, Rotation and Scale values are all 64-bit quantities. Otherwise a 32-bit representation is used.
 
@@ -277,6 +278,7 @@ The full set of creation flags is:
 Flag                    | Value   | Description
 ----------------------- | ------: | --------------------------------------------
 Double Precision        | 1       | Indicates Translation, Rotation and Scale values are all 64-bit quantities.
+Draw Scale              | 2       | Indicates the draw scale is present in the creation message.
 
 ### Mesh topology
 
@@ -290,9 +292,9 @@ Triangles         | 2         | Vertices represent triangles. Indices must come 
 Voxels            | 3         | Similar to points, except that the normal value is used to scale a cube to represent voxels.
 Quads             | 4         | Reserved for quadrilateral topology. Not implemented.
 
-### Mesh element messages
+### Mesh component messages
 
-This section details the message structure of transmitting mesh elements; vertices, indices, vertex colour, normals and UVs. All messages have the same structure:
+This section details the message structure of transmitting mesh components; vertices, indices, vertex colour, normals and UVs. All messages have the same structure:
 
 Datum             | Byte Size | Description
 ----------------- | --------: | -------------------------------------------------------------------
@@ -323,8 +325,7 @@ Camera routing supports a single message (ID zero) which specifies settings for 
 
 Datum             | Byte Size | Description
 ----------------- | --------: | -------------------------------------------------------------------
-Camera ID         | 1         | Identifies the camera. ID 255 is reserved for serialising details
-                  |           | of the client's own camera when recording.
+Camera ID         | 1         | Identifies the camera. ID 255 is reserved for serialising details of the client's own camera when recording.
 Flags             | 1         | One byte flag values. Flag value 1 indicates all float values are 64 bit.
 Reserved          | 2         | Two bytes of padding. Must be zero.
 Position          | 12 or 24  | XYZ coordinate for the camera position. Each element is a 32 or 64-bit float (see Flags).

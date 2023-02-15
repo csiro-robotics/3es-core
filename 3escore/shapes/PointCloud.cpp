@@ -20,6 +20,7 @@ struct PointCloudImp
   std::vector<Vector3f> normals;
   std::vector<Colour> colours;
   uint32_t id;
+  float draw_scale = 0.0f;
 
   PointCloudImp(uint32_t id)
     : id(id)
@@ -33,6 +34,7 @@ struct PointCloudImp
     copy->vertices = vertices;
     copy->normals = normals;
     copy->colours = colours;
+    copy->draw_scale = draw_scale;
     return copy;
   }
 };
@@ -81,6 +83,21 @@ uint8_t PointCloud::drawType(int stream) const
 {
   TES_UNUSED(stream);
   return DtPoints;
+}
+
+
+float PointCloud::drawScale(int stream) const
+{
+  TES_UNUSED(stream);
+  const std::scoped_lock guard(_imp->lock);
+  return _imp->draw_scale;
+}
+
+
+void PointCloud::setDrawScale(float scale)
+{
+  const std::scoped_lock guard(_imp->lock);
+  _imp->draw_scale = scale;
 }
 
 
@@ -368,7 +385,7 @@ void PointCloud::copyOnWrite()
 
 
 bool PointCloud::processCreate(const MeshCreateMessage &msg,
-                               const ObjectAttributes<double> &attributes)
+                               const ObjectAttributes<double> &attributes, float draw_scale)
 {
   if (msg.draw_type != DtPoints)
   {
@@ -378,6 +395,7 @@ bool PointCloud::processCreate(const MeshCreateMessage &msg,
   const std::scoped_lock guard(_imp->lock);
   copyOnWrite();
   _imp->id = msg.mesh_id;
+  _imp->draw_scale = draw_scale;
 
   _imp->vertices.resize(msg.vertex_count);
   _imp->normals.resize(msg.vertex_count);

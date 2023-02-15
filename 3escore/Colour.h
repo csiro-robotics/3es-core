@@ -227,6 +227,8 @@ public:
   /// @return True if this colour is not precisely equal to @p other.
   bool operator!=(const Colour &other) const;
 
+  [[nodiscard]] static Colour lerp(const Colour &from, const Colour &to, float factor);
+
   /// Create a @c Colour object from HSV values.
   ///
   /// Out of range arguments yield undefined behaviour.
@@ -236,7 +238,7 @@ public:
   /// @param value The colour value [0, 1].
   /// @param alpha Optional alpha channel value [0, 1].
   /// @return The corresponding colour object.
-  static Colour fromHsv(float hue, float saturation, float value, float alpha = 1.0f);
+  [[nodiscard]] static Colour fromHsv(float hue, float saturation, float value, float alpha = 1.0f);
 
   /// Convert RGB to HSV form.
   /// @param[out] hue The hue value [0, 360].

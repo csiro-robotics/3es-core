@@ -100,7 +100,7 @@ const std::unordered_map<uint32_t, std::string> ThirdEyeScene::defaultHandlerNam
     { SIdArrow, "arrow" },
     { SIdMeshShape, "mesh shape" },
     { SIdMeshSet, "mesh set" },
-    { SIdPointCloud, "point cloud" },
+    { SIdPointCloudDeprecated, "point cloud (deprecated)" },
     { SIdText3D, "text 3D" },
     { SIdText2D, "text 2D" },
     { SIdPose, "pose" },
@@ -166,12 +166,13 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2i &window_size)
 
   if (_active_fbo_effect)
   {
-    _active_fbo_effect->prepareFrame(params.pv_transform, FboEffect::ProjectionType::Perspective, _camera.clip_near,
-                                     _camera.clip_far);
+    _active_fbo_effect->prepareFrame(params.pv_transform, FboEffect::ProjectionType::Perspective,
+                                     _camera.clip_near, _camera.clip_far);
   }
   else
   {
-    Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth)
+    Magnum::GL::defaultFramebuffer
+      .clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth)
       .bind();
   }
 
@@ -181,7 +182,8 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2i &window_size)
   if (_active_fbo_effect)
   {
     Magnum::GL::defaultFramebuffer.bind();
-    Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth);
+    Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color |
+                                         Magnum::GL::FramebufferClear::Depth);
     _active_fbo_effect->completeFrame();
   }
 }
@@ -240,25 +242,33 @@ void ThirdEyeScene::createSampleShapes()
 
   // Axis box markers
   _painters[SIdBox]->add(Id(2), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ 10, 0, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 0 });
+                         Magnum::Matrix4::translation({ 10, 0, 0 }) * shape_transform,
+                         Magnum::Color4{ 1, 0, 0 });
   _painters[SIdBox]->add(Id(3), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ 0, 10, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 0 });
+                         Magnum::Matrix4::translation({ 0, 10, 0 }) * shape_transform,
+                         Magnum::Color4{ 0, 1, 0 });
   _painters[SIdBox]->add(Id(4), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ 0, 0, 10 }) * shape_transform, Magnum::Color4{ 0, 0, 1 });
+                         Magnum::Matrix4::translation({ 0, 0, 10 }) * shape_transform,
+                         Magnum::Color4{ 0, 0, 1 });
   _painters[SIdBox]->add(Id(5), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ -10, 0, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+                         Magnum::Matrix4::translation({ -10, 0, 0 }) * shape_transform,
+                         Magnum::Color4{ 0, 1, 1 });
   _painters[SIdBox]->add(Id(6), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ 0, -10, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1 });
+                         Magnum::Matrix4::translation({ 0, -10, 0 }) * shape_transform,
+                         Magnum::Color4{ 1, 0, 1 });
   _painters[SIdBox]->add(Id(7), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ 0, 0, -10 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+                         Magnum::Matrix4::translation({ 0, 0, -10 }) * shape_transform,
+                         Magnum::Color4{ 1, 1, 0 });
 
   // Add debug shapes.
   float x = 0;
   shape_transform = {};
   _painters[SIdSphere]->add(Id(1), painter::ShapePainter::Type::Solid,
-                            Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+                            Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform,
+                            Magnum::Color4{ 1, 1, 0 });
   _painters[SIdSphere]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                            Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+                            Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform,
+                            Magnum::Color4{ 0, 1, 1 });
   _painters[SIdSphere]->add(Id(1), painter::ShapePainter::Type::Transparent,
                             Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
                             Magnum::Color4{ 1, 0, 1, 0.4f });
@@ -266,38 +276,50 @@ void ThirdEyeScene::createSampleShapes()
   x = -2.5f;
   shape_transform = {};
   _painters[SIdBox]->add(Id(1), painter::ShapePainter::Type::Solid,
-                         Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 0 });
+                         Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform,
+                         Magnum::Color4{ 1, 0, 0 });
   _painters[SIdBox]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                         Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+                         Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform,
+                         Magnum::Color4{ 0, 1, 1 });
   _painters[SIdBox]->add(Id(1), painter::ShapePainter::Type::Transparent,
-                         Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1, 0.4f });
+                         Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
+                         Magnum::Color4{ 1, 0, 1, 0.4f });
 
   x = 2.5f;
-  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 0.3f, 0.3f, 1.0f });
+  shape_transform =
+    Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 0.3f, 0.3f, 1.0f });
   _painters[SIdCylinder]->add(Id(1), painter::ShapePainter::Type::Solid,
-                              Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+                              Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform,
+                              Magnum::Color4{ 1, 1, 0 });
   _painters[SIdCylinder]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                              Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+                              Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform,
+                              Magnum::Color4{ 0, 1, 1 });
   _painters[SIdCylinder]->add(Id(1), painter::ShapePainter::Type::Transparent,
                               Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
                               Magnum::Color4{ 1, 0, 1, 0.4f });
 
   x = -5.0f;
-  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 0.3f, 0.3f, 1.0f });
+  shape_transform =
+    Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 0.3f, 0.3f, 1.0f });
   _painters[SIdCapsule]->add(Id(1), painter::ShapePainter::Type::Solid,
-                             Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+                             Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform,
+                             Magnum::Color4{ 1, 1, 0 });
   _painters[SIdCapsule]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                             Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+                             Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform,
+                             Magnum::Color4{ 0, 1, 1 });
   _painters[SIdCapsule]->add(Id(1), painter::ShapePainter::Type::Transparent,
                              Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
                              Magnum::Color4{ 1, 0, 1, 0.4f });
 
   x = 7.5f;
-  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 1.0f, 1.0f, 1.0f });
+  shape_transform =
+    Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 1.0f, 1.0f, 1.0f });
   _painters[SIdPlane]->add(Id(1), painter::ShapePainter::Type::Solid,
-                           Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+                           Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform,
+                           Magnum::Color4{ 1, 1, 0 });
   _painters[SIdPlane]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                           Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+                           Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform,
+                           Magnum::Color4{ 0, 1, 1 });
   _painters[SIdPlane]->add(Id(1), painter::ShapePainter::Type::Transparent,
                            Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
                            Magnum::Color4{ 1, 0, 1, 0.4f });
@@ -305,30 +327,40 @@ void ThirdEyeScene::createSampleShapes()
   x = -7.5f;
   shape_transform = Magnum::Matrix4::scaling({ 1.0f, 1.0f, 1.0f });
   _painters[SIdStar]->add(Id(1), painter::ShapePainter::Type::Solid,
-                          Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+                          Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform,
+                          Magnum::Color4{ 1, 1, 0 });
   _painters[SIdStar]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                          Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+                          Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform,
+                          Magnum::Color4{ 0, 1, 1 });
   _painters[SIdStar]->add(Id(1), painter::ShapePainter::Type::Transparent,
-                          Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1, 0.4f });
+                          Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
+                          Magnum::Color4{ 1, 0, 1, 0.4f });
 
   x = 10.0f;
-  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 0.1f, 0.1f, 1.0f });
+  shape_transform =
+    Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 0.1f, 0.1f, 1.0f });
   _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Solid,
-                           Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 0 });
+                           Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform,
+                           Magnum::Color4{ 1, 1, 0 });
   _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                           Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 0, 1, 1 });
+                           Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform,
+                           Magnum::Color4{ 0, 1, 1 });
   _painters[SIdArrow]->add(Id(1), painter::ShapePainter::Type::Transparent,
                            Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
                            Magnum::Color4{ 1, 0, 1, 0.4f });
 
   x = -10.0f;
-  shape_transform = Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 1.0f, 1.0f, 1.0f });
+  shape_transform =
+    Magnum::Matrix4::rotationX(Magnum::Deg(35.0f)) * Magnum::Matrix4::scaling({ 1.0f, 1.0f, 1.0f });
   _painters[SIdPose]->add(Id(1), painter::ShapePainter::Type::Solid,
-                          Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 1 });
+                          Magnum::Matrix4::translation({ x, 8, 0 }) * shape_transform,
+                          Magnum::Color4{ 1, 1, 1 });
   _painters[SIdPose]->add(Id(1), painter::ShapePainter::Type::Wireframe,
-                          Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform, Magnum::Color4{ 1, 1, 1 });
+                          Magnum::Matrix4::translation({ x, 5, 0 }) * shape_transform,
+                          Magnum::Color4{ 1, 1, 1 });
   _painters[SIdPose]->add(Id(1), painter::ShapePainter::Type::Transparent,
-                          Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform, Magnum::Color4{ 1, 0, 1, 0.4f });
+                          Magnum::Matrix4::translation({ x, 2, 0 }) * shape_transform,
+                          Magnum::Color4{ 1, 0, 1, 0.4f });
 
   for (auto &painter : _painters)
   {
@@ -359,20 +391,29 @@ void ThirdEyeScene::initialiseHandlers()
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Category>());
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Camera>());
 
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdSphere, "sphere", _painters[SIdSphere]));
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdBox, "box", _painters[SIdBox]));
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdCone, "cone", _painters[SIdCone]));
+  _orderedMessageHandlers.emplace_back(
+    std::make_shared<handler::Shape>(SIdSphere, "sphere", _painters[SIdSphere]));
+  _orderedMessageHandlers.emplace_back(
+    std::make_shared<handler::Shape>(SIdBox, "box", _painters[SIdBox]));
+  _orderedMessageHandlers.emplace_back(
+    std::make_shared<handler::Shape>(SIdCone, "cone", _painters[SIdCone]));
   _orderedMessageHandlers.emplace_back(
     std::make_shared<handler::Shape>(SIdCylinder, "cylinder", _painters[SIdCylinder]));
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdCapsule, "capsule", _painters[SIdCapsule]));
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdPlane, "plane", _painters[SIdPlane]));
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdStar, "star", _painters[SIdStar]));
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdArrow, "arrow", _painters[SIdArrow]));
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::Shape>(SIdPose, "pose", _painters[SIdPose]));
+  _orderedMessageHandlers.emplace_back(
+    std::make_shared<handler::Shape>(SIdCapsule, "capsule", _painters[SIdCapsule]));
+  _orderedMessageHandlers.emplace_back(
+    std::make_shared<handler::Shape>(SIdPlane, "plane", _painters[SIdPlane]));
+  _orderedMessageHandlers.emplace_back(
+    std::make_shared<handler::Shape>(SIdStar, "star", _painters[SIdStar]));
+  _orderedMessageHandlers.emplace_back(
+    std::make_shared<handler::Shape>(SIdArrow, "arrow", _painters[SIdArrow]));
+  _orderedMessageHandlers.emplace_back(
+    std::make_shared<handler::Shape>(SIdPose, "pose", _painters[SIdPose]));
 
   auto mesh_resources = std::make_shared<handler::MeshResource>(_shader_library);
   _orderedMessageHandlers.emplace_back(mesh_resources);
-  _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshShape>(_culler, _shader_library));
+  _orderedMessageHandlers.emplace_back(
+    std::make_shared<handler::MeshShape>(_culler, _shader_library));
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::MeshSet>(_culler, mesh_resources));
 
   _orderedMessageHandlers.emplace_back(std::make_shared<handler::Text2D>(_text_painter));
@@ -394,12 +435,15 @@ void ThirdEyeScene::initialiseHandlers()
 void ThirdEyeScene::initialiseShaders()
 {
   _shader_library = std::make_shared<shaders::ShaderLibrary>();
-  _shader_library->registerShader(shaders::ShaderLibrary::ID::Flat, std::make_shared<shaders::Flat>());
+  _shader_library->registerShader(shaders::ShaderLibrary::ID::Flat,
+                                  std::make_shared<shaders::Flat>());
   auto vertex_colour_shader = std::make_shared<shaders::VertexColour>();
   _shader_library->registerShader(shaders::ShaderLibrary::ID::VertexColour, vertex_colour_shader);
   _shader_library->registerShader(shaders::ShaderLibrary::ID::Line, vertex_colour_shader);
-  _shader_library->registerShader(shaders::ShaderLibrary::ID::PointCloud, std::make_shared<shaders::PointGeom>());
-  _shader_library->registerShader(shaders::ShaderLibrary::ID::Voxel, std::make_shared<shaders::VoxelGeom>());
+  _shader_library->registerShader(shaders::ShaderLibrary::ID::PointCloud,
+                                  std::make_shared<shaders::PointGeom>());
+  _shader_library->registerShader(shaders::ShaderLibrary::ID::Voxel,
+                                  std::make_shared<shaders::VoxelGeom>());
 }
 
 

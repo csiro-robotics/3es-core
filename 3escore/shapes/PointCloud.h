@@ -57,6 +57,16 @@ public:
   [[nodiscard]] uint8_t drawType(int stream) const override;
   using MeshResource::drawType;
 
+  /// @copydoc::MeshResource::drawScale()
+  [[nodiscard]] float drawScale(int stream) const override;
+  using MeshResource::drawScale;
+  /// Set the @c drawScale() which affects point rendering size.
+  ///
+  /// Use zero for the default viewing size.
+  ///
+  /// @param scale The draw scale: must be zero or positive.
+  void setDrawScale(float scale);
+
   /// Reserve sufficient vertex, normal and colour data for @c size points.
   /// @param size The number of points to reserve space for.
   void reserve(const UIntArg &size);
@@ -216,8 +226,8 @@ private:
   /// Make a copy of underlying data if currently shared with another instance.
   void copyOnWrite();
 
-  bool processCreate(const MeshCreateMessage &msg,
-                     const ObjectAttributes<double> &attributes) override;
+  bool processCreate(const MeshCreateMessage &msg, const ObjectAttributes<double> &attributes,
+                     float draw_scale) override;
   bool processVertices(const MeshComponentMessage &msg, unsigned offset,
                        const DataBuffer &stream) override;
   bool processColours(const MeshComponentMessage &msg, unsigned offset,

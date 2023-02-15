@@ -175,7 +175,7 @@ std::shared_ptr<MeshResource> createTestMesh()
 }
 
 
-std::shared_ptr<MeshResource> createTestCloud()
+std::shared_ptr<MeshResource> createTestCloud(float draw_scale = 0.0f)
 {
   auto cloud = std::make_shared<PointCloud>(2);  // Considered a Mesh for ID purposes.
   cloud->resize(8);
@@ -188,6 +188,8 @@ std::shared_ptr<MeshResource> createTestCloud()
   cloud->setPoint(5, Vector3f(0, 1, 1), Vector3f(0, 0, 1), Colour(0, 255, 255));
   cloud->setPoint(6, Vector3f(1, 0, 1), Vector3f(0, 0, 1), Colour(0, 255, 255));
   cloud->setPoint(7, Vector3f(1, 1, 1), Vector3f(0, 0, 1), Colour(0, 255, 255));
+
+  cloud->setDrawScale(draw_scale);
 
   return cloud;
 }
@@ -463,21 +465,8 @@ void createShapes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
 
   if (allShapes || haveOption("cloud", argc, argv) || haveOption("cloudpart", argc, argv))
   {
-    auto cloud = createTestCloud();
-    auto points = std::make_shared<PointCloudShape>(cloud, Id(nextId++, CatPoints), 1.25f);
-    if (haveOption("cloudpart", argc, argv))
-    {
-      // Partial indexing.
-      std::vector<unsigned> partialIndices;
-      partialIndices.resize((cloud->vertexCount() + 1) / 2);
-      unsigned nextIndex = 0;
-      for (size_t i = 0; i < partialIndices.size(); ++i)
-      {
-        partialIndices[i] = nextIndex;
-        nextIndex += 2;
-      }
-      points->setIndices(partialIndices.begin(), partialIndices.end());
-    }
+    auto cloud = createTestCloud(16.0f);
+    auto points = std::make_shared<MeshSet>(cloud, Id(nextId++, CatPoints));
     shapes.emplace_back(points);
     resources.emplace_back(cloud);
     // if (!noMove)

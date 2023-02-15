@@ -63,29 +63,35 @@
 /// |           | float32|64[3] | Position part of the mesh transform                             |
 /// |           | float32|64[4] | Quaternion rotation for mesh transform                          |
 /// |           | float32|64[3] | Scale factor part of mesh transform                             |
+/// |           | [float32]     | Optional draw scale, present when @c McfDrawScale flag is set   |
 /// | Destroy   | uint32        | MeshResource ID                                                 |
 /// | Finalise  | uint32        | MeshResource ID                                                 |
+/// |           | uint16        | Finalisation flags: @c MeshFinaliseFlag                         |
 /// | Component | uint32        | MeshResource ID                                                 |
+/// |           | *DataBuffer*  | The following data are written by a @c DataBuffer object.       |
 /// |           | uint32        | Offset of the first data item                                   |
-/// |           | uint32        | Reserved (e.g., stream index support)                           |
-/// |           | uint16        | Count                                                           |
-/// |           | uint16        | The @c MeshComponentPayloadType                                 |
-/// |           | [float32|64]  | Optional payload scale : @c McetPackedFloat16/McetPackedFloat32 |
+/// |           | uint16        | Count - the number of elements                                  |
+/// |           | uint8         | Component count - the number of components in each element      |
+/// |           | uint8         | Content type. See @c DataStreamType                             |
+/// |           | [float32|64]  | Optional payload scale : @c DctPackedFloat16/DctPackedFloat32   |
 /// |           | element*      | Array of count elements. Type varies.                           |
 /// | Material  | uint32        | MeshResource ID                                                 |
-/// |           | uint32 | Material ID                                                            |
+/// |           | uint32        | Material ID                                                     |
 ///
-/// The @c Component message above refers to of the data content messages. The offset specifies the
-/// first index of the incoming data, which allows the data streams to be sent in blocks. The
-/// element type is given by
-/// @c MeshComponentMessage::elementType , noting that @c McetPackedFloat16 and @c McetPackedFloat32
-/// types are preceeded by a single precision ( @c McetPackedFloat16 ) or double precision ( @c
-/// McetPackedFloat32 ) floating point scale factor. The table below identifies data type for each
-/// component. The data type may be a specific, fixed type, or a general type supporting different
-/// packing. Any array notation indicates the number of items used to pack a single component. For
-/// example, each vertex is represented by 3 `Real` values. The second table maps these general
-/// types to the supported @c MeshComponentElementType values. Note that a client may not respect
-/// double precision values.
+/// The @c Component message above refers to of the data content messages (see below).
+///
+/// The @c DataBuffer section begins with an index offset, which  specifies the first index of the
+/// incoming data, which allows the data streams to be sent in blocks. The element type is given by
+/// @c DataStreamType , noting that @c DctPackedFloat16 and @c DctPackedFloat32 types are preceeded
+/// by a single precision ( @c DctPackedFloat16 ) or double precision ( @c DctPackedFloat32 )
+/// floating point quantisation factor. The component count details the number of components or
+/// channels per element. Each component matches the content type ( @c DataStreamType ).
+///
+/// The table below identifies data type for each component. The data type may be a specific, fixed
+/// type, or a general type supporting different packing. Any array notation indicates the number of
+/// items used to pack a single component. For example, each vertex is represented by 3 `Real`
+/// values. The second table maps these general types to the supported @c DataStreamType
+/// values. Note that a client may not respect double precision values.
 ///
 /// | Component Message | Component Type  |
 /// | ----------------- | --------------- |
@@ -95,18 +101,20 @@
 /// | Normal            | Real[2]         |
 /// | UV                | float32[2]      |
 ///
-/// | Component Type  | @c MeshComponentElementType                                       |
-/// | --------------- | ----------------------------------------------------------------- |
-/// | Real            | `McetFloat32, McetFloat64, McetPackedFloat16, McetPackedFloat32`  |
-/// | uint            | `McetInt8, McetInt16, McetInt32`                                  |
-/// | int             | `McetUInt16, McetUInt32`                                          |
-/// | uint32          | `McetInt32`                                                       |
-/// | float32         | `McetFloat32, McetPackedFloat16`                                  |
+/// | Component Type  | @c DataStreamType                                             |
+/// | --------------- | ------------------------------------------------------------- |
+/// | Real            | `DctFloat32, DctFloat64, DctPackedFloat16, DctPackedFloat32`  |
+/// | uint            | `DctUInt8, DctUInt16, DctUInt32`                              |
+/// | int             | `DctInt8, DctUInt16, DctUInt32`                               |
+/// | uint32          | `DctInt32`                                                    |
+/// | float32         | `DctFloat32, DctPackedFloat16`                                |
 ///
 /// @par Additional notes
 /// By default, one of the following materials are chosen:
+///
 /// - Lit with vertex colour if normals are specified or calculated.
 /// - Unlit with vertex colour otherwise.
+///
 /// Vertex colours are initialised to white.
 
 namespace tes
@@ -117,6 +125,9 @@ enum MeshCreateFlag : unsigned
 {
   /// Indicates the use of double precision floating point values.
   McfDoublePrecision = (1u << 0u),
+  /// Draw scale is present in the creation message. This is a float32 value immediately following
+  /// the creation message.
+  McfDrawScale = (1u << 1u),
 };
 
 /// @ingroup meshmsg
@@ -125,42 +136,21 @@ enum MeshFinaliseFlag : unsigned
 {
   /// Calculate normals on receive. Overwrites normals if present.
   MffCalculateNormals = (1u << 0u),
+  /// Automatically colour vertices using a relative colour spectrum along the X axis.
+  ///
+  /// Ignored if explicit colour values are present.
+  MffColourByX = (1u << 1u),
+  /// Automatically colour vertices using a relative colour spectrum along the Y axis.
+  ///
+  /// Ignored if explicit colour values are present.
+  MffColourByY = (1u << 2u),
+  /// Automatically colour vertices using a relative colour spectrum along the Z axis.
+  ///
+  /// Semantically: colour by height if Z is up.
+  ///
+  /// Ignored if explicit colour values are present.
+  MffColourByZ = (1u << 3u),
 };
-
-/// @ingroup meshmsg
-/// The possible @c MeshComponentMessage::elementType values. Identifies the the data type use dto
-/// pack the payload.
-enum MeshComponentElementType : unsigned
-{
-  McetInt8,     ///< Elements packed using 8-bit signed integers.
-  McetUInt8,    ///< Elements packed using 8-bit unsigned integers.
-  McetInt16,    ///< Elements packed using 16-bit signed integers.
-  McetUInt16,   ///< Elements packed using 16-bit unsigned integers.
-  McetInt32,    ///< Elements packed using 32-bit signed integers.
-  McetUInt32,   ///< Elements packed using 32-bit unsigned integers.
-  McetFloat32,  ///< Elements packed using single precision floating point values.
-  McetFloat64,  ///< Elements packed using double precision floating point values.
-  /// Elements packed using 16-bit signed integers used to quantise single precision floating point
-  /// values. The quantisation scale factor immeidately preceeds the data array as a 32-bit floating
-  /// point value.
-  McetPackedFloat16,
-  /// Elements packed using 32-bit signed integers used to quantise double precision floating point
-  /// values. The quantisation scale factor immeidately preceeds the data array as a 64-bit floating
-  /// point value.
-  McetPackedFloat32,
-};
-
-// clang-format off
-template <typename T> inline uint8_t meshComponentElementType() { return 0xffu; }
-template <> inline uint8_t meshComponentElementType<int8_t>() { return McetInt8; }
-template <> inline uint8_t meshComponentElementType<uint8_t>() { return McetUInt8; }
-template <> inline uint8_t meshComponentElementType<int16_t>() { return McetInt16; }
-template <> inline uint8_t meshComponentElementType<uint16_t>() { return McetUInt16; }
-template <> inline uint8_t meshComponentElementType<int32_t>() { return McetInt32; }
-template <> inline uint8_t meshComponentElementType<uint32_t>() { return McetUInt32; }
-template <> inline uint8_t meshComponentElementType<float>() { return McetFloat32; }
-template <> inline uint8_t meshComponentElementType<double>() { return McetFloat64; }
-// clang-format on
 
 /// @ingroup meshmsg
 /// Defines the messageIDs for mesh message routing.

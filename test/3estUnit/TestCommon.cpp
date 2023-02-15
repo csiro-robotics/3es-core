@@ -336,40 +336,6 @@ void validateShape(const MeshShape &shape, const MeshShape &reference, const Res
 }
 
 
-void validateShape(const PointCloudShape &shape, const PointCloudShape &reference,
-                   const ResourceMap &resources)
-{
-  validateShape(static_cast<const Shape>(shape), static_cast<const Shape>(reference), resources);
-
-  EXPECT_EQ(shape.pointScale(), reference.pointScale());
-  EXPECT_EQ(shape.indexCount(), reference.indexCount());
-
-  // Note: We can't compare the contents of shape.mesh() as it is a placeholder reference.
-  // The real mesh is received and validated separately.
-  ASSERT_NE(shape.mesh(), nullptr);
-  ASSERT_NE(reference.mesh(), nullptr);
-  EXPECT_EQ(shape.mesh()->id(), reference.mesh()->id());
-  EXPECT_EQ(shape.mesh()->typeId(), reference.mesh()->typeId());
-  EXPECT_EQ(shape.mesh()->uniqueKey(), reference.mesh()->uniqueKey());
-
-  if (shape.indexCount() == reference.indexCount())
-  {
-    for (unsigned i = 0; i < shape.indexCount(); ++i)
-    {
-      EXPECT_EQ(shape.indices()[i], reference.indices()[i]);
-    }
-  }
-
-  // Validate resources. Fetch the transferred resource and compare against the reference resource.
-  auto resIter = resources.find(shape.mesh()->uniqueKey());
-  ASSERT_NE(resIter, resources.end());
-  ASSERT_EQ(resIter->second->typeId(), reference.mesh()->typeId());
-
-  auto mesh = std::dynamic_pointer_cast<const MeshResource>(resIter->second);
-  validateMesh(*mesh, *reference.mesh());
-}
-
-
 void validateShape(const MeshSet &shape, const MeshSet &reference, const ResourceMap &resources)
 {
   validateShape(static_cast<const Shape>(shape), static_cast<const Shape>(reference), resources);

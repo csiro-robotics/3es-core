@@ -14,7 +14,6 @@
 #include "MeshShape.h"
 #include "MultiShape.h"
 #include "Plane.h"
-#include "PointCloudShape.h"
 #include "Pose.h"
 #include "Sphere.h"
 #include "Star.h"

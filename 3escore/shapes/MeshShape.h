@@ -42,42 +42,44 @@ public:
     /// be sent over a @c Connection.
     Resource(MeshShape &shape, uint32_t resource_id);
 
-    [[nodiscard]] uint32_t id() const override;
+    [[nodiscard]] uint32_t id() const final;
 
-    [[nodiscard]] std::shared_ptr<tes::Resource> clone() const override;
+    [[nodiscard]] std::shared_ptr<tes::Resource> clone() const final;
 
-    [[nodiscard]] Transform transform() const override;
-    [[nodiscard]] uint32_t tint() const override;
-    [[nodiscard]] uint8_t drawType(int stream) const override;
+    [[nodiscard]] Transform transform() const final;
+    [[nodiscard]] uint32_t tint() const final;
+    [[nodiscard]] uint8_t drawType(int stream) const final;
     using MeshResource::drawType;
-    [[nodiscard]] unsigned vertexCount(int stream) const override;
+    [[nodiscard]] float drawScale(int stream) const final;
+    using MeshResource::drawScale;
+    [[nodiscard]] unsigned vertexCount(int stream) const final;
     using MeshResource::vertexCount;
-    [[nodiscard]] unsigned indexCount(int stream) const override;
+    [[nodiscard]] unsigned indexCount(int stream) const final;
     using MeshResource::indexCount;
-    [[nodiscard]] DataBuffer vertices(int stream) const override;
+    [[nodiscard]] DataBuffer vertices(int stream) const final;
     using MeshResource::vertices;
-    [[nodiscard]] DataBuffer indices(int stream) const override;
+    [[nodiscard]] DataBuffer indices(int stream) const final;
     using MeshResource::indices;
-    [[nodiscard]] DataBuffer normals(int stream) const override;
+    [[nodiscard]] DataBuffer normals(int stream) const final;
     using MeshResource::normals;
-    [[nodiscard]] DataBuffer uvs(int stream) const override;
+    [[nodiscard]] DataBuffer uvs(int stream) const final;
     using MeshResource::uvs;
-    [[nodiscard]] DataBuffer colours(int stream) const override;
+    [[nodiscard]] DataBuffer colours(int stream) const final;
     using MeshResource::colours;
 
     /// Not allowed.
     /// @param packet Ignored.
     /// @return @c false
-    bool readCreate(PacketReader &packet) override;
+    bool readCreate(PacketReader &packet) final;
     /// Not allowed.
     /// @param message_type Ignored.
     /// @param packet Ignored.
     /// @return @c false
-    bool readTransfer(int message_type, PacketReader &packet) override;
+    bool readTransfer(int message_type, PacketReader &packet) final;
 
   private:
     MeshShape &_shape;
-    uint32_t _resource_id;
+    uint32_t _resource_id = 0;
   };
 
   /// Codes for @c writeData().

@@ -159,6 +159,53 @@ Colour::Colour(NamedColour name)
 }
 
 
+Colour Colour::lerp(const Colour &from, const Colour &to, float factor)
+{
+  // Convert to hsv space for the lerp.
+  float from_h = {};
+  float from_s = {};
+  float from_v = {};
+  rgbToHsv(from_h, from_s, from_v, from.r(), from.g(), from.b());
+
+  float to_h = {};
+  float to_s = {};
+  float to_v = {};
+  rgbToHsv(to_h, to_s, to_v, to.r(), to.g(), to.b());
+
+  const float circle_degrees = 360.0f;
+  const float max_h = circle_degrees;
+  if (std::abs(to_h - from_h) > 0.5f * max_h)
+  {
+    if (to_h < from_h)
+    {
+      to_h += max_h;
+    }
+    else
+    {
+      from_h += max_h;
+    }
+  }
+
+  const float h = std::max(0.0f, std::min(from_h + (to_h - from_h) * factor, max_h));
+
+  // Lerp s and v the easy way.
+  const float s = std::max(0.0f, std::min(from_s + (to_s - from_s) * factor, 1.0f));
+  const float v = std::max(0.0f, std::min(from_v + (to_v - from_v) * factor, 1.0f));
+
+  float red = {};
+  float green = {};
+  float blue = {};
+  hsvToRgb(red, green, blue, h, s, v);
+
+  // Finally lerp alpha
+  const float from_a = from.af();
+  const float to_a = to.af();
+
+  const float alpha = std::max(0.0f, std::min(from_a + (to_a - from_a) * factor, 1.0f));
+
+  return { red, green, blue, alpha };
+}
+
 void Colour::rgbToHsv(float &hue, float &saturation, float &value, const float red,
                       const float green, const float blue)
 {

@@ -46,6 +46,18 @@ public:
   /// @overload
   [[nodiscard]] uint8_t drawType() const { return drawType(0); }
 
+  /// Returns the draw scale for the mesh resource.
+  ///
+  /// The semantics depend on the draw type:
+  ///
+  /// - @c DtPoints point size.
+  /// - @c DtLines line width.
+  /// - @c DtTriangles no effect.
+  /// - @c DtVoxels voxel size (cube edge length).
+  [[nodiscard]] virtual float drawScale(int stream) const = 0;
+  /// @overload
+  [[nodiscard]] virtual float drawScale() const { return drawScale(0); }
+
   /// Returns the number of vertices in the mesh.
   /// @param stream Reserved for future use.
   /// @return The number of vertices.
@@ -143,7 +155,7 @@ protected:
   virtual void nextPhase(TransferProgress &progress) const;
 
   virtual bool processCreate(const MeshCreateMessage &msg,
-                             const ObjectAttributes<double> &attributes);
+                             const ObjectAttributes<double> &attributes, float draw_scale);
   virtual bool processVertices(const MeshComponentMessage &msg, unsigned offset,
                                const DataBuffer &stream);
   virtual bool processIndices(const MeshComponentMessage &msg, unsigned offset,

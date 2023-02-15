@@ -12,6 +12,7 @@
 #include <3escore/Connection.h>
 #include <3escore/Log.h>
 #include <3escore/MeshMessages.h>
+#include <3escore/TriGeom.h>
 
 #include <Magnum/GL/Renderer.h>
 
@@ -31,7 +32,7 @@ void MeshResource::initialise()
 
 void MeshResource::reset()
 {
-  std::lock_guard guard(_resource_lock);
+  const std::lock_guard guard(_resource_lock);
   for (auto &[id, resource] : _resources)
   {
     _garbage_list.emplace_back(resource.mesh);
@@ -86,7 +87,7 @@ void MeshResource::readMessage(PacketReader &reader)
   uint32_t mesh_id = 0;
   reader.peek(reinterpret_cast<uint8_t *>(&mesh_id), sizeof(mesh_id));
 
-  std::lock_guard guard(_resource_lock);
+  const std::lock_guard guard(_resource_lock);
 
   bool found = false;
   auto search = _pending.find(mesh_id);
@@ -167,8 +168,8 @@ void MeshResource::readMessage(PacketReader &reader)
       auto resource = search->second.pending;
       resource->setVertexCount(msg.vertex_count);
       resource->setIndexCount(msg.index_count);
-      resource->setDrawType(DrawType(msg.draw_type));
-      Transform transform =
+      resource->setDrawType(static_cast<DrawType>(msg.draw_type));
+      const Transform transform =
         Transform(Vector3d(attributes.position), Quaterniond(attributes.rotation),
                   Vector3d(attributes.scale), msg.flags & McfDoublePrecision);
 
@@ -179,6 +180,26 @@ void MeshResource::readMessage(PacketReader &reader)
   case MmtFinalise:
     if (found)
     {
+      MeshFinaliseMessage msg = {};
+      if (!msg.read(reader))
+      {
+        log::error("Error reading mesh finalisation message: ", mesh_id);
+        break;
+      }
+
+      if (msg.flags & (MffCalculateNormals))
+      {
+        calculateNormals(*search->second.pending, true);
+      }
+
+      if (msg.flags & (MffColourByX | MffColourByY | MffColourByZ))
+      {
+        int axis = 0;
+        axis = (msg.flags & MffColourByY) ? 1 : axis;
+        axis = (msg.flags & MffColourByZ) ? 2 : axis;
+        colourByAxis(*search->second.pending, axis);
+      }
+
       search->second.flags |= ResourceFlag::Ready;
     }
     break;
@@ -192,7 +213,7 @@ void MeshResource::readMessage(PacketReader &reader)
 void MeshResource::serialise(Connection &out, ServerInfoMessage &info)
 {
   (void)info;
-  std::lock_guard guard(_resource_lock);
+  const std::lock_guard guard(_resource_lock);
 
   for (auto &[id, resource] : _resources)
   {
@@ -211,7 +232,7 @@ void MeshResource::serialise(Connection &out, ServerInfoMessage &info)
 unsigned MeshResource::draw(const DrawParams &params, const std::vector<DrawItem> &drawables,
                             DrawFlag flags)
 {
-  std::lock_guard guard(_resource_lock);
+  const std::lock_guard guard(_resource_lock);
 
   if ((flags & DrawFlag::TwoSided) != DrawFlag::Zero)
   {
@@ -247,7 +268,7 @@ unsigned MeshResource::draw(const DrawParams &params, const std::vector<DrawItem
     if (search != _resources.end() && search->second.mesh && search->second.shader)
     {
       search->second.shader
-        ->setDrawScale(0)  //
+        ->setDrawScale(search->second.current->drawScale())  //
         .setModelMatrix(item.model_matrix)
         .draw(*search->second.mesh);
       ++drawn;
@@ -271,8 +292,8 @@ unsigned MeshResource::draw(const DrawParams &params, const std::vector<DrawItem
 
 void MeshResource::updateResources()
 {
-  std::lock_guard guard(_resource_lock);
-  mesh::ConvertOptions options = {};
+  const std::lock_guard guard(_resource_lock);
+  const mesh::ConvertOptions options = {};
   for (auto &[id, resource] : _resources)
   {
     // Note: this is a very inefficient way to manage large meshes with changing sub-sections as we
@@ -288,10 +309,101 @@ void MeshResource::updateResources()
         // Update to spherical bounds.
         resource.bounds.convertToSpherical();
         resource.shader =
-          _shader_library->lookupForDrawType(DrawType(resource.current->drawType(0)));
+          _shader_library->lookupForDrawType(static_cast<DrawType>(resource.current->drawType(0)));
       }
       resource.flags &= ~ResourceFlag::Ready;
     }
+  }
+}
+
+
+void MeshResource::calculateNormals(SimpleMesh &mesh, bool force)
+{
+  if (!force && mesh.rawNormals() != nullptr)
+  {
+    return;
+  }
+
+  if (mesh.drawType() != DtTriangles)
+  {
+    return;
+  }
+
+  const auto *vertices = mesh.rawVertices();
+  const auto *indices = mesh.rawIndices();
+
+  if (!vertices || !indices)
+  {
+    return;
+  }
+
+  std::vector<Vector3f> normals(mesh.vertexCount());
+
+  // Loop the triangles
+  const auto index_count = mesh.indexCount();
+  std::array<Vector3f, 3> tri;
+  for (unsigned i = 0; i < index_count; i += 3)
+  {
+    tri[0] = vertices[indices[i + 0]];
+    tri[1] = vertices[indices[i + 1]];
+    tri[2] = vertices[indices[i + 2]];
+
+    // Sum the normal from this trinagle into the respective triangle normals.
+    const auto normal = trigeom::normal(tri);
+    normals[indices[i + 0]] += normal;
+    normals[indices[i + 1]] += normal;
+    normals[indices[i + 2]] += normal;
+  }
+
+  // Normalise the results.
+  for (auto &normal : normals)
+  {
+    normal.normalise();
+  }
+
+  // Write the results.
+  mesh.setNormals(0, normals.data(), normals.size());
+}
+
+
+void MeshResource::colourByAxis(SimpleMesh &mesh, int axis)
+{
+  if (mesh.rawColours() != nullptr)
+  {
+    return;
+  }
+
+  // Ensure axis is in range.
+  axis = std::max(0, std::min(axis, 2));
+
+  // Calculate extents.
+  const auto *vertices = mesh.rawVertices();
+  const unsigned vertex_count = mesh.vertexCount();
+
+  if (!vertex_count)
+  {
+    // No vertices.
+    return;
+  }
+
+  // Seed min/max
+  float min_value = vertices[0][axis];
+  float max_value = vertices[0][axis];
+  for (unsigned i = 1; i < vertex_count; ++i)
+  {
+    min_value = std::min(vertices[i][axis], min_value);
+    max_value = std::max(vertices[i][axis], max_value);
+  }
+
+  // Set the colours.
+  const Colour colour_from(128, 255, 0);
+  const Colour colour_to(120, 0, 255);
+  const float range_inv = (max_value != min_value) ? 1.0f / max_value - min_value : 0.0f;
+
+  for (unsigned i = 1; i < vertex_count; ++i)
+  {
+    const float factor = (vertices[i][axis] - min_value) * range_inv;
+    mesh.setColour(i, Colour::lerp(colour_from, colour_to, factor).colour32());
   }
 }
 }  // namespace tes::view::handler

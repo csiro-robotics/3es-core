@@ -80,7 +80,6 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/MutableMesh.h
   shapes/Plane.h
   shapes/PointCloud.h
-  shapes/PointCloudShape.h
   shapes/Pose.h
   shapes/Shape.h
   shapes/Shapes.h
@@ -153,7 +152,6 @@ list(APPEND SOURCES
   shapes/MutableMesh.cpp
   shapes/Plane.cpp
   shapes/PointCloud.cpp
-  shapes/PointCloudShape.cpp
   shapes/Pose.cpp
   shapes/Shape.cpp
   shapes/Shapes.cpp

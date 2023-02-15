@@ -18,7 +18,6 @@ class DataBuffer;
 class MeshResource;
 class MeshSet;
 class MeshShape;
-class PointCloudShape;
 class Resource;
 class Shape;
 class Text2D;
@@ -38,8 +37,6 @@ void validateShape(const Shape &shape, const Shape &reference, const ResourceMap
 void validateShape(const Text2D &shape, const Text2D &reference, const ResourceMap &resources);
 void validateShape(const Text3D &shape, const Text3D &reference, const ResourceMap &resources);
 void validateShape(const MeshShape &shape, const MeshShape &reference,
-                   const ResourceMap &resources);
-void validateShape(const PointCloudShape &shape, const PointCloudShape &reference,
                    const ResourceMap &resources);
 void validateShape(const MeshSet &shape, const MeshSet &reference, const ResourceMap &resources);
 

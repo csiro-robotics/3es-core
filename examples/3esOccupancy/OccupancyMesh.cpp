@@ -90,6 +90,13 @@ uint8_t OccupancyMesh::drawType(int stream) const
 }
 
 
+float OccupancyMesh::drawScale(int stream) const
+{
+  TES_UNUSED(stream);
+  return static_cast<float>(_map.getResolution());
+}
+
+
 unsigned OccupancyMesh::vertexCount(int stream) const
 {
   TES_UNUSED(stream);

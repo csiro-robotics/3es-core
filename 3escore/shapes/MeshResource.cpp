@@ -42,8 +42,10 @@ uint16_t MeshResource::typeId() const
 int MeshResource::create(PacketWriter &packet) const
 {
   MeshCreateMessage msg;
-  ObjectAttributesd attributes;
+  ObjectAttributesd attributes = {};
   const Transform transform = this->transform();
+
+  const float draw_scale = drawScale();
 
   msg.mesh_id = id();
   msg.vertex_count = vertexCount();
@@ -53,8 +55,12 @@ int MeshResource::create(PacketWriter &packet) const
 
   if (transform.preferDoublePrecision())
   {
-    // NOLINTNEXTLINE(hicpp-signed-bitwise)
     msg.flags |= McfDoublePrecision;
+  }
+
+  if (draw_scale > 0)
+  {
+    msg.flags |= McfDrawScale;
   }
 
   packet.reset(typeId(), MeshCreateMessage::MessageId);
@@ -75,12 +81,20 @@ int MeshResource::create(PacketWriter &packet) const
   attributes.scale[1] = scale[1];
   attributes.scale[2] = scale[2];
 
-  if (msg.write(packet, attributes))
+  if (!msg.write(packet, attributes))
   {
-    return 0;
+    return -1;
   }
 
-  return -1;
+  if (msg.flags & McfDrawScale)
+  {
+    if (packet.writeElement(draw_scale) != sizeof(draw_scale))
+    {
+      return -1;
+    }
+  }
+
+  return 0;
 }
 
 
@@ -262,7 +276,12 @@ bool MeshResource::readCreate(PacketReader &packet)
   ObjectAttributesd attributes;
   bool ok = true;
   ok = ok && msg.read(packet, attributes);
-  return ok && processCreate(msg, attributes);
+  float draw_scale = 0;
+  if (msg.flags & McfDrawScale)
+  {
+    ok = ok && packet.readElement(draw_scale) == sizeof(draw_scale);
+  }
+  return ok && processCreate(msg, attributes, draw_scale);
 }
 
 
@@ -401,10 +420,12 @@ void MeshResource::nextPhase(TransferProgress &progress) const
 }
 
 
-bool MeshResource::processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes)
+bool MeshResource::processCreate(const MeshCreateMessage &msg, const ObjectAttributesd &attributes,
+                                 float draw_scale)
 {
   TES_UNUSED(msg);
   TES_UNUSED(attributes);
+  TES_UNUSED(draw_scale);
   return false;
 }
 

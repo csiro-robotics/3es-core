@@ -29,32 +29,24 @@ public:
   /// Returns the ID the placeholder was constructed with.
   [[nodiscard]] uint32_t id() const override;
 
-  /// @copydoc MeshResource::transform()
   [[nodiscard]] Transform transform() const override;
-  /// @copydoc MeshResource::tint()
   [[nodiscard]] uint32_t tint() const override;
-  /// @copydoc MeshResource::drawType()
   [[nodiscard]] uint8_t drawType(int stream) const override;
   using MeshResource::drawType;
-  /// @copydoc MeshResource::vertexCount()
+  [[nodiscard]] float drawScale(int stream) const override;
+  using MeshResource::drawScale;
   [[nodiscard]] unsigned vertexCount(int stream) const override;
   using MeshResource::vertexCount;
-  /// @copydoc MeshResource::indexCount()
   [[nodiscard]] unsigned indexCount(int stream) const override;
   using MeshResource::indexCount;
-  /// @copydoc MeshResource::vertices()
   [[nodiscard]] DataBuffer vertices(int stream) const override;
   using MeshResource::vertices;
-  /// @copydoc MeshResource::indices()
   [[nodiscard]] DataBuffer indices(int stream) const override;
   using MeshResource::indices;
-  /// @copydoc MeshResource::normals()
   [[nodiscard]] DataBuffer normals(int stream) const override;
   using MeshResource::normals;
-  /// @copydoc MeshResource::uvs()
   [[nodiscard]] DataBuffer uvs(int stream) const override;
   using MeshResource::uvs;
-  /// @copydoc MeshResource::colours()
   [[nodiscard]] DataBuffer colours(int stream) const override;
   using MeshResource::colours;
 

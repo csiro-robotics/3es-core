@@ -554,19 +554,12 @@ TEST(Shapes, PointCloud)
   std::vector<Vector3f> normals;
   makeHiResSphere(vertices, indices, &normals);
 
-  auto cloud = std::make_shared<PointCloud>(42);
-  cloud->addPoints(vertices.data(), unsigned(vertices.size()));
+  PointCloud cloud(42);
+  cloud.addPoints(vertices.data(), unsigned(vertices.size()));
+  cloud.setDrawScale(8.0f);
 
   // Full res cloud.
-  testShape(PointCloudShape(cloud, Id(42u), 8));
-
-  // Indexed (sub-sampled) cloud. Just use half the points.
-  indices.clear();
-  for (unsigned i = 0; i < unsigned(vertices.size() / 2); ++i)
-  {
-    indices.push_back(i);
-  }
-  testShape(PointCloudShape(cloud, Id(42u, 1), 8).setIndices(indices.begin(), indices.end()));
+  testShape(MeshSet(&cloud, Id(42u)));
 }
 
 TEST(Shapes, Pose)
