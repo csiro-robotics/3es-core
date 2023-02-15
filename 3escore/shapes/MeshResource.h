@@ -122,13 +122,13 @@ public:
 
   /// Populate the next mesh data packet.
   ///
-  /// The @c progress.phase is used to track which data array currently being transfered,
+  /// The @c progress.phase is used to track which data array currently being transferred,
   /// from the various @c MeshMessageType values matching components (e.g., vertices, indices).
-  /// The @p progress.progress value is used to track how many have been transfered.
+  /// The @p progress.progress value is used to track how many have been transferred.
   ///
   /// @param packet A packet to populate and send.
   /// @param byte_limit A nominal byte limit on how much data a single @p transfer() call may add.
-  /// @param[in,out] progress A progress marker tracking how much has already been transfered, and
+  /// @param[in,out] progress A progress marker tracking how much has already been transferred, and
   ///     updated to indicate what has been added to @p packet.
   /// @return Zero on success, an error code otherwise.
   int transfer(PacketWriter &packet, unsigned byte_limit,

@@ -1,0 +1,9 @@
+digraph csharplibs {
+  node [shape = box;];
+  tesCore [label = "3esCore";];
+  tesRuntime [label = "3esRuntime";];
+  tesRec [label = "3esRec";];
+  
+  tesRuntime -> tesCore;
+  tesRec -> tesCore;
+}

@@ -164,13 +164,13 @@ if(TES_BUILD_DOXYGEN)
   endif(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../3rdEyeScene/Assets/UI/Images")
 
   if(DOXYGEN_FOUND)
-    message(STATUS "Adding doxygen target: 3es-doc")
+    message(STATUS "Adding doxygen target: 3esdoc")
 
     # Create a target to build the documentation.
     # Here we also setup various documentation variables passed through to the doxyfile configuration.
     # Each named argument below describes the Doxygen variable it sets.
     doxygen_create(
-      DOXYFILE 3es-doc/doxyfile.in  # Doxyfile to configure.
+      DOXYFILE 3esdoc/doxyfile.in  # Doxyfile to configure.
       PROJECT 3es # PROJECT_NAME
       VERSION ${TES_VERSION}        # PROJECT_NUMBER
       BRIEF "3rd Eye Scene documentation" # PROJECT_BRIEF
@@ -180,7 +180,7 @@ if(TES_BUILD_DOXYGEN)
       PUBLISHER_ID au.csiro         # DOCSET_PUBLISHER_ID
       PROJECT_ID au.csiro.3es       # DOCSET_BUNDLE_ID, QHP_NAMESPACE, ECLIPSE_DOC_ID
       PATHS                         # INPUT (RECURSIVE is on)
-        3es-doc  # Must come first to define documentation groups.
+        3esdoc  # Must come first to define documentation groups.
         .
       EXCLUDE_PATHS                 # EXCLUDE
         ./private
@@ -188,7 +188,7 @@ if(TES_BUILD_DOXYGEN)
       # EXAMPLE_PATHS <paths>        # EXAMPLE_PATH
       # Where to find images.
       IMAGE_PATHS                    # IMAGE_PATH
-        3es-doc/images
+        3esdoc/images
         ${ADDITIONAL_IMAGE_DIRS}
       )
 

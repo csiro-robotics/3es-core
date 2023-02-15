@@ -1,14 +1,14 @@
 
-/*!
-@page doclicense 3rd Eye Scene License
+# 3rd Eye Scene license {#doclicense}
 
-@code{.unparsed}
+```
 CSIRO Open Source Software License Agreement (variation of the BSD / MIT License)
 Copyright (c) 2016, Commonwealth Scientific and Industrial Research Organisation (CSIRO) ABN 41 687
 119 230. All rights reserved. CSIRO is willing to grant you a license to 3rd Eye Scene on the
 following terms, except where otherwise indicated for third party material. Redistribution and use
 of this software in source and binary forms, with or without modification, are permitted provided
 that the following conditions are met:
+
 * Redistributions of source code must retain the above copyright notice, this list of conditions and
 the following disclaimer.
 * Redistributions in binary form must reproduce the above copyright notice, this list of conditions
@@ -47,20 +47,48 @@ components as part of accessing the Software.  Other third party software may al
 separate files distributed with the Software.
 
 ___________________________________________________________________
-ZLib https://www.zlib.net/
-This software is licensed under ZLib license https://www.zlib.net/zlib_license.html
+ZLib <https://www.zlib.net/>
+This software is licensed under ZLib license <https://www.zlib.net/zlib_license.html>
 ___________________________________________________________________
 
 ___________________________________________________________________
-CMake https://cmake.org/
+CMake <https://cmake.org/>
 This software is licensed under the BSD 3-Clause license.
 ___________________________________________________________________
 
 ___________________________________________________________________
-tinyply https://github.com/ddiakopoulos/tinyply
+tinyply <https://github.com/ddiakopoulos/tinyply>
 This software is public domain
 ___________________________________________________________________
 
-@endcode
+___________________________________________________________________
+Magnum Graphics
+https://magnum.graphics/
+https://github.com/mosra/magnum
 
-*/
+This software is licensed under the Magnum Graphics license:
+
+Copyright © 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
+            2020, 2021, 2022
+          Vladimír Vondruš <mosra@centrum.cz> and contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+___________________________________________________________________
+
+```
