@@ -28,6 +28,41 @@
 
 ## Building
 
+## Prerequisites and recommendations
+
+The following are prerequisites to building the 3rd Eye Scene C++ project.
+
+- General prerequisites
+  - A C++ 17 compatible compiler.
+  - CMake version 3.16 or higher
+    - CMake 3.17 is required when using the `Ninja Multi-Config` generator.
+  - Berkley sockets on Winsock2
+- Viewer prerequisites
+  - [Magnum Graphics](https://magnum.graphics/) version 2020.06
+  - [GLFW](https://www.glfw.org/)
+  - [cxxopts](https://github.com/jarro2783/cxxopts)
+  - [Native File Dialog](https://github.com/mlabbe/nativefiledialog)
+
+The following items are recommended to aid in building 3rd Eye Scene.
+
+- [zlib](https://zlib.net/) for message compression
+- [vcpkg](https://vcpkg.io/) to automate fetching prerequisites
+- [Google Test](https://github.com/google/googletest) for unit tests.
+
+### Linux prerequisites
+
+On Linux the following apt packages be installed before using a `vcpkg` build which includes the 3rd Eye Scene viewer as `vcpkg` does not provide these packages.
+
+```bash
+sudo apt install -y \
+  autoconf \
+  libegl1-mesa-dev \
+  libibus-1.0-dev \
+  libtool \
+  libwayland-dev \
+  libxkbcommon-dev
+```
+
 ### Building with vcpkg
 
 Building with VCPKG is supported in order to fetch the dependencies. This affects both 3escore and 3esviewer.
@@ -52,7 +87,7 @@ cmake --build build --config Release --targets all --
 
 ## 3rd Eye Scene Client
 
-Source code for the 3rd Eye Scene client viewer application is available on [GitHub](https://github.com/data61/3rdEyeScene)
+Source code for the 3rd Eye Scene C++ client viewer application is available as part of the 3es-core repo. The older C# viewer is also available on [GitHub](https://github.com/data61/3rdEyeScene)
 
 ## Integrating 3rd Eye Scene Server Code
 
