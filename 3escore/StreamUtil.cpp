@@ -30,7 +30,7 @@ struct PacketInfo
 PosType findPacketMarker(std::iostream &stream, size_t byte_read_limit = 1024u)
 {
   // Read the marker into a byte array and ensure it's in network endian.
-  std::array<char, sizeof(kPacketMarker)> marker_validation_bytes;
+  std::array<char, sizeof(kPacketMarker)> marker_validation_bytes = {};
   std::memcpy(marker_validation_bytes.data(), &kPacketMarker, marker_validation_bytes.size());
   networkEndianSwap(marker_validation_bytes);
   std::array<char, sizeof(kPacketMarker)> marker_bytes;
@@ -266,7 +266,7 @@ void finaliseFrameCount(std::iostream &stream, uint32_t frame_count,
 bool initialiseStream(std::ostream &stream, const ServerInfoMessage *server_info)
 {
   const uint16_t packet_buffer_size = 256;
-  std::array<uint8_t, packet_buffer_size> packet_buffer;
+  std::array<uint8_t, packet_buffer_size> packet_buffer = {};
   PacketWriter packet(packet_buffer.data(), int_cast<uint16_t>(packet_buffer.size()));
 
   if (server_info)
