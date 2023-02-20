@@ -26,7 +26,8 @@ bool Category::isActive(unsigned category) const
   {
     active = search->second.active;
     // Recurse on parent unless we are the root, or we know it's not active.
-    search = (search->first != 0) ? _category_map.find(search->second.parent_id) : _category_map.end();
+    search =
+      (search->first != 0) ? _category_map.find(search->second.parent_id) : _category_map.end();
   }
   return active;
 }
@@ -68,7 +69,7 @@ void Category::reset()
 }
 
 
-void Category::beginFrame(const FrameStamp &stamp)
+void Category::prepareFrame(const FrameStamp &stamp)
 {
   (void)stamp;
 }

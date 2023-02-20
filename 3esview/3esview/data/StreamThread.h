@@ -52,8 +52,8 @@ public:
   /// @param frame The frame to jump, skip or step to.
   void setTargetFrame(FrameNumber frame) override;
 
-  /// Get the target frame to jump to. Zero the current frame is up to date; i.e., this is zero once the current frame
-  /// reaches the target frame.
+  /// Get the target frame to jump to. Zero the current frame is up to date; i.e., this is zero once
+  /// the current frame reaches the target frame.
   /// @return The target frame to jump to.
   FrameNumber targetFrame() const override;
 
@@ -104,12 +104,13 @@ private:
 
   /// Process a control packet.
   ///
-  /// This covers end of frame events, so the return value indicates how long to delay before the next
-  /// frame.
+  /// This covers end of frame events, so the return value indicates how long to delay before the
+  /// next frame.
   ///
   /// Handles the following messages:
   /// - @c CIdFrame increments @p _currentFrame then calls @c ThirdEyeScene::updateToFrame() .
-  /// - @c CIdCoordinateFrame updates @c _server_info then calls @c ThirdEyeScene::updateServerInfo() .
+  /// - @c CIdCoordinateFrame updates @c _server_info then calls @c
+  /// ThirdEyeScene::updateServerInfo() .
   /// - @c CIdFrameCount updates @c _total_frames.
   /// - @c CIdForceFrameFlush calls @c ThirdEyeScene::updateToFrame() with the @p _currentFrame.
   /// - @c CIdReset resets the @c _currentFrame and calls @c ThirdEyeScene::reset() .
@@ -151,7 +152,6 @@ private:
   TargetFrameState checkTargetFrameState(FrameNumber &target_frame);
 
   mutable std::mutex _data_mutex;
-  std::mutex _notify_mutex;
   std::condition_variable _notify;
   std::atomic_bool _quitFlag;
   std::atomic_bool _paused;

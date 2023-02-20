@@ -21,11 +21,12 @@ namespace tes::view::handler
 class TES_VIEWER_API Shape : public Message
 {
 public:
-  Shape(uint16_t routing_id, const std::string &name, std::shared_ptr<painter::ShapePainter> painter);
+  Shape(uint16_t routing_id, const std::string &name,
+        std::shared_ptr<painter::ShapePainter> painter);
 
   void initialise() override;
   void reset() override;
-  void beginFrame(const FrameStamp &stamp) override;
+  void prepareFrame(const FrameStamp &stamp) override;
   void endFrame(const FrameStamp &stamp) override;
 
   void draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params) override;
@@ -44,8 +45,10 @@ public:
   virtual void decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttributes &attrs) const;
 
 protected:
-  virtual bool handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader);
-  virtual bool handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader);
+  virtual bool handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs,
+                            PacketReader &reader);
+  virtual bool handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs,
+                            PacketReader &reader);
   virtual bool handleDestroy(const DestroyMessage &msg, PacketReader &reader);
   virtual bool handleData(const DataMessage &msg, PacketReader &reader);
 
@@ -60,9 +63,11 @@ private:
   };
 
   std::shared_ptr<painter::ShapePainter> _painter;
-  /// Map of multi-shape attributes. We need to use some of this information when unpacking the data messages.
+  /// Map of multi-shape attributes. We need to use some of this information when unpacking the data
+  /// messages.
   std::unordered_map<uint32_t, MultiShapeInfo> _multi_shapes;
-  /// The last transient multi-shape info. We use this when unpacking a transient multi-shape data message.
+  /// The last transient multi-shape info. We use this when unpacking a transient multi-shape data
+  /// message.
   MultiShapeInfo _last_transient_multi_shape;
 };
 }  // namespace tes::view::handler

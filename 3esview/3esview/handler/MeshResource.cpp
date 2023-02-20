@@ -48,21 +48,32 @@ void MeshResource::reset()
 }
 
 
-void MeshResource::beginFrame(const FrameStamp &stamp)
+void MeshResource::prepareFrame(const FrameStamp &stamp)
 {
   (void)stamp;
-  _garbage_list.clear();
-  // As we begin a frame, we need to commit resources.
-  // For OpenGL this must be on beginFrame() as this is the main thread.
-  // With Vulkan we could do it in endFrame().
-
-  // Move resources from the pending list. This may replace existing items, such as when we redefine
-  // an existing mesh.
-  for (auto &[id, resource] : _pending)
   {
-    _resources[id] = resource;
+    const std::lock_guard guard(_resource_lock);
+    _garbage_list.clear();
+    // As we begin a frame, we need to commit resources.
+    // For OpenGL this must be on prepareFrame() as this is the main thread.
+    // With Vulkan we could do it in endFrame().
+
+    // Move resources from the pending list. This may replace existing items, such as when we
+    // redefine an existing mesh.
+    for (auto iter = _pending.begin(); iter != _pending.end();)
+    {
+      auto &[id, resource] = *iter;
+      if (resource.marked)
+      {
+        _resources[id] = resource;
+        iter = _pending.erase(iter);
+      }
+      else
+      {
+        ++iter;
+      }
+    }
   }
-  _pending.clear();
   updateResources();
 }
 
@@ -70,6 +81,12 @@ void MeshResource::beginFrame(const FrameStamp &stamp)
 void MeshResource::endFrame(const FrameStamp &stamp)
 {
   (void)stamp;
+  const std::lock_guard guard(_resource_lock);
+  // Mark pending items to be migrated.
+  for (auto &[id, resource] : _pending)
+  {
+    resource.marked = true;
+  }
 }
 
 

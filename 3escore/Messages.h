@@ -176,15 +176,17 @@ enum MeshShapeFlag : unsigned
 enum UpdateFlag : unsigned
 {
   // NOLINTBEGIN(hicpp-signed-bitwise)
-  UFUpdateMode =
-    (OFExtended
-     << 1u),  ///< Update attributes using only explicitly specified flags from the following.
+  /// This flag indicates that the @c UpdateMessage only contains data for specific items.
+  /// Combined with `{UFPosition, UFRotation, UFScale, UFColour}` to indicate what data are present.
+  ///
+  /// When this flag is not present, then all @c ObjectAttributes are being updated and none of the
+  /// aforementioned flags should be set.
+  UFUpdateMode = (OFExtended << 1u),
   UFPosition = (OFExtended << 2u),  ///< Update position data.
   UFRotation = (OFExtended << 3u),  ///< Update rotation data.
   UFScale = (OFExtended << 4u),     ///< Update scale data.
   UFColour = (OFExtended << 5u),    ///< Update colour data.
   UFPosRotScaleColour = UFPosition | UFRotation | UFScale | UFColour,
-
   // NOLINTEND(hicpp-signed-bitwise)
 };
 
@@ -655,7 +657,7 @@ struct TES_CORE_API DataMessage
 };
 
 /// A update message is identical in header to a @c CreateMessage. It's payload
-/// may vary and in many cases it will have no further payload.
+/// may vary and in some cases it will have no further payload. See @c UpdateFlag .
 struct TES_CORE_API UpdateMessage
 {
   /// ID for this message.
@@ -737,11 +739,11 @@ struct TES_CORE_API DestroyMessage
 /// Note, we only expect message id zero.
 struct TES_CORE_API CameraMessage
 {
-  /// Reserved @c cameraId for recording the camera properties during playback.
+  /// Reserved @c camera_id for recording the camera properties during playback.
   static constexpr uint8_t kRecordedCameraID = 255u;
 
   /// ID of the camera. 255 is reserved to record the view used while recording.
-  uint8_t cameraId;
+  uint8_t camera_id;
   /// Flags. Currently must be zero as the only valid flag is the double precision indicator (value
   /// 1), which is not supported this structure. All values are floats.
   uint8_t flags;
@@ -781,7 +783,7 @@ struct TES_CORE_API CameraMessage
   inline bool read(PacketReader &reader)
   {
     bool ok = true;
-    ok = reader.readElement(cameraId) == sizeof(cameraId) && ok;
+    ok = reader.readElement(camera_id) == sizeof(camera_id) && ok;
     ok = reader.readElement(flags) == sizeof(flags) && ok;
     ok = reader.readElement(reserved) == sizeof(reserved) && ok;
     ok = reader.readElement(x) == sizeof(x) && ok;
@@ -808,7 +810,7 @@ struct TES_CORE_API CameraMessage
   inline bool write(PacketWriter &packet)
   {
     bool ok = true;
-    ok = packet.writeElement(cameraId) == sizeof(cameraId) && ok;
+    ok = packet.writeElement(camera_id) == sizeof(camera_id) && ok;
     ok = packet.writeElement(flags) == sizeof(flags) && ok;
     ok = packet.writeElement(reserved) == sizeof(reserved) && ok;
     ok = packet.writeElement(x) == sizeof(x) && ok;

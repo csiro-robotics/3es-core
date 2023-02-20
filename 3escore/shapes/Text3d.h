@@ -36,6 +36,9 @@ public:
 
   ~Text3D() override = default;
 
+  Text3D &operator=(const Text3D &other) = default;
+  Text3D &operator=(Text3D &&other) noexcept = default;
+
   [[nodiscard]] const char *type() const override { return "text3D"; }
 
   Text3D &setScreenFacing(bool screen_facing);
@@ -58,9 +61,6 @@ public:
   bool writeCreate(PacketWriter &stream) const override;
 
   bool readCreate(PacketReader &stream) override;
-
-  Text3D &operator=(const Text3D &other) = default;
-  Text3D &operator=(Text3D &&other) noexcept = default;
 
   [[nodiscard]] std::shared_ptr<Shape> clone() const override;
 

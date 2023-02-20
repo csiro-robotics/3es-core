@@ -49,7 +49,7 @@ void Shape::reset()
 }
 
 
-void Shape::beginFrame(const FrameStamp &stamp)
+void Shape::prepareFrame(const FrameStamp &stamp)
 {
   (void)stamp;
 }

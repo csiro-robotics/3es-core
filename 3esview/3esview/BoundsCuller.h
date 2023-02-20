@@ -72,6 +72,15 @@ public:
   /// @param other The bounds to include.
   void expand(const Bounds &other) { Super::expand(other); }
 
+  /// Transform the current bounding box and calculate a new, loose bounds.
+  ///
+  /// This transforms the extents of the bounding box, then calculates the new maximal bounds
+  /// around that. This may form a loose bounding box around the original data.
+  ///
+  /// @param transform The transformation to apply.
+  /// @return The calculated bounds.
+  [[nodiscard]] Bounds calculateLooseBounds(const Magnum::Matrix4 &transform) const;
+
   /// Precise equality operator.
   /// @param other The object to compare to.
   /// @return True if this is precisely equal to @p other.

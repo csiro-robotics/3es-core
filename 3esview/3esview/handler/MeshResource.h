@@ -99,7 +99,7 @@ public:
   void initialise() override;
   void reset() override;
 
-  void beginFrame(const FrameStamp &stamp) override;
+  void prepareFrame(const FrameStamp &stamp) override;
   void endFrame(const FrameStamp &stamp) override;
   void draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params) override;
   void readMessage(PacketReader &reader) override;
@@ -154,19 +154,22 @@ private:
     Bounds bounds = {};
     /// The current mesh resource data. This is what the main thread will render.
     std::shared_ptr<SimpleMesh> current;
-    /// Pending mesh resource data. This will move to current on the next @c beginFrame() call.
+    /// Pending mesh resource data. This will move to current on the next @c prepareFrame() call.
     std::shared_ptr<SimpleMesh> pending;
     /// The current renderable mesh.
     std::shared_ptr<Magnum::GL::Mesh> mesh;
     ResourceFlag flags = ResourceFlag::Zero;
     std::shared_ptr<shaders::Shader> shader;
+    /// Used as a mark for pending items to denote which should become active on the next frame.
+    /// Some pending items may be for later frames.
+    bool marked = false;
   };
 
   mutable std::mutex _resource_lock;
   std::unordered_map<uint32_t, Resource> _resources;
   std::unordered_map<uint32_t, Resource> _pending;
   /// Garbage list populated on @c reset() from background thread so main thread can release on @c
-  /// beginFrame().
+  /// prepareFrame().
   std::vector<std::shared_ptr<Magnum::GL::Mesh>> _garbage_list;
   std::shared_ptr<shaders::ShaderLibrary> _shader_library;
 };

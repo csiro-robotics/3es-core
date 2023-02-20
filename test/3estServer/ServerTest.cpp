@@ -547,6 +547,9 @@ void createShapes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
       if (shapes[i]->position().isEqual(Vector3f::Zero))
       {
         shapes[i]->setPosition(pos);
+        // std::cout << "Positioned " << typeid(*shapes[i]).name() << " at "
+        //           << shapes[i]->position().x() << "," << shapes[i]->position().y() << ","
+        //           << shapes[i]->position().z() << "," << std::endl;
         pos.x() += spacing;
       }
     }

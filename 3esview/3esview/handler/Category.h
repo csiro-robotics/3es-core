@@ -21,8 +21,8 @@ public:
   {
     /// Display name for the category.
     std::string name;
-    /// Category ID. Zero is always the root category to which all other categories belong. It can be given an explicit
-    /// name.
+    /// Category ID. Zero is always the root category to which all other categories belong. It can
+    /// be given an explicit name.
     uint16_t id = 0;
     /// Parent category, defaulting to the root ID.
     uint16_t parent_id = 0;
@@ -41,7 +41,7 @@ public:
 
   void initialise() override;
   void reset() override;
-  void beginFrame(const FrameStamp &stamp) override;
+  void prepareFrame(const FrameStamp &stamp) override;
   void endFrame(const FrameStamp &stamp) override;
   void draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params) override;
   void readMessage(PacketReader &reader) override;

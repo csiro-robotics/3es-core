@@ -43,6 +43,7 @@ list(APPEND PUBLIC_HEADERS
   handler/MeshShape.h
   handler/Message.h
   handler/Shape.h
+  handler/Text.h
   handler/Text2d.h
   handler/Text3d.h
   mesh/Converter.h
@@ -67,6 +68,8 @@ list(APPEND PUBLIC_HEADERS
   shaders/VertexColour.h
   shaders/VoxelGeom.h
   util/Enum.h
+  util/PendingActionQueue.h
+  util/PendingQueue.h
   util/ResourceList.h
 )
 
@@ -138,6 +141,7 @@ list(APPEND SOURCES
   shaders/Voxel.geom
   shaders/Voxel.vert
   shaders/VoxelGeom.cpp
+  util/PendingQueue.cpp
   util/ResourceList.cpp
 )
 

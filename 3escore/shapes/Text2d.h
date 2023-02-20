@@ -39,6 +39,9 @@ public:
 
   ~Text2D() override = default;
 
+  Text2D &operator=(const Text2D &other) = default;
+  Text2D &operator=(Text2D &&other) noexcept = default;
+
   [[nodiscard]] const char *type() const override { return "text2D"; }
 
   [[nodiscard]] bool inWorldSpace() const;
@@ -56,9 +59,6 @@ public:
   bool writeCreate(PacketWriter &stream) const override;
 
   bool readCreate(PacketReader &stream) override;
-
-  Text2D &operator=(const Text2D &other) = default;
-  Text2D &operator=(Text2D &&other) noexcept = default;
 
   [[nodiscard]] std::shared_ptr<Shape> clone() const override;
 

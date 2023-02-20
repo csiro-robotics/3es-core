@@ -54,24 +54,28 @@ void Camera::reset()
   {
     camera.second = false;
   }
-  for (auto &camera : _pending_cameras)
-  {
-    camera.second = false;
-  }
+  _pending_cameras.clear();
 }
 
 
-void Camera::beginFrame(const FrameStamp &stamp)
+void Camera::prepareFrame(const FrameStamp &stamp)
 {
   (void)stamp;
-  std::lock_guard guard(_mutex);
-  std::copy(_pending_cameras.begin(), _pending_cameras.end(), _cameras.begin());
 }
 
 
 void Camera::endFrame(const FrameStamp &stamp)
 {
   (void)stamp;
+  std::lock_guard guard(_mutex);
+  _pending_cameras.mark(stamp.frame_number);
+  for (auto &[id, camera] : _pending_cameras.view(stamp.frame_number))
+  {
+    if (id < _cameras.size())
+    {
+      _cameras[id] = std::pair(camera, true);
+    }
+  }
 }
 
 
@@ -108,7 +112,7 @@ void Camera::readMessage(PacketReader &reader)
                     camera.yaw);
 
   std::lock_guard guard(_mutex);
-  _pending_cameras[msg.cameraId] = std::make_pair(camera, true);
+  _pending_cameras.emplace_back(std::pair(msg.camera_id, camera));
 }
 
 
@@ -135,7 +139,7 @@ void Camera::serialise(Connection &out, ServerInfoMessage &info)
       continue;
     }
     const auto camera = _cameras[i].first;
-    msg.cameraId = uint8_t(i);
+    msg.camera_id = uint8_t(i);
     msg.flags = 0;
     msg.reserved = 0;
 

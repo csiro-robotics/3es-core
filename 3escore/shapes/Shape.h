@@ -98,6 +98,9 @@ public:
   /// Virtual destructor.
   virtual ~Shape() = default;
 
+  Shape &operator=(const Shape &other) = default;
+  Shape &operator=(Shape &&other) noexcept = default;
+
   /// Return a reference name for the shape type; e.g., "box". Essentially the class name.
   ///
   /// Note this cannot be relied upon except during initial creation.

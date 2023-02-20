@@ -351,16 +351,14 @@ bool MeshShape::readCreate(PacketReader &packet)
 
   ok = ok && packet.readElement(vertex_count) == sizeof(vertex_count);
   ok = ok && packet.readElement(index_count) == sizeof(index_count);
+  ok = ok && packet.readElement(_draw_scale) == sizeof(_draw_scale);
+  ok = ok && packet.readElement(draw_type) == sizeof(draw_type);
+  _draw_type = static_cast<DrawType>(draw_type);
 
   _vertices.set(static_cast<float *>(nullptr), 0, 3);
   _normals.set(static_cast<float *>(nullptr), 0, 3);
   _indices.set(static_cast<uint32_t *>(nullptr), 0);
   _colours.set(static_cast<uint32_t *>(nullptr), 0);
-
-  ok = ok && packet.readElement(_draw_scale) == sizeof(_draw_scale);
-
-  ok = ok && packet.readElement(draw_type) == sizeof(draw_type);
-  _draw_type = static_cast<DrawType>(draw_type);
 
   return ok;
 }

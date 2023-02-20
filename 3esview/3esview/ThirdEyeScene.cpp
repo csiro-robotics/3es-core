@@ -49,6 +49,7 @@
 namespace tes::view
 {
 ThirdEyeScene::ThirdEyeScene()
+  : _main_thread_id(std::this_thread::get_id())
 {
   using namespace Magnum::Math::Literals;
 
@@ -123,62 +124,82 @@ void ThirdEyeScene::clearActiveFboEffect()
 
 void ThirdEyeScene::reset()
 {
-  std::unique_lock guard(_render_mutex);
-  for (auto &handler : _orderedMessageHandlers)
+  std::unique_lock lock(_render_mutex);
+  if (std::this_thread::get_id() == _main_thread_id)
   {
-    handler->reset();
+    effectReset();
   }
-  _unknown_handlers.clear();
+  else
+  {
+    _reset = true;
+    _reset_notify.wait(lock, [target_reset = _reset_marker + 1, this]()  //
+                       { return _reset_marker >= target_reset; });
+  }
 }
 
 
 void ThirdEyeScene::render(float dt, const Magnum::Vector2i &window_size)
 {
   using namespace Magnum::Math::Literals;
-  std::unique_lock guard(_render_mutex);
-
-  // Update frame if needed.
-  if (_have_new_frame || _new_server_info)
+  //---------------------------------------------------------------------------
+  // This section is protected by the _render_mutex
+  // It must ensure that there can be no additional handler::Message::endFrame() calls in between
+  // calling handler::Message::prepareFrame() and handler::Message::draw()
+  // After the draw calls we release the mutex while finalising the rendering.
   {
-    // Update server info.
-    if (_new_server_info)
+    std::unique_lock guard(_render_mutex);
+
+    if (_reset)
     {
+      effectReset();
+    }
+
+    // Update frame if needed.
+    if (_have_new_frame || _new_server_info)
+    {
+      // Update server info.
+      if (_new_server_info)
+      {
+        for (auto &handler : _orderedMessageHandlers)
+        {
+          handler->updateServerInfo(_server_info);
+        }
+        _new_server_info = false;
+      }
+
+      _render_stamp.frame_number = _new_frame;
+      _have_new_frame = false;
+
       for (auto &handler : _orderedMessageHandlers)
       {
-        handler->updateServerInfo(_server_info);
+        handler->prepareFrame(_render_stamp);
       }
-      _new_server_info = false;
     }
 
-    _render_stamp.frame_number = _new_frame;
-    _have_new_frame = false;
+    const DrawParams params(_camera, window_size);
+    ++_render_stamp.render_mark;
 
-    for (auto &handler : _orderedMessageHandlers)
+    _culler->cull(_render_stamp.render_mark, Magnum::Frustum::fromMatrix(params.pv_transform));
+
+    if (_active_fbo_effect)
     {
-      handler->beginFrame(_render_stamp);
+      _active_fbo_effect->prepareFrame(params.pv_transform, FboEffect::ProjectionType::Perspective,
+                                       _camera.clip_near, _camera.clip_far);
     }
+    else
+    {
+      Magnum::GL::defaultFramebuffer
+        .clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth)
+        .bind();
+    }
+
+    drawShapes(dt, params);
+    updateFpsDisplay(dt, params);
   }
+  //---------------------------------------------------------------------------
 
-  const DrawParams params(_camera, window_size);
-  ++_render_stamp.render_mark;
-
-  _culler->cull(_render_stamp.render_mark, Magnum::Frustum::fromMatrix(params.pv_transform));
-
-  if (_active_fbo_effect)
-  {
-    _active_fbo_effect->prepareFrame(params.pv_transform, FboEffect::ProjectionType::Perspective,
-                                     _camera.clip_near, _camera.clip_far);
-  }
-  else
-  {
-    Magnum::GL::defaultFramebuffer
-      .clear(Magnum::GL::FramebufferClear::Color | Magnum::GL::FramebufferClear::Depth)
-      .bind();
-  }
-
-  drawShapes(dt, params);
-  updateFpsDisplay(dt, params);
-
+  //---------------------------------------------------------------------------
+  // This section is not protected by the _render_mutex
   if (_active_fbo_effect)
   {
     Magnum::GL::defaultFramebuffer.bind();
@@ -186,11 +207,14 @@ void ThirdEyeScene::render(float dt, const Magnum::Vector2i &window_size)
                                          Magnum::GL::FramebufferClear::Depth);
     _active_fbo_effect->completeFrame();
   }
+  //---------------------------------------------------------------------------
 }
 
 
 void ThirdEyeScene::updateToFrame(FrameNumber frame)
 {
+  // Called from the data thread, not the main thread.
+  // Must invoke endFrame() between prepareFrame() and draw() calls.
   std::lock_guard guard(_render_mutex);
   if (frame != _render_stamp.frame_number)
   {
@@ -366,6 +390,21 @@ void ThirdEyeScene::createSampleShapes()
   {
     painter.second->commit();
   }
+}
+
+
+void ThirdEyeScene::effectReset()
+{
+  // _render_mutex must be locked before calling.
+  for (auto &handler : _orderedMessageHandlers)
+  {
+    handler->reset();
+  }
+  _unknown_handlers.clear();
+  ++_reset_marker;
+  _reset = false;
+  // Slight inefficiency as we notify while the mutex is still locked.
+  _reset_notify.notify_all();
 }
 
 

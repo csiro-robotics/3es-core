@@ -193,7 +193,7 @@ bool StreamThread::blockOnPause()
 {
   if (_paused && targetFrame() == 0)
   {
-    std::unique_lock lock(_notify_mutex);
+    std::unique_lock lock(_data_mutex);
     // Wait for unpause.
     _notify.wait(lock, [this] {
       if (!_paused || targetFrame() != 0)
