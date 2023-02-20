@@ -25,6 +25,9 @@ NetworkThread::NetworkThread(std::shared_ptr<ThirdEyeScene> tes, const std::stri
 }
 
 
+NetworkThread::~NetworkThread() = default;
+
+
 bool NetworkThread::isLiveStream() const
 {
   return true;

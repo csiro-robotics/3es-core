@@ -45,7 +45,8 @@ bool TestViewer::open(const std::filesystem::path &path)
   }
 
   std::scoped_lock guard(_mutex);
-  _data_thread = std::make_shared<StreamThread>(_tes, std::make_shared<std::ifstream>(std::move(file)));
+  _data_thread =
+    std::make_shared<StreamThread>(_tes, std::make_shared<std::ifstream>(std::move(file)));
   // Do not allow looping in the windowless/test context.
   _data_thread->setLooping(false);
   return true;
@@ -63,7 +64,8 @@ bool TestViewer::connect(const std::string &host, uint16_t port)
   const auto start_time = std::chrono::steady_clock::now();
   // ...but don't wait forever.
   const auto timeout = std::chrono::seconds(5);
-  while (!net_thread->connectionAttempted() && (std::chrono::steady_clock::now() - start_time) < timeout)
+  while (!net_thread->connectionAttempted() &&
+         (std::chrono::steady_clock::now() - start_time) < timeout)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
@@ -74,12 +76,14 @@ bool TestViewer::connect(const std::string &host, uint16_t port)
 
 bool TestViewer::closeOrDisconnect()
 {
-  std::scoped_lock guard(_mutex);
+  std::unique_lock guard(_mutex);
   if (_data_thread)
   {
-    _data_thread->stop();
-    _data_thread->join();
+    auto data_thread = _data_thread;
     _data_thread = nullptr;
+    guard.unlock();
+    data_thread->stop();
+    data_thread->join();
     return true;
   }
   return false;
