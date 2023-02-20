@@ -16,14 +16,6 @@
 #include <3escore/Connection.h>
 #include <3escore/Log.h>
 
-#include <Magnum/Magnum.h>
-#include <Magnum/Math/Matrix3.h>
-#include <Magnum/Text/AbstractFont.h>
-#include <Magnum/Text/DistanceFieldGlyphCache.h>
-
-#include <cctype>
-#include <limits>
-#include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
