@@ -9,8 +9,8 @@
 #include "handler/MeshShape.h"
 #include "handler/Message.h"
 #include "handler/Shape.h"
-#include "handler/Text2d.h"
-#include "handler/Text3d.h"
+#include "handler/Text2D.h"
+#include "handler/Text3D.h"
 
 #include "painter/Arrow.h"
 #include "painter/Box.h"

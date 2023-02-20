@@ -17,7 +17,7 @@
 #include "Pose.h"
 #include "Sphere.h"
 #include "Star.h"
-#include "Text2d.h"
-#include "Text3d.h"
+#include "Text2D.h"
+#include "Text3D.h"
 
 #endif  // TES_CORE_SHAPES_SHAPES_H

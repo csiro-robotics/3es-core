@@ -1,7 +1,7 @@
 //
 // author: Kazys Stepanas
 //
-#include "Text3d.h"
+#include "Text3D.h"
 
 #include <3escore/CoreUtil.h>
 

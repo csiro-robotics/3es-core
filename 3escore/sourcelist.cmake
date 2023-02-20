@@ -86,8 +86,8 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/SimpleMesh.h
   shapes/Sphere.h
   shapes/Star.h
-  shapes/Text2d.h
-  shapes/Text3d.h
+  shapes/Text2D.h
+  shapes/Text3D.h
 )
 
 list(APPEND PUBLIC_TESSELLATE_HEADERS
@@ -158,8 +158,8 @@ list(APPEND SOURCES
   shapes/SimpleMesh.cpp
   shapes/Sphere.cpp
   shapes/Star.cpp
-  shapes/Text2d.cpp
-  shapes/Text3d.cpp
+  shapes/Text2D.cpp
+  shapes/Text3D.cpp
 
   tessellate/Arrow.cpp
   tessellate/Box.cpp

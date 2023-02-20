@@ -1,7 +1,7 @@
 //
 // Author: Kazys Stepanas
 //
-#include "Text3d.h"
+#include "Text3D.h"
 
 namespace tes::view::handler
 {

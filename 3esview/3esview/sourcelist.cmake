@@ -44,8 +44,8 @@ list(APPEND PUBLIC_HEADERS
   handler/Message.h
   handler/Shape.h
   handler/Text.h
-  handler/Text2d.h
-  handler/Text3d.h
+  handler/Text2D.h
+  handler/Text3D.h
   mesh/Converter.h
   painter/Arrow.h
   painter/Box.h
@@ -110,8 +110,8 @@ list(APPEND SOURCES
   handler/MeshShape.cpp
   handler/Message.cpp
   handler/Shape.cpp
-  handler/Text2d.cpp
-  handler/Text3d.cpp
+  handler/Text2D.cpp
+  handler/Text3D.cpp
   mesh/Converter.cpp
   painter/Arrow.cpp
   painter/Box.cpp

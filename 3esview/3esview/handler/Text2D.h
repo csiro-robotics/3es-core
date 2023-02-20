@@ -8,7 +8,7 @@
 
 #include "Text.h"
 
-#include <3escore/shapes/Text2d.h>
+#include <3escore/shapes/Text2D.h>
 
 namespace tes::view::handler
 {
