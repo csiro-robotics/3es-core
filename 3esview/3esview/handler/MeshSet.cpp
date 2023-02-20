@@ -94,26 +94,25 @@ void MeshSet::endFrame(const FrameStamp &stamp)
   // Clear the existing transients. We can do that off thread as we aren't releasing any render
   // resources.
   _transients.clear();
-  _pending_actions.mark(stamp.frame_number);
 
   // Handle the pending actions. Order is preserved as the actions are intermingled in the queue.
-  for (auto &action : _pending_actions.view(stamp.frame_number))
+  for (auto &action : _pending_actions)
   {
-    switch (action.action)
+    switch (action.kind)
     {
     default:
-    case PendingQueue::ActionKind::None:
+    case PendingAction::Kind::None:
       break;
-    case PendingQueue::ActionKind::Create:
+    case PendingAction::Kind::Create:
       createDrawables(action.create.shape);
       break;
-    case PendingQueue::ActionKind::Update:
+    case PendingAction::Kind::Update:
       if (action.shape_id)  // Only consider persistent IDs.
       {
         updateShape(action.shape_id, action.update);
       }
       break;
-    case PendingQueue::ActionKind::Destroy:
+    case PendingAction::Kind::Destroy:
       if (action.shape_id)  // Only consider persistent IDs.
       {
         destroyShape(action.shape_id, action.destroy);
@@ -121,6 +120,7 @@ void MeshSet::endFrame(const FrameStamp &stamp)
       break;
     }
   }
+  _pending_actions.clear();
 }
 
 
@@ -265,7 +265,7 @@ bool MeshSet::handleCreate(PacketReader &reader)
     return false;
   }
 
-  PendingQueue::Action action(util::ActionKind::Create);
+  PendingAction action(util::ActionKind::Create);
   action.shape_id = shape->id();
   action.create.shape = shape;
 
@@ -284,7 +284,7 @@ bool MeshSet::handleUpdate(PacketReader &reader)
     return false;
   }
 
-  PendingQueue::Action action(util::ActionKind::Update);
+  PendingAction action(util::ActionKind::Update);
   action.shape_id = update.id;
   action.update.flags = update.flags;
   action.update.position = Vector3d(attrs.position);
@@ -302,7 +302,7 @@ bool MeshSet::handleDestroy(const DestroyMessage &msg, PacketReader &reader)
 {
   (void)reader;
 
-  PendingQueue::Action action(util::ActionKind::Destroy);
+  PendingAction action(util::ActionKind::Destroy);
   action.shape_id = msg.id;
 
   const std::lock_guard guard(_mutex);
@@ -365,7 +365,7 @@ bool MeshSet::calculateBounds(Drawable &drawable) const
 }
 
 
-bool MeshSet::updateShape(uint32_t shape_id, const typename PendingQueue::Action::Update &update)
+bool MeshSet::updateShape(uint32_t shape_id, const PendingAction::Update &update)
 {
   // Fetch the shape
   const auto find = _shapes.find(shape_id);
@@ -403,7 +403,7 @@ bool MeshSet::updateShape(uint32_t shape_id, const typename PendingQueue::Action
 }
 
 
-bool MeshSet::destroyShape(uint32_t shape_id, const typename PendingQueue::Action::Destroy &destroy)
+bool MeshSet::destroyShape(uint32_t shape_id, const PendingAction::Destroy &destroy)
 {
   TES_UNUSED(destroy);
   const auto find = _shapes.find(shape_id);

@@ -9,7 +9,7 @@
 #include "MeshResource.h"
 
 #include <3escore/shapes/MeshSet.h>
-#include <3esview/util/PendingActionQueue.h>
+#include <3esview/util/PendingAction.h>
 
 #include <Magnum/Math/Color.h>
 #include <Magnum/Math/Quaternion.h>
@@ -21,7 +21,7 @@ namespace tes::view::handler
 class TES_VIEWER_API MeshSet : public Message
 {
 public:
-  using PendingQueue = util::PendingActionQueue<std::shared_ptr<tes::MeshSet>>;
+  using PendingAction = util::PendingAction<std::shared_ptr<tes::MeshSet>>;
 
   MeshSet(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<MeshResource> resources);
 
@@ -86,8 +86,8 @@ private:
 
   bool createDrawables(const std::shared_ptr<tes::MeshSet> &shape);
   bool calculateBounds(Drawable &drawable) const;
-  bool updateShape(uint32_t shape_id, const typename PendingQueue::Action::Update &update);
-  bool destroyShape(uint32_t shape_id, const typename PendingQueue::Action::Destroy &destroy);
+  bool updateShape(uint32_t shape_id, const PendingAction::Update &update);
+  bool destroyShape(uint32_t shape_id, const PendingAction::Destroy &destroy);
 
   /// Mutex locked whenever touching @c _shapes or @c _transients.
   mutable std::mutex _mutex;
@@ -113,7 +113,7 @@ private:
   std::vector<std::shared_ptr<tes::MeshSet>> _creation_list;
 
   /// Pending actions, in order they arrived.
-  PendingQueue _pending_actions;
+  std::vector<PendingAction> _pending_actions;
 
   /// The last frame we handled.
   FrameNumber _last_frame = 0;

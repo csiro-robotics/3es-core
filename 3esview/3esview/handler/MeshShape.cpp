@@ -66,11 +66,10 @@ void MeshShape::endFrame(const FrameStamp &stamp)
   std::copy(_transients.begin(), _transients.end(), std::back_inserter(_garbage_list));
   _transients.clear();
 
-  _pending_queue.mark(stamp.frame_number);
   // Effect pending actions.
-  for (const auto &action : _pending_queue.view(stamp.frame_number))
+  for (const auto &action : _pending_queue)
   {
-    switch (action.action)
+    switch (action.kind)
     {
     default:
     case util::ActionKind::None:
@@ -101,6 +100,7 @@ void MeshShape::endFrame(const FrameStamp &stamp)
     break;
     }
   }
+  _pending_queue.clear();
 }
 
 void MeshShape::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
@@ -224,7 +224,7 @@ bool MeshShape::handleCreate(PacketReader &reader)
     return false;
   }
 
-  PendingQueue::Action action(util::ActionKind::Create);
+  PendingAction action(util::ActionKind::Create);
   action.shape_id = shape->id();
   action.create.shape = shape;
   _pending_queue.emplace_back(action);
@@ -250,7 +250,7 @@ bool MeshShape::handleUpdate(PacketReader &reader)
     return false;
   }
 
-  PendingQueue::Action action(util::ActionKind::Update);
+  PendingAction action(util::ActionKind::Update);
   action.shape_id = update.id;
   action.update.flags = update.flags;
   action.update.position = Vector3d(attrs.position);
@@ -265,7 +265,7 @@ bool MeshShape::handleUpdate(PacketReader &reader)
 bool MeshShape::handleDestroy(const DestroyMessage &msg, PacketReader &reader)
 {
   (void)reader;
-  PendingQueue::Action action(util::ActionKind::Destroy);
+  PendingAction action(util::ActionKind::Destroy);
   action.shape_id = msg.id;
   _pending_queue.emplace_back(action);
   return true;
@@ -340,7 +340,7 @@ MeshShape::RenderMeshPtr MeshShape::create(std::shared_ptr<tes::MeshShape> shape
 }
 
 
-bool MeshShape::updateShape(uint32_t shape_id, const PendingQueue::Action::Update &update)
+bool MeshShape::updateShape(uint32_t shape_id, const PendingAction::Update &update)
 {
   if (shape_id == 0)
   {
@@ -394,9 +394,9 @@ std::shared_ptr<tes::MeshShape> MeshShape::getQueuedRenderMesh(const Id &id)
 {
   // Make sure we use a const view and don't discard things from the action queue.
   std::shared_ptr<tes::MeshShape> shape;
-  for (auto &action : _pending_queue.viewConst())
+  for (auto &action : _pending_queue)
   {
-    if (action.action == util::ActionKind::Create)
+    if (action.kind == util::ActionKind::Create)
     {
       if (action.shape_id == id.id())
       {

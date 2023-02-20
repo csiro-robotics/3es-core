@@ -3,8 +3,6 @@
 
 #include <3esview/ViewConfig.h>
 
-#include "PendingQueue.h"
-
 #include <3escore/Colour.h>
 #include <3escore/Quaternion.h>
 #include <3escore/Vector3.h>
@@ -22,9 +20,23 @@ enum class ActionKind : uint32_t
 
 /// Details for a pending actions queued by the background thread to effect in the main thread.
 ///
-/// We have to queue actions from the background thread into the same queue to preserve the order
-/// of operations. This struct provides the simplest way to amalgamate the available actions into
-/// a single queue. Data for all actions are present.
+/// Message and shape handlers must process messages for the upcoming frame, but not effect those
+/// changes until the frame completes - until @c handlers::Message::endFrame() is called. The
+/// @c PendingAction provides a data structure which can be added to a vector (or queue) to track
+/// actions to be effected on the next @c handlers::Message::endFrame() call. We typically expect
+/// to only enqueue create, update and destroy actions, as determined by @c ActionKind , as data
+/// messages always occur after create, but before the next frame.
+///
+/// This structure contains data for all three potential message types, with the @c kind member
+/// identifying which data section is currently relevant.
+///
+/// While this union (mathematical terminology rather than C++ @c union ) of types is somewhat
+/// wasteful memory-wise, it is a very simple way to amalgamate the available actions into a single
+/// queue.
+///
+/// Note the @c Create is made up of the template @c Shape type. This will generally be either a
+/// @c shared_ptr to the @c tes::Shape type or value type thereof, depending on class size and
+/// lifetime.
 template <typename Shape>
 struct PendingAction
 {
@@ -55,27 +67,19 @@ struct PendingAction
   {
   };
 
-  uint32_t shape_id = 0;     ///< ID of the shape to affect. Used for all actions.
-  Kind action = Kind::None;  ///< The action type.
+  uint32_t shape_id = 0;   ///< ID of the shape to affect. Used for all actions.
+  Kind kind = Kind::None;  ///< The action type.
   Create create;
   Update update;
   Destroy destroy;
 
   PendingAction() = default;
-  PendingAction(Kind action)
-    : action(action){};
+  PendingAction(Kind kind)
+    : kind(kind){};
   PendingAction(const PendingAction &other) = default;
   PendingAction(PendingAction &&other) noexcept = default;
   PendingAction &operator=(const PendingAction &other) = default;
   PendingAction &operator=(PendingAction &&other) noexcept = default;
-};
-
-template <typename Shape>
-class PendingActionQueue : public PendingQueue<PendingAction<Shape>>
-{
-public:
-  using Action = typename PendingAction<Shape>;
-  using ActionKind = typename Action::Kind;
 };
 }  // namespace tes::view::util
 

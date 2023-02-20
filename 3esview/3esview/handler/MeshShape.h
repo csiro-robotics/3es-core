@@ -7,7 +7,7 @@
 #include "Message.h"
 
 #include <3esview/BoundsCuller.h>
-#include <3esview/util/PendingActionQueue.h>
+#include <3esview/util/PendingAction.h>
 
 #include <3escore/shapes/Id.h>
 
@@ -86,7 +86,7 @@ protected:
   };
 
   using RenderMeshPtr = std::shared_ptr<RenderMesh>;
-  using PendingQueue = util::PendingActionQueue<std::shared_ptr<tes::MeshShape>>;
+  using PendingAction = util::PendingAction<std::shared_ptr<tes::MeshShape>>;
 
   /// Create a @c RenderMesh entry for @p shape in @p _pending_shapes.
   /// @param shape The shape data to create for.
@@ -96,7 +96,7 @@ protected:
   /// @param shape_id The ID of the shape to update.
   /// @param update The update details.
   /// @return True if @p shape_id is valid for update.
-  bool updateShape(uint32_t shape_id, const PendingQueue::Action::Update &update);
+  bool updateShape(uint32_t shape_id, const PendingAction::Update &update);
 
   /// Get the queued @c RenderMesh shape entry for the given ID.
   ///
@@ -136,7 +136,7 @@ protected:
   std::unordered_map<Id, RenderMeshPtr> _shapes;
   /// A buffer for items to be added to _shapes on the next @c prepareFrame() call.
   /// For details, see the large comment block in @c create().
-  PendingQueue _pending_queue;
+  std::vector<PendingAction> _pending_queue;
   /// List of IDs for items in @c _shapes which need their render assets updated.
   std::vector<Id> _needs_render_asset_list;
   /// Transient shapes. The last item is the most current which is returned when requesting a

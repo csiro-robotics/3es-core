@@ -11,7 +11,7 @@
 #include <3esview/MagnumColour.h>
 #include <3esview/MagnumV3.h>
 #include <3esview/painter/Text.h>
-#include <3esview/util/PendingActionQueue.h>
+#include <3esview/util/PendingAction.h>
 
 #include <3escore/Connection.h>
 #include <3escore/Log.h>
@@ -66,7 +66,7 @@ public:
   /// Text entry alias.
   using TextEntry = painter::Text::TextEntry;
   /// Pending action queue.
-  using PendingQueue = util::PendingActionQueue<TextShape>;
+  using PendingAction = util::PendingAction<TextShape>;
 
   /// Constructor.
   /// @param routing_id The message routing ID for the supported text messages.
@@ -91,14 +91,14 @@ private:
   /// @param shape_id The ID of the shape to update. Transient shapes (zero ID) cannot be updated.
   /// @param update Details of the update message.
   /// @return True on success.
-  bool update(uint32_t shape_id, const typename PendingQueue::Action::Update &update);
+  bool update(uint32_t shape_id, const typename PendingAction::Update &update);
   /// Destroy a text shape.
   /// @param shape_id The ID of the shape to update. Transient shapes (zero ID) cannot be destroyed.
   /// @return True on success.
   bool destroy(uint32_t shape_id);
 
   std::mutex _mutex;
-  PendingQueue _pending_queue;
+  std::vector<PendingAction> _pending_queue;
   std::vector<TextEntry> _transient;
   std::unordered_map<uint32_t, TextEntry> _text;
   std::shared_ptr<painter::Text> _painter;
@@ -138,27 +138,28 @@ void Text<TextShape, Affordances>::prepareFrame(const FrameStamp &stamp)
 template <typename TextShape, typename Affordances>
 void Text<TextShape, Affordances>::endFrame(const FrameStamp &stamp)
 {
+  TES_UNUSED(stamp);
   std::lock_guard guard(_mutex);
   _transient.clear();
-  _pending_queue.mark(stamp.frame_number);
-  for (const auto &action : _pending_queue.view(stamp.frame_number))
+  for (const auto &action : _pending_queue)
   {
-    switch (action.action)
+    switch (action.kind)
     {
     default:
-    case PendingQueue::Action::Kind::None:
+    case PendingAction::Kind::None:
       break;
-    case PendingQueue::Action::Kind::Create:
+    case PendingAction::Kind::Create:
       create(action.create.shape);
       break;
-    case PendingQueue::Action::Kind::Update:
+    case PendingAction::Kind::Update:
       update(action.shape_id, action.update);
       break;
-    case PendingQueue::Action::Kind::Destroy:
+    case PendingAction::Kind::Destroy:
       destroy(action.shape_id);
       break;
     }
   }
+  _pending_queue.clear();
 }
 
 
@@ -199,11 +200,11 @@ void Text<TextShape, Affordances>::draw(DrawPass pass, const FrameStamp &stamp,
 template <typename TextShape, typename Affordances>
 void Text<TextShape, Affordances>::readMessage(PacketReader &reader)
 {
-  PendingQueue::Action action = {};
+  PendingAction action = {};
   switch (reader.messageId())
   {
   case OIdCreate: {
-    action.action = PendingQueue::ActionKind::Create;
+    action.kind = PendingAction::Kind::Create;
     if (!action.create.shape.readCreate(reader))
     {
       log::error("Failed to read create for ", name());
@@ -222,7 +223,7 @@ void Text<TextShape, Affordances>::readMessage(PacketReader &reader)
       return;
     }
 
-    action.action = PendingQueue::ActionKind::Update;
+    action.kind = PendingAction::Kind::Update;
     action.shape_id = update.id;
     action.update.flags = update.flags;
     action.update.position = Vector3d(attrs.position);
@@ -238,7 +239,7 @@ void Text<TextShape, Affordances>::readMessage(PacketReader &reader)
       log::error("Failed to read destroy for ", name());
       return;
     }
-    action.action = PendingQueue::ActionKind::Destroy;
+    action.kind = PendingAction::Kind::Destroy;
     action.shape_id = destroy.id;
     _pending_queue.emplace_back(action);
     break;
@@ -296,7 +297,7 @@ bool Text<TextShape, Affordances>::create(const TextShape &shape)
 
 template <typename TextShape, typename Affordances>
 bool Text<TextShape, Affordances>::update(uint32_t shape_id,
-                                          const typename PendingQueue::Action::Update &update)
+                                          const typename PendingAction::Update &update)
 {
   if (shape_id == 0)
   {

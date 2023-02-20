@@ -46,6 +46,7 @@ bool Camera::lookup(CameraId camera_id, tes::camera::Camera &camera) const
 void Camera::initialise()
 {}
 
+
 void Camera::reset()
 {
   std::lock_guard guard(_mutex);
@@ -68,14 +69,14 @@ void Camera::endFrame(const FrameStamp &stamp)
 {
   (void)stamp;
   std::lock_guard guard(_mutex);
-  _pending_cameras.mark(stamp.frame_number);
-  for (auto &[id, camera] : _pending_cameras.view(stamp.frame_number))
+  for (auto &[id, camera] : _pending_cameras)
   {
     if (id < _cameras.size())
     {
       _cameras[id] = std::pair(camera, true);
     }
   }
+  _pending_cameras.clear();
 }
 
 

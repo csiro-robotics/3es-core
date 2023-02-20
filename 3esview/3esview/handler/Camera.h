@@ -9,7 +9,6 @@
 #include "Message.h"
 
 #include <3esview/camera/Camera.h>
-#include <3esview/util/PendingQueue.h>
 
 #include <3escore/Messages.h>
 
@@ -78,7 +77,7 @@ private:
   /// Main thread camera state.
   CameraSet _cameras;
   /// Pending thread camera state for next @c prepareFrame().
-  util::PendingQueue<std::pair<uint8_t, tes::camera::Camera>> _pending_cameras;
+  std::vector<std::pair<uint8_t, tes::camera::Camera>> _pending_cameras;
   ServerInfoMessage _server_info = {};
 };
 }  // namespace tes::view::handler

@@ -68,8 +68,7 @@ list(APPEND PUBLIC_HEADERS
   shaders/VertexColour.h
   shaders/VoxelGeom.h
   util/Enum.h
-  util/PendingActionQueue.h
-  util/PendingQueue.h
+  util/PendingAction.h
   util/ResourceList.h
 )
 
@@ -141,7 +140,6 @@ list(APPEND SOURCES
   shaders/Voxel.geom
   shaders/Voxel.vert
   shaders/VoxelGeom.cpp
-  util/PendingQueue.cpp
   util/ResourceList.cpp
 )
 
