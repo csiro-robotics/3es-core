@@ -58,6 +58,19 @@ if(TES_BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif(TES_BUILD_EXAMPLES)
 if(TES_BUILD_VIEWER)
+  # For a non-Windows VCPKG build Magnum plugins are static libraries. We need to explicitly find the
+  # plugins we use.
+  set(TES_MAGNUM_PLUGIN_LIBRARIES)
+  if(NOT WIN32 AND VCPKG_MANIFEST_FEATURES)
+    find_package(MagnumPlugins CONFIG REQUIRED
+      FreeTypeFont
+    )
+    find_package(freetype CONFIG REQUIRED)
+    set(TES_MAGNUM_PLUGIN_LIBRARIES
+      MagnumPlugins::FreeTypeFont
+      freetype
+    )
+  endif(NOT WIN32 AND VCPKG_MANIFEST_FEATURES)
   add_subdirectory(3esview)
 endif(TES_BUILD_VIEWER)
 

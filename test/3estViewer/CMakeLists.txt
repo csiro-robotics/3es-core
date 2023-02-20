@@ -44,6 +44,7 @@ target_link_libraries(3estViewer
     3escore
     3esview
     Magnum::${WINDOWLESS_APP}
+    ${TES_MAGNUM_PLUGIN_LIBRARIES}
     GTest::Main
 )
 
