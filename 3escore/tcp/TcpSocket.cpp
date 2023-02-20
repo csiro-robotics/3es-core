@@ -222,11 +222,12 @@ int TcpSocket::sendBufferSize() const
 int TcpSocket::read(char *buffer, int buffer_length) const
 {
 #if 0
-  int bytesRead = 0;    // bytes read so far
+  int bytesRead = 0;  // bytes read so far
 
   while (bytesRead < buffer_length)
   {
-    int read = ::recv(_detail->socket, buffer + bytesRead, buffer_length - bytesRead, 0);
+    const auto read =
+      static_cast<int>(::recv(_detail->socket, buffer + bytesRead, buffer_length - bytesRead, 0));
 
     if (read < 0)
     {
@@ -252,7 +253,7 @@ int TcpSocket::read(char *buffer, int buffer_length) const
   }
 
   const int flags = MSG_WAITALL;
-  const int read = ::recv(_detail->socket, buffer, buffer_length, flags);
+  const auto read = static_cast<int>(::recv(_detail->socket, buffer, buffer_length, flags));
   if (read < 0)
   {
     if (!tcpbase::checkRecv(_detail->socket, read))
@@ -278,7 +279,7 @@ int TcpSocket::readAvailable(char *buffer, int buffer_length) const
 #ifndef WIN32
   flags |= MSG_DONTWAIT;
 #endif  // WIN32
-  const int read = ::recv(_detail->socket, buffer, buffer_length, flags);
+  const auto read = static_cast<int>(::recv(_detail->socket, buffer, buffer_length, flags));
   if (read == -1)
   {
     if (!tcpbase::checkRecv(_detail->socket, read))
@@ -313,8 +314,9 @@ int TcpSocket::write(const char *buffer, int buffer_length) const
     while (retry)
     {
       retry = false;
-      sent = ::send(_detail->socket, reinterpret_cast<const char *>(buffer) + bytes_sent,
-                    buffer_length - bytes_sent, flags);
+      sent = static_cast<int>(::send(_detail->socket,
+                                     reinterpret_cast<const char *>(buffer) + bytes_sent,
+                                     buffer_length - bytes_sent, flags));
 #ifdef WIN32
       if (sent < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
 #else   // WIN32

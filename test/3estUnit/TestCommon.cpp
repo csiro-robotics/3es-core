@@ -380,10 +380,10 @@ bool getColour(const DataBuffer &stream, size_t index, Colour &colour)
   {
     // Single channel uint32_t stream.
     std::array<uint8_t, 4> rgba;
-    rgba[0] = stream.get<uint32_t>(index, 0);
-    rgba[1] = stream.get<uint32_t>(index, 1);
-    rgba[2] = stream.get<uint32_t>(index, 2);
-    rgba[3] = stream.get<uint32_t>(index, 3);
+    rgba[0] = stream.get<uint8_t>(index, 0);
+    rgba[1] = stream.get<uint8_t>(index, 1);
+    rgba[2] = stream.get<uint8_t>(index, 2);
+    rgba[3] = stream.get<uint8_t>(index, 3);
     colour = Colour(rgba);
     return true;
   }

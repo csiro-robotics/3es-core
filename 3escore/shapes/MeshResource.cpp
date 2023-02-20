@@ -234,7 +234,7 @@ int MeshResource::transfer(PacketWriter &packet, unsigned byte_limit,
     MeshFinaliseMessage msg;
     packet.reset(typeId(), MeshFinaliseMessage::MessageId);
     msg.mesh_id = id();
-    msg.flags = (!normals(0).isValid()) ? MffCalculateNormals : 0;
+    msg.flags = (!normals(0).isValid()) ? MffCalculateNormals : 0u;
     msg.write(packet);
     // Mark complete.
     progress.complete = true;

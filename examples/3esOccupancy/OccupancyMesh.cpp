@@ -283,7 +283,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newly_occupied, const Unordere
   {
     packet.reset(tes::MtMesh, tes::MmtVertex);
     cmp_msg.write(packet);
-    DataBuffer data_buffer(_detail->vertices);
+    DataBuffer data_buffer(_detail->vertices.data() + vertex_index, 1u);
     data_buffer.writePacked(packet, 0, quantisation_unit);
     if (packet.finalise())
     {
@@ -293,7 +293,7 @@ void OccupancyMesh::update(const UnorderedKeySet &newly_occupied, const Unordere
     // Send colour and position update.
     packet.reset(tes::MtMesh, tes::MmtVertexColour);
     cmp_msg.write(packet);
-    data_buffer = DataBuffer(_detail->colours);
+    data_buffer = DataBuffer(_detail->colours.data() + vertex_index, 1u);
     data_buffer.write(packet, 0);
     if (packet.finalise())
     {

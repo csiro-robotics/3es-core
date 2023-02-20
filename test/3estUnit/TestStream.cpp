@@ -82,11 +82,7 @@ TEST(Stream, Util)
   std::stringstream &stream = *stream_ptr;
 
   const uint32_t expect_frame_count = 42u;
-  ServerInfoMessage expected_info = {
-    101,
-    202,
-    ZYX,
-  };
+  ServerInfoMessage expected_info = { 101, 202, ZYX, { 0u } };
 
   // First write some rubbish to the stream in order to set prime it. We'll include writing
   // part of the packet marker at the start, but not complete the packet.

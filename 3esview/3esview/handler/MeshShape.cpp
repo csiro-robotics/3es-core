@@ -235,7 +235,6 @@ bool MeshShape::handleCreate(PacketReader &reader)
 
 bool MeshShape::handleUpdate(PacketReader &reader)
 {
-  uint32_t id = 0;
   UpdateMessage update = {};
   ObjectAttributesd attrs = {};
 
@@ -291,8 +290,6 @@ bool MeshShape::handleData(PacketReader &reader)
 
 MeshShape::RenderMeshPtr MeshShape::create(std::shared_ptr<tes::MeshShape> shape)
 {
-  const Id id = shape->id();
-
   // Note: this comment is referenced from the header documentation for _pending_shapes.
   // We have an existing shape. That is valid, but poses a potential race condition. Consider the
   // following event streams.

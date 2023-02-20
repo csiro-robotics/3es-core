@@ -434,7 +434,7 @@ bool isConnected(int socket)
 #ifndef WIN32
   flags |= MSG_DONTWAIT;
 #endif  // WIN32
-  const int read = ::recv(socket, &ch, 1, flags);
+  const ssize_t read = ::recv(socket, &ch, 1, flags);
 
   if (read == 0)
   {

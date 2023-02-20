@@ -389,7 +389,7 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
                const Vector3f &origin, unsigned ring_vertex_count)
 {
   ring_vertex_count = std::max(3u, ring_vertex_count);
-  if (ring_vertex_count < 0)
+  if (ring_vertex_count <= 0)
   {
     ring_vertex_count = 3;
   }

@@ -16,7 +16,7 @@ Feature featureForFlag(uint64_t flag)
 {
   // Simple solution for now.
   uint64_t bit = 1u;
-  for (int i = 0; i < TFeatureEnd; ++i, bit = bit << 1u)
+  for (unsigned i = 0; i < TFeatureEnd; ++i, bit = bit << 1u)
   {
     if (flag & bit)
     {
@@ -54,7 +54,7 @@ bool checkFeatureFlag(uint64_t feature_flag)
 bool checkFeatures(uint64_t feature_flags)
 {
   uint64_t bit = 1u;
-  for (int i = 0; i < TFeatureEnd && feature_flags != 0ull; ++i, bit = bit << 1u)
+  for (unsigned i = 0; i < TFeatureEnd && feature_flags != 0ull; ++i, bit = bit << 1u)
   {
     if (feature_flags & bit)
     {

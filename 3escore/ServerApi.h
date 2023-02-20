@@ -572,7 +572,7 @@ inline int update(Connection *connection, Shape &shape)
 {
   if (connection)
   {
-    shape.setFlags((shape.flags() | UFUpdateMode) & ~UFPosRotScaleColour);
+    shape.setFlags((shape.flags() | UFUpdateMode) & static_cast<uint16_t>(~UFPosRotScaleColour));
     return connection->update(shape);
   }
   return 0;

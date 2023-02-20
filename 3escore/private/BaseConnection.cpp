@@ -227,7 +227,7 @@ int BaseConnection::destroy(const Shape &shape)
   if (shape.id() && !shape.skipResources())
   {
     _resource_buffer.clear();
-    const unsigned resource_count = shape.enumerateResources(_resource_buffer);
+    shape.enumerateResources(_resource_buffer);
     for (const auto &resource : _resource_buffer)
     {
       releaseResource(resource->uniqueKey());
@@ -449,7 +449,7 @@ bool BaseConnection::checkResources(const Shape &shape)
 {
   bool all_present = true;
   _resource_buffer.clear();
-  const unsigned resource_count = shape.enumerateResources(_resource_buffer);
+  shape.enumerateResources(_resource_buffer);
   for (const auto &resource : _resource_buffer)
   {
     const auto search = _resources.find(resource->uniqueKey());

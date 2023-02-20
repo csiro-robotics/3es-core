@@ -361,7 +361,7 @@ Matrix4<T> &Matrix4<T>::invert()
 
   // calculate matrix inverse
   const T det_inv = static_cast<T>(1) / det;
-  for (int i = 0; i < _storage.size(); ++i)
+  for (unsigned i = 0; i < _storage.size(); ++i)
   {
     _storage[i] *= det_inv;
   }

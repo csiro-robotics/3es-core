@@ -469,7 +469,7 @@ public:
   };
 
 private:
-  std::array<uint8_t, 4> _storage;
+  std::array<uint8_t, 4> _storage = {};
 };
 
 
