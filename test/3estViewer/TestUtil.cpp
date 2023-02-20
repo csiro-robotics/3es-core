@@ -6,8 +6,6 @@
 
 #include <3esview/util/ResourceList.h>
 
-#include <gtest/gtest.h>
-
 #include <chrono>
 #include <iostream>
 #include <list>
@@ -127,14 +125,14 @@ TEST(Util, ResourceList_OutOfRange)
 
 TEST(Util, ResourceList_Iteration)
 {
-  // To test interation, we'll allocate a number of resource, then free every second one. On iteration, we'll validate
-  // we hit every second item.
+  // To test interation, we'll allocate a number of resource, then free every second one. On
+  // iteration, we'll validate we hit every second item.
   const unsigned target_resource_count = 10000u;
   ResourceList resources;
   buildResources(resources, target_resource_count);
 
-  // Now free every second item. Just for fun. Make sure we release the first item though, so we can test begin()
-  // skipping invalid items correctly.
+  // Now free every second item. Just for fun. Make sure we release the first item though, so we can
+  // test begin() skipping invalid items correctly.
   const unsigned stride = 2;
   for (util::ResourceListId id = 0; id < target_resource_count; id += stride)
   {
@@ -171,10 +169,11 @@ TEST(Util, ResourceList_Threads)
   // Test expected thread behaviour for the resource list. Things to test:
   // 1. Recursive mutex: one thread can attain multiple resource locks.
   // 2. Multi-thread access: only one thread can have resources at a time.
-  // 3. (maybe as it will leak) Release exception: releasing the resource list while another thread has locks throws.
+  // 3. (maybe as it will leak) Release exception: releasing the resource list while another thread
+  // has locks throws.
   //
-  // Note: This test is not bullet proof on the thread management. There is technically a race condition where the next
-  // thread may fail to respond while the other sleeps.
+  // Note: This test is not bullet proof on the thread management. There is technically a race
+  // condition where the next thread may fail to respond while the other sleeps.
   const auto sleep_duration = std::chrono::milliseconds(500);
   ResourceList resources;
   SharedData shared;
@@ -186,7 +185,8 @@ TEST(Util, ResourceList_Threads)
   auto ref2 = resources.allocate();
   ref2->value = unsigned(resources.size());
 
-  // Release ref1 and start a thread. It should not be able to lock the resource list until after we unlock ref2.
+  // Release ref1 and start a thread. It should not be able to lock the resource list until after we
+  // unlock ref2.
   ref1.release();
 
   // Start with the mutex lock here so we can block the second thread.

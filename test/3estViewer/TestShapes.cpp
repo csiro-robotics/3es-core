@@ -17,8 +17,6 @@
 #include <3esview/painter/Star.h>
 #include <3esview/Viewer.h>
 
-#include <gtest/gtest.h>
-
 #include <chrono>
 #include <iostream>
 #include <list>

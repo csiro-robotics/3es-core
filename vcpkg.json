@@ -1,6 +1,6 @@
 {
   "name": "3es",
-  "version-string": "0.8.0",
+  "version-string": "0.9.0",
   "description": "3D debug rendering instrumentation library.",
   "dependencies": [
     "zlib"

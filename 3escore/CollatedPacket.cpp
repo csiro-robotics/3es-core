@@ -43,7 +43,7 @@ void writeMessageHeader(uint8_t *buffer, unsigned uncompressed_size, unsigned pa
   header->payload_offset = 0;
   header->flags = 0;
 
-  message->flags = (compressed) ? CPFCompress : 0;
+  message->flags = (compressed) ? CPFCompress : 0u;
   networkEndianSwap(message->flags);
   message->reserved = 0;
   message->uncompressed_bytes = uncompressed_size;

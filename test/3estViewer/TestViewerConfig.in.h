@@ -3,6 +3,8 @@
 
 #include <3escore/CoreConfig.h>
 
+#include <gtest/gtest.h>
+
 #include <Magnum/Magnum.h>
 #include <Magnum/Platform/@WINDOWLESS_APP@.h>
 

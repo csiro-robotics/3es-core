@@ -296,7 +296,7 @@ void dumpSocketOptions(int socket)
       { "SO_NP_EXTENSIONS", SO_NP_EXTENSIONS },
 #endif  // __APPLE__
     };
-  static const size_t dopt_size = sizeof(dopt) / sizeof(dopt[0]);
+  // static const size_t dopt_size = sizeof(dopt) / sizeof(dopt[0]);
 
   for (const auto &dopt_item : dopt)
   {

@@ -21,7 +21,8 @@ public:
     Ok,
     /// Cancellation code: not an error.
     Cancel,
-    /// An invalid result indicating no action has been taken. This is the default constructed value for @c code().
+    /// An invalid result indicating no action has been taken. This is the default constructed value
+    /// for @c code().
     Invalid,
     /// Indicates the command is current disabled and cannot execute.
     Disabled,
@@ -51,8 +52,8 @@ public:
   bool operator!() const { return _code != Code::Ok; }
 
 private:
-  std::string _reason;
   Code _code = Code::Invalid;
+  std::string _reason;
 };
 }  // namespace tes::view::command
 

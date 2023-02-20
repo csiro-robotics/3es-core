@@ -83,7 +83,8 @@ public:
   ///
   /// @tparam T The argument type.
   /// @param arg Where to unpack into.
-  /// @return The number of arguments successfully unpacked. In this case, 1 on success, zero on failure.
+  /// @return The number of arguments successfully unpacked. In this case, 1 on success, zero on
+  /// failure.
   template <typename T>
   size_t unpack(T &arg) const
   {
@@ -105,23 +106,24 @@ public:
     return getAndUnpack(Args(), 0, &args...);
   }
 
-  /// Unpack a single argument into @p arg and use @p defaults if this object does not have the appropriate number of
-  /// arguments.
+  /// Unpack a single argument into @p arg and use @p defaults if this object does not have the
+  /// appropriate number of arguments.
   ///
   /// Throws @c std::bad_any_cast if the type @p T does not match the stored type.
   ///
   /// @tparam T The argument type.
   /// @param defaults The default argument values.
   /// @param arg Where to unpack into.
-  /// @return The number of arguments successfully unpacked. In this case, 1 on success, zero on failure.
+  /// @return The number of arguments successfully unpacked. In this case, 1 on success, zero on
+  /// failure.
   template <typename T>
   size_t unpackDefaulted(const Args &defaults, T &arg) const
   {
     return getAndUnpack(defaults, 0, arg);
   }
 
-  /// Unpack any number of arguments into @p args and use @p defaults if this object does not have the appropriate
-  /// number of arguments.
+  /// Unpack any number of arguments into @p args and use @p defaults if this object does not have
+  /// the appropriate number of arguments.
   ///
   /// This will try unpack up to @c count() or @p defaults.count() arguments, whichever is larger.
   ///
@@ -140,8 +142,8 @@ public:
 private:
   /// Pack @p arg at the given index.
   ///
-  /// This is the termination condition for recursive calls to @p pack, thus @p index is expected to be the index of
-  /// the last time.
+  /// This is the termination condition for recursive calls to @p pack, thus @p index is expected to
+  /// be the index of the last time.
   ///
   /// @tparam T The type of @p arg.
   /// @param index The index to pack at. Generally expected to be the last argument to pack.
@@ -178,7 +180,8 @@ private:
 
   /// Unpack argument at @p index into @p arg.
   ///
-  /// Uses @p defaults when @p index is out of range for @c count() still in range for @c defaults.count().
+  /// Uses @p defaults when @p index is out of range for @c count() still in range for @c
+  /// defaults.count().
   ///
   /// Throws @c std::bad_any_cast if the type @p T does not match the stored type.
   ///
@@ -186,8 +189,8 @@ private:
   /// @param defaults The default argument values.
   /// @param index The index of the argument.
   /// @param arg Where to unpack into.
-  /// @return The number of arguments successfully unpacked so far. In this case, `index + 1` on success, @c count() on
-  /// failure unless `index + 1` equals @c count().
+  /// @return The number of arguments successfully unpacked so far. In this case, `index + 1` on
+  /// success, @c count() on failure unless `index + 1` equals @c count().
   template <typename T>
   size_t getAndUnpack(const Args &defaults, size_t index, T &arg) const
   {
@@ -197,18 +200,19 @@ private:
       {
         return std::max(defaults.count(), count());
       }
-      arg = defaults.at(index);
+      arg = defaults.at<T>(index);
     }
     else
     {
-      arg = at(index);
+      arg = at<T>(index);
     }
     return index + 1;
   }
 
   /// Unpack argument at @p index into @p arg then recursively unpack remaining @p args.
   ///
-  /// Uses @p defaults when @p index is out of range for @c count() still in range for @c defaults.count().
+  /// Uses @p defaults when @p index is out of range for @c count() still in range for @c
+  /// defaults.count().
   ///
   /// Throws @c std::bad_any_cast if the type @p T does not match the stored type.
   ///
@@ -216,7 +220,8 @@ private:
   /// @param defaults The default argument values.
   /// @param index The index of the argument.
   /// @param arg Where to unpack into.
-  /// @return The number of arguments successfully unpacked so far. In this case, `index + 1` on success up to
+  /// @return The number of arguments successfully unpacked so far. In this case, `index + 1` on
+  /// success up to
   /// @c count() on failure.
   template <typename T, typename... Types>
   size_t getAndUnpack(const Args &defaults, size_t index, T &arg, Types... args) const
@@ -227,13 +232,13 @@ private:
       {
         return std::max(defaults.count(), count());
       }
-      arg = defaults.at(index);
+      arg = defaults.at<T>(index);
     }
     else
     {
-      arg = at(index);
+      arg = at<T>(index);
     }
-    return getAndUnpack(index + 1, &args...)
+    return getAndUnpack(index + 1, &args...);
   }
 
   std::vector<std::any> _args;

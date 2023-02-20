@@ -6,6 +6,7 @@
 
 #include "CoreConfig.h"
 
+#include <array>
 #include <cinttypes>
 #include <vector>
 

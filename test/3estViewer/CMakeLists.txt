@@ -5,7 +5,7 @@
 # - LINUX
 if(WIN32)
   set(WINDOWLESS_APP WindowlessWglApplication)
-elseif(LINUX)
+elseif(UNIX)
   set(WINDOWLESS_APP WindowlessGlxApplication)
 elseif(IOS)
   set(WINDOWLESS_APP WindowlessIosApplication)

@@ -35,6 +35,9 @@ public:
   /// Construct from a raw pointer resulting in @c Status::Borrowed, unless @p ptr is null.
   /// @param ptr The pointer to assign.
   Ptr(T *ptr);
+  /// Null pointer constructor.
+  /// @param ptr @c nullptr
+  Ptr(nullptr_t) {}
   /// Construct from a shared pointer resulting in @c Status::Shared, unless @p ptr is null.
   /// @param ptr The pointer to assign.
   Ptr(std::shared_ptr<T> ptr);
@@ -46,8 +49,8 @@ public:
   Ptr(const Ptr<T> &other) = default;
   /// Copy constructor from non-const equivalent @c T to `const T`.
   /// @param other Object to copy.
-  template <typename = std::enable_if_t<std::is_const_v<T>>>
-  Ptr(const Ptr<std::remove_const_t<T>> &other)
+  template <typename U = T, typename = std::enable_if_t<std::is_const_v<U>>>
+  Ptr(const Ptr<std::remove_const_t<U>> &other)
   {
     *this = other;
   }
@@ -80,6 +83,10 @@ public:
   /// @param ptr The pointer to assign.
   /// @return @c *this
   Ptr &operator=(T *ptr);
+  /// Assign a null pointer resulting in @c Status::Empty .
+  /// @param ptr @c nullptr
+  /// @return @c *this
+  Ptr &operator=(nullptr_t);
   /// Assign a shared pointer resulting in @c Status::Shared, unless @p ptr is null.
   /// @param ptr The pointer to assign.
   /// @return @c *this
@@ -95,8 +102,8 @@ public:
   /// Copy assignment from non-const equivalent @c T to `const T`.
   /// @param other Object to copy.
   /// @return @c *this
-  template <typename = std::enable_if_t<std::is_const_v<T>>>
-  Ptr &operator=(const Ptr<std::remove_const_t<T>> &other)
+  template <typename U = T, typename = std::enable_if_t<std::is_const_v<U>>>
+  Ptr &operator=(const Ptr<std::remove_const_t<U>> &other)
   {
     _shared = other.shared();
     _borrowed = other.borrowed();
@@ -118,7 +125,7 @@ public:
   template <typename U>
   Ptr &operator=(U *ptr)
   {
-    _shared = {};
+    _shared.reset();
     _borrowed = ptr;
     return *this;
   }
@@ -213,7 +220,7 @@ public:
   /// Inequality comparison with raw pointer.
   /// @param ptr Pointer to compare
   /// @return False if @p ptr matches either the @c borrowed() or @c shared() pointers.
-  [[nodiscard]] bool operator!=(const T *ptr) { return !operator==(ptr) }
+  [[nodiscard]] bool operator!=(const T *ptr) { return !operator==(ptr); }
 
   /// Equality comparison with raw pointer.
   /// @param ptr Pointer to compare
@@ -226,7 +233,7 @@ public:
   /// Inequality comparison with raw pointer.
   /// @param ptr Pointer to compare
   /// @return False if @p ptr matches either the @c borrowed() or @c shared() pointers.
-  [[nodiscard]] bool operator!=(const std::shared_ptr<const T> &ptr){ return !operator==(ptr) }
+  [[nodiscard]] bool operator!=(const std::shared_ptr<const T> &ptr) { return !operator==(ptr); }
 
   /// Get a raw pointer from either a shared or borrowed pointer.
   ///
@@ -287,6 +294,15 @@ inline Ptr<T> &Ptr<T>::operator=(T *ptr)
 {
   _shared.reset();
   _borrowed = ptr;
+  return *this;
+}
+
+
+template <typename T>
+inline Ptr<T> &Ptr<T>::operator=(nullptr_t)
+{
+  _shared.reset();
+  _borrowed = nullptr;
   return *this;
 }
 

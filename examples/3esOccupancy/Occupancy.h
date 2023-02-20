@@ -12,6 +12,6 @@ class Server;
 }
 extern std::shared_ptr<tes::Server> g_tes_server;
 
-#include "debugids.h"
+#include "DebugIds.h"
 
 #endif  // _3ES_OCCUPANCY_H_

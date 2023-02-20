@@ -223,6 +223,7 @@ void Text<TextShape, Affordances>::readMessage(PacketReader &reader)
     action.update.scale = Vector3d(attrs.scale);
     action.update.colour = Colour(attrs.colour);
     _pending_queue.emplace_back(action);
+    break;
   }
   case OIdDestroy: {
     DestroyMessage destroy = {};

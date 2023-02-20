@@ -25,8 +25,10 @@
 
 #include <array>
 #include <chrono>
+#include <condition_variable>
 #include <memory>
 #include <optional>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>

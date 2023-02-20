@@ -47,7 +47,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Vector3<REAL> &v)
 template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Vector4<REAL> &v)
 {
-  if (tes::getV4WMode(o) == tes::WM_Last)
+  if (tes::getV4WMode(o) == tes::WMode::Last)
   {
     o << '(' << v.x() << ',' << v.y() << ',' << v.z() << ',' << v.w() << ')';
   }
@@ -69,7 +69,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Vector4<REAL> &v)
 template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Quaternion<REAL> &q)
 {
-  if (tes::getQuatWMode(o) == tes::WM_Last)
+  if (tes::getQuatWMode(o) == tes::WMode::Last)
   {
     o << '(' << q.x() << ',' << q.y() << ',' << q.z() << ',' << q.w() << ')';
   }
@@ -91,7 +91,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Quaternion<REAL> &q)
 template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Matrix3<REAL> &m)
 {
-  char endOfRow = (tes::getMatMode(o) == tes::MM_Inline) ? ',' : '\n';
+  char endOfRow = (tes::getMatMode(o) == tes::MatrixMode::Inline) ? ',' : '\n';
   o << "[ "                                                              //
     << m.rc[0][0] << ',' << m.rc[0][1] << ',' << m.rc[0][2] << endOfRow  //
     << m.rc[1][0] << ',' << m.rc[1][1] << ',' << m.rc[1][2] << endOfRow  //
@@ -111,7 +111,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Matrix3<REAL> &m)
 template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Matrix4<REAL> &m)
 {
-  char endOfRow = (tes::getMatMode(o) == tes::MM_Inline) ? ',' : '\n';
+  char endOfRow = (tes::getMatMode(o) == tes::MatrixMode::Inline) ? ',' : '\n';
   o << "[ "                                                                                   //
     << m.rc[0][0] << ',' << m.rc[0][1] << ',' << m.rc[0][2] << ',' << m.rc[0][3] << endOfRow  //
     << m.rc[1][0] << ',' << m.rc[1][1] << ',' << m.rc[1][2] << ',' << m.rc[1][3] << endOfRow  //

@@ -812,10 +812,10 @@ inline uint32_t Colour::ConverterUInt32::operator()(const std::array<uint8_t, 4>
 inline void Colour::ConverterUInt32::operator()(uint32_t colour,
                                                 std::array<uint8_t, 4> &storage) const
 {
-  storage[kRedIndex] = (colour >> kRedShift) & 0xffu;
-  storage[kGreenIndex] = (colour >> kGreenShift) & 0xffu;
-  storage[kBlueIndex] = (colour >> kBlueShift) & 0xffu;
-  storage[kAlphaIndex] = (colour >> kAlphaShift) & 0xffu;
+  storage[kRedIndex] = static_cast<uint8_t>((colour >> kRedShift) & 0xffu);
+  storage[kGreenIndex] = static_cast<uint8_t>((colour >> kGreenShift) & 0xffu);
+  storage[kBlueIndex] = static_cast<uint8_t>((colour >> kBlueShift) & 0xffu);
+  storage[kAlphaIndex] = static_cast<uint8_t>((colour >> kAlphaShift) & 0xffu);
 }
 }  // namespace tes
 
