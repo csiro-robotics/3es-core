@@ -202,6 +202,7 @@ TEST_F(Shapes, Painter_Add)
   EXPECT_TRUE(painter.readShape(Id(3), t, c));
   EXPECT_EQ(t, transform);
   EXPECT_EQ(c, colour);
+  viewer->runFor(1u);
 }
 
 
@@ -247,6 +248,7 @@ TEST_F(Shapes, Painter_Remove)
   EXPECT_FALSE(painter.readShape(Id(1), t, c));
   EXPECT_FALSE(painter.readShape(Id(2), t, c));
   EXPECT_FALSE(painter.readShape(Id(3), t, c));
+  viewer->runFor(1u);
 }
 
 
@@ -301,6 +303,7 @@ TEST_F(Shapes, Painter_ReAdd)
   EXPECT_TRUE(painter.readShape(Id(3), t, c));
   EXPECT_EQ(t, transform);
   EXPECT_EQ(c, colour);
+  viewer->runFor(1u);
 }
 
 
