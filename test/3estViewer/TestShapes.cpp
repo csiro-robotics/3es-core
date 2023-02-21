@@ -25,12 +25,8 @@
 #include <thread>
 #include <vector>
 
-
-#if TES_DISABLE_PAINTER_TESTS
-#define PAINTER_TEST_NAME(Name)  DISABLED_ ## Name
-#else // TES_DISABLE_PAINTER_TESTS
-#define PAINTER_TEST_NAME(Name) Name
-#endif // TES_DISABLE_PAINTER_TESTS
+// Note(KS): all the tests in this file are removed from CTest runs when TES_DISABLE_PAINTER_TESTS
+// is on. See CMakeLists.txt and TES_DISABLE_PAINTER_TESTS usage for details.
 
 namespace tes::view
 {
@@ -178,7 +174,7 @@ private:
   std::unique_ptr<Painter> _painter;
 };
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Add))
+TEST_F(Shapes, Painter_Add)
 {
   auto viewer = createViewer();
   painter::Box painter(viewer->tes()->culler(), viewer->tes()->shaderLibrary());
@@ -212,7 +208,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Add))
 }
 
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Remove))
+TEST_F(Shapes, Painter_Remove)
 {
   auto viewer = createViewer();
   painter::Box painter(viewer->tes()->culler(), viewer->tes()->shaderLibrary());
@@ -258,7 +254,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Remove))
 }
 
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_ReAdd))
+TEST_F(Shapes, Painter_ReAdd)
 {
   // Validate we can add a shape, remove it, then add it again all in the same frame.
   // This isn't an expected use case, but it should not break.
@@ -313,7 +309,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_ReAdd))
 }
 
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Parents))
+TEST_F(Shapes, Painter_Parents)
 {
   // Test creating a shapes with a parent;
   // - Basic parenting affecting transformations.
@@ -336,7 +332,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Parents))
 }
 
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Update))
+TEST_F(Shapes, Painter_Update)
 {
   // Make sure our viewable window works in the simple case:
   // - add shapes for N frames
@@ -385,7 +381,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Update))
 // -----------------------------------------------------------------------------
 // Test each of the painters
 // -----------------------------------------------------------------------------
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Arrow))
+TEST_F(Shapes, Painter_Arrow)
 {
   ParentsTest<painter::Arrow> test;
   auto viewer = createViewer();
@@ -393,7 +389,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Arrow))
 }
 
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Box))
+TEST_F(Shapes, Painter_Box)
 {
   ParentsTest<painter::Box> test;
   auto viewer = createViewer();
@@ -401,7 +397,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Box))
 }
 
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Capsule))
+TEST_F(Shapes, Painter_Capsule)
 {
   ParentsTest<painter::Capsule> test;
   auto viewer = createViewer();
@@ -409,7 +405,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Capsule))
 }
 
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Cone))
+TEST_F(Shapes, Painter_Cone)
 {
   ParentsTest<painter::Cone> test;
   auto viewer = createViewer();
@@ -417,7 +413,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Cone))
 }
 
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Cylinder))
+TEST_F(Shapes, Painter_Cylinder)
 {
   ParentsTest<painter::Cylinder> test;
   auto viewer = createViewer();
@@ -425,7 +421,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Cylinder))
 }
 
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Plane))
+TEST_F(Shapes, Painter_Plane)
 {
   ParentsTest<painter::Plane> test;
   auto viewer = createViewer();
@@ -433,7 +429,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Plane))
 }
 
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Sphere))
+TEST_F(Shapes, Painter_Sphere)
 {
   ParentsTest<painter::Sphere> test;
   auto viewer = createViewer();
@@ -441,7 +437,7 @@ TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Sphere))
 }
 
 
-TEST_F(Shapes, PAINTER_TEST_NAME(Painter_Star))
+TEST_F(Shapes, Painter_Star)
 {
   ParentsTest<painter::Star> test;
   auto viewer = createViewer();
