@@ -1,5 +1,7 @@
 #include "Converter.h"
 
+#include <3esview/MagnumColour.h>
+
 #include <3escore/MeshMessages.h>
 #include <3escore/shapes/MeshResource.h>
 
@@ -170,7 +172,7 @@ struct VertexMapper<VertexPC>
     vertex.position = Magnum::Vector3(x, y, z);
     const auto c =
       (src_colours.count()) ? Colour(src_colours.get<uint32_t>(src_index)) : options.default_colour;
-    vertex.colour = Magnum::Color4(Magnum::Color4ub(c.r(), c.g(), c.b(), c.a()));
+    vertex.colour = tes::view::convert(c);
     return vertex.position;
   }
 
@@ -216,7 +218,7 @@ struct VertexMapper<VertexPNC>
     vertex.normal = Magnum::Vector3(nx, ny, nz);
     const auto c =
       (src_colours.count()) ? Colour(src_colours.get<uint32_t>(src_index)) : options.default_colour;
-    vertex.colour = Magnum::Color4(Magnum::Color4ub(c.r(), c.g(), c.b(), c.a()));
+    vertex.colour = tes::view::convert(c);
     return vertex.position;
   }
 
