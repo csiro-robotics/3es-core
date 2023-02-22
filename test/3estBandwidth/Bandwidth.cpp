@@ -23,7 +23,8 @@
 #include <thread>
 #include <vector>
 
-// Bandwidth test. Tessellate a sphere to a high number of polygons and repeatedly send this data to the server.
+// Bandwidth test. Tessellate a sphere to a high number of polygons and repeatedly send this data to
+// the server.
 
 using namespace tes;
 
@@ -41,7 +42,8 @@ void onSignal(int arg)
   }
 }
 
-TimingClock::duration findMinDuration(const TimingClock::duration *durations, unsigned durationCount)
+TimingClock::duration findMinDuration(const TimingClock::duration *durations,
+                                      unsigned durationCount)
 {
   TimingClock::duration minDuration = durations[0];
   for (unsigned i = 1; i < durationCount; ++i)
@@ -55,7 +57,8 @@ TimingClock::duration findMinDuration(const TimingClock::duration *durations, un
   return minDuration;
 }
 
-TimingClock::duration findMaxDuration(const TimingClock::duration *durations, unsigned durationCount)
+TimingClock::duration findMaxDuration(const TimingClock::duration *durations,
+                                      unsigned durationCount)
 {
   TimingClock::duration maxDuration = durations[0];
   for (unsigned i = 1; i < durationCount; ++i)
@@ -69,7 +72,8 @@ TimingClock::duration findMaxDuration(const TimingClock::duration *durations, un
   return maxDuration;
 }
 
-TimingClock::duration calcAvgDuration(const TimingClock::duration *durations, unsigned durationCount)
+TimingClock::duration calcAvgDuration(const TimingClock::duration *durations,
+                                      unsigned durationCount)
 {
   TimingClock::duration totalDuration = durations[0];
   for (unsigned i = 1; i < durationCount; ++i)
@@ -197,16 +201,16 @@ int main(int argc, char **argvNonConst)
 
   ServerInfoMessage info;
   initDefaultServerInfo(&info);
-  info.coordinateFrame = XYZ;
-  unsigned serverFlags = SF_DefaultNoCompression;
+  info.coordinate_frame = XYZ;
+  unsigned serverFlags = SFDefaultNoCompression;
   if (haveOption("compress", argc, argv))
   {
-    serverFlags |= SF_Compress | SF_Collate;
+    serverFlags |= SFCompress | SFCollate;
   }
 
-  Server *server = Server::create(ServerSettings(serverFlags), &info);
+  auto server = Server::create(ServerSettings(serverFlags), &info);
 
-  server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous);
+  server->connectionMonitor()->start(tes::ConnectionMode::Asynchronous);
 
   const unsigned durationHistorySize = 100;
   TimingClock::duration durationWindow[durationHistorySize];
@@ -226,7 +230,7 @@ int main(int argc, char **argvNonConst)
     server->create(shape);
 
     server->updateFrame(0.0f);
-    if (server->connectionMonitor()->mode() == tes::ConnectionMonitor::Synchronous)
+    if (server->connectionMonitor()->mode() == tes::ConnectionMode::Synchronous)
     {
       server->connectionMonitor()->monitorConnections();
     }
@@ -244,10 +248,11 @@ int main(int argc, char **argvNonConst)
     const auto avgDuration = calcAvgDuration(durationWindow, durationHistorySize);
 
     std::ostringstream timeStream;
-    timeStream << elapsed << " avg: " << avgDuration << " [" << minDuration << "," << maxDuration << ']';
+    timeStream << elapsed << " avg: " << avgDuration << " [" << minDuration << "," << maxDuration
+               << ']';
 
-    printf("\r%u connection(s) %u triangles : %s      ", server->connectionCount(), unsigned(triangles.size()),
-           timeStream.str().c_str());
+    printf("\r%u connection(s) %u triangles : %s      ", server->connectionCount(),
+           unsigned(triangles.size()), timeStream.str().c_str());
     fflush(stdout);
   }
 
@@ -257,8 +262,7 @@ int main(int argc, char **argvNonConst)
   server->connectionMonitor()->stop();
   server->connectionMonitor()->join();
 
-  server->dispose();
-  server = nullptr;
+  server.reset();
 
   return 0;
 }

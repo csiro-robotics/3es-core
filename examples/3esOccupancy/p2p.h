@@ -19,7 +19,7 @@ inline tes::Vector3f p2p(const octomap::point3d &p)
 
 inline octomap::point3d p2p(const tes::Vector3f &p)
 {
-  return octomap::point3d(p.x, p.y, p.z);
+  return octomap::point3d(p.x(), p.y(), p.z());
 }
 
 inline const tes::Vector3f *p2pArray(const octomap::point3d *points)

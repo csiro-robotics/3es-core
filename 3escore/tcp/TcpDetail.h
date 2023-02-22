@@ -9,7 +9,7 @@
 
 #ifdef WIN32
 #include <winsock2.h>
-typedef int socklen_t;
+using socklen_t = int;  // NOLINT(readability-identifier-naming)
 #else
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -23,26 +23,14 @@ namespace tes
 {
 struct TcpSocketDetail
 {
-  int socket;
-  sockaddr_in address;
-
-  TcpSocketDetail()
-    : socket(-1)
-  {
-    memset(&address, 0, sizeof(address));
-  }
+  int socket = -1;
+  sockaddr_in address = {};
 };
 
 struct TcpListenSocketDetail
 {
-  int listenSocket;
-  struct sockaddr_in address;
-
-  TcpListenSocketDetail()
-    : listenSocket(-1)
-  {
-    memset(&address, 0, sizeof(address));
-  }
+  int listen_socket = -1;
+  struct sockaddr_in address = {};
 };
 }  // namespace tes
 

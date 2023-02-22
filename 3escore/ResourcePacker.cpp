@@ -10,10 +10,10 @@
 #include <algorithm>
 #include <cstdio>
 
-using namespace tes;
-
+namespace tes
+{
 ResourcePacker::ResourcePacker()
-  : _progress(new TransferProgress)
+  : _progress(std::make_unique<TransferProgress>())
 {
   _progress->reset();
 }
@@ -25,10 +25,10 @@ ResourcePacker::~ResourcePacker()
 }
 
 
-void ResourcePacker::transfer(const Resource *resource)
+void ResourcePacker::transfer(ResourcePtr resource)
 {
   cancel();
-  _resource = resource;
+  _resource = std::move(resource);
 }
 
 
@@ -40,7 +40,7 @@ void ResourcePacker::cancel()
 }
 
 
-bool ResourcePacker::nextPacket(PacketWriter &packet, unsigned byteLimit)
+bool ResourcePacker::nextPacket(PacketWriter &packet, unsigned byte_limit)
 {
   if (!_resource)
   {
@@ -54,7 +54,7 @@ bool ResourcePacker::nextPacket(PacketWriter &packet, unsigned byteLimit)
     return true;
   }
 
-  if (_resource->transfer(packet, byteLimit, *_progress) != 0)
+  if (_resource->transfer(packet, byte_limit, *_progress) != 0)
   {
     _progress->failed = true;
     _resource = nullptr;
@@ -64,10 +64,11 @@ bool ResourcePacker::nextPacket(PacketWriter &packet, unsigned byteLimit)
 
   if (_progress->complete || _progress->failed)
   {
-    _lastCompletedId = _resource->uniqueKey();
+    _last_completed_id = _resource->uniqueKey();
     _resource = nullptr;
     _progress->reset();
   }
 
   return true;
 }
+}  // namespace tes

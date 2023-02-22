@@ -5,8 +5,8 @@
 
 #include <sstream>
 
-using namespace tes;
-
+namespace tes
+{
 Exception::Exception(const char *msg, const char *filename, int line_number)
 {
   if (filename)
@@ -45,3 +45,4 @@ void Exception::swap(Exception &other) noexcept
 {
   std::swap(_message, other._message);
 }
+}  // namespace tes

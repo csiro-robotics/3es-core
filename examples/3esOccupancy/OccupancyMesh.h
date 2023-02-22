@@ -19,9 +19,11 @@
 #include <3escore/shapes/MeshResource.h>
 #endif  // TES_ENABLE
 
-typedef std::unordered_map<octomap::OcTreeKey, uint32_t, octomap::OcTreeKey::KeyHash> KeyToIndexMap;
-typedef std::unordered_set<octomap::OcTreeKey, octomap::OcTreeKey::KeyHash> UnorderedKeySet;
-typedef std::vector<octomap::OcTreeKey> KeyArray;
+#include <memory>
+
+using KeyToIndexMap = std::unordered_map<octomap::OcTreeKey, uint32_t, octomap::OcTreeKey::KeyHash>;
+using UnorderedKeySet = std::unordered_set<octomap::OcTreeKey, octomap::OcTreeKey::KeyHash>;
+using KeyArray = std::vector<octomap::OcTreeKey>;
 class OccupancyMesh;
 
 #ifdef TES_ENABLE
@@ -30,32 +32,42 @@ struct OccupancyMeshDetail;
 /// Defines and maintains a 3rd Eye Scene mesh resource based on an octomap.
 ///
 /// Renders as a point cloud of occupied voxels.
-class OccupancyMesh : public tes::MeshResource
+class OccupancyMesh : public tes::MeshResource, std::enable_shared_from_this<OccupancyMesh>
 {
 public:
-  OccupancyMesh(unsigned meshId, octomap::OcTree &map);
+  OccupancyMesh(unsigned mesh_id, octomap::OcTree &map);
   ~OccupancyMesh();
 
-  uint32_t id() const override;
-  tes::Transform transform() const override;
-  uint32_t tint() const override;
-  uint8_t drawType(int stream) const override;
+  uint32_t id() const final;
+  tes::Transform transform() const final;
+  uint32_t tint() const final;
+  uint8_t drawType(int stream) const final;
+  using tes::MeshResource::drawType;
+  float drawScale(int stream) const final;
+  using tes::MeshResource::drawScale;
 
-  unsigned vertexCount(int stream) const override;
-  unsigned indexCount(int stream) const override;
+  unsigned vertexCount(int stream) const final;
+  unsigned indexCount(int stream) const final;
 
-  tes::DataBuffer vertices(int stream) const override;
-  tes::DataBuffer indices(int stream) const override;
-  tes::DataBuffer normals(int stream) const override;
-  tes::DataBuffer uvs(int stream) const override;
-  tes::DataBuffer colours(int stream) const override;
+  tes::DataBuffer vertices(int stream) const final;
+  using tes::MeshResource::vertices;
+  tes::DataBuffer indices(int stream) const final;
+  using tes::MeshResource::indices;
+  tes::DataBuffer normals(int stream) const final;
+  using tes::MeshResource::normals;
+  tes::DataBuffer uvs(int stream) const final;
+  using tes::MeshResource::uvs;
+  tes::DataBuffer colours(int stream) const final;
+  using tes::MeshResource::colours;
 
-  tes::Resource *clone() const override;
+  std::shared_ptr<tes::Resource> clone() const final;
 
-  int transfer(tes::PacketWriter &packet, unsigned byteLimit, tes::TransferProgress &progress) const override;
+  int transfer(tes::PacketWriter &packet, unsigned byteLimit,
+               tes::TransferProgress &progress) const final;
 
   /// Updates noted changes to the debug view.
-  /// @param occupiedChange Keys of voxels which have become occupied from free or uncertain since the last update.
+  /// @param occupiedChange Keys of voxels which have become occupied from free or uncertain since
+  /// the last update.
   /// @param newlyFree Keys of voxels which have become free from occupied since the last update.
   /// @param touchedOccupied Keys of voxels which have changed occupied probability.
   void update(const UnorderedKeySet &newlyOccupied, const UnorderedKeySet &newlyFree,
@@ -67,7 +79,7 @@ private:
   octomap::OcTree &_map;
   uint32_t _id;
 
-  OccupancyMeshDetail *_detail;
+  std::unique_ptr<OccupancyMeshDetail> _detail;
 };
 
 #endif  // TES_ENABLE

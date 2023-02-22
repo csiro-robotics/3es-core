@@ -5,5 +5,4 @@
 
 namespace tes
 {
-int suppressMsvcLinkWarning = 1;
-}
+}  // namespace tes

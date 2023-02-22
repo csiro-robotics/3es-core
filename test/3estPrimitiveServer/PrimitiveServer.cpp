@@ -2,10 +2,10 @@
 // author: Kazys Stepanas
 //
 
-// This test program creates a 3es server and publishes various shapes. It outputs a JSON representation of each
-// published item to standard output. The program should be paired with a similar client application which logs
-// received data in JSON format. The JSON may be parsed and compared to validate equivalents of what is sent and what
-// is received.
+// This test program creates a 3es server and publishes various shapes. It outputs a JSON
+// representation of each published item to standard output. The program should be paired with a
+// similar client application which logs received data in JSON format. The JSON may be parsed and
+// compared to validate equivalents of what is sent and what is received.
 
 #include <3escore/Connection.h>
 #include <3escore/ConnectionMonitor.h>
@@ -17,7 +17,7 @@
 #include <3escore/tessellate/Sphere.h>
 
 #define TES_ENABLE
-#include <3escore/ServerMacros.h>
+#include <3escore/ServerApi.h>
 
 #include <3escore/Timer.h>
 #include <3escore/Vector3.h>
@@ -48,14 +48,15 @@ void onSignal(int arg)
 }  // namespace
 
 
-MeshShape *createPointsMesh(unsigned id, const std::vector<Vector3f> &vertices)
+std::shared_ptr<MeshShape> createPointsMesh(unsigned id, const std::vector<Vector3f> &vertices)
 {
-  MeshShape *shape = new MeshShape(DtPoints, tes::Id(id), tes::DataBuffer(vertices));
+  auto shape = std::make_shared<MeshShape>(DtPoints, tes::Id(id), tes::DataBuffer(vertices));
   return shape;
 }
 
 
-MeshShape *createLinesMesh(unsigned id, const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices)
+std::shared_ptr<MeshShape> createLinesMesh(unsigned id, const std::vector<Vector3f> &vertices,
+                                           const std::vector<unsigned> &indices)
 {
   std::vector<unsigned> lineIndices;
 
@@ -70,19 +71,22 @@ MeshShape *createLinesMesh(unsigned id, const std::vector<Vector3f> &vertices, c
     lineIndices.push_back(indices[i + 0]);
   }
 
-  MeshShape *shape = new MeshShape(DtLines, Id(id), DataBuffer(vertices), DataBuffer(lineIndices));
+  auto shape =
+    std::make_shared<MeshShape>(DtLines, Id(id), DataBuffer(vertices), DataBuffer(lineIndices));
   return shape;
 }
 
 
-MeshShape *createTrianglesMesh(unsigned id, const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices)
+std::shared_ptr<MeshShape> createTrianglesMesh(unsigned id, const std::vector<Vector3f> &vertices,
+                                               const std::vector<unsigned> &indices)
 {
-  MeshShape *shape = new MeshShape(DtTriangles, Id(id), DataBuffer(vertices), DataBuffer(indices));
+  auto shape =
+    std::make_shared<MeshShape>(DtTriangles, Id(id), DataBuffer(vertices), DataBuffer(indices));
   return shape;
 }
 
 
-MeshShape *createVoxelsMesh(unsigned id)
+std::shared_ptr<MeshShape> createVoxelsMesh(unsigned id)
 {
   const float voxelScale = 0.1f;
   std::vector<Vector3f> vertices;
@@ -90,46 +94,49 @@ MeshShape *createVoxelsMesh(unsigned id)
   Vector3f v;
   for (int z = -8; z < 8; ++z)
   {
-    v.z = float(z) * voxelScale;
+    v.z() = float(z) * voxelScale;
     for (int y = -8; y < 8; ++y)
     {
-      v.y = float(y) * voxelScale;
+      v.y() = float(y) * voxelScale;
       for (int x = -8; x < 8; ++x)
       {
-        v.x = float(x) * voxelScale;
+        v.x() = float(x) * voxelScale;
         vertices.push_back(v);
       }
     }
   }
 
-  MeshShape *shape = new MeshShape(DtVoxels, Id(id), DataBuffer(vertices));
+  auto shape = std::make_shared<MeshShape>(DtVoxels, Id(id), DataBuffer(vertices));
   shape->setUniformNormal(Vector3f(voxelScale));
   return shape;
 }
 
 
-PointCloudShape *createCloud(unsigned id, const std::vector<Vector3f> &vertices, std::vector<MeshResource *> &resources)
+std::shared_ptr<MeshSet> createCloud(unsigned id, const std::vector<Vector3f> &vertices,
+                                     std::vector<std::shared_ptr<MeshResource>> &resources)
 {
-  PointCloud *mesh = new PointCloud(id * 100);
+  auto mesh = std::make_shared<PointCloud>(id * 100);
   resources.push_back(mesh);
 
   mesh->addPoints(vertices.data(), unsigned(vertices.size()));
-  PointCloudShape *shape = new PointCloudShape(mesh, id);
+  auto shape = std::make_shared<MeshSet>(mesh, id);
 
   return shape;
 }
 
 
-MeshSet *createMeshSet(unsigned id, const std::vector<Vector3f> &vertices, const std::vector<unsigned> &indices,
-                       std::vector<MeshResource *> &resources)
+std::shared_ptr<MeshSet> createMeshSet(unsigned id, const std::vector<Vector3f> &vertices,
+                                       const std::vector<unsigned> &indices,
+                                       std::vector<std::shared_ptr<MeshResource>> &resources)
 {
   const unsigned partCount = 5;
 
-  MeshSet *shape = new MeshSet(id, partCount);
+  auto shape = std::make_shared<MeshSet>(id, partCount);
 
   for (unsigned i = 0; i < partCount; ++i)
   {
-    SimpleMesh *mesh = new SimpleMesh(id * 100 + i, unsigned(vertices.size()), unsigned(indices.size()));
+    std::shared_ptr<SimpleMesh> mesh = std::make_shared<SimpleMesh>(
+      id * 100 + i, unsigned(vertices.size()), unsigned(indices.size()));
     mesh->addComponents(SimpleMesh::Normal);
 
     mesh->setTransform(Matrix4f::translation(Vector3f(float(i) * 2.0f, float(i) * 2.0f, 0)));
@@ -144,14 +151,15 @@ MeshSet *createMeshSet(unsigned id, const std::vector<Vector3f> &vertices, const
     }
 
     resources.push_back(mesh);
-    shape->setPart(i, mesh, Matrix4f::identity);
+    shape->setPart(i, mesh, Matrix4f::Identity);
+    shape->setPart(i, mesh, Matrix4f::Identity);
   }
 
   return shape;
 }
 
 
-const char *drawTypeString(DrawType type)
+std::string drawTypeString(DrawType type)
 {
   switch (type)
   {
@@ -185,34 +193,15 @@ bool haveOption(const char *opt, int argc, const char **argv)
 }
 
 
-void defineCategory(Server *server, const char *name, uint16_t id, uint16_t parentId, bool active)
-{
-  CategoryNameMessage msg;
-  msg.categoryId = id;
-  msg.parentId = parentId;
-  msg.defaultActive = (active) ? 1 : 0;
-  const size_t nameLen = (name) ? strlen(name) : 0u;
-  msg.nameLength = (uint16_t)((nameLen <= 0xffffu) ? nameLen : 0xffffu);
-  msg.name = name;
-  sendMessage(*(server), MtCategory, CategoryNameMessage::MessageId, msg);
-  std::cout << "  \"category-" << name << "\" : {\n"
-            << "    \"categoryId\" : " << id << ",\n"
-            << "    \"parentId\" : " << parentId << ",\n"
-            << "    \"defaultActive\" : " << (active ? "true" : "false") << ",\n"
-            << "    \"nameLength\" : " << msg.nameLength << ",\n"
-            << "    \"name\" : \"" << msg.name << "\"\n"
-            << "  },\n";
-}
-
-
 /// Initialises a shape by setting a position and colour dependent on its @c id().
 /// @param shape The shape to initialised.
 /// @return @p shape
 template <class T>
-T *initShape(T *shape)
+std::shared_ptr<T> initShape(std::shared_ptr<T> shape)
 {
-  shape->setPosition(Vector3f(1.0f * float(shape->id()), 0.1f * float(shape->id()), -0.75f * float(shape->id())));
-  shape->setColour(Colour::cycle(shape->id()));
+  shape->setPosition(
+    Vector3f(1.0f * float(shape->id()), 0.1f * float(shape->id()), -0.75f * float(shape->id())));
+  shape->setColour(ColourSet::predefined(ColourSet::Standard).cycle(shape->id()));
   return shape;
 }
 
@@ -229,9 +218,8 @@ std::ostream &logShapeExtensions(std::ostream &o, const T &shape, const std::str
 std::ostream &logShapeExtensions(std::ostream &o, const Text2D &shape, const std::string &indent)
 {
   o << ",\n";
-  o << indent << "\"textLength\" : " << shape.textLength() << ",\n";
-  std::string text(shape.text(), shape.textLength());
-  o << indent << "\"text\" : \"" << text << "\"";
+  o << indent << "\"textLength\" : " << shape.text().length() << ",\n";
+  o << indent << "\"text\" : \"" << shape.text() << "\"";
   return o;
 }
 
@@ -239,9 +227,8 @@ std::ostream &logShapeExtensions(std::ostream &o, const Text2D &shape, const std
 std::ostream &logShapeExtensions(std::ostream &o, const Text3D &shape, const std::string &indent)
 {
   o << ",\n";
-  o << indent << "\"textLength\" : " << shape.textLength() << ",\n";
-  std::string text(shape.text(), shape.textLength());
-  o << indent << "\"text\" : \"" << text << "\"";
+  o << indent << "\"textLength\" : " << shape.text().length() << ",\n";
+  o << indent << "\"text\" : \"" << shape.text() << "\"";
   return o;
 }
 
@@ -303,13 +290,15 @@ std::ostream &logShapeExtensions(std::ostream &o, const MeshShape &shape, const 
     o << indent << "\"normals\" : [";
 
     const float *normals = shape.normals().ptr<float>(0);
-    for (unsigned n = 0; n < shape.normals().count(); ++n, normals += shape.normals().elementStride())
+    for (unsigned n = 0; n < shape.normals().count();
+         ++n, normals += shape.normals().elementStride())
     {
       if (n > 0)
       {
         o << ',';
       }
-      o << '\n' << indent << "  " << normals[n + 0] << ',' << normals[n + 1] << ',' << normals[n + 2];
+      o << '\n'
+        << indent << "  " << normals[n + 0] << ',' << normals[n + 1] << ',' << normals[n + 2];
     }
     o << '\n' << indent << "]";
     dangling = true;
@@ -329,7 +318,8 @@ std::ostream &operator<<(std::ostream &o, const Matrix4f &transform)
     {
       o << ",\n";
     }
-    o << transform.rc[i][0] << ", " << transform.rc[i][1] << ", " << transform.rc[i][2] << ", " << transform.rc[i][3];
+    o << transform(i, 0) << ", " << transform(i, 1) << ", " << transform(i, 2) << ", "
+      << transform(i, 3);
   }
 
   o << " ]";
@@ -345,7 +335,8 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
     << indent2 << "\"id\" : " << mesh.id() << ",\n"
     << indent2 << "\"typeId\" : " << mesh.typeId() << ",\n"
     << indent2 << "\"uniqueKey\" : " << mesh.uniqueKey() << ",\n"
-    << indent2 << "\"drawType\" : " << '"' << drawTypeString((DrawType)mesh.drawType()) << '"' << ",\n"
+    << indent2 << "\"drawType\" : " << '"' << drawTypeString((DrawType)mesh.drawType()) << '"'
+    << ",\n"
     << indent2 << "\"tint\" : " << mesh.tint() << ",\n"
     << indent2 << "\"transform\" : " << mesh.transform() << ",\n";
 
@@ -465,38 +456,6 @@ std::ostream &logMeshResource(std::ostream &o, const MeshResource &mesh, const s
 }
 
 
-std::ostream &logShapeExtensions(std::ostream &o, const PointCloudShape &shape, const std::string &indent)
-{
-  o << ",\n";
-  o << indent << "\"pointScale\" : " << int(shape.pointScale()) << ",\n";
-
-  logMeshResource(o, *shape.mesh(), indent, true);
-
-  if (shape.indexCount())
-  {
-    o << ",\n";
-    o << indent << "\"indices\" : [";
-    for (unsigned i = 0; i < shape.indexCount(); ++i)
-    {
-      if (i % 20 == 0)
-      {
-        o << '\n' << indent;
-      }
-
-      if (i > 0)
-      {
-        o << ',';
-      }
-
-      o << shape.indices()[i];
-    }
-    o << indent << "\n]";
-  }
-
-  return o;
-}
-
-
 std::ostream &logShapeExtensions(std::ostream &o, const MeshSet &shape, const std::string &indent)
 {
   o << ",\n";
@@ -536,12 +495,12 @@ std::ostream &logShape(std::ostream &o, const T &shape, const char *suffix)
     << "    \"attributes\" : {\n"
     << "      \"colour\" : " << shape.attributes().colour << ",\n"
     << "      \"position\" : [\n"
-    << "        " << shape.attributes().position[0] << ", " << shape.attributes().position[1] << ", "
-    << shape.attributes().position[2] << "\n"
+    << "        " << shape.attributes().position[0] << ", " << shape.attributes().position[1]
+    << ", " << shape.attributes().position[2] << "\n"
     << "      ],\n"
     << "      \"rotation\" : [\n"
-    << "        " << shape.attributes().rotation[0] << ", " << shape.attributes().rotation[1] << ", "
-    << shape.attributes().rotation[2] << ", " << shape.attributes().rotation[3] << "\n"
+    << "        " << shape.attributes().rotation[0] << ", " << shape.attributes().rotation[1]
+    << ", " << shape.attributes().rotation[2] << ", " << shape.attributes().rotation[3] << "\n"
     << "      ],\n"
     << "      \"scale\" : [\n"
     << "        " << shape.attributes().scale[0] << ", " << shape.attributes().scale[1] << ", "
@@ -564,7 +523,8 @@ std::ostream &logShape(std::ostream &o, const T &shape, const char *suffix)
 
 const char *coordinateFrameString(uint8_t frame)
 {
-  const char *frames[] = { "xyz", "xz-y", "yx-z", "yzx", "zxy", "zy-x", "xy-z", "xzy", "yxz", "yz-x", "zx-y", "zyx" };
+  const char *frames[] = { "xyz",  "xz-y", "yx-z", "yzx",  "zxy",  "zy-x",
+                           "xy-z", "xzy",  "yxz",  "yz-x", "zx-y", "zyx" };
 
   if (frame < sizeof(frames) / sizeof(frames[0]))
   {
@@ -578,9 +538,9 @@ const char *coordinateFrameString(uint8_t frame)
 std::ostream &operator<<(std::ostream &o, const ServerInfoMessage &info)
 {
   o << "  \"server\" : {\n"
-    << "    \"timeUnit\" : " << info.timeUnit << ",\n"
-    << "    \"defaultFrameTime\" : " << info.defaultFrameTime << ",\n"
-    << "    \"coordinateFrame\" : \"" << coordinateFrameString(info.coordinateFrame) << "\"\n"
+    << "    \"time_unit\" : " << info.time_unit << ",\n"
+    << "    \"default_frame_time\" : " << info.default_frame_time << ",\n"
+    << "    \"coordinate_frame\" : \"" << coordinateFrameString(info.coordinate_frame) << "\"\n"
     << "  },";
   return o;
 }
@@ -588,11 +548,12 @@ std::ostream &operator<<(std::ostream &o, const ServerInfoMessage &info)
 
 /// Add @p shape to the @p server and @p shapes, printing it's attributes in JSON to @c stdout.
 template <class T>
-void addShape(T *shape, Server *server, std::vector<Shape *> &shapes, const char *suffix = "")
+void addShape(std::shared_ptr<T> shape, const std::shared_ptr<Server> &server,
+              std::vector<std::shared_ptr<Shape>> &shapes, const char *suffix = "")
 {
   server->create(*shape);
   logShape(std::cout, *shape, suffix) << ",\n";
-  shapes.push_back(shape);
+  shapes.emplace_back(std::move(shape));
 }
 
 
@@ -625,13 +586,13 @@ int main(int argc, char **argvNonConst)
 
   ServerInfoMessage info;
   initDefaultServerInfo(&info);
-  info.coordinateFrame = XYZ;
-  unsigned serverFlags = SF_DefaultNoCompression;
+  info.coordinate_frame = XYZ;
+  unsigned serverFlags = SFDefaultNoCompression;
   if (haveOption("compress", argc, argv))
   {
-    serverFlags |= SF_Compress;
+    serverFlags |= SFCompress;
   }
-  Server *server = Server::create(ServerSettings(serverFlags), &info);
+  auto server = Server::create(ServerSettings(serverFlags), &info);
 
   std::cout << "{\n";
   std::cout << info << std::endl;
@@ -643,12 +604,12 @@ int main(int argc, char **argvNonConst)
 
   server->updateTransfers(0);
   server->updateFrame(0.0f, true);
-  ConnectionMonitor *_conMon = (server)->connectionMonitor();
-  if (_conMon->mode() == ConnectionMonitor::Synchronous)
+  auto connection_monitor = server->connectionMonitor();
+  if (connection_monitor->mode() == ConnectionMode::Synchronous)
   {
-    _conMon->monitorConnections();
+    connection_monitor->monitorConnections();
   }
-  _conMon->commitConnections();
+  connection_monitor->commitConnections();
 
   defineCategory(server, "Root", 0, 0, true);
   defineCategory(server, "Branch1", 1, 0, true);
@@ -662,29 +623,37 @@ int main(int argc, char **argvNonConst)
   defineCategory(server, "Child4", 104, 1, true);
 
   unsigned nextId = 1u;
-  std::vector<Shape *> shapes;
-  std::vector<MeshResource *> resources;
+  std::vector<std::shared_ptr<Shape>> shapes;
+  std::vector<std::shared_ptr<MeshResource>> resources;
 
-  addShape(initShape(new Arrow(nextId++, Directional(Vector3f(0.0f), Vector3f(1, 0, 0), 0.25f, 1.0f))), server, shapes);
-  addShape(
-    initShape(new Box(
-      nextId++, Transform(Vector3f(0.0f),
-                          rotationToQuaternion(Matrix3f::rotation(degToRad(15.0f), degToRad(25.0f), degToRad(-9.0f))),
-                          Vector3f(0.1f, 0.2f, 0.23f)))),
-    server, shapes);
-  addShape(initShape(new Capsule(nextId++, Directional(Vector3f(0.0f), Vector3f(1, 2, 0).normalised(), 0.3f, 2.0f))),
+  addShape(initShape(std::make_shared<Arrow>(
+             nextId++, Directional(Vector3f(0.0f), Vector3f(1, 0, 0), 0.25f, 1.0f))),
            server, shapes);
-  addShape(initShape(new Cone(nextId++, Directional(Vector3f(0.0f), Vector3f(0, 2, 1).normalised(), 0.4f, 2.25f))),
+  addShape(initShape(std::make_shared<Box>(
+             nextId++, Transform(Vector3f(0.0f),
+                                 rotationToQuaternion(Matrix3f::rotation(
+                                   degToRad(15.0f), degToRad(25.0f), degToRad(-9.0f))),
+                                 Vector3f(0.1f, 0.2f, 0.23f)))),
+           server, shapes);
+  addShape(initShape(std::make_shared<Capsule>(
+             nextId++, Directional(Vector3f(0.0f), Vector3f(1, 2, 0).normalised(), 0.3f, 2.0f))),
+           server, shapes);
+  addShape(initShape(std::make_shared<Cone>(
+             nextId++, Directional(Vector3f(0.0f), Vector3f(0, 2, 1).normalised(), 0.4f, 2.25f))),
            server, shapes);
   addShape(
-    initShape(new Cylinder(nextId++, Directional(Vector3f(0.0f), Vector3f(2, -1.4f, 1).normalised(), 0.15f, 1.2f))),
+    initShape(std::make_shared<Cylinder>(
+      nextId++, Directional(Vector3f(0.0f), Vector3f(2, -1.4f, 1).normalised(), 0.15f, 1.2f))),
     server, shapes);
-  addShape(initShape(new Plane(nextId++, Directional(Vector3f(0.0f), Vector3f(-1, -1, 1).normalised()))), server,
+  addShape(initShape(std::make_shared<Plane>(
+             nextId++, Directional(Vector3f(0.0f), Vector3f(-1, -1, 1).normalised()))),
+           server, shapes);
+  addShape(initShape(std::make_shared<Sphere>(nextId++, Spherical(Vector3f(0.0f), 1.15f))), server,
            shapes);
-  addShape(initShape(new Sphere(nextId++, Spherical(Vector3f(0.0f), 1.15f))), server, shapes);
-  addShape(initShape(new Star(nextId++, Spherical(Vector3f(0.0f), 0.15f))), server, shapes);
-  addShape(initShape(new Text2D("Hello Text2D", nextId++)), server, shapes);
-  addShape(initShape(new Text3D("Hello Text3D", nextId++)), server, shapes);
+  addShape(initShape(std::make_shared<Star>(nextId++, Spherical(Vector3f(0.0f), 0.15f))), server,
+           shapes);
+  addShape(initShape(std::make_shared<Text2D>("Hello Text2D", nextId++)), server, shapes);
+  addShape(initShape(std::make_shared<Text3D>("Hello Text3D", nextId++)), server, shapes);
 
   std::vector<Vector3f> sphereVerts;
   std::vector<unsigned> sphereIndices;
@@ -707,19 +676,10 @@ int main(int argc, char **argvNonConst)
   server->connectionMonitor()->stop();
   server->connectionMonitor()->join();
 
-  server->dispose();
-  server = nullptr;
+  server.reset();
 
-  for (Shape *shape : shapes)
-  {
-    delete shape;
-  }
   shapes.clear();
-
-  for (Resource *resource : resources)
-  {
-    delete resource;
-  }
+  resources.clear();
 
   // Next line is partly to keep well formed JSON.
   std::cout << "  \"success\" : true\n";

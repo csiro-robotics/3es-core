@@ -3,6 +3,7 @@
 //
 #include "Sphere.h"
 
+#include <3escore/CoreUtil.h>
 #include <3escore/Vector3.h>
 
 #include <array>
@@ -11,6 +12,12 @@
 
 namespace tes::sphere
 {
+// Disabled linter warnings on doing unsigned maths, then passing the results as arguments to
+// std::vector::operator[] and std::vector::resize(). The choice to use unsigned maths is
+// deliberate.
+// clang-format off
+// NOLINTBEGIN(bugprone-misplaced-widening-cast, bugprone-implicit-widening-of-multiplication-result)
+// clang-format on
 namespace
 {
 /// Add a vertex to @p points, reusing an existing vertex is a matching one is found.
@@ -21,24 +28,26 @@ namespace
 /// @param vertex The vertex to add.
 /// @param vertices The vertex data to add to.
 /// @return The index which can be used to refer to the target vertex.
-unsigned insertVertex(const Vector3f &vertex, std::vector<Vector3f> &vertices, SphereVertexMap &vertexMap)
+unsigned insertVertex(const Vector3f &vertex, std::vector<Vector3f> &vertices,
+                      SphereVertexMap &vertex_map)
 {
-  auto findResult = vertexMap.find(vertex);
-  if (findResult == vertexMap.end())
+  const auto find_result = vertex_map.find(vertex);
+  if (find_result == vertex_map.end())
   {
     // Add new vertex.
-    unsigned idx = unsigned(vertices.size());
+    auto idx = int_cast<unsigned>(vertices.size());
     vertices.push_back(vertex);
-    vertexMap.insert(std::make_pair(vertex, idx));
+    vertex_map.insert(std::make_pair(vertex, idx));
     return idx;
   }
 
-  return findResult->second;
+  return find_result->second;
 }
 }  // namespace
 
 
-void initialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, SphereVertexMap *vertexMap)
+void initialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+                SphereVertexMap *vertex_map)
 {
   // We start with two hexagonal rings to approximate the sphere.
   // All subdivision occurs on a unit radius sphere, at the origin. We translate and
@@ -46,73 +55,80 @@ void initialise(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
   vertices.clear();
   indices.clear();
 
-  static const float ringControlAngle = 25.0f / 180.0f * float(M_PI);
-  static const float ringHeight = std::sin(ringControlAngle);
-  static const float ringRadius = std::cos(ringControlAngle);
-  static const float hexAngle = 2.0f * float(M_PI) / 6.0f;
-  static const float ring2OffsetAngle = 0.5f * hexAngle;
-  static const Vector3f initialVertices[] = {
+  static const float ring_control_angle = 25.0f / 180.0f * static_cast<float>(M_PI);
+  static const float ring_height = std::sin(ring_control_angle);
+  static const float ring_radius = std::cos(ring_control_angle);
+  static const float hex_angle = 2.0f * static_cast<float>(M_PI) / 6.0f;
+  static const float ring_to_offset_angle = 0.5f * hex_angle;
+  static const std::array<Vector3f, 14> initial_vertices = {
     Vector3f(0, 0, 1),
 
     // Upper hexagon.
-    Vector3f(ringRadius, 0, ringHeight),
-    Vector3f(ringRadius * std::cos(hexAngle), ringRadius * std::sin(hexAngle), ringHeight),
-    Vector3f(ringRadius * std::cos(2 * hexAngle), ringRadius * std::sin(2 * hexAngle), ringHeight),
-    Vector3f(ringRadius * std::cos(3 * hexAngle), ringRadius * std::sin(3 * hexAngle), ringHeight),
-    Vector3f(ringRadius * std::cos(4 * hexAngle), ringRadius * std::sin(4 * hexAngle), ringHeight),
-    Vector3f(ringRadius * std::cos(5 * hexAngle), ringRadius * std::sin(5 * hexAngle), ringHeight),
+    Vector3f(ring_radius, 0, ring_height),
+    Vector3f(ring_radius * std::cos(hex_angle), ring_radius * std::sin(hex_angle), ring_height),
+    Vector3f(ring_radius * std::cos(2 * hex_angle), ring_radius * std::sin(2 * hex_angle),
+             ring_height),
+    Vector3f(ring_radius * std::cos(3 * hex_angle), ring_radius * std::sin(3 * hex_angle),
+             ring_height),
+    Vector3f(ring_radius * std::cos(4 * hex_angle), ring_radius * std::sin(4 * hex_angle),
+             ring_height),
+    Vector3f(ring_radius * std::cos(5 * hex_angle), ring_radius * std::sin(5 * hex_angle),
+             ring_height),
 
     // Lower hexagon.
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle), ringRadius * std::sin(ring2OffsetAngle), -ringHeight),
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle + hexAngle), ringRadius * std::sin(ring2OffsetAngle + hexAngle),
-             -ringHeight),
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 2 * hexAngle),
-             ringRadius * std::sin(ring2OffsetAngle + 2 * hexAngle), -ringHeight),
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 3 * hexAngle),
-             ringRadius * std::sin(ring2OffsetAngle + 3 * hexAngle), -ringHeight),
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 4 * hexAngle),
-             ringRadius * std::sin(ring2OffsetAngle + 4 * hexAngle), -ringHeight),
-    Vector3f(ringRadius * std::cos(ring2OffsetAngle + 5 * hexAngle),
-             ringRadius * std::sin(ring2OffsetAngle + 5 * hexAngle), -ringHeight),
+    Vector3f(ring_radius * std::cos(ring_to_offset_angle),
+             ring_radius * std::sin(ring_to_offset_angle), -ring_height),
+    Vector3f(ring_radius * std::cos(ring_to_offset_angle + hex_angle),
+             ring_radius * std::sin(ring_to_offset_angle + hex_angle), -ring_height),
+    Vector3f(ring_radius * std::cos(ring_to_offset_angle + 2 * hex_angle),
+             ring_radius * std::sin(ring_to_offset_angle + 2 * hex_angle), -ring_height),
+    Vector3f(ring_radius * std::cos(ring_to_offset_angle + 3 * hex_angle),
+             ring_radius * std::sin(ring_to_offset_angle + 3 * hex_angle), -ring_height),
+    Vector3f(ring_radius * std::cos(ring_to_offset_angle + 4 * hex_angle),
+             ring_radius * std::sin(ring_to_offset_angle + 4 * hex_angle), -ring_height),
+    Vector3f(ring_radius * std::cos(ring_to_offset_angle + 5 * hex_angle),
+             ring_radius * std::sin(ring_to_offset_angle + 5 * hex_angle), -ring_height),
 
     Vector3f(0, 0, -1),
   };
-  const unsigned initialVertexCount = sizeof(initialVertices) / sizeof(initialVertices[0]);
+  const unsigned initial_vertex_count = sizeof(initial_vertices) / sizeof(initial_vertices[0]);
 
-  const unsigned initialIndices[] = { 0, 1,  2, 0, 2,  3, 0, 3,  4,  0,  4,  5,  0,  5,  6,  0,  6,  1,
-                                      1, 7,  2, 2, 8,  3, 3, 9,  4,  4,  10, 5,  5,  11, 6,  6,  12, 1,
-                                      7, 8,  2, 8, 9,  3, 9, 10, 4,  10, 11, 5,  11, 12, 6,  12, 7,  1,
-                                      7, 13, 8, 8, 13, 9, 9, 13, 10, 10, 13, 11, 11, 13, 12, 12, 13, 7 };
-  const unsigned initialIndexCount = sizeof(initialIndices) / sizeof(initialIndices[0]);
+  static const std::array<unsigned, 72> initial_indices = {
+    0,  1,  2, 0,  2,  3, 0, 3,  4, 0, 4,  5, 0, 5,  6,  0,  6,  1,  1,  7,  2,  2,  8,  3,
+    3,  9,  4, 4,  10, 5, 5, 11, 6, 6, 12, 1, 7, 8,  2,  8,  9,  3,  9,  10, 4,  10, 11, 5,
+    11, 12, 6, 12, 7,  1, 7, 13, 8, 8, 13, 9, 9, 13, 10, 10, 13, 11, 11, 13, 12, 12, 13, 7
+  };
+  const auto initial_index_count = static_cast<unsigned>(initial_indices.size());
 
-  for (unsigned i = 0; i < initialVertexCount; ++i)
+  for (unsigned i = 0; i < initial_vertex_count; ++i)
   {
-    vertices.push_back(initialVertices[i]);
-    if (vertexMap)
+    vertices.push_back(initial_vertices[i]);
+    if (vertex_map)
     {
-      vertexMap->insert(std::make_pair(initialVertices[i], i));
+      vertex_map->insert(std::make_pair(initial_vertices[i], i));
     }
   }
 
-  for (unsigned i = 0; i < initialIndexCount; i += 3)
+  for (unsigned i = 0; i < initial_index_count; i += 3)
   {
-    indices.push_back(initialIndices[i + 0]);
-    indices.push_back(initialIndices[i + 1]);
-    indices.push_back(initialIndices[i + 2]);
+    indices.push_back(initial_indices[i + 0]);
+    indices.push_back(initial_indices[i + 1]);
+    indices.push_back(initial_indices[i + 2]);
   }
 }
 
 
-void subdivide(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, SphereVertexMap &vertexMap)
+void subdivide(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+               SphereVertexMap &vertex_map)
 {
-  const unsigned triangleCount = unsigned(indices.size() / 3);
-  unsigned triangle[3];
-  unsigned abc[3];
-  unsigned def[3];
-  Vector3f verts[3];
-  Vector3f newVertices[3];
+  const auto triangle_count = int_cast<unsigned>(indices.size() / 3);
+  std::array<unsigned, 3> triangle;
+  std::array<unsigned, 3> abc;
+  std::array<unsigned, 3> def;
+  std::array<Vector3f, 3> verts;
+  std::array<Vector3f, 3> new_vertices;
 
-  for (unsigned i = 0; i < triangleCount; ++i)
+  for (unsigned i = 0; i < triangle_count; ++i)
   {
     triangle[0] = abc[0] = indices[i * 3 + 0];
     triangle[1] = abc[1] = indices[i * 3 + 1];
@@ -124,9 +140,9 @@ void subdivide(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
     verts[2] = vertices[triangle[2]];
 
     // Calculate the new vertex at the centre of the existing triangle.
-    newVertices[0] = (0.5f * (verts[0] + verts[1])).normalised();
-    newVertices[1] = (0.5f * (verts[1] + verts[2])).normalised();
-    newVertices[2] = (0.5f * (verts[2] + verts[0])).normalised();
+    new_vertices[0] = (0.5f * (verts[0] + verts[1])).normalised();
+    new_vertices[1] = (0.5f * (verts[1] + verts[2])).normalised();
+    new_vertices[2] = (0.5f * (verts[2] + verts[0])).normalised();
 
     // Create new triangles.
     // Given triangle ABC, and adding vertices DEF such that:
@@ -135,9 +151,9 @@ void subdivide(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
     //  ADF, BED, CFE, DEF
     // ABC are in order in 'abc', while DEF will be in 'def'.
     // FIXME: find existing point to use.
-    def[0] = insertVertex(newVertices[0], vertices, vertexMap);
-    def[1] = insertVertex(newVertices[1], vertices, vertexMap);
-    def[2] = insertVertex(newVertices[2], vertices, vertexMap);
+    def[0] = insertVertex(new_vertices[0], vertices, vertex_map);
+    def[1] = insertVertex(new_vertices[1], vertices, vertex_map);
+    def[2] = insertVertex(new_vertices[2], vertices, vertex_map);
 
     // Replace the original triangle ABC with DEF
     indices[i * 3 + 0] = def[0];
@@ -160,24 +176,28 @@ void subdivide(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
 }
 
 
-void solidLatLong(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
-                  float radius, const Vector3f &origin, unsigned hemisphereRingCount, unsigned segments,
-                  const Vector3f &axis_in, bool hemisphereOnly)
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+void solidLatLong(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+                  std::vector<Vector3f> &normals, float radius, const Vector3f &origin,
+                  unsigned hemisphere_ring_count, unsigned segments, const Vector3f &axis_in,
+                  bool hemisphere_only)
 {
-  hemisphereRingCount = std::max(hemisphereRingCount, 1u);
+  hemisphere_ring_count = std::max(hemisphere_ring_count, 1u);
   segments = std::max(segments, 3u);
   Vector3f axis = axis_in;
-  if (std::abs(axis.magnitudeSquared() - 1.0f) > 1e-2f)
+  const float epsilon = 1e-3f;
+  if (std::abs(axis.magnitudeSquared() - 1.0f) > epsilon)
   {
     axis = Vector3f(0, 0, 1);
   }
 
   std::array<Vector3f, 2> radials;
   Vector3f v;
-  float segmentAngle = 2.0f * float(M_PI) / float(segments);
-  float ringStepAngle = 0.5f * float(M_PI) / float(hemisphereRingCount);
+  const float segment_angle = 2.0f * static_cast<float>(M_PI) / static_cast<float>(segments);
+  const float ring_step_angle =
+    0.5f * static_cast<float>(M_PI) / static_cast<float>(hemisphere_ring_count);
 
-  if (axis.dot(Vector3f(1, 0, 0)) < 1e-3f)
+  if (axis.dot(Vector3f(1, 0, 0)) < epsilon)
   {
     radials[0] = Vector3f(1, 0, 0);
   }
@@ -192,31 +212,31 @@ void solidLatLong(std::vector<Vector3f> &vertices, std::vector<unsigned> &indice
   // Two triangles (six indices) per segment per ring.
   // Last ring has only one trinagle per segment, for which we make the adjustment.
   // Will be doubled for full sphere.
-  unsigned indexCap = hemisphereRingCount * segments * 2 * 3 - 3 * segments;
-  if (hemisphereOnly)
+  unsigned index_cap = hemisphere_ring_count * segments * 2 * 3 - 3 * segments;
+  if (hemisphere_only)
   {
-    vertices.reserve(hemisphereRingCount * segments + 1);
+    vertices.reserve(hemisphere_ring_count * segments + 1);
   }
   else
   {
     // Double the vertices excluding the shared, equatorial vertices.
-    vertices.reserve(2 * (hemisphereRingCount * segments + 1) - segments);
-    indexCap *= 2;
+    vertices.reserve(2 * (hemisphere_ring_count * segments + 1) - segments);
+    index_cap *= 2;
   }
-  indices.reserve(indexCap);
+  indices.reserve(index_cap);
   normals.reserve(vertices.capacity());
 
   // First build a unit sphere.
   // Create vertices for the rings.
-  for (unsigned r = 0; r < hemisphereRingCount; ++r)
+  for (unsigned r = 0; r < hemisphere_ring_count; ++r)
   {
-    float ringHeight = std::sin(float(r) * ringStepAngle);
-    float ringRadius = std::sqrt(1 - ringHeight * ringHeight);
+    const float ring_height = std::sin(static_cast<float>(r) * ring_step_angle);
+    const float ring_radius = std::sqrt(1 - ring_height * ring_height);
     for (unsigned i = 0; i < segments; ++i)
     {
-      float angle = float(i) * segmentAngle;
-      v = ringRadius * std::cos(angle) * radials[0] + ringRadius * std::sin(angle) * radials[1];
-      v += ringHeight * axis;
+      const float angle = static_cast<float>(i) * segment_angle;
+      v = ring_radius * std::cos(angle) * radials[0] + ring_radius * std::sin(angle) * radials[1];
+      v += ring_height * axis;
       vertices.emplace_back(v);
     }
   }
@@ -225,11 +245,11 @@ void solidLatLong(std::vector<Vector3f> &vertices, std::vector<unsigned> &indice
   vertices.emplace_back(axis);
 
   // We have vertices for a hemi-sphere. Mirror if we are building a full sphere.
-  if (!hemisphereOnly)
+  if (!hemisphere_only)
   {
-    unsigned mirrorStart = segments;  // Skip the shared, equatorial ring.
-    unsigned mirrorCount = unsigned(vertices.size() - 1);
-    for (unsigned i = mirrorStart; i < mirrorCount; ++i)
+    const unsigned mirror_start = segments;  // Skip the shared, equatorial ring.
+    const auto mirror_count = int_cast<unsigned>(vertices.size() - 1);
+    for (unsigned i = mirror_start; i < mirror_count; ++i)
     {
       v = vertices[i];
       v -= 2.0f * v.dot(axis) * axis;
@@ -250,87 +270,89 @@ void solidLatLong(std::vector<Vector3f> &vertices, std::vector<unsigned> &indice
 
   // Finally build the indices for the triangles.
   // Tessellate each ring up the hemispheres.
-  unsigned ringStartIndex, previousRingStartIndex, poleIndex;
-  previousRingStartIndex = 0;
-  for (unsigned r = 1; r < hemisphereRingCount; ++r)
+  unsigned ring_start_index = 0;
+  unsigned previous_ring_start_index = 0;
+  unsigned pole_index = 0;
+  previous_ring_start_index = 0;
+  for (unsigned r = 1; r < hemisphere_ring_count; ++r)
   {
-    ringStartIndex = r * segments;
+    ring_start_index = r * segments;
 
     for (unsigned i = 0; i < segments; ++i)
     {
-      indices.emplace_back(previousRingStartIndex + i);
-      indices.emplace_back(previousRingStartIndex + (i + 1) % segments);
-      indices.emplace_back(ringStartIndex + (i + 1) % segments);
+      indices.emplace_back(previous_ring_start_index + i);
+      indices.emplace_back(previous_ring_start_index + (i + 1) % segments);
+      indices.emplace_back(ring_start_index + (i + 1) % segments);
 
-      indices.emplace_back(previousRingStartIndex + i);
-      indices.emplace_back(ringStartIndex + (i + 1) % segments);
-      indices.emplace_back(ringStartIndex + i);
+      indices.emplace_back(previous_ring_start_index + i);
+      indices.emplace_back(ring_start_index + (i + 1) % segments);
+      indices.emplace_back(ring_start_index + i);
     }
 
-    previousRingStartIndex = ringStartIndex;
+    previous_ring_start_index = ring_start_index;
   }
 
   // Connect the final ring to the polar vertex.
-  ringStartIndex = (hemisphereRingCount - 1) * segments;
-  poleIndex = ringStartIndex + segments;
+  ring_start_index = (hemisphere_ring_count - 1) * segments;
+  pole_index = ring_start_index + segments;
   for (unsigned i = 0; i < segments; ++i)
   {
-    indices.emplace_back(ringStartIndex + i);
-    indices.emplace_back(ringStartIndex + (i + 1) % segments);
-    indices.emplace_back(poleIndex);  // Polar vertex
+    indices.emplace_back(ring_start_index + i);
+    indices.emplace_back(ring_start_index + (i + 1) % segments);
+    indices.emplace_back(pole_index);  // Polar vertex
   }
 
   // Build lower hemi-sphere as required.
-  if (!hemisphereOnly)
+  if (!hemisphere_only)
   {
-    unsigned hemisphereOffset = hemisphereRingCount * segments + 1;
+    const unsigned hemisphere_offset = hemisphere_ring_count * segments + 1;
     // Stil use zero as the first previous ring. This is the shared equator.
-    previousRingStartIndex = 0;
-    for (unsigned r = 1; r < hemisphereRingCount; ++r)
+    previous_ring_start_index = 0;
+    for (unsigned r = 1; r < hemisphere_ring_count; ++r)
     {
       // Take one off r for the shared equator.
-      ringStartIndex = (r - 1) * segments + hemisphereOffset;
+      ring_start_index = (r - 1) * segments + hemisphere_offset;
 
       for (unsigned i = 0; i < segments; ++i)
       {
-        indices.emplace_back(previousRingStartIndex + i);
-        indices.emplace_back(ringStartIndex + (i + 1) % segments);
-        indices.emplace_back(previousRingStartIndex + (i + 1) % segments);
+        indices.emplace_back(previous_ring_start_index + i);
+        indices.emplace_back(ring_start_index + (i + 1) % segments);
+        indices.emplace_back(previous_ring_start_index + (i + 1) % segments);
 
-        indices.emplace_back(previousRingStartIndex + i);
-        indices.emplace_back(ringStartIndex + i);
-        indices.emplace_back(ringStartIndex + (i + 1) % segments);
+        indices.emplace_back(previous_ring_start_index + i);
+        indices.emplace_back(ring_start_index + i);
+        indices.emplace_back(ring_start_index + (i + 1) % segments);
       }
 
-      previousRingStartIndex = ringStartIndex;
+      previous_ring_start_index = ring_start_index;
     }
 
     // Connect the final ring to the polar vertex.
-    // Take two from hemisphereRingCount for the shared equator.
-    if (hemisphereRingCount > 1)
+    // Take two from hemisphere_ring_count for the shared equator.
+    if (hemisphere_ring_count > 1)
     {
-      ringStartIndex = (hemisphereRingCount - 1 - 1) * segments + hemisphereOffset;
-      poleIndex = ringStartIndex + segments;
+      ring_start_index = (hemisphere_ring_count - 1 - 1) * segments + hemisphere_offset;
+      pole_index = ring_start_index + segments;
     }
     else
     {
       // Shared equator.
-      ringStartIndex = 0;
+      ring_start_index = 0;
       // Skip the other pole index.
-      poleIndex = ringStartIndex + segments + 1;
+      pole_index = ring_start_index + segments + 1;
     }
     for (unsigned i = 0; i < segments; ++i)
     {
-      indices.emplace_back(ringStartIndex + (i + 1) % segments);
-      indices.emplace_back(ringStartIndex + i);
-      indices.emplace_back(poleIndex);  // Polar vertex
+      indices.emplace_back(ring_start_index + (i + 1) % segments);
+      indices.emplace_back(ring_start_index + i);
+      indices.emplace_back(pole_index);  // Polar vertex
     }
   }
 }
 
 
-void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> &normals,
-           float radius, const Vector3f &origin, int depth)
+void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+           std::vector<Vector3f> &normals, float radius, const Vector3f &origin, unsigned depth)
 {
   solid(vertices, indices, radius, origin, depth);
 
@@ -343,17 +365,17 @@ void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std:
 }
 
 
-void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius, const Vector3f &origin,
-           int depth)
+void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius,
+           const Vector3f &origin, unsigned depth)
 {
-  SphereVertexMap vertexMap;
-  initialise(vertices, indices, &vertexMap);
+  SphereVertexMap vertex_map;
+  initialise(vertices, indices, &vertex_map);
 
   // We also limit the maximum number of iterations.
-  for (int i = 0; i < depth; ++i)
+  for (unsigned i = 0; i < depth; ++i)
   {
     // Subdivide polygons.
-    subdivide(vertices, indices, vertexMap);
+    subdivide(vertices, indices, vertex_map);
   }
 
   // Move and scale the points.
@@ -363,11 +385,11 @@ void solid(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, floa
   }
 }
 
-void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius, const Vector3f &origin,
-               int ring_vertex_count)
+void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, float radius,
+               const Vector3f &origin, unsigned ring_vertex_count)
 {
-  ring_vertex_count = std::max(3, ring_vertex_count);
-  if (ring_vertex_count < 0)
+  ring_vertex_count = std::max(3u, ring_vertex_count);
+  if (ring_vertex_count <= 0)
   {
     ring_vertex_count = 3;
   }
@@ -378,30 +400,33 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
   indices.reserve(ring_vertex_count * 3);
 
   // Build a circle around the Z axis.
-  for (int i = 0; i < ring_vertex_count; ++i)
+  for (unsigned i = 0; i < ring_vertex_count; ++i)
   {
-    float angle = float(i) * 2.0f * float(M_PI) / (float)ring_vertex_count;
+    const float angle = static_cast<float>(i) * 2.0f * static_cast<float>(M_PI) /
+                        static_cast<float>(ring_vertex_count);
     vertices.emplace_back(origin + radius * Vector3f(std::cos(angle), std::sin(angle), 0));
   }
 
   // Build a circle around the Y axis.
-  for (int i = 0; i < ring_vertex_count; ++i)
+  for (unsigned i = 0; i < ring_vertex_count; ++i)
   {
-    float angle = float(i) * 2.0f * float(M_PI) / (float)ring_vertex_count;
+    const float angle = static_cast<float>(i) * 2.0f * static_cast<float>(M_PI) /
+                        static_cast<float>(ring_vertex_count);
     vertices.emplace_back(origin + radius * Vector3f(std::cos(angle), 0, std::sin(angle)));
   }
 
   // Build a circle around the X axis.
-  for (int i = 0; i < ring_vertex_count; ++i)
+  for (unsigned i = 0; i < ring_vertex_count; ++i)
   {
-    float angle = float(i) * 2.0f * float(M_PI) / (float)ring_vertex_count;
+    const float angle = static_cast<float>(i) * 2.0f * static_cast<float>(M_PI) /
+                        static_cast<float>(ring_vertex_count);
     vertices.emplace_back(origin + radius * Vector3f(0, std::cos(angle), std::sin(angle)));
   }
 
   // Build indices.
   // Z circle.
-  int voffset = 0;
-  for (int i = 0; i < ring_vertex_count - 1; ++i)
+  unsigned voffset = 0;
+  for (unsigned i = 0; i < ring_vertex_count - 1; ++i)
   {
     indices.emplace_back(voffset + i);
     indices.emplace_back(voffset + i + 1);
@@ -412,7 +437,7 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
 
   // Y circle.
   voffset += ring_vertex_count;
-  for (int i = 0; i < ring_vertex_count - 1; ++i)
+  for (unsigned i = 0; i < ring_vertex_count - 1; ++i)
   {
     indices.emplace_back(voffset + i);
     indices.emplace_back(voffset + i + 1);
@@ -423,7 +448,7 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
 
   // Y circle.
   voffset += ring_vertex_count;
-  for (int i = 0; i < ring_vertex_count - 1; ++i)
+  for (unsigned i = 0; i < ring_vertex_count - 1; ++i)
   {
     indices.emplace_back(voffset + i);
     indices.emplace_back(voffset + i + 1);
@@ -432,4 +457,7 @@ void wireframe(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, 
   indices.emplace_back(voffset + ring_vertex_count - 1);
   indices.emplace_back(voffset);
 }
+// clang-format off
+// NOLINTEND(bugprone-misplaced-widening-cast, bugprone-implicit-widening-of-multiplication-result)
+// clang-format on
 }  // namespace tes::sphere

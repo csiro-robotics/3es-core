@@ -49,10 +49,10 @@ void collationTest(bool compress, CollatedPacketDecoder *decoderOverride = nullp
 
   // I> Test each constructor.
   // 1. drawType, verts, vcount, vstrideBytes, pos, rot, scale
-  MeshShape referenceMesh(
-    DtTriangles, Id(42u, 1), DataBuffer(vertices), DataBuffer(indices),
-    Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-              Vector3f(1.0f, 1.2f, 0.8f)));
+  MeshShape referenceMesh(DtTriangles, Id(42u, 1), DataBuffer(vertices), DataBuffer(indices),
+                          Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                                    Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                                    Vector3f(1.0f, 1.2f, 0.8f)));
   referenceMesh.setNormals(DataBuffer(normals));
 
   // Use the encoder as a connection.
@@ -75,9 +75,9 @@ void collationTest(bool compress, CollatedPacketDecoder *decoderOverride = nullp
   {
     PacketReader reader(packet);
 
-    EXPECT_EQ(reader.marker(), PacketMarker);
-    EXPECT_EQ(reader.versionMajor(), PacketVersionMajor);
-    EXPECT_EQ(reader.versionMinor(), PacketVersionMinor);
+    EXPECT_EQ(reader.marker(), kPacketMarker);
+    EXPECT_EQ(reader.versionMajor(), kPacketVersionMajor);
+    EXPECT_EQ(reader.versionMinor(), kPacketVersionMinor);
 
     ASSERT_EQ(reader.routingId(), referenceMesh.routingId());
 
@@ -146,9 +146,9 @@ void singlePacketTest(CollatedPacketDecoder *decoderOverride = nullptr)
   // Reader scope.
   {
     PacketReader reader(packet);
-    EXPECT_EQ(reader.marker(), PacketMarker);
-    EXPECT_EQ(reader.versionMajor(), PacketVersionMajor);
-    EXPECT_EQ(reader.versionMinor(), PacketVersionMinor);
+    EXPECT_EQ(reader.marker(), kPacketMarker);
+    EXPECT_EQ(reader.versionMajor(), kPacketVersionMajor);
+    EXPECT_EQ(reader.versionMinor(), kPacketVersionMinor);
 
     EXPECT_EQ(reader.routingId(), MtControl);
     EXPECT_EQ(reader.messageId(), CIdEnd);

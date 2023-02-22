@@ -28,6 +28,41 @@
 
 ## Building
 
+## Prerequisites and recommendations
+
+The following are prerequisites to building the 3rd Eye Scene C++ project.
+
+- General prerequisites
+  - A C++ 17 compatible compiler.
+  - CMake version 3.16 or higher
+    - CMake 3.17 is required when using the `Ninja Multi-Config` generator.
+  - Berkley sockets on Winsock2
+- Viewer prerequisites
+  - [Magnum Graphics](https://magnum.graphics/) version 2020.06
+  - [GLFW](https://www.glfw.org/)
+  - [cxxopts](https://github.com/jarro2783/cxxopts)
+  - [Native File Dialog](https://github.com/mlabbe/nativefiledialog)
+
+The following items are recommended to aid in building 3rd Eye Scene.
+
+- [zlib](https://zlib.net/) for message compression
+- [vcpkg](https://vcpkg.io/) to automate fetching prerequisites
+- [Google Test](https://github.com/google/googletest) for unit tests.
+
+### Linux prerequisites
+
+On Linux the following apt packages be installed before using a `vcpkg` build which includes the 3rd Eye Scene viewer as `vcpkg` does not provide these packages.
+
+```bash
+sudo apt install -y \
+  autoconf \
+  libegl1-mesa-dev \
+  libibus-1.0-dev \
+  libtool \
+  libwayland-dev \
+  libxkbcommon-dev
+```
+
 ### Building with vcpkg
 
 Building with VCPKG is supported in order to fetch the dependencies. This affects both 3escore and 3esviewer.
@@ -52,7 +87,7 @@ cmake --build build --config Release --targets all --
 
 ## 3rd Eye Scene Client
 
-Source code for the 3rd Eye Scene client viewer application is available on [GitHub](https://github.com/data61/3rdEyeScene)
+Source code for the 3rd Eye Scene C++ client viewer application is available as part of the 3es-core repo. The older C# viewer is also available on [GitHub](https://github.com/data61/3rdEyeScene)
 
 ## Integrating 3rd Eye Scene Server Code
 
@@ -64,7 +99,7 @@ Before sending TES messages, a `tes::Server` object must be declared and initial
 #include <3escore/ConnectionMonitor.h>
 #include <3escore/Server.h>
 
-tes::Server *g_tesServer = nullptr;  // Global declaration.
+tes::Server *g_tes_server = nullptr;  // Global declaration.
 
 void initialiseTes()
 {
@@ -77,15 +112,15 @@ void initialiseTes()
   serverInfo.coordinateFrame = tes::XYZ;
 
   // Create the server.
-  g_tesServer = tes::Server::create(settings, &serverInfo);
+  g_tes_server = tes::Server::create(settings, &serverInfo);
   // Setup asynchronous connection monitoring.
   // Connections must be committed synchronously.
-  g_tesServer->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous);
+  g_tes_server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous);
 
   // Optional: wait 1000ms for the first connection before continuing.
-  if (g_tesServer->connectionMonitor()->waitForConnection(1000) > 0)
+  if (g_tes_server->connectionMonitor()->waitForConnection(1000) > 0)
   {
-    g_tesServer->connectionMonitor()->commitConnections();
+    g_tes_server->connectionMonitor()->commitConnections();
   }
 }
 ```
@@ -99,16 +134,16 @@ Several key server methods must be called periodically to manage the connection.
 void endFrame(float dt = 0.0f)
 {
   // Mark the end of frame. Flushed collated packets.
-  g_tesServer->updateFrame(dt);
+  g_tes_server->updateFrame(dt);
   // In synchronous mode, listen for incoming connections.
-  if (g_tesServer->connectionMonitor()->mode() == tes::ConnectionMonitor::Synchronous)
+  if (g_tes_server->connectionMonitor()->mode() == tes::ConnectionMonitor::Synchronous)
   {
-    g_tesServer->connectionMonitor()->monitorConnections();
+    g_tes_server->connectionMonitor()->monitorConnections();
   }
   // Activate any newly accepted connections and expire old ones.
-  g_tesServer->connectionMonitor()->commitConnections();
+  g_tes_server->connectionMonitor()->commitConnections();
   // Update any bulk resource data transfer.
-  g_tesServer->updateTransfers(0);
+  g_tes_server->updateTransfers(0);
 }
 ```
 
@@ -158,13 +193,13 @@ To correct dispose of the server, call `dispose()`.
 
 void releaseTes()
 {
-  if (g_tesServer)
+  if (g_tes_server)
   {
     // Close connections.
-    g_tesServer->close();
+    g_tes_server->close();
     // Destroy the server.
-    g_tesServer->dispose();
-    g_tesServer = nullptr;
+    g_tes_server->dispose();
+    g_tes_server = nullptr;
   }
 }
 ```
@@ -176,17 +211,7 @@ Categories may be used to logically group objects in the viewer client. Objects 
 ```c++
 #include <3escore/Messages.h>
 #include <3escore/Server.h>
-#include <3escore/ServerUtil.h>
-
-void defineCategory(tes::Server &server, const char *name, uint16_t category, uint16_t parent, bool defaultActive)
-{
-  tes::CategoryNameMessage msg;
-  msg.categoryId = category;
-  msg.parentId = parent;
-  const size_t nameLen = (name) ? strlen(name) : 0;
-  msg.name = name;
-  tes::sendMessage(server, tes::MtCategory, tes::CategoryNameMessage::MessageId, msg);
-}
+#include <3escore/ServerApi.h>
 
 void initCategories()
 {
@@ -197,37 +222,42 @@ void initCategories()
   //   - Free
   //   - Occupied
   // - Info
-  defineCategory(*g_tesServer, "Map", CAT_Map, 0, true);
-  defineCategory(*g_tesServer, "Populate", CAT_Populate, 0, true);
-  defineCategory(*g_tesServer, "Rays", CAT_Rays, CAT_Populate, true);
-  defineCategory(*g_tesServer, "Free", CAT_FreeCells, CAT_Populate, false);
-  defineCategory(*g_tesServer, "Occupied", CAT_OccupiedCells, CAT_Populate, true);
-  defineCategory(*g_tesServer, "Info", CAT_Info, 0, true);
+  defineCategory(g_tes_server, "Map", CAT_Map, 0, true);
+  defineCategory(g_tes_server, "Populate", CAT_Populate, 0, true);
+  defineCategory(g_tes_server, "Rays", CAT_Rays, CAT_Populate, true);
+  defineCategory(g_tes_server, "Free", CAT_FreeCells, CAT_Populate, false);
+  defineCategory(g_tes_server, "Occupied", CAT_OccupiedCells, CAT_Populate, true);
+  defineCategory(g_tes_server, "Info", CAT_Info, 0, true);
 }
 ```
 
-## Using the Macro Interface
+## Conditional instrumentation
 
-It is also possible to use preprocessor macros to invoke must 3rd Eye Scene API calls. This is to support removing all debugging code via the preprocessor thereby eliminating all associated overhead. The examples above can be rewritten using the macro interface as shown below. The `animateBox2()` function is equivalent to the `animateBox()` function, but uses transient objects instead of updating a single object.
+It is also possible to use preprocessor macros to wrap 3rd Eye Scene API calls. This is to support removing all 3es instrumentation code via the preprocessor thereby eliminating all associated overhead. The examples above can be rewritten using the macro interface as shown below. The `animateBox2()` function is equivalent to the `animateBox()` function, but uses transient objects instead of updating a single object.
 
 ```c++
-#include <3escore/ServerMacros.h>
+#include <3escore/ServerApi.h>
 
 // Declare global server pointer.
-TES_SERVER_DECL(g_tesServer);
+tes::ServerPtr g_tes_server;
 
 void initialiseTes()
 {
+  // Note: Since every statement here is conditional on TES_ENABLE, it's also viable to wrap the
+  // entire block in
+  // #ifdef TES_ENABLE
+  // #endif  // TES_ENABLE
+
   // Initialise TES
-  TES_SETTINGS(settings, tes::SF_Compress | tes::SF_Collate);
-  // Initialise server info.
-  TES_SERVER_INFO(info, tes::XYZ);
-  // Create the server. Use tesServer declared globally above.
-  TES_SERVER_CREATE(g_tesServer, settings, &info);
+  TES_STMT(g_tes_server = createServer(
+    tes::ServerSettings(tes::SFCompress | tes::SFCollate),
+    tes::XYZ));
+  TES_STMT(stopServer(g_tes_server));
 
   // Start the server and wait for the connection monitor to start.
-  TES_SERVER_START(g_tesServer, tes::ConnectionMonitor::Asynchronous);
-  TES_SERVER_START_WAIT(g_tesServer, 1000);
+  TES_STMT(startServer(g_tes_server, tes::ConnectionMode::Asynchronous));
+  // Wait 1s for a connection before continuing.
+  TES_STMT(waitForConnection(g_tes_server, 1000u));
 }
 
 void initCategories()
@@ -239,32 +269,37 @@ void initCategories()
   //   - Free
   //   - Occupied
   // - Info
-  TES_CATEGORY(g_tesServer, "Map", CAT_Map, 0, true);
-  TES_CATEGORY(g_tesServer, "Populate", CAT_Populate, 0, true);
-  TES_CATEGORY(g_tesServer, "Rays", CAT_Rays, CAT_Populate, true);
-  TES_CATEGORY(g_tesServer, "Free", CAT_FreeCells, CAT_Populate, false);
-  TES_CATEGORY(g_tesServer, "Occupied", CAT_OccupiedCells, CAT_Populate, true);
-  TES_CATEGORY(g_tesServer, "Info", CAT_Info, 0, true);
+  TES_STMT(tes::defineCategory(g_tes_server, "Map", CAT_Map, 0, true));
+  TES_STMT(tes::defineCategory(g_tes_server, "Populate", CAT_Populate, 0, true));
+  TES_STMT(tes::defineCategory(g_tes_server, "Rays", CAT_Rays, CAT_Populate, true));
+  TES_STMT(tes::defineCategory(g_tes_server, "Free", CAT_FreeCells, CAT_Populate, false));
+  TES_STMT(tes::defineCategory(g_tes_server, "Occupied", CAT_OccupiedCells, CAT_Populate, true));
+  TES_STMT(tes::defineCategory(g_tes_server, "Info", CAT_Info, 0, true));
 }
 
 void animateBox(tes::Server &server)
 {
   // Create a box on the client.
-  TES_BOX(server, TES_COLOUR(Blue),
+  TES_STMT(ScopedShape<Box> box(&server, tes::Box(
           1,  // ID
-          tes::Vector3(0.0f), // Position
-          tes::Vector3f(0.2f, 0.1f, 0.5f)); // Dimensions
+          tes::Transform(
+            tes::Vector3(0.0f), // Position
+            tes::Vector3f(0.2f, 0.1f, 0.5f)) // Dimensions
+          ))
+          ->setColour(tes::Colour::Blue));
 
   for (int i = 0; i <= steps; ++i)
   {
     // Update the box.
-    TES_POS_UPDATE(server, Box, 1, tes::Vector3f(0, 0, std::sin(tes::deg2Rad(i / float(steps) * float(M_PI))));
-    TES_SERVER_UPDATE(1.0f / float(steps));
+    TES_STMT(box->setPosition(
+      tes::Vector3f(0, 0, std::sin(tes::deg2Rad(i / float(steps) * float(M_PI))))));
+    TES_STMT(box.update(UFPosition));
+    TES_STMT(updateServer(g_tes_server, 1.0f / float(steps)));
   }
 
   // Destroy the box.
-  TES_BOX_END(server, 1);
-  TES_SERVER_UPDATE(0.0f);
+  TES_STMT(box.destroy());
+  TES_STMT(updateServer(g_tes_server));
 }
 
 void animateBox2(tes::Server &server)
@@ -272,20 +307,25 @@ void animateBox2(tes::Server &server)
   for (int i = 0; i <= steps; ++i)
   {
     // Create a transient box on each iteration.
-    TES_BOX(server, TES_COLOUR(Blue),
+    TES_STMT(create(g_tes_server,
+      Box(
             0,  // Transient ID
-            tes::Vector3(0.0f, 0.0f,
-                std::sin(tes::deg2Rad(i / float(steps) * float(M_PI)))), // Position
-            tes::Vector3f(0.2f, 0.1f, 0.5f)); // Dimensions
-    TES_SERVER_UPDATE(1.0f / float(steps));
+            tes::Transform(
+                tes::Vector3(0.0f, 0.0f, 
+                  std::sin(tes::deg2Rad(i / float(steps) * float(M_PI)))), // Position
+                tes::Vector3f(0.2f, 0.1f, 0.5f) // Dimensions
+                )).setColour(tes::Colour::Blue)
+
+    ));
+    TES_STMT(updateServer(g_tes_server, 1.0f / float(steps)));
   }
 
-  TES_SERVER_UPDATE(0.0f);
+  TES_STMT(updateServer(g_tes_server));
 }
 
 void releaseTes()
 {
-  TES_SERVER_STOP(g_tesServer);
+  TES_STMT(stopServer(g_tes_server));
 }
 ```
 

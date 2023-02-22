@@ -32,14 +32,14 @@
 template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Vector3<REAL> &v)
 {
-  o << '(' << v.x << ',' << v.y << ',' << v.z << ')';
+  o << '(' << v.x() << ',' << v.y() << ',' << v.z() << ')';
   return o;
 }
 
 /// @ingroup tesiostream
 /// Write @c Vector4 type to stream.
 ///
-/// By default, the W component is displayed last. Use @c v4wmode() to adjust this behaviour.
+/// By default, the W component is displayed last. Use @c tesV4WMode() to adjust this behaviour.
 ///
 /// @param o Output stream.
 /// @param v Vector to display.
@@ -47,13 +47,13 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Vector3<REAL> &v)
 template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Vector4<REAL> &v)
 {
-  if (tes::getV4WMode(o) == tes::WM_Last)
+  if (tes::getV4WMode(o) == tes::WMode::Last)
   {
-    o << '(' << v.x << ',' << v.y << ',' << v.z << ',' << v.w << ')';
+    o << '(' << v.x() << ',' << v.y() << ',' << v.z() << ',' << v.w() << ')';
   }
   else
   {
-    o << '(' << v.w << ',' << v.x << ',' << v.y << ',' << v.z << ')';
+    o << '(' << v.w() << ',' << v.x() << ',' << v.y() << ',' << v.z() << ')';
   }
   return o;
 }
@@ -61,7 +61,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Vector4<REAL> &v)
 /// @ingroup tesiostream
 /// Write @c Quaternion type to stream.
 ///
-/// By default, the W component is displayed last. Use @c quatwmode() to adjust this behaviour.
+/// By default, the W component is displayed last. Use @c tesQuatWMode() to adjust this behaviour.
 ///
 /// @param o Output stream.
 /// @param q Quaternion to display.
@@ -69,13 +69,13 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Vector4<REAL> &v)
 template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Quaternion<REAL> &q)
 {
-  if (tes::getQuatWMode(o) == tes::WM_Last)
+  if (tes::getQuatWMode(o) == tes::WMode::Last)
   {
-    o << '(' << q.x << ',' << q.y << ',' << q.z << ',' << q.w << ')';
+    o << '(' << q.x() << ',' << q.y() << ',' << q.z() << ',' << q.w() << ')';
   }
   else
   {
-    o << '(' << q.w << ',' << q.x << ',' << q.y << ',' << q.z << ')';
+    o << '(' << q.w() << ',' << q.x() << ',' << q.y() << ',' << q.z() << ')';
   }
   return o;
 }
@@ -83,7 +83,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Quaternion<REAL> &q)
 /// @ingroup tesiostream
 /// Write @c Matrix3 type to stream.
 ///
-/// By default, all elements are displayed inline. Use @c matmode() to adjust this behaviour.
+/// By default, all elements are displayed inline. Use @c tesMatrixMode() to adjust this behaviour.
 ///
 /// @param o Output stream.
 /// @param m Matrix to display.
@@ -91,7 +91,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Quaternion<REAL> &q)
 template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Matrix3<REAL> &m)
 {
-  char endOfRow = (tes::getMatMode(o) == tes::MM_Inline) ? ',' : '\n';
+  char endOfRow = (tes::getMatMode(o) == tes::MatrixMode::Inline) ? ',' : '\n';
   o << "[ "                                                              //
     << m.rc[0][0] << ',' << m.rc[0][1] << ',' << m.rc[0][2] << endOfRow  //
     << m.rc[1][0] << ',' << m.rc[1][1] << ',' << m.rc[1][2] << endOfRow  //
@@ -103,7 +103,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Matrix3<REAL> &m)
 /// @ingroup tesiostream
 /// Write @c Matrix4 type to stream.
 ///
-/// By default, all elements are displayed inline. Use @c matmode() to adjust this behaviour.
+/// By default, all elements are displayed inline. Use @c tesMatrixMode() to adjust this behaviour.
 ///
 /// @param o Output stream.
 /// @param m Matrix to display.
@@ -111,7 +111,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Matrix3<REAL> &m)
 template <typename REAL>
 inline std::ostream &operator<<(std::ostream &o, const tes::Matrix4<REAL> &m)
 {
-  char endOfRow = (tes::getMatMode(o) == tes::MM_Inline) ? ',' : '\n';
+  char endOfRow = (tes::getMatMode(o) == tes::MatrixMode::Inline) ? ',' : '\n';
   o << "[ "                                                                                   //
     << m.rc[0][0] << ',' << m.rc[0][1] << ',' << m.rc[0][2] << ',' << m.rc[0][3] << endOfRow  //
     << m.rc[1][0] << ',' << m.rc[1][1] << ',' << m.rc[1][2] << ',' << m.rc[1][3] << endOfRow  //
@@ -128,7 +128,7 @@ inline std::ostream &operator<<(std::ostream &o, const tes::Matrix4<REAL> &m)
 /// @return @p o
 inline std::ostream &operator<<(std::ostream &o, const tes::Colour &c)
 {
-  o << '[' << int(c.r) << ',' << int(c.g) << ',' << int(c.b) << ',' << int(c.a) << ']';
+  o << '[' << int(c.r()) << ',' << int(c.g()) << ',' << int(c.b()) << ',' << int(c.a()) << ']';
   return o;
 }
 

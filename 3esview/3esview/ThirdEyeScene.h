@@ -25,8 +25,10 @@
 
 #include <array>
 #include <chrono>
+#include <condition_variable>
 #include <memory>
 #include <optional>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -57,7 +59,10 @@ class ShaderLibrary;
 class TES_VIEWER_API ThirdEyeScene
 {
 public:
+  /// Constructor. Must be created on the main thread only - the thread which manages the render
+  /// resource - i.e., the OpenGL context.
   ThirdEyeScene();
+  /// Destructor.
   ~ThirdEyeScene();
 
   /// Get the list of names of known message handlers, keyed by routing ID.
@@ -84,25 +89,28 @@ public:
   std::shared_ptr<shaders::ShaderLibrary> shaderLibrary() const { return _shader_library; }
 
   /// Reset the current state, clearing all the currently visible data.
+  ///
+  /// When called on the main thread, this immediately resets the message handlers. From other
+  /// threads, this will mark the main thread for reset and block until the reset is effected.
   void reset();
 
   void render(float dt, const Magnum::Vector2i &window_size);
 
   /// Update to the target frame number on the next @c render() call.
   ///
-  /// Typically, this is called with a monotonic, increasing @p frame number, progressing on frame at a time.
-  /// However, the frame number will jump when stepping and skipping frames.
+  /// Typically, this is called with a monotonic, increasing @p frame number, progressing on frame
+  /// at a time. However, the frame number will jump when stepping and skipping frames.
   ///
-  /// This function is called from the @c DataThread and is thread safe. The changes are not effected until the
-  /// next @c render() call.
+  /// This function is called from the @c DataThread and is thread safe. The changes are not
+  /// effected until the next @c render() call.
   ///
   /// @param frame The new frame number.
   void updateToFrame(FrameNumber frame);
 
   /// Updates the server information details.
   ///
-  /// This is called on making a new connection and when details of that connection, such as the coordinate frame,
-  /// change.
+  /// This is called on making a new connection and when details of that connection, such as the
+  /// coordinate frame, change.
   ///
   /// Threadsafe.
   /// @param server_info The new server info.
@@ -112,8 +120,8 @@ public:
   ///
   /// This function is not called for any control messages where the routing ID is @c MtControl.
   ///
-  /// @note Message handling must be thread safe as this method is mostly called from a background thread. This
-  /// constraint is placed on the message handlers.
+  /// @note Message handling must be thread safe as this method is mostly called from a background
+  /// thread. This constraint is placed on the message handlers.
   ///
   /// @param packet
   void processMessage(PacketReader &packet);
@@ -121,6 +129,8 @@ public:
   void createSampleShapes();
 
 private:
+  void effectReset();
+
   void initialiseFont();
   void initialiseHandlers();
   void initialiseShaders();
@@ -153,7 +163,12 @@ private:
   ServerInfoMessage _server_info = {};
   bool _have_new_frame = false;
   bool _new_server_info = false;
-  std::atomic_bool _reset = false;
+  bool _reset = false;
+
+  std::condition_variable _reset_notify;
+  unsigned _reset_marker = 0;
+
+  std::thread::id _main_thread_id;
 
   FramesPerSecondWindow _fps;
 };

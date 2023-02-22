@@ -19,7 +19,8 @@
 namespace tes
 {
 template <typename D, typename T>
-void testBufferReadAsType(const DataBuffer &buffer, const std::vector<T> &reference, const char *context,
+void testBufferReadAsType(const DataBuffer &buffer, const std::vector<T> &reference,
+                          const char *context,
                           std::function<void(size_t, size_t, D, D, const char *)> validate =
                             std::function<void(size_t, size_t, D, D, const char *)>())
 {
@@ -105,12 +106,12 @@ void fillDataBuffer(std::vector<Vector3<real>> &vertices, std::vector<real> *ref
 
   for (real elevation = 0; elevation < real(90.0); elevation += real(10.0))
   {
-    vert.z = radius * std::sin(elevation * real(M_PI / 180.0));
+    vert.z() = radius * std::sin(elevation * real(M_PI / 180.0));
     for (real azimuth = 0; azimuth < real(360); azimuth += real(10.0))
     {
-      const real ring_radius = std::sqrt(radius * radius - vert.z * vert.z);
-      vert.x = ring_radius * std::cos(azimuth * real(M_PI / 180.0));
-      vert.y = ring_radius * std::sin(azimuth * real(M_PI / 180.0));
+      const real ring_radius = std::sqrt(radius * radius - vert.z() * vert.z());
+      vert.x() = ring_radius * std::cos(azimuth * real(M_PI / 180.0));
+      vert.y() = ring_radius * std::sin(azimuth * real(M_PI / 180.0));
       vertices.emplace_back(vert);
     }
   }
@@ -269,7 +270,7 @@ void testPacketStreamVector3(bool packed)
 
   DataBuffer dataBuffer(vertices);
 
-  // Write the pcket. Note, the routing and message types are unimportant.
+  // Write the packet. Note, the routing and message types are unimportant.
   std::vector<uint8_t> raw_buffer(std::numeric_limits<uint16_t>::max());
   PacketWriter writer(raw_buffer.data(), int_cast<uint16_t>(raw_buffer.size()));
 
@@ -332,5 +333,37 @@ TEST(Buffer, StreamVector3d)
 TEST(Buffer, StreamVector3dPacked)
 {
   testPacketStreamVector3<double>(true);
+}
+
+TEST(Buffer, Colour)
+{
+  const size_t colour_count = 1024;
+  std::vector<Colour> colours;
+  std::vector<uint32_t> reference;
+
+  colours.reserve(colour_count);
+  reference.reserve(colour_count * 4);
+
+  for (size_t i = 0; i < colour_count; ++i)
+  {
+    colours.emplace_back(ColourSet::predefined(ColourSet::WebSafe).cycle(i));
+    reference.emplace_back(colours.back().colour32());
+  }
+
+  // Populate the buffer from a Vector3 array and test reading as all types.
+  DataBuffer buffer(colours);
+  testBufferReadAsType<uint32_t>(buffer, reference, "std::vector<Colour>");
+
+  // Reinitialise the buffer from Vector3 pointer.
+  buffer = DataBuffer(colours.data(), colours.size());
+  testBufferReadAsType<uint32_t>(buffer, reference, "Colour*");
+
+  // Reinitialise from real array
+  buffer = DataBuffer(reference);
+  testBufferReadAsType<uint32_t>(buffer, reference, "std::vector<uint32_t>");
+
+  // Reinitialise from real array
+  buffer = DataBuffer(reference.data(), reference.size());
+  testBufferReadAsType<uint32_t>(buffer, reference, "uint32_t*");
 }
 }  // namespace tes

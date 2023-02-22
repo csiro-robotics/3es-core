@@ -15,22 +15,30 @@ struct V3Arg
 {
   /// Single precision pointer constructor.
   /// @param v Vector 3 array.
-  inline V3Arg(const float v[3])
+  V3Arg(const float v[3])  // NOLINT(modernize-avoid-c-arrays)
+    : v3(v)
+  {}
+  /// @overload
+  V3Arg(const std::array<float, 3> &v)
     : v3(v)
   {}
   /// Double precision pointer constructor.
   /// @param v Vector 3  array.
-  inline V3Arg(const double v[3])
+  V3Arg(const double v[3])  // NOLINT(modernize-avoid-c-arrays)
     : v3(Vector3d(v))
+  {}
+  /// @overload
+  V3Arg(const std::array<double, 3> &v)
+    : v3(v)
   {}
   /// Single precision vector constructor.
   /// @param v Vector 3 value.
-  inline V3Arg(const Vector3f &v)
+  V3Arg(const Vector3f &v)
     : v3(v)
   {}
   /// Double precision vector constructor.
   /// @param v Vector 3 value.
-  inline V3Arg(const Vector3d &v)
+  V3Arg(const Vector3d &v)
     : v3(v)
   {}
 
@@ -52,17 +60,16 @@ struct V3Arg
 
   /// Copy constructor.
   /// @param other The value to copy.
-  inline V3Arg(const V3Arg &other)
-    : v3(other.v3){};
+  V3Arg(const V3Arg &other) = default;
 
   /// Convert to @c Vector3f.
   /// @return The single precision vector 3.
-  inline operator Vector3f() const { return v3; }
+  [[nodiscard]] operator Vector3f() const { return v3; }
 
   /// Indexing operator.
   /// @param i The element index [0, 2].
   /// @return The requested element
-  inline double operator[](int i) const { return v3[i]; }
+  [[nodiscard]] double operator[](int i) const { return v3[i]; }
 
   /// Vector 3 value.
   Vector3f v3;

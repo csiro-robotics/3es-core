@@ -26,7 +26,8 @@ bool Category::isActive(unsigned category) const
   {
     active = search->second.active;
     // Recurse on parent unless we are the root, or we know it's not active.
-    search = (search->first != 0) ? _category_map.find(search->second.parent_id) : _category_map.end();
+    search =
+      (search->first != 0) ? _category_map.find(search->second.parent_id) : _category_map.end();
   }
   return active;
 }
@@ -68,7 +69,7 @@ void Category::reset()
 }
 
 
-void Category::beginFrame(const FrameStamp &stamp)
+void Category::prepareFrame(const FrameStamp &stamp)
 {
   (void)stamp;
 }
@@ -101,9 +102,9 @@ void Category::readMessage(PacketReader &reader)
     {
       CategoryInfo info = {};
       info.name = msg.name;
-      info.id = msg.categoryId;
-      info.parent_id = msg.parentId;
-      info.default_active = msg.defaultActive != 0;
+      info.id = msg.category_id;
+      info.parent_id = msg.parent_id;
+      info.default_active = msg.default_active != 0;
       info.active = info.default_active;
       ok = updateCategory(info);
     }
@@ -133,19 +134,19 @@ void Category::serialise(Connection &out, ServerInfoMessage &info)
   PacketWriter writer(packet_buffer.data(), buffer_size);
   for (auto &[id, info] : _category_map)
   {
-    msg.categoryId = info.id;
-    msg.parentId = info.parent_id;
-    if (info.name.length() < std::numeric_limits<decltype(msg.nameLength)>::max())
+    msg.category_id = info.id;
+    msg.parent_id = info.parent_id;
+    if (info.name.length() < std::numeric_limits<decltype(msg.name_length)>::max())
     {
       msg.name = info.name.c_str();
-      msg.nameLength = uint16_t(info.name.size());
+      msg.name_length = uint16_t(info.name.size());
     }
     else
     {
       msg.name = error_str.c_str();
-      msg.nameLength = uint16_t(error_str.size());
+      msg.name_length = uint16_t(error_str.size());
     }
-    msg.defaultActive = (info.default_active) ? 1 : 0;
+    msg.default_active = (info.default_active) ? 1 : 0;
 
     writer.reset(routingId(), CategoryNameMessage::MessageId);
     ok = msg.write(writer) && ok;

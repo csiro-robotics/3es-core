@@ -27,7 +27,7 @@ void MeshSet::initialise()
 
 void MeshSet::reset()
 {
-  std::lock_guard guard(_mutex);
+  const std::lock_guard guard(_mutex);
   for (auto &drawable : _drawables)
   {
     _culler->release(drawable.bounds_id);
@@ -40,26 +40,49 @@ void MeshSet::reset()
 }
 
 
-void MeshSet::beginFrame(const FrameStamp &stamp)
+void MeshSet::prepareFrame(const FrameStamp &stamp)
 {
   (void)stamp;
-  std::lock_guard guard(_mutex);
+  const std::lock_guard guard(_mutex);
+
   // Update meshes and bounds.
-  // @note: MeshResource handler has to beginFrame() first.
-
-  for (auto &drawable : _drawables)
+  // @note: MeshResource handler has to prepareFrame() first so it's resources are available.
+  for (size_t i = 0; i < _drawables.size(); ++i)
   {
-    beginFrameForDrawable(drawable);
-  }
+    auto &drawable = _drawables[i];
+    // Handle drawables marked for death (transients).
+    if ((drawable.flags & DrawableFlag::MarkForDeath) == DrawableFlag::MarkForDeath)
+    {
+      // Remove this drawable by swapping with the last drawable.
+      std::swap(drawable, _drawables.back());
+      _drawables.resize(_drawables.size() - 1);
+      --i;  // Decrement i as we've moved a new item into this index.
+      continue;
+    }
 
-  for (auto &shape : _transients)
-  {
-    shape.flags &= ~(DrawableFlag::Pending | DrawableFlag::Dirty);
-  }
+    // TODO(KS): performance evaluation of managing drawable transforms and bounds in this way.
+    // Recalculate the transform.
+    const auto transform = composeTransform(drawable.owner->attributes()) *
+                           composeTransform(drawable.owner->partTransform(drawable.part_id));
 
-  for (auto &[id, shape] : _shapes)
-  {
-    shape.flags &= ~(DrawableFlag::Pending | DrawableFlag::Dirty);
+    // Create bounds if required.
+    if (drawable.bounds_id == BoundsCuller::kInvalidId)
+    {
+      calculateBounds(drawable);
+    }
+    // Update bounds if changed.
+    else if (transform != drawable.transform)
+    {
+      drawable.transform = transform;
+      _culler->update(drawable.bounds_id, drawable.resource_bounds.calculateLooseBounds(transform));
+    }
+    // TODO(KS): colour calculation is suspect. Is straight multiplication correct?
+    const auto colour = drawable.owner->colour() * drawable.owner->partColour(drawable.part_id);
+    drawable.colour = tes::view::convert(colour);
+
+    // Mark transient drawables for death next frame.
+    drawable.flags |=
+      (drawable.owner->isTransient()) ? DrawableFlag::MarkForDeath : DrawableFlag::Zero;
   }
 }
 
@@ -67,46 +90,48 @@ void MeshSet::beginFrame(const FrameStamp &stamp)
 void MeshSet::endFrame(const FrameStamp &stamp)
 {
   (void)stamp;
-  std::lock_guard guard(_mutex);
+  const std::lock_guard guard(_mutex);
+  // Clear the existing transients. We can do that off thread as we aren't releasing any render
+  // resources.
+  _transients.clear();
 
-  // We can clean up marked for death here, in the background thread.
-  for (size_t i = 0; i < _drawables.size(); ++i)
+  // Handle the pending actions. Order is preserved as the actions are intermingled in the queue.
+  for (auto &action : _pending_actions)
   {
-    // Remove marked for death, but not pending. Transients have both set.
-    if ((_drawables[i].flags & (DrawableFlag::MarkForDeath | DrawableFlag::Pending)) == DrawableFlag::MarkForDeath)
+    switch (action.kind)
     {
-      // Item marked for removal. Remove/swap last and decrement i for the next iteration.
-      std::swap(_drawables[i], _drawables.back());
-      _culler->release(_drawables.back().bounds_id);
-      _drawables.pop_back();
-      --i;  // May underflow, then overflow again. Net result is fine.
+    default:
+    case PendingAction::Kind::None:
+      break;
+    case PendingAction::Kind::Create:
+      createDrawables(action.create.shape);
+      break;
+    case PendingAction::Kind::Update:
+      if (action.shape_id)  // Only consider persistent IDs.
+      {
+        updateShape(action.shape_id, action.update);
+      }
+      break;
+    case PendingAction::Kind::Destroy:
+      if (action.shape_id)  // Only consider persistent IDs.
+      {
+        destroyShape(action.shape_id, action.destroy);
+      }
+      break;
     }
   }
-
-  for (size_t i = 0; i < _transients.size(); ++i)
-  {
-    if ((_transients[i].flags & (DrawableFlag::MarkForDeath | DrawableFlag::Pending)) == DrawableFlag::MarkForDeath)
-    {
-      std::swap(_transients[i], _transients.back());
-      _transients.pop_back();
-      --i;  // May underflow, then overflow again. Net result is fine.
-    }
-  }
+  _pending_actions.clear();
 }
 
 
 void MeshSet::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params)
 {
   (void)stamp;
-  std::lock_guard guard(_mutex);
+  const std::lock_guard guard(_mutex);
   _draw_sets[0].clear();
   _draw_sets[1].clear();
   for (const auto &drawable : _drawables)
   {
-    if ((drawable.flags & (DrawableFlag::Pending | DrawableFlag::MarkForDeath)) != DrawableFlag::Zero)
-    {
-      continue;
-    }
     if (drawable.bounds_id == BoundsCuller::kInvalidId)
     {
       continue;
@@ -124,12 +149,14 @@ void MeshSet::draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &par
     }
   }
 
-  const MeshResource::DrawFlag flags =
-    (pass == DrawPass::Transparent) ? MeshResource::DrawFlag::Transparent : MeshResource::DrawFlag::Zero;
+  const MeshResource::DrawFlag flags = (pass == DrawPass::Transparent) ?
+                                         MeshResource::DrawFlag::Transparent :
+                                         MeshResource::DrawFlag::Zero;
   if (!_draw_sets[0].empty())
   {
     _resources->draw(params, _draw_sets[0], flags);
   }
+
   if (!_draw_sets[1].empty())
   {
     _resources->draw(params, _draw_sets[1], flags | MeshResource::DrawFlag::TwoSided);
@@ -155,14 +182,16 @@ void MeshSet::readMessage(PacketReader &reader)
     ok = handleUpdate(reader);
     break;
   default:
-    log::error(name(), " : unhandled shape message type: ", unsigned(reader.messageId()));
+    log::error(name(),
+               " : unhandled shape message type: ", static_cast<unsigned>(reader.messageId()));
     logged = true;
     break;
   }
 
   if (!ok && !logged)
   {
-    log::error(name(), " : failed to decode message type: ", unsigned(reader.messageId()));
+    log::error(name(),
+               " : failed to decode message type: ", static_cast<unsigned>(reader.messageId()));
   }
 }
 
@@ -170,29 +199,16 @@ void MeshSet::readMessage(PacketReader &reader)
 void MeshSet::serialise(Connection &out, ServerInfoMessage &info)
 {
   (void)info;
-  std::lock_guard guard(_mutex);
-
-  const auto serialise_shape = [&out](const MeshItem &mesh) {
-    const auto pending_and_dead = mesh.flags & (DrawableFlag::Pending | DrawableFlag::MarkForDeath);
-    // Save non-pending, non-dead shapes. Items marked with both are transient, yet to be draw.
-    if (pending_and_dead == DrawableFlag::Zero ||
-        pending_and_dead == (DrawableFlag::Pending | DrawableFlag::MarkForDeath))
-    {
-      if (mesh.shape)
-      {
-        out.create(*mesh.shape);
-      }
-    }
-  };
+  const std::lock_guard guard(_mutex);
 
   for (auto &[id, shape] : _shapes)
   {
-    serialise_shape(shape);
+    out.create(*shape);
   }
 
   for (auto &shape : _transients)
   {
-    serialise_shape(shape);
+    out.create(*shape);
   }
 }
 
@@ -212,28 +228,31 @@ void MeshSet::decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttribu
 Magnum::Matrix4 MeshSet::composeTransform(const tes::Transform &tes_transform) const
 {
   ObjectAttributes attrs = {};
-  attrs.position[0] = Magnum::Float(tes_transform.position().x);
-  attrs.position[1] = Magnum::Float(tes_transform.position().y);
-  attrs.position[2] = Magnum::Float(tes_transform.position().z);
-  attrs.rotation[0] = Magnum::Float(tes_transform.rotation().x);
-  attrs.rotation[1] = Magnum::Float(tes_transform.rotation().y);
-  attrs.rotation[2] = Magnum::Float(tes_transform.rotation().z);
-  attrs.rotation[3] = Magnum::Float(tes_transform.rotation().w);
-  attrs.scale[0] = Magnum::Float(tes_transform.scale().x);
-  attrs.scale[1] = Magnum::Float(tes_transform.scale().y);
-  attrs.scale[2] = Magnum::Float(tes_transform.scale().z);
+  attrs.position[0] = static_cast<Magnum::Float>(tes_transform.position().x());
+  attrs.position[1] = static_cast<Magnum::Float>(tes_transform.position().y());
+  attrs.position[2] = static_cast<Magnum::Float>(tes_transform.position().z());
+  attrs.rotation[0] = static_cast<Magnum::Float>(tes_transform.rotation().x());
+  attrs.rotation[1] = static_cast<Magnum::Float>(tes_transform.rotation().y());
+  attrs.rotation[2] = static_cast<Magnum::Float>(tes_transform.rotation().z());
+  attrs.rotation[3] = static_cast<Magnum::Float>(tes_transform.rotation().w());
+  attrs.scale[0] = static_cast<Magnum::Float>(tes_transform.scale().x());
+  attrs.scale[1] = static_cast<Magnum::Float>(tes_transform.scale().y());
+  attrs.scale[2] = static_cast<Magnum::Float>(tes_transform.scale().z());
   return composeTransform(attrs);
 }
 
 
-void MeshSet::decomposeTransform(const Magnum::Matrix4 &transform, tes::Transform &tes_transform) const
+void MeshSet::decomposeTransform(const Magnum::Matrix4 &transform,
+                                 tes::Transform &tes_transform) const
 {
   ObjectAttributes attrs = {};
   decomposeTransform(transform, attrs);
-  tes_transform.setPosition(tes::Vector3<Magnum::Float>(attrs.position[0], attrs.position[1], attrs.position[2]));
-  tes_transform.setRotation(
-    tes::Quaternion<Magnum::Float>(attrs.rotation[0], attrs.rotation[1], attrs.rotation[2], attrs.rotation[3]));
-  tes_transform.setScale(tes::Vector3<Magnum::Float>(attrs.scale[0], attrs.scale[1], attrs.scale[2]));
+  tes_transform.setPosition(
+    tes::Vector3<Magnum::Float>(attrs.position[0], attrs.position[1], attrs.position[2]));
+  tes_transform.setRotation(tes::Quaternion<Magnum::Float>(attrs.rotation[0], attrs.rotation[1],
+                                                           attrs.rotation[2], attrs.rotation[3]));
+  tes_transform.setScale(
+    tes::Vector3<Magnum::Float>(attrs.scale[0], attrs.scale[1], attrs.scale[2]));
 }
 
 
@@ -246,147 +265,176 @@ bool MeshSet::handleCreate(PacketReader &reader)
     return false;
   }
 
-  return create(shape);
+  PendingAction action(util::ActionKind::Create);
+  action.shape_id = shape->id();
+  action.create.shape = shape;
+
+  const std::lock_guard guard(_mutex);
+  _pending_actions.emplace_back(action);
+  return true;
 }
 
 
 bool MeshSet::handleUpdate(PacketReader &reader)
 {
-  std::lock_guard guard(_mutex);
-  uint32_t id = 0;
-
-  if (!reader.peek(reinterpret_cast<uint8_t *>(&id), sizeof(id)))
+  UpdateMessage update;
+  ObjectAttributesd attrs;
+  if (!update.read(reader, attrs))
   {
     return false;
   }
 
-  // Update the mesh set flags. The drawables flags will update on endFrame().
-  auto search = _shapes.find(id);
-  if (search == _shapes.end())
-  {
-    return false;
-  }
+  PendingAction action(util::ActionKind::Update);
+  action.shape_id = update.id;
+  action.update.flags = update.flags;
+  action.update.position = Vector3d(attrs.position);
+  action.update.rotation = Quaterniond(attrs.rotation);
+  action.update.scale = Vector3d(attrs.scale);
+  action.update.colour = Colour(attrs.colour);
 
-  // Update the transform details.
-  auto &shape = search->second.shape;
-  bool ok = shape->readUpdate(reader);
-
-  // This won't scale, but good enough to start.
-  for (auto &drawable : _drawables)
-  {
-    if (drawable.owner == shape)
-    {
-      drawable.flags |= DrawableFlag::DirtyAttributes;
-    }
-  }
-
-  return ok;
+  const std::lock_guard guard(_mutex);
+  _pending_actions.emplace_back(action);
+  return true;
 }
 
 
 bool MeshSet::handleDestroy(const DestroyMessage &msg, PacketReader &reader)
 {
   (void)reader;
-  std::lock_guard guard(_mutex);
 
-  auto search = _shapes.find(msg.id);
-  if (search == _shapes.end())
-  {
-    return false;
-  }
+  PendingAction action(util::ActionKind::Destroy);
+  action.shape_id = msg.id;
 
-  auto &shape = search->second.shape;
-  search->second.flags |= DrawableFlag::MarkForDeath;
-
-  // This won't scale, but good enough to start.
-  for (auto &drawable : _drawables)
-  {
-    if (drawable.owner == shape)
-    {
-      drawable.flags |= DrawableFlag::MarkForDeath;
-    }
-  }
-
+  const std::lock_guard guard(_mutex);
+  _pending_actions.emplace_back(action);
   return true;
 }
 
 
-bool MeshSet::create(const std::shared_ptr<tes::MeshSet> &shape)
+bool MeshSet::createDrawables(const std::shared_ptr<tes::MeshSet> &shape)
 {
-  std::lock_guard guard(_mutex);
   const bool transient = shape->id() == 0;
   for (unsigned i = 0; i < shape->partCount(); ++i)
   {
     Drawable &drawable = _drawables.emplace_back();
     drawable.part_id = i;
     drawable.resource_id = shape->partResource(i)->id();
-    drawable.transform = composeTransform(shape->attributes()) * composeTransform(shape->partTransform(i));
+    drawable.transform =
+      composeTransform(shape->attributes()) * composeTransform(shape->partTransform(i));
     const auto colour = shape->colour() * shape->partColour(i);
     drawable.colour = tes::view::convert(colour);
     drawable.owner = shape;
-    drawable.flags = DrawableFlag::Pending;
-    if (transient)
-    {
-      drawable.flags |= DrawableFlag::MarkForDeath;
-    }
+    // Calculate the bounds
+    calculateBounds(drawable);
   }
 
   if (transient)
   {
-    _transients.emplace_back(MeshItem{ shape, DrawableFlag::Pending | DrawableFlag::MarkForDeath });
+    _transients.emplace_back(shape);
   }
   else
   {
-    _shapes[shape->id()] = MeshItem{ shape, DrawableFlag::Pending };
+    _shapes[shape->id()] = shape;
   }
 
   return true;
 }
 
 
-void MeshSet::beginFrameForDrawable(Drawable &drawable)
+bool MeshSet::calculateBounds(Drawable &drawable) const
 {
-  if ((drawable.flags & (DrawableFlag::Pending | DrawableFlag::MarkForDeath)) == DrawableFlag::MarkForDeath)
+  auto resource = _resources->get(drawable.resource_id);
+  if (!resource.isValid())
   {
-    // Marked for death only (also pending => transient yet to be displayed)
-    // Will be removed in end frame, so we kind of shouldn't be here.
-    return;
+    return false;
   }
 
-  if ((drawable.flags & (DrawableFlag::Pending | DrawableFlag::DirtyAttributes)) != DrawableFlag::Zero)
+  // Transform te resource bounds, then make a new bounds around the transformed box to form a
+  // loose bounding box.
+  drawable.resource_bounds = resource.bounds();
+  const auto loose_bounds = drawable.resource_bounds.calculateLooseBounds(drawable.transform);
+  if (drawable.bounds_id == BoundsCuller::kInvalidId)
   {
-    auto resource = _resources->get(drawable.resource_id);
-    if (!resource.isValid())
+    drawable.bounds_id = _culler->allocate(loose_bounds);
+  }
+  else
+  {
+    _culler->update(drawable.bounds_id, loose_bounds);
+  }
+  return true;
+}
+
+
+bool MeshSet::updateShape(uint32_t shape_id, const PendingAction::Update &update)
+{
+  // Fetch the shape
+  const auto find = _shapes.find(shape_id);
+  if (find == _shapes.end())
+  {
+    return false;
+  }
+
+  auto &[id, shape] = *find;
+
+  const bool update_all = (update.flags & UFUpdateMode) != 0u;
+  const bool update_position = (update.flags & UFPosition) != 0u || update_all;
+  const bool update_rotation = (update.flags & UFRotation) != 0u || update_all;
+  const bool update_scale = (update.flags & UFScale) != 0u || update_all;
+  const bool update_colour = (update.flags & UFColour) != 0u || update_all;
+
+  if (update_position)
+  {
+    shape->setPosition(update.position);
+  }
+  if (update_rotation)
+  {
+    shape->setRotation(update.rotation);
+  }
+  if (update_scale)
+  {
+    shape->setScale(update.scale);
+  }
+  if (update_colour)
+  {
+    shape->setColour(update.colour);
+  }
+
+  return true;
+}
+
+
+bool MeshSet::destroyShape(uint32_t shape_id, const PendingAction::Destroy &destroy)
+{
+  TES_UNUSED(destroy);
+  const auto find = _shapes.find(shape_id);
+  if (find == _shapes.end() || shape_id == 0)
+  {
+    return false;
+  }
+
+  // Find and remove the drawables.
+  const auto &shape = find->second;
+  for (size_t i = 0; i < _drawables.size();)
+  {
+    if (_drawables[i].owner == shape)
     {
-      // Missing resoure. Don't update anything, except we'll clear the pending flag
-      // for transient items where marked for death is true. Otherwise we wont' cleanup.
-      if ((drawable.flags & DrawableFlag::MarkForDeath) == DrawableFlag::MarkForDeath)
+      if (i + i < _drawables.size())
       {
-        drawable.flags &= ~DrawableFlag::Pending;
+        // Swap the last element into index i.
+        std::swap(_drawables[i], _drawables.back());
       }
-      return;
+      // Remove the last item.
+      _drawables.resize(_drawables.size() - 1);
+      // Do not increment i. We've just swapped an item into i.
     }
-
-    drawable.transform = composeTransform(drawable.owner->attributes()) *
-                         composeTransform(drawable.owner->partTransform(drawable.part_id));
-    const auto bounds = resource.bounds();
-    // We assume the extends are spherical rather than defined an AABB and just transloate the centre.
-    drawable.bounds = Bounds::fromCentreHalfExtents((drawable.transform * Magnum::Vector4(bounds.centre(), 1)).xyz(),
-                                                    bounds.halfExtents());
-
-    if ((drawable.flags & DrawableFlag::Pending) != DrawableFlag::Zero)
+    else
     {
-      // New shape. Resolve mesh and bounds.
-      drawable.bounds_id = _culler->allocate(drawable.bounds);
-      drawable.flags &= ~(DrawableFlag::Pending | DrawableFlag::Dirty);
-    }
-
-    if ((drawable.flags & DrawableFlag::DirtyAttributes) != DrawableFlag::Zero)
-    {
-      // Just update bounds.
-      _culler->update(drawable.bounds_id, drawable.bounds);
-      drawable.flags &= ~DrawableFlag::Dirty;
+      ++i;
     }
   }
+
+  // Remove the shape.
+  _shapes.erase(find);
+  return true;
 }
 }  // namespace tes::view::handler

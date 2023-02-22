@@ -3,4 +3,6 @@
 //
 #include "Cylinder.h"
 
-using namespace tes;
+namespace tes
+{
+}  // namespace tes

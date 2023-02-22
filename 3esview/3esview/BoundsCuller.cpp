@@ -5,6 +5,36 @@
 
 namespace tes::view
 {
+Bounds Bounds::calculateLooseBounds(const Magnum::Matrix4 &transform) const
+{
+  const auto centre = this->centre();
+  const auto half_ext = this->halfExtents();
+  std::array<Magnum::Vector3, 8> vertices = {
+    centre + Magnum::Vector3(-half_ext.x(), -half_ext.y(), -half_ext.z()),
+    centre + Magnum::Vector3(half_ext.x(), -half_ext.y(), -half_ext.z()),
+    centre + Magnum::Vector3(half_ext.x(), half_ext.y(), -half_ext.z()),
+    centre + Magnum::Vector3(-half_ext.x(), half_ext.y(), -half_ext.z()),
+    centre + Magnum::Vector3(-half_ext.x(), -half_ext.y(), half_ext.z()),
+    centre + Magnum::Vector3(half_ext.x(), -half_ext.y(), half_ext.z()),
+    centre + Magnum::Vector3(half_ext.x(), half_ext.y(), half_ext.z()),
+    centre + Magnum::Vector3(-half_ext.x(), half_ext.y(), half_ext.z()),
+  };
+
+  for (auto &vert : vertices)
+  {
+    vert = (transform * Magnum::Vector4(vert, 1)).xyz();
+  }
+
+  Bounds loose_bounds(vertices[0], vertices[0]);
+  for (const auto &vert : vertices)
+  {
+    loose_bounds.expand(vert);
+  }
+
+  return loose_bounds;
+}
+
+
 constexpr BoundsId BoundsCuller::kInvalidId;
 
 BoundsCuller::BoundsCuller() = default;
@@ -48,8 +78,9 @@ void BoundsCuller::cull(unsigned mark, const Magnum::Math::Frustum<Magnum::Float
     const auto centre = bounds.bounds.centre();
     const auto half_extents = bounds.bounds.halfExtents();
     bounds.visible_mark =
-      (Magnum::Math::Intersection::aabbFrustum({ centre.x, centre.y, centre.z },
-                                               { half_extents.x, half_extents.y, half_extents.z }, view_frustum)) ?
+      (Magnum::Math::Intersection::aabbFrustum(
+        { centre.x(), centre.y(), centre.z() },
+        { half_extents.x(), half_extents.y(), half_extents.z() }, view_frustum)) ?
         mark :
         bounds.visible_mark;
   }

@@ -10,7 +10,8 @@
 
 namespace tes
 {
-/// A helper structure for handling integer arguments of various types without generating compiler warnings.
+/// A helper structure for handling integer arguments of various types without generating compiler
+/// warnings.
 ///
 /// This is intended primarily for size_t arguments from std::vectors::size() calls
 /// passed to things like the @c MesShape or @c SimpleMesh. The argument may be given as @c int,
@@ -18,33 +19,33 @@ namespace tes
 /// lose information generates a runtime error.
 ///
 /// Cast operators are supplied to support casting down to the specific required type.
-template <typename INT>
+template <typename Int>
 struct IntArgT
 {
-  typedef INT ValueType;
+  using ValueType = Int;
 
   /// Constructor from @c int.
   /// @param s The argument value.
   inline IntArgT(int ii)
-    : i(INT(ii))
+    : i(static_cast<ValueType>(ii))
   {
-    AssertRange<INT, int>()(ii);
+    AssertRange<ValueType, int>()(ii);
   }
   /// Constructor from @c unsigned.
   /// @param s The argument value.
   inline IntArgT(unsigned ii)
-    : i(INT(ii))
+    : i(static_cast<ValueType>(ii))
   {
-    AssertRange<INT, unsigned>()(ii);
+    AssertRange<ValueType, unsigned>()(ii);
   }
 
 #ifdef TES_64
   /// Constructor from @c size_t.
   /// @param s The argument value.
   inline IntArgT(size_t ii)
-    : i(INT(ii))
+    : i(static_cast<ValueType>(ii))
   {
-    AssertRange<INT, size_t>()(ii);
+    AssertRange<ValueType, size_t>()(ii);
   }
 #endif  // TES_64
 
@@ -54,26 +55,27 @@ struct IntArgT
 
   /// Convert to @c int. Raised an error if @c i is too large.
   /// @return The size as an integer.
-  inline operator INT() const { return i; }
+  inline operator ValueType() const { return i; }
 
   /// The stored size value.
-  INT i;
+  ValueType i;
 };
 
 template struct TES_CORE_API IntArgT<int>;
-typedef IntArgT<int> IntArg;
+using IntArg = IntArgT<int>;
 template struct TES_CORE_API IntArgT<unsigned>;
-typedef IntArgT<unsigned> UIntArg;
+using UIntArg = IntArgT<unsigned>;
 #ifdef TES_64
 template struct TES_CORE_API IntArgT<size_t>;
-typedef IntArgT<size_t> SizeTArg;
+using SizeTArg = IntArgT<size_t>;
 #else   // TES_64
-typedef UIntArg SizeTArg;
+using SizeTArg = UIntArg;
 #endif  // TES_64
 }  // namespace tes
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+// NOLINTBEGIN(bugprone-macro-parentheses)
 #define _TES_INTARG_BOOL_OP_SELF(INTARG, OP)                                       \
   inline bool operator OP(const INTARG &a, const INTARG &b)                        \
   {                                                                                \
@@ -97,6 +99,8 @@ typedef UIntArg SizeTArg;
 // #define _TES_INTARG_ARITH_OP(INT, INTARG, OP)
 //  inline INT operator OP(INT a, const INTARG &b) { return a OP static_cast<INT>(b); }
 //  inline INT operator OP(const INTARG &a, INT b) { return static_cast<INT>(a) OP b; }
+
+// NOLINTEND(bugprone-macro-parentheses)
 
 // Comparison operators for @c IntArg and similar utilities.
 #define TES_INTARG_OPERATORS(INT, INTARG) \

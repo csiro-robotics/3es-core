@@ -11,17 +11,19 @@
 
 #include <cstring>
 
-#define TCPBASE_MAX_BACKLOG 10
-
-using namespace tes;
-
+namespace tes
+{
 namespace
 {
+constexpr int kTcpbaseMaxBacklog = 10;
+
 bool acceptConnection(TcpListenSocketDetail &server, TcpSocketDetail &client)
 {
-  socklen_t addressLen = sizeof(client.address);
+  socklen_t address_len = sizeof(client.address);
 
-  client.socket = (int)::accept(server.listenSocket, (sockaddr *)&client.address, (socklen_t *)&addressLen);
+  client.socket =
+    static_cast<int>(::accept(server.listen_socket, reinterpret_cast<sockaddr *>(&client.address),
+                              reinterpret_cast<socklen_t *>(&address_len)));
 
   if (client.socket <= 0)
   {
@@ -44,8 +46,8 @@ bool acceptConnection(TcpListenSocketDetail &server, TcpSocketDetail &client)
 
 #ifdef WIN32
   // Set non blocking.
-  u_long iMode = 1;
-  ::ioctlsocket(client.socket, FIONBIO, &iMode);
+  u_long i_mode = 1;
+  ::ioctlsocket(client.socket, FIONBIO, &i_mode);
 #endif  // WIN32
 
   // tcpbase::dumpSocketOptions(client.socket);
@@ -54,14 +56,13 @@ bool acceptConnection(TcpListenSocketDetail &server, TcpSocketDetail &client)
 }  // namespace
 
 TcpListenSocket::TcpListenSocket()
-  : _detail(new TcpListenSocketDetail)
+  : _detail(std::make_unique<TcpListenSocketDetail>())
 {}
 
 
 TcpListenSocket::~TcpListenSocket()
 {
   close();
-  delete _detail;
 }
 
 
@@ -78,8 +79,8 @@ bool TcpListenSocket::listen(unsigned short port)
     return false;
   }
 
-  _detail->listenSocket = tcpbase::create();
-  if (_detail->listenSocket == -1)
+  _detail->listen_socket = tcpbase::create();
+  if (_detail->listen_socket == -1)
   {
     return false;
   }
@@ -89,13 +90,14 @@ bool TcpListenSocket::listen(unsigned short port)
   _detail->address.sin_port = htons(port);
 
   //  Give the socket a local address as the TCP server
-  if (::bind(_detail->listenSocket, (struct sockaddr *)&_detail->address, sizeof(_detail->address)) < 0)
+  if (::bind(_detail->listen_socket, reinterpret_cast<struct sockaddr *>(&_detail->address),
+             sizeof(_detail->address)) < 0)
   {
     close();
     return false;
   }
 
-  if (::listen(_detail->listenSocket, TCPBASE_MAX_BACKLOG) < 0)
+  if (::listen(_detail->listen_socket, kTcpbaseMaxBacklog) < 0)
   {
     close();
     return false;
@@ -109,10 +111,10 @@ bool TcpListenSocket::listen(unsigned short port)
 
 void TcpListenSocket::close()
 {
-  if (_detail->listenSocket != -1)
+  if (_detail->listen_socket != -1)
   {
-    tcpbase::close(_detail->listenSocket);
-    _detail->listenSocket = -1;
+    tcpbase::close(_detail->listen_socket);
+    _detail->listen_socket = -1;
     memset(&_detail->address, 0, sizeof(_detail->address));
   }
 }
@@ -120,56 +122,47 @@ void TcpListenSocket::close()
 
 bool TcpListenSocket::isListening() const
 {
-  return _detail->listenSocket != -1;
+  return _detail->listen_socket != -1;
 }
 
 
-TcpSocket *TcpListenSocket::accept(unsigned timeoutMs)
+std::shared_ptr<TcpSocket> TcpListenSocket::accept(unsigned timeout_ms)
 {
   struct timeval timeout;
-  fd_set fdRead;
+  fd_set fd_read = {};
 
-  if (_detail->listenSocket < 0)
+  if (_detail->listen_socket < 0)
   {
-    return nullptr;
+    return {};
   }
 
   // use select() to avoid blocking on accept()
 
-  FD_ZERO(&fdRead);                        // Clear the set of selected objects
-  FD_SET(_detail->listenSocket, &fdRead);  // Add socket to read set
+  FD_ZERO(&fd_read);                         // Clear the set of selected objects
+  FD_SET(_detail->listen_socket, &fd_read);  // Add socket to read set
 
-  tcpbase::timevalFromMs(timeout, timeoutMs);
+  tcpbase::timevalFromMs(timeout, timeout_ms);
 
-  if (::select(_detail->listenSocket + 1, &fdRead, NULL, NULL, &timeout) < 0)
+  if (::select(_detail->listen_socket + 1, &fd_read, nullptr, nullptr, &timeout) < 0)
   {
-    return nullptr;
+    return {};
   }
 
   // Test if the socket file descriptor (m_sockLocal) is part of the
   // set returned by select().  If not, then select() timed out.
 
-  if (FD_ISSET(_detail->listenSocket, &fdRead) == 0)
+  if (FD_ISSET(_detail->listen_socket, &fd_read) == 0)
   {
-    return nullptr;
+    return {};
   }
 
   // Accept a connection from a client
-  TcpSocketDetail *clientDetail = new TcpSocketDetail();
-  if (!::acceptConnection(*_detail, *clientDetail))
+  auto client_detail = std::make_unique<TcpSocketDetail>();
+  if (!tes::acceptConnection(*_detail, *client_detail))
   {
-    return nullptr;
+    return {};
   }
 
-  return new TcpSocket(clientDetail);
+  return std::make_shared<TcpSocket>(std::move(client_detail));
 }
-
-
-void TcpListenSocket::releaseClient(TcpSocket *client)
-{
-  if (client)
-  {
-    client->close();
-    delete client;
-  }
-}
+}  // namespace tes

@@ -3,15 +3,15 @@
 
 #include <3escore/CoreConfig.h>
 
+#include <memory>
+
 #define TES_ENABLE
-#ifdef TES_ENABLE
 namespace tes
 {
 class Server;
 }
-extern tes::Server *g_tesServer;
-#endif  // TES_ENABLE
+extern std::shared_ptr<tes::Server> g_tes_server;
 
-#include "debugids.h"
+#include "DebugIds.h"
 
 #endif  // _3ES_OCCUPANCY_H_

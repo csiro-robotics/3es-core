@@ -35,7 +35,7 @@ public:
 
   void initialise() override;
   void reset() override;
-  void beginFrame(const FrameStamp &stamp) override;
+  void prepareFrame(const FrameStamp &stamp) override;
   void endFrame(const FrameStamp &stamp) override;
   void draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params) override;
   void readMessage(PacketReader &reader) override;
@@ -55,8 +55,8 @@ public:
   /// @param[out] pitch Output pitch value (radians).
   /// @param[out] yaw Output yaw value (radians).
   static void calculatePitchYaw(const Magnum::Vector3 &camera_fwd, const Magnum::Vector3 &camera_up,
-                                const Magnum::Vector3 &world_fwd, const Magnum::Vector3 &world_up, float &pitch,
-                                float &yaw);
+                                const Magnum::Vector3 &world_fwd, const Magnum::Vector3 &world_up,
+                                float &pitch, float &yaw);
 
   /// Calculate camera forward and up axes based on pitch and yaw values.
   /// @param pitch The camera pitch (radians).
@@ -76,8 +76,8 @@ private:
   using CameraSet = std::array<CameraEntry, std::numeric_limits<uint8_t>::max()>;
   /// Main thread camera state.
   CameraSet _cameras;
-  /// Pending thread camera state for next @c beginFrame().
-  CameraSet _pending_cameras;
+  /// Pending thread camera state for next @c prepareFrame().
+  std::vector<std::pair<uint8_t, tes::camera::Camera>> _pending_cameras;
   ServerInfoMessage _server_info = {};
 };
 }  // namespace tes::view::handler

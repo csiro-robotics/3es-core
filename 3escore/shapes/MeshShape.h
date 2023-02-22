@@ -42,39 +42,49 @@ public:
     /// be sent over a @c Connection.
     Resource(MeshShape &shape, uint32_t resource_id);
 
-    uint32_t id() const override;
+    [[nodiscard]] uint32_t id() const final;
 
-    tes::Resource *clone() const override;
+    [[nodiscard]] std::shared_ptr<tes::Resource> clone() const final;
 
-    Transform transform() const override;
-    uint32_t tint() const override;
-    uint8_t drawType(int stream = 0) const override;
-    unsigned vertexCount(int stream = 0) const override;
-    unsigned indexCount(int stream = 0) const override;
-    DataBuffer vertices(int stream = 0) const override;
-    DataBuffer indices(int stream = 0) const override;
-    DataBuffer normals(int stream = 0) const override;
-    DataBuffer uvs(int stream = 0) const override;
-    DataBuffer colours(int stream = 0) const override;
+    [[nodiscard]] Transform transform() const final;
+    [[nodiscard]] uint32_t tint() const final;
+    [[nodiscard]] uint8_t drawType(int stream) const final;
+    using MeshResource::drawType;
+    [[nodiscard]] float drawScale(int stream) const final;
+    using MeshResource::drawScale;
+    [[nodiscard]] unsigned vertexCount(int stream) const final;
+    using MeshResource::vertexCount;
+    [[nodiscard]] unsigned indexCount(int stream) const final;
+    using MeshResource::indexCount;
+    [[nodiscard]] DataBuffer vertices(int stream) const final;
+    using MeshResource::vertices;
+    [[nodiscard]] DataBuffer indices(int stream) const final;
+    using MeshResource::indices;
+    [[nodiscard]] DataBuffer normals(int stream) const final;
+    using MeshResource::normals;
+    [[nodiscard]] DataBuffer uvs(int stream) const final;
+    using MeshResource::uvs;
+    [[nodiscard]] DataBuffer colours(int stream) const final;
+    using MeshResource::colours;
 
     /// Not allowed.
     /// @param packet Ignored.
     /// @return @c false
-    bool readCreate(PacketReader &packet) override;
+    bool readCreate(PacketReader &packet) final;
     /// Not allowed.
-    /// @param messageType Ignored.
+    /// @param message_type Ignored.
     /// @param packet Ignored.
     /// @return @c false
-    bool readTransfer(int messageType, PacketReader &packet) override;
+    bool readTransfer(int message_type, PacketReader &packet) final;
 
   private:
     MeshShape &_shape;
-    uint32_t _resource_id;
+    uint32_t _resource_id = 0;
   };
 
   /// Codes for @c writeData().
   ///
-  /// The @c SDT_End flag is send in the send data value on the last message. However, the flag
+  /// The @c SDTEnd flag is send in the send data value on the last message. However, the flag
   /// was a retrofit, so the @c SDT_ExpectEnd flag must also be set in every data send message
   /// so the receiver knows to look for the end flag.
   ///
@@ -82,19 +92,19 @@ public:
   /// and indices have been read. Other data such as normals may be written before vertices
   /// and indices, but this is an optional send implementation.
   ///
-  /// For @c DtPoints , the points are coloured by type when the colour value is zero (black, with zero alpha).
-  /// This is the default colour for @c DtPoints.
+  /// For @c DtPoints , the points are coloured by type when the colour value is zero (black, with
+  /// zero alpha). This is the default colour for @c DtPoints.
   ///
   /// Note: normals must be sent before completing vertices and indices. Best done first.
   enum SendDataType : uint16_t
   {
-    SDT_Vertices,
-    SDT_Indices,
-    SDT_Normals,
-    SDT_Colours,
+    SDTVertices,
+    SDTIndices,
+    SDTNormals,
+    SDTColours,
 
     /// Last send message?
-    SDT_End = 0xffffu
+    SDTEnd = 0xffffu
   };
 
   MeshShape();
@@ -102,23 +112,26 @@ public:
   /// Persistent triangle constructor accepting an iterator and optional positioning.
   /// @param vertices Pointer to the vertex array. Must be at least 3 elements per vertex.
   /// @param vertexCount The number of vertices in @c vertices.
-  /// @param vertexByteSize The size of a single vertex in @p vertices. Must be at least three floats (12).
+  /// @param vertexByteSize The size of a single vertex in @p vertices. Must be at least three
+  /// floats (12).
   /// @param id Unique ID for the triangles. Must be non-zero to be persistent.
   /// @param position Local to world positioning of the triangles. Defaults to the origin.
   /// @param rotation Local to world rotation of the triangles. Defaults to identity.
   /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const Id &id, const DataBuffer &vertices = DataBuffer(),
+  MeshShape(DrawType draw_type, const Id &id, DataBuffer vertices = {},
             const Transform &transform = Transform());
 
-  /// Persistent triangle constructor accepting vertex and triangle iterators and optional positioning.
+  /// Persistent triangle constructor accepting vertex and triangle iterators and optional
+  /// positioning.
   /// @param vertices Pointer to the vertex array. Must be at least 3 elements per vertex.
   /// @param vertexCount The number of vertices in @c vertices.
-  /// @param vertexByteSize The size of a single vertex in @p vertices. Must be at least three floats (12).
+  /// @param vertexByteSize The size of a single vertex in @p vertices. Must be at least three
+  /// floats (12).
   /// @param id Unique ID for the triangles. Must be non-zero to be persistent.
   /// @param position Local to world positioning of the triangles. Defaults to the origin.
   /// @param rotation Local to world rotation of the triangles. Defaults to identity.
   /// @param scale Scaling for the triangles. Defaults to one.
-  MeshShape(DrawType drawType, const Id &id, const DataBuffer &vertices, const DataBuffer &indices,
+  MeshShape(DrawType draw_type, const Id &id, DataBuffer vertices, DataBuffer indices,
             const Transform &transform = Transform());
 
   /// Copy constructor.
@@ -127,18 +140,18 @@ public:
 
   /// Move constructor.
   /// @param other Object to move.
-  MeshShape(MeshShape &&other);
+  MeshShape(MeshShape &&other) noexcept;
 
   /// Destructor.
-  ~MeshShape();
+  ~MeshShape() override;
 
-  inline const char *type() const override { return "meshShape"; }
+  [[nodiscard]] const char *type() const override { return "meshShape"; }
 
   /// Mark as complex to ensure @c writeData() is called.
-  inline bool isComplex() const override { return true; }
+  [[nodiscard]] bool isComplex() const override { return true; }
 
   /// Calculate vertex normals in the viewer?
-  bool calculateNormals() const;
+  [[nodiscard]] bool calculateNormals() const;
   /// Should normals be calculated for the mesh by the viewer?
   /// @param calculate True to calculate vertex normals in the viewer.
   MeshShape &setCalculateNormals(bool calculate);
@@ -148,13 +161,13 @@ public:
   /// This sets the shape colour to zero (black, with zero alpha).
   ///
   /// Ignored for non point types.
-  /// @param colourByHeight True to colour by height.
+  /// @param colour_by_height True to colour by height.
   /// @return @c *this
-  MeshShape &setColourByHeight(bool colourByHeight);
+  MeshShape &setColourByHeight(bool colour_by_height);
 
   /// Check if colouring points by height. Requires @c drawType() @c DtPoints .
   /// @return True if the @c drawType() is @c DtPoints and set to colour by height.
-  bool colourByHeight() const;
+  [[nodiscard]] bool colourByHeight() const;
 
   /// Set the draw scale used to (de)emphasise the rendering.
   ///
@@ -167,7 +180,7 @@ public:
   void setDrawScale(float scale);
   /// Get the draw scale.
   /// @return The draw scale.
-  float drawScale() const;
+  [[nodiscard]] float drawScale() const;
 
   /// Set (optional) mesh normals. The number of normal elements in @p normals
   /// must match the @p vertexCount.
@@ -188,13 +201,14 @@ public:
   /// @return this
   MeshShape &setUniformNormal(const Vector3f &normal);
 
-  /// Set the colours array, one per vertex (@c vertexCount()). The array pointer is borrowed if this shape doesn't
-  /// own its own pointers, otherwise it is copied. Should be called before calling @c expandVertices().
+  /// Set the colours array, one per vertex (@c vertexCount()). The array pointer is borrowed if
+  /// this shape doesn't own its own pointers, otherwise it is copied. Should be called before
+  /// calling @c expandVertices().
   ///
   /// For @c DtPoints , this also clears @c setColourByHeight().
   ///
   /// @param colours The colours array.
-  inline MeshShape &setColours(const uint32_t *colours)
+  MeshShape &setColours(const uint32_t *colours)
   {
     setColourByHeight(false);
     _colours = std::move(DataBuffer(colours, _vertices.count()));
@@ -217,19 +231,21 @@ public:
   /// @return this
   MeshShape &duplicateArrays();
 
-  /// Access the vertices as a @c DataBuffer . The underlying pointer type must be either @c float or @c double .
+  /// Access the vertices as a @c DataBuffer . The underlying pointer type must be either @c float
+  /// or @c double .
   /// @return The vertices vertex stream.
-  inline const DataBuffer &vertices() const { return _vertices; }
-  /// Access the normals as a @c DataBuffer . The underlying pointer type must be either @c float or @c double .
+  [[nodiscard]] const DataBuffer &vertices() const { return _vertices; }
+  /// Access the normals as a @c DataBuffer . The underlying pointer type must be either @c float or
+  /// @c double .
   ///
-  /// When non-null, the count may either match the @c vertices() count or 1, indicating a single normal for all
-  /// vertices.
+  /// When non-null, the count may either match the @c vertices() count or 1, indicating a single
+  /// normal for all vertices.
   ///
   /// @return The normals vertex stream.
-  inline const DataBuffer &normals() const { return _normals; }
-  inline const DataBuffer &indices() const { return _indices; }
-  inline const DataBuffer &colours() const { return _colours; }
-  inline DrawType drawType() const { return _drawType; }
+  [[nodiscard]] const DataBuffer &normals() const { return _normals; }
+  [[nodiscard]] const DataBuffer &indices() const { return _indices; }
+  [[nodiscard]] const DataBuffer &colours() const { return _colours; }
+  [[nodiscard]] DrawType drawType() const { return _draw_type; }
 
   /// Writes the standard create message and appends mesh data.
   ///
@@ -239,57 +255,61 @@ public:
   /// @param stream The stream to write to.
   /// @return True on success.
   bool writeCreate(PacketWriter &packet) const override;
-  int writeData(PacketWriter &packet, unsigned &progressMarker) const override;
+  int writeData(PacketWriter &packet, unsigned &progress_marker) const override;
 
   bool readCreate(PacketReader &packet) override;
-  virtual bool readData(PacketReader &packet) override;
+  bool readData(PacketReader &packet) override;
 
   /// Deep copy clone.
   /// @return A deep copy.
-  Shape *clone() const override;
+  [[nodiscard]] std::shared_ptr<Shape> clone() const override;
 
 protected:
-  void onClone(MeshShape *copy) const;
+  void onClone(MeshShape &copy) const;
 
-  DataBuffer _vertices;            ///< Mesh vertices.
-  DataBuffer _normals;             ///< Normal stream. Expect zero, one per vertex or one to apply to all vertices.
-  DataBuffer _colours;             ///< Per vertex colours. Null for none.
-  DataBuffer _indices;             ///< Per vertex colours. Null for none.
-  double _quantisationUnit = 0.0;  ///< Quantisation for data packing. Zero => no packing.
-  float _drawScale = 0.0f;         ///< Draw scale: point scaling, line width, etc.
-  DrawType _drawType = DtPoints;   ///< The primitive to render.
+  DataBuffer _vertices;  ///< Mesh vertices.
+  /// Normal stream. Expect zero, one per vertex or one to apply to all vertices.
+  DataBuffer _normals;
+  DataBuffer _colours;              ///< Per vertex colours. Null for none.
+  DataBuffer _indices;              ///< Per vertex colours. Null for none.
+  double _quantisation_unit = 0.0;  ///< Quantisation for data packing. Zero => no packing.
+  float _draw_scale = 0.0f;         ///< Draw scale: point scaling, line width, etc.
+  DrawType _draw_type = DtPoints;   ///< The primitive to render.
 };
 
 
 inline MeshShape::MeshShape()
   : Shape(SIdMeshShape)
-  , _drawType(DtTriangles)
+  , _draw_type(DtTriangles)
 {}
 
 
-inline MeshShape::MeshShape(DrawType drawType, const Id &id, const DataBuffer &vertices, const Transform &transform)
+inline MeshShape::MeshShape(DrawType draw_type, const Id &id, DataBuffer vertices,
+                            const Transform &transform)
   : Shape(SIdMeshShape, id, transform)
-  , _vertices(vertices)
-  , _drawType(drawType)
+  , _vertices(std::move(vertices))
+  , _draw_type(draw_type)
 {
-  if (drawType == DtPoints)
+  if (draw_type == DtPoints)
   {
     setColourByHeight(true);
   }
 }
 
 
-inline MeshShape::MeshShape(DrawType drawType, const Id &id, const DataBuffer &vertices, const DataBuffer &indices,
-                            const Transform &transform)
+inline MeshShape::MeshShape(DrawType draw_type, const Id &id, DataBuffer vertices,
+                            DataBuffer indices, const Transform &transform)
   : Shape(SIdMeshShape, id, transform)
-  , _vertices(vertices)
-  , _indices(indices)
-  , _drawType(drawType)
+  , _vertices(std::move(vertices))
+  , _indices(std::move(indices))
+  , _draw_type(draw_type)
 {
-  TES_ASSERT2(_indices.type() == DctInt8 || _indices.type() == DctInt16 || _indices.type() == DctInt32 ||
-                _indices.type() == DctUInt8 || _indices.type() == DctUInt16 || _indices.type() == DctUInt32,
+  // NOLINTNEXTLINE(readability-simplify-boolean-expr)
+  TES_ASSERT2(_indices.type() == DctInt8 || _indices.type() == DctInt16 ||
+                _indices.type() == DctInt32 || _indices.type() == DctUInt8 ||
+                _indices.type() == DctUInt16 || _indices.type() == DctUInt32,
               "Indices not of integery type (4-byte width limit)")
-  if (drawType == DtPoints)
+  if (draw_type == DtPoints)
   {
     setColourByHeight(true);
   }
@@ -304,17 +324,17 @@ inline bool MeshShape::calculateNormals() const
 
 inline MeshShape &MeshShape::setCalculateNormals(bool calculate)
 {
-  _data.flags = uint16_t(_data.flags & ~MeshShapeCalculateNormals);
-  _data.flags = uint16_t(_data.flags | MeshShapeCalculateNormals * !!calculate);
+  _data.flags = static_cast<uint16_t>(_data.flags & ~MeshShapeCalculateNormals);
+  _data.flags = static_cast<uint16_t>(_data.flags | MeshShapeCalculateNormals * !!calculate);
   return *this;
 }
 
 
-inline MeshShape &MeshShape::setColourByHeight(bool colourByHeight)
+inline MeshShape &MeshShape::setColourByHeight(bool colour_by_height)
 {
   if (drawType() == DtPoints)
   {
-    if (colourByHeight)
+    if (colour_by_height)
     {
       _attributes.colour = 0;
     }
@@ -335,13 +355,13 @@ inline bool MeshShape::colourByHeight() const
 
 inline void MeshShape::setDrawScale(float scale)
 {
-  _drawScale = scale;
+  _draw_scale = scale;
 }
 
 
 inline float MeshShape::drawScale() const
 {
-  return _drawScale;
+  return _draw_scale;
 }
 }  // namespace tes
 

@@ -60,16 +60,16 @@ void handleShapeMessage(PacketReader &reader, T &shape, const T &referenceShape)
 
 void handleMeshMessage(PacketReader &reader, ResourceMap &resources)
 {
-  uint32_t meshId = 0;
-  reader.peek((uint8_t *)&meshId, sizeof(meshId));
-  auto resIter = resources.find(MeshPlaceholder(meshId).uniqueKey());
-  SimpleMesh *mesh = nullptr;
+  uint32_t mesh_id = 0;
+  reader.peek((uint8_t *)&mesh_id, sizeof(mesh_id));
+  auto resIter = resources.find(MeshPlaceholder(mesh_id).uniqueKey());
+  std::shared_ptr<SimpleMesh> mesh = nullptr;
 
   // If it exists, make sure it's a mesh.
   if (resIter != resources.end())
   {
     ASSERT_TRUE(resIter->second->typeId() == MtMesh);
-    mesh = static_cast<SimpleMesh *>(resIter->second);
+    mesh = std::dynamic_pointer_cast<SimpleMesh>(resIter->second);
   }
 
   switch (reader.messageId())
@@ -79,7 +79,7 @@ void handleMeshMessage(PacketReader &reader, ResourceMap &resources)
     break;
 
   case MmtDestroy:
-    delete mesh;
+    mesh.reset();
     if (resIter != resources.end())
     {
       resources.erase(resIter);
@@ -89,8 +89,7 @@ void handleMeshMessage(PacketReader &reader, ResourceMap &resources)
   case MmtCreate:
     // Create message. Should not already exists.
     EXPECT_EQ(mesh, nullptr) << "Recreating exiting mesh.";
-    delete mesh;
-    mesh = new SimpleMesh(meshId);
+    mesh = std::make_shared<SimpleMesh>(mesh_id);
     EXPECT_TRUE(mesh->readCreate(reader));
     resources.insert(std::make_pair(mesh->uniqueKey(), mesh));
     break;
@@ -113,8 +112,8 @@ void handleMeshMessage(PacketReader &reader, ResourceMap &resources)
 typedef std::function<int(uint8_t *buffer, int bufferLength)> DataReadFunc;
 
 template <class T>
-void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape, const ServerInfoMessage &serverInfo,
-                      unsigned timeoutSec = 10)
+void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape,
+                      const ServerInfoMessage &serverInfo, unsigned timeoutSec = 10)
 {
   typedef std::chrono::steady_clock Clock;
   ServerInfoMessage readServerInfo;
@@ -134,7 +133,8 @@ void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape, con
 
   // Keep looping until we get a CIdEnd ControlMessage or timeoutSec elapses.
   while (!endMsgReceived &&
-         std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - startTime).count() < timeoutSec)
+         std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - startTime).count() <
+           timeoutSec)
   {
     readCount = dataRead(readBuffer.data(), int(readBuffer.size()));
     // Assert no read errors.
@@ -161,9 +161,9 @@ void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape, con
       {
         PacketReader reader(packetHeader);
 
-        EXPECT_EQ(reader.marker(), PacketMarker);
-        EXPECT_EQ(reader.versionMajor(), PacketVersionMajor);
-        EXPECT_EQ(reader.versionMinor(), PacketVersionMinor);
+        EXPECT_EQ(reader.marker(), kPacketMarker);
+        EXPECT_EQ(reader.versionMajor(), kPacketVersionMajor);
+        EXPECT_EQ(reader.versionMinor(), kPacketVersionMinor);
 
         switch (reader.routingId())
         {
@@ -172,11 +172,12 @@ void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape, con
           readServerInfo.read(reader);
 
           // Validate server info.
-          EXPECT_EQ(readServerInfo.timeUnit, serverInfo.timeUnit);
-          EXPECT_EQ(readServerInfo.defaultFrameTime, serverInfo.defaultFrameTime);
-          EXPECT_EQ(readServerInfo.coordinateFrame, serverInfo.coordinateFrame);
+          EXPECT_EQ(readServerInfo.time_unit, serverInfo.time_unit);
+          EXPECT_EQ(readServerInfo.default_frame_time, serverInfo.default_frame_time);
+          EXPECT_EQ(readServerInfo.coordinate_frame, serverInfo.coordinate_frame);
 
-          for (int i = 0; i < int(sizeof(readServerInfo.reserved) / sizeof(readServerInfo.reserved[0])); ++i)
+          for (int i = 0;
+               i < int(sizeof(readServerInfo.reserved) / sizeof(readServerInfo.reserved[0])); ++i)
           {
             EXPECT_EQ(readServerInfo.reserved[i], serverInfo.reserved[i]);
           }
@@ -222,11 +223,6 @@ void validateDataRead(const DataReadFunc &dataRead, const T &referenceShape, con
   {
     validateShape(shape, referenceShape, resources);
   }
-
-  for (auto &&resource : resources)
-  {
-    delete resource.second;
-  }
 }
 
 template <class T>
@@ -240,25 +236,26 @@ void validateClient(TcpSocket &socket, const T &referenceShape, const ServerInfo
 }
 
 template <class T>
-void testShape(const T &shape, ServerInfoMessage *infoOut = nullptr, const char *saveFilePath = nullptr)
+void testShape(const T &shape, ServerInfoMessage *infoOut = nullptr,
+               const char *saveFilePath = nullptr)
 {
   // Initialise server.
   ServerInfoMessage info;
   initDefaultServerInfo(&info);
-  info.coordinateFrame = XYZ;
+  info.coordinate_frame = XYZ;
 
-  unsigned serverFlags = SF_Default | SF_CollateAndCompress;
+  unsigned serverFlags = SFDefault | SFCollateAndCompress;
   ServerSettings serverSettings(serverFlags);
-  serverSettings.portRange = 1000;
-  Server *server = Server::create(serverSettings, &info);
+  serverSettings.port_range = 1000;
+  auto server = Server::create(serverSettings, &info);
 
   if (infoOut)
   {
     *infoOut = info;
   }
 
-  // std::cout << "Start on port " << serverSettings.listenPort << std::endl;
-  ASSERT_TRUE(server->connectionMonitor()->start(tes::ConnectionMonitor::Asynchronous));
+  // std::cout << "Start on port " << serverSettings.listen_port << std::endl;
+  ASSERT_TRUE(server->connectionMonitor()->start(tes::ConnectionMode::Asynchronous));
   // std::cout << "Server listening on port " <<
   // server->connectionMonitor()->port() << std::endl;;
 
@@ -275,7 +272,7 @@ void testShape(const T &shape, ServerInfoMessage *infoOut = nullptr, const char 
   // Setup saving to file.
   if (saveFilePath && saveFilePath[0])
   {
-    Connection *fileConnection = server->connectionMonitor()->openFileStream(saveFilePath);
+    auto fileConnection = server->connectionMonitor()->openFileStream(saveFilePath);
     ASSERT_NE(fileConnection, nullptr);
     server->connectionMonitor()->commitConnections();
   }
@@ -307,12 +304,12 @@ void testShape(const T &shape, ServerInfoMessage *infoOut = nullptr, const char 
   server->connectionMonitor()->stop();
   server->connectionMonitor()->join();
 
-  server->dispose();
-  server = nullptr;
+  server.reset();
 }
 
 template <class T>
-void validateFileStream(const char *fileName, const T &referenceShape, const ServerInfoMessage &serverInfo)
+void validateFileStream(const char *fileName, const T &referenceShape,
+                        const ServerInfoMessage &serverInfo)
 {
   // Load a file stream and validate the shape it generates.
   std::ifstream inFile(fileName, std::ios::binary);
@@ -337,37 +334,46 @@ void validateFileStream(const char *fileName, const T &referenceShape, const Ser
 
 TEST(Shapes, Arrow)
 {
-  testShape(Arrow(42u, Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.05f, 2.0f)));
-  testShape(Arrow(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.05f, 2.0f)));
+  testShape(Arrow(
+    42u, Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.05f, 2.0f)));
+  testShape(Arrow(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f),
+                                          Vector3f(1, 1, 1).normalised(), 0.05f, 2.0f)));
 }
 
 TEST(Shapes, Box)
 {
-  testShape(Box(
-    42u, Transform(Vector3f(1.2f, 2.3f, 3.4f),
-                   Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f)), Vector3f(1, 3, 2))));
+  testShape(
+    Box(42u, Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                       Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f)),
+                       Vector3f(1, 3, 2))));
   testShape(Box(Id(42u, 1), Transform(Vector3f(1.2f, 2.3f, 3.4f),
-                                      Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(), degToRad(18.0f)),
+                                      Quaternionf().setAxisAngle(Vector3f(1, 1, 1).normalised(),
+                                                                 degToRad(18.0f)),
                                       Vector3f(1, 3, 2))));
 }
 
 TEST(Shapes, Capsule)
 {
-  testShape(Capsule(42u, Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.3f, 2.05f)));
-  testShape(Capsule(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.3f, 2.05f)));
+  testShape(Capsule(
+    42u, Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.3f, 2.05f)));
+  testShape(Capsule(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f),
+                                            Vector3f(1, 1, 1).normalised(), 0.3f, 2.05f)));
 }
 
 TEST(Shapes, Cone)
 {
-  testShape(Cone(Id(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.35f, 3.0f)));
-  testShape(Cone(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.35f, 3.0f)));
+  testShape(Cone(
+    Id(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.35f, 3.0f)));
+  testShape(Cone(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(),
+                                         0.35f, 3.0f)));
 }
 
 TEST(Shapes, Cylinder)
 {
-  testShape(Cylinder(Id(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.25f, 1.05f)));
-  testShape(
-    Cylinder(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 0.25f, 1.05f)));
+  testShape(Cylinder(Id(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f),
+                                          Vector3f(1, 1, 1).normalised(), 0.25f, 1.05f)));
+  testShape(Cylinder(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f),
+                                             Vector3f(1, 1, 1).normalised(), 0.25f, 1.05f)));
 }
 
 TEST(Shapes, MeshSet)
@@ -377,14 +383,14 @@ TEST(Shapes, MeshSet)
   std::vector<unsigned> wireIndices;
   std::vector<Vector3f> normals;
   std::vector<uint32_t> colours;
-  std::vector<SimpleMesh *> meshes;
+  std::vector<std::shared_ptr<SimpleMesh>> meshes;
   makeHiResSphere(vertices, indices, &normals);
 
   // Build per vertex colours by colour cycling.
   colours.resize(vertices.size());
   for (size_t i = 0; i < vertices.size(); ++i)
   {
-    colours[i] = Colour::cycle(unsigned(i)).c;
+    colours[i] = ColourSet::predefined(ColourSet::Standard).cycle(unsigned(i)).colour32();
   }
 
   // Build a line based indexing scheme for a wireframe sphere.
@@ -399,18 +405,20 @@ TEST(Shapes, MeshSet)
   }
 
   // Build a number of meshes to include in the mesh set.
-  SimpleMesh *mesh = nullptr;
+  std::shared_ptr<SimpleMesh> mesh = nullptr;
   unsigned nextMeshId = 1;
 
   // Vertices and indices only.
-  mesh = new SimpleMesh(nextMeshId++, unsigned(vertices.size()), unsigned(indices.size()), DtTriangles);
+  mesh = std::make_shared<SimpleMesh>(nextMeshId++, unsigned(vertices.size()),
+                                      unsigned(indices.size()), DtTriangles);
   mesh->setVertices(0, vertices.data(), unsigned(vertices.size()));
   mesh->setIndices(0, indices.data(), unsigned(indices.size()));
   meshes.push_back(mesh);
 
   // Vertices, indices and colours
-  mesh = new SimpleMesh(nextMeshId++, unsigned(vertices.size()), unsigned(indices.size()), DtTriangles,
-                        SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Colour);
+  mesh = std::make_shared<SimpleMesh>(nextMeshId++, unsigned(vertices.size()),
+                                      unsigned(indices.size()), DtTriangles,
+                                      SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Colour);
   mesh->setVertices(0, vertices.data(), unsigned(vertices.size()));
   mesh->setNormals(0, normals.data(), unsigned(normals.size()));
   mesh->setColours(0, colours.data(), unsigned(colours.size()));
@@ -418,21 +426,24 @@ TEST(Shapes, MeshSet)
   meshes.push_back(mesh);
 
   // Points and colours only (essentially a point cloud)
-  mesh = new SimpleMesh(nextMeshId++, unsigned(vertices.size()), unsigned(indices.size()), DtPoints,
-                        SimpleMesh::Vertex | SimpleMesh::Colour);
+  mesh =
+    std::make_shared<SimpleMesh>(nextMeshId++, unsigned(vertices.size()), unsigned(indices.size()),
+                                 DtPoints, SimpleMesh::Vertex | SimpleMesh::Colour);
   mesh->setVertices(0, vertices.data(), unsigned(vertices.size()));
   mesh->setColours(0, colours.data(), unsigned(colours.size()));
   meshes.push_back(mesh);
 
   // Lines.
-  mesh = new SimpleMesh(nextMeshId++, unsigned(vertices.size()), unsigned(wireIndices.size()), DtLines);
+  mesh = std::make_shared<SimpleMesh>(nextMeshId++, unsigned(vertices.size()),
+                                      unsigned(wireIndices.size()), DtLines);
   mesh->setVertices(0, vertices.data(), unsigned(vertices.size()));
   mesh->setIndices(0, wireIndices.data(), unsigned(wireIndices.size()));
   meshes.push_back(mesh);
 
   // One with the lot.
-  mesh = new SimpleMesh(nextMeshId++, unsigned(vertices.size()), unsigned(indices.size()), DtTriangles,
-                        SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Normal | SimpleMesh::Colour);
+  mesh = std::make_shared<SimpleMesh>(
+    nextMeshId++, unsigned(vertices.size()), unsigned(indices.size()), DtTriangles,
+    SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Normal | SimpleMesh::Colour);
   mesh->setVertices(0, vertices.data(), unsigned(vertices.size()));
   mesh->setNormals(0, normals.data(), unsigned(normals.size()));
   mesh->setColours(0, colours.data(), unsigned(colours.size()));
@@ -446,23 +457,21 @@ TEST(Shapes, MeshSet)
   {
     MeshSet set(Id(42u, 1), meshes.size());
 
-    Matrix4f transform = Matrix4f::identity;
+    Matrix4f transform = Matrix4f::Identity;
     for (unsigned i = 0; i < meshes.size(); ++i)
     {
       const float fi = float(i);
-      transform = prsTransform(Vector3f(fi * 1.0f, fi - 3.2f, 1.5f * fi),
-                               Quaternionf().setAxisAngle(Vector3f(fi * 1.0f, fi + 1.0f, fi - 3.0f).normalised(),
-                                                          degToRad((fi + 1.0f) * 6.0f)),
-                               Vector3f(0.75f, 0.75f, 0.75f));
+      transform = prsTransform(
+        Vector3f(fi * 1.0f, fi - 3.2f, 1.5f * fi),
+        Quaternionf().setAxisAngle(Vector3f(fi * 1.0f, fi + 1.0f, fi - 3.0f).normalised(),
+                                   degToRad((fi + 1.0f) * 6.0f)),
+        Vector3f(0.75f, 0.75f, 0.75f));
       set.setPart(i, meshes[i], transform);
     }
     testShape(set);
   }
 
-  for (auto &&mesh : meshes)
-  {
-    delete mesh;
-  }
+  meshes.clear();
 }
 
 TEST(Shapes, Mesh)
@@ -476,64 +485,66 @@ TEST(Shapes, Mesh)
   std::vector<uint32_t> colours(vertices.size());
   for (unsigned i = 0; i < unsigned(colours.size()); ++i)
   {
-    colours[i] = tes::Colour::cycle(i).c;
+    colours[i] = tes::ColourSet::predefined(ColourSet::Standard).cycle(i).colour32();
   }
 
   // I> Test each constructor.
   // 1. drawType, verts, vcount, vstrideBytes, pos, rot, scale
-  testShape(
-    MeshShape(DtPoints, Id(), DataBuffer(vertices),
-              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-                        Vector3f(1.0f, 1.2f, 0.8f))));
+  testShape(MeshShape(DtPoints, Id(), DataBuffer(vertices),
+                      Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                                Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                                Vector3f(1.0f, 1.2f, 0.8f))));
   // 2. drawType, verts, vcount, vstrideBytes, indices, icount, pos, rot, scale
-  testShape(
-    MeshShape(DtTriangles, Id(), DataBuffer(vertices), DataBuffer(indices),
-              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-                        Vector3f(1.0f, 1.2f, 0.8f))));
+  testShape(MeshShape(DtTriangles, Id(), DataBuffer(vertices), DataBuffer(indices),
+                      Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                                Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                                Vector3f(1.0f, 1.2f, 0.8f))));
   // 3. drawType, verts, vcount, vstrideBytes, id, pos, rot, scale
-  testShape(
-    MeshShape(DtPoints, Id(42u), DataBuffer(vertices),
-              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-                        Vector3f(1.0f, 1.2f, 0.8f))));
+  testShape(MeshShape(DtPoints, Id(42u), DataBuffer(vertices),
+                      Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                                Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                                Vector3f(1.0f, 1.2f, 0.8f))));
   // 4. drawType, verts, vcount, vstrideBytes, indices, icount, id, pos, rot,
   // scale
-  testShape(
-    MeshShape(DtTriangles, Id(42u), DataBuffer(vertices), DataBuffer(indices),
-              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-                        Vector3f(1.0f, 1.2f, 0.8f))));
+  testShape(MeshShape(DtTriangles, Id(42u), DataBuffer(vertices), DataBuffer(indices),
+                      Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                                Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                                Vector3f(1.0f, 1.2f, 0.8f))));
   // 5. drawType, verts, vcount, vstrideBytes, indices, icount, id, cat, pos,
   // rot, scale
-  testShape(
-    MeshShape(DtTriangles, Id(42u), DataBuffer(vertices), DataBuffer(indices),
-              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-                        Vector3f(1.0f, 1.2f, 0.8f))));
+  testShape(MeshShape(DtTriangles, Id(42u), DataBuffer(vertices), DataBuffer(indices),
+                      Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                                Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                                Vector3f(1.0f, 1.2f, 0.8f))));
 
   // II> Test with uniform normal.
-  testShape(
-    MeshShape(DtVoxels, Id(42u), DataBuffer(vertices), DataBuffer(indices),
-              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-                        Vector3f(1.0f, 1.2f, 0.8f)))
-      .setUniformNormal(Vector3f(0.1f, 0.1f, 0.1f)));
+  testShape(MeshShape(DtVoxels, Id(42u), DataBuffer(vertices), DataBuffer(indices),
+                      Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                                Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                                Vector3f(1.0f, 1.2f, 0.8f)))
+              .setUniformNormal(Vector3f(0.1f, 0.1f, 0.1f)));
 
   // III> Test will many normals.
-  testShape(
-    MeshShape(DtTriangles, Id(42u, 1), DataBuffer(vertices), DataBuffer(indices),
-              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-                        Vector3f(1.0f, 1.2f, 0.8f)))
-      .setNormals(DataBuffer(normals)));
+  testShape(MeshShape(DtTriangles, Id(42u, 1), DataBuffer(vertices), DataBuffer(indices),
+                      Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                                Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                                Vector3f(1.0f, 1.2f, 0.8f)))
+              .setNormals(DataBuffer(normals)));
 
   // IV> Test with colours.
-  testShape(
-    MeshShape(DtTriangles, Id(), DataBuffer(vertices), DataBuffer(indices),
-              Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
-                        Vector3f(1.0f, 1.2f, 0.8f)))
-      .setColours(colours.data()));
+  testShape(MeshShape(DtTriangles, Id(), DataBuffer(vertices), DataBuffer(indices),
+                      Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                                Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
+                                Vector3f(1.0f, 1.2f, 0.8f)))
+              .setColours(colours.data()));
 }
 
 TEST(Shapes, Plane)
 {
-  testShape(Plane(Id(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 5.0f, 0.75f)));
-  testShape(Plane(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 5.0f, 0.75f)));
+  testShape(Plane(
+    Id(42u), Directional(Vector3f(1.2f, 2.3f, 3.4f), Vector3f(1, 1, 1).normalised(), 5.0f, 0.75f)));
+  testShape(Plane(Id(42u, 1), Directional(Vector3f(1.2f, 2.3f, 3.4f),
+                                          Vector3f(1, 1, 1).normalised(), 5.0f, 0.75f)));
 }
 
 TEST(Shapes, PointCloud)
@@ -545,27 +556,21 @@ TEST(Shapes, PointCloud)
 
   PointCloud cloud(42);
   cloud.addPoints(vertices.data(), unsigned(vertices.size()));
+  cloud.setDrawScale(8.0f);
 
   // Full res cloud.
-  testShape(PointCloudShape(&cloud, Id(42u), 8));
-
-  // Indexed (sub-sampled) cloud. Just use half the points.
-  indices.clear();
-  for (unsigned i = 0; i < unsigned(vertices.size() / 2); ++i)
-  {
-    indices.push_back(i);
-  }
-  testShape(PointCloudShape(&cloud, Id(42u, 1), 8).setIndices(indices.data(), unsigned(indices.size())));
+  testShape(MeshSet(&cloud, Id(42u)));
 }
 
 TEST(Shapes, Pose)
 {
+  testShape(Pose(Id(42u), Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                                    Quaternionf().setAxisAngle(Vector3f::AxisZ, float(0.25 * M_PI)),
+                                    Vector3f(0.25f, 0.5f, 1.5f))));
   testShape(
-    Pose(Id(42u), Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f::axisz, float(0.25 * M_PI)),
-                            Vector3f(0.25f, 0.5f, 1.5f))));
-  testShape(Pose(Id(42u, 1),
-                 Transform(Vector3f(1.2f, 2.3f, 3.4f), Quaternionf().setAxisAngle(Vector3f::axisz, float(0.25 * M_PI)),
-                           Vector3f(0.25f, 0.5f, 1.5f))));
+    Pose(Id(42u, 1), Transform(Vector3f(1.2f, 2.3f, 3.4f),
+                               Quaternionf().setAxisAngle(Vector3f::AxisZ, float(0.25 * M_PI)),
+                               Vector3f(0.25f, 0.5f, 1.5f))));
 }
 
 TEST(Shapes, Sphere)
@@ -584,7 +589,8 @@ TEST(Shapes, Text2D)
 {
   testShape(Text2D("Transient Text2D", Id(), Spherical(Vector3f(1.2f, 2.3f, 3.4f))));
   testShape(Text2D("Persistent Text2D", 42u, Spherical(Vector3f(1.2f, 2.3f, 3.4f))));
-  testShape(Text2D("Persistent, categorised Text2D", Id(42u, 1), Spherical(Vector3f(1.2f, 2.3f, 3.4f))));
+  testShape(
+    Text2D("Persistent, categorised Text2D", Id(42u, 1), Spherical(Vector3f(1.2f, 2.3f, 3.4f))));
 }
 
 TEST(Shapes, Text3D)

@@ -7,15 +7,22 @@
 
 #include <mutex>
 
-using namespace tes;
-
-FileConnection::FileConnection(const char *filename, const ServerSettings &settings)
+namespace tes
+{
+FileConnection::FileConnection(const std::string &filename, const ServerSettings &settings)
   : BaseConnection(settings)
-  , _outFile(filename, std::ios::binary | std::ios::out | std::ios::in | std::ios::trunc)
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
+  , _out_file(filename, std::ios::binary | std::ios::out | std::ios::in | std::ios::trunc)
   , _filename(filename)
 {}
 
 
+// TODO(KS): What's the correct way to handle the potential for close() throwing an exception?
+// We need to call close() in the destructor for completeness, but it does do work which could
+// throw. However, not closing the stream will cause other resource issues. So which is more
+// correct? Leaving the potential for an exception or leaving the potential for an incomplete
+// stream?
+// NOLINTNEXTLINE(bugprone-exception-escape)
 FileConnection::~FileConnection()
 {
   close();
@@ -24,12 +31,12 @@ FileConnection::~FileConnection()
 
 void FileConnection::close()
 {
-  std::lock_guard<Lock> guard(_fileLock);
-  if (_outFile.is_open())
+  const std::lock_guard<Lock> guard(_file_lock);
+  if (_out_file.is_open())
   {
-    _outFile.flush();
-    streamutil::finaliseStream(_outFile, _frameCount);
-    _outFile.close();
+    _out_file.flush();
+    streamutil::finaliseStream(_out_file, _frame_count);
+    _out_file.close();
   }
 }
 
@@ -54,8 +61,8 @@ uint16_t FileConnection::port() const
 
 bool FileConnection::isConnected() const
 {
-  std::lock_guard<Lock> guard(_fileLock);
-  return _outFile.is_open();
+  const std::lock_guard<Lock> guard(_file_lock);
+  return _out_file.is_open();
 }
 
 
@@ -67,24 +74,25 @@ bool FileConnection::sendServerInfo(const ServerInfoMessage &info)
   }
 
   // Server info already written. No need to write it again.
-  return streamutil::initialiseStream(_outFile, nullptr);
+  return streamutil::initialiseStream(_out_file, nullptr);
 }
 
 
 int FileConnection::updateFrame(float dt, bool flush)
 {
-  ++_frameCount;
+  ++_frame_count;
   return BaseConnection::updateFrame(dt, flush);
 }
 
 
-int FileConnection::writeBytes(const uint8_t *data, int byteCount)
+int FileConnection::writeBytes(const uint8_t *data, int byte_count)
 {
-  _outFile.write(reinterpret_cast<const char *>(data), byteCount);
-  if (!_outFile.fail())
+  _out_file.write(reinterpret_cast<const char *>(data), byte_count);
+  if (!_out_file.fail())
   {
-    return byteCount;
+    return byte_count;
   }
 
   return -1;
 }
+}  // namespace tes

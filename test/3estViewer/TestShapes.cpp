@@ -17,8 +17,6 @@
 #include <3esview/painter/Star.h>
 #include <3esview/Viewer.h>
 
-#include <gtest/gtest.h>
-
 #include <chrono>
 #include <iostream>
 #include <list>
@@ -27,6 +25,8 @@
 #include <thread>
 #include <vector>
 
+// Note(KS): all the tests in this file are removed from CTest runs when TES_DISABLE_PAINTER_TESTS
+// is on. See CMakeLists.txt and TES_DISABLE_PAINTER_TESTS usage for details.
 
 namespace tes::view
 {
@@ -45,9 +45,11 @@ public:
 
 /// A helper class for running painter parent shape tests.
 ///
-/// The test starts by allocating a shape with @p child_count children. The test simulates updating the children for
-/// @p frame_count, adjusting the parent and child positions each frame. The position of each shape is filled with
-/// information about the current frame and the child id. We then validate the position for the parent and child shapes.
+/// The test starts by allocating a shape with @p child_count children. The test simulates updating
+/// the children for
+/// @p frame_count, adjusting the parent and child positions each frame. The position of each shape
+/// is filled with information about the current frame and the child id. We then validate the
+/// position for the parent and child shapes.
 ///
 /// @tparam Painter The @c painter::ShapePainter instance to simulate with.
 template <typename Painter>
@@ -80,7 +82,8 @@ struct ParentsTest
     _painter->commit();
     validate(0);
 
-    // Run a series of frames where we update the parent, then the children and validate the transforms.
+    // Run a series of frames where we update the parent, then the children and validate the
+    // transforms.
     for (FrameNumber frame_number = 1; frame_number < frame_count; ++frame_number)
     {
       // Update for next frame.
@@ -92,7 +95,8 @@ struct ParentsTest
       for (unsigned i = 0; i < child_count; ++i)
       {
         painter::ShapePainter::ChildId child_id(_shape_id, i);
-        transform = Magnum::Matrix4::translation({ Magnum::Float(i), 0, Magnum::Float(frame_number) });
+        transform =
+          Magnum::Matrix4::translation({ Magnum::Float(i), 0, Magnum::Float(frame_number) });
         _painter->updateChildShape(child_id, transform, colour);
       }
 
@@ -137,14 +141,16 @@ private:
       // Check child.
       expect_x = float(i);
       // Read without parent transform.
-      _painter->readChildShape(painter::ShapePainter::ChildId(_shape_id, i), false, transform, colour);
+      _painter->readChildShape(painter::ShapePainter::ChildId(_shape_id, i), false, transform,
+                               colour);
       pos = transform[3].xyz();
       const float epsilon = 1e-5f;
       EXPECT_NEAR(pos.x(), expect_x, epsilon);
       EXPECT_NEAR(pos.y(), 0, epsilon);
       EXPECT_NEAR(pos.z(), expect_z, epsilon);
       // Read with parent transform.
-      _painter->readChildShape(painter::ShapePainter::ChildId(_shape_id, i), true, transform, colour);
+      _painter->readChildShape(painter::ShapePainter::ChildId(_shape_id, i), true, transform,
+                               colour);
       pos = transform[3].xyz();
       EXPECT_NEAR(pos.x(), expect_x, epsilon);
       EXPECT_NEAR(pos.y(), expect_y, epsilon);
@@ -159,7 +165,8 @@ private:
     EXPECT_FALSE(_painter->readShape(_shape_id, transform, colour));
     for (unsigned i = 0; i < child_count; ++i)
     {
-      EXPECT_FALSE(_painter->readChildShape(painter::ShapePainter::ChildId(_shape_id, i), false, transform, colour));
+      EXPECT_FALSE(_painter->readChildShape(painter::ShapePainter::ChildId(_shape_id, i), false,
+                                            transform, colour));
     }
   }
 
@@ -197,6 +204,7 @@ TEST_F(Shapes, Painter_Add)
   EXPECT_TRUE(painter.readShape(Id(3), t, c));
   EXPECT_EQ(t, transform);
   EXPECT_EQ(c, colour);
+  viewer->runFor(1u);
 }
 
 
@@ -242,6 +250,7 @@ TEST_F(Shapes, Painter_Remove)
   EXPECT_FALSE(painter.readShape(Id(1), t, c));
   EXPECT_FALSE(painter.readShape(Id(2), t, c));
   EXPECT_FALSE(painter.readShape(Id(3), t, c));
+  viewer->runFor(1u);
 }
 
 
@@ -296,6 +305,7 @@ TEST_F(Shapes, Painter_ReAdd)
   EXPECT_TRUE(painter.readShape(Id(3), t, c));
   EXPECT_EQ(t, transform);
   EXPECT_EQ(c, colour);
+  viewer->runFor(1u);
 }
 
 
@@ -304,8 +314,8 @@ TEST_F(Shapes, Painter_Parents)
   // Test creating a shapes with a parent;
   // - Basic parenting affecting transformations.
   // - Updating a parent affects children.
-  // We only adjust translation, with children ranging in x and the parent moving in y. Children also move in z each
-  // frame.
+  // We only adjust translation, with children ranging in x and the parent moving in y. Children
+  // also move in z each frame.
   //
   // The following semantics hold true for the parent shape position:
   // - x = z = 0 => constant
@@ -341,7 +351,8 @@ TEST_F(Shapes, Painter_Update)
 
   for (stamp.frame_number = 0; stamp.frame_number < max_frames; ++stamp.frame_number)
   {
-    transform = Magnum::Matrix4::translation(Magnum::Vector3(Magnum::Float(stamp.frame_number), 0, 0));
+    transform =
+      Magnum::Matrix4::translation(Magnum::Vector3(Magnum::Float(stamp.frame_number), 0, 0));
     colour = Magnum::Color4(Magnum::Float(stamp.frame_number));
     // Update a shape.
     if (stamp.frame_number > 0)

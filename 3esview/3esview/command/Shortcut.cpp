@@ -4,6 +4,7 @@
 #include "Shortcut.h"
 
 #include <algorithm>
+#include <cctype>
 #include <sstream>
 #include <vector>
 #include <unordered_map>
@@ -171,9 +172,12 @@ Shortcut Shortcut::parse(const std::string &sequence)
   while (std::getline(stream, token, '+'))
   {
     // Strip whitespace.
-    token.erase(std::remove_if(token.begin(), token.end(), std::isspace), token.end());
+    token.erase(std::remove_if(token.begin(), token.end(),
+                               [](const std::string::value_type &ch) { return std::isspace(ch); }),
+                token.end());
     // Convert to lower case.
-    std::transform(token.begin(), token.end(), token.begin(), [](unsigned char c) { return std::tolower(c); });
+    std::transform(token.begin(), token.end(), token.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
     // Add the token
     tokens.emplace_back(token);
   }

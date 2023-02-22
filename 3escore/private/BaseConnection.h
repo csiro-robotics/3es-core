@@ -9,10 +9,11 @@
 #include <3escore/Connection.h>
 #include <3escore/Messages.h>
 #include <3escore/PacketWriter.h>
-#include <3escore/SpinLock.h>
 
 #include <atomic>
 #include <list>
+#include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -29,18 +30,18 @@ class TcpSocket;
 // - Track active transmission item
 // - Send all parts for a shape at a time.
 
-/// Common @c Connection implementation base. Implements conversion of @c Shape messages into raw byte @c send()
-/// calls reducing the required subclass implentations to @c writeBytes().
+/// Common @c Connection implementation base. Implements conversion of @c Shape messages into raw
+/// byte @c send() calls reducing the required subclass implementations to @c writeBytes().
 class BaseConnection : public Connection
 {
 public:
-  typedef SpinLock Lock;
+  using Lock = std::mutex;
 
   /// Create a new connection using the given @p clientSocket.
   /// @param clientSocket The socket to communicate on.
   /// @param settings Various server settings to initialise with.
   BaseConnection(const ServerSettings &settings);
-  ~BaseConnection();
+  ~BaseConnection() override;
 
   /// Activate/deactivate the connection. Messages are ignored while inactive.
   /// @param enable The active state to set.
@@ -52,48 +53,79 @@ public:
 
   bool sendServerInfo(const ServerInfoMessage &info) override;
 
-  int send(const PacketWriter &packet, bool allowCollation) override;
-  int send(const CollatedPacket &collated);  // override;
-  int send(const uint8_t *data, int byteCount, bool allowCollation = true) override;
+  int send(const PacketWriter &packet, bool allow_collation) override;
+  int send(const CollatedPacket &collated) override;
+  int send(const uint8_t *data, int byte_count, bool allow_collation) override;
+  using Connection::send;
 
   int create(const Shape &shape) override;
   int destroy(const Shape &shape) override;
   int update(const Shape &shape) override;
 
-  int updateTransfers(unsigned byteLimit) override;
-  int updateFrame(float dt, bool flush = true) override;
+  int updateTransfers(unsigned byte_limit) override;
+  int updateFrame(float dt, bool flush) override;
+  using Connection::updateFrame;
 
-  unsigned referenceResource(const Resource *resource) override;
-  unsigned releaseResource(const Resource *resource) override;
+  unsigned referenceResource(const ResourcePtr &resource) override;
+  unsigned releaseResource(const ResourcePtr &resource) override;
 
 protected:
-  virtual int writeBytes(const uint8_t *data, int byteCount) = 0;
+  virtual int writeBytes(const uint8_t *data, int byte_count) = 0;
 
+  /// Internal structure for managing a resource.
   struct ResourceInfo
   {
-    const Resource *resource;
-    unsigned referenceCount;
-    bool started;  ///< Started sending?
-    bool sent;     ///< Completed sending?
+    ResourcePtr resource;  ///< Resource pointer.
+    /// Number of active references. This increases when @c referenceResource() is called and
+    /// decreases when @c releaseResource() is called. It also changes as non-transient shapes
+    /// with resources are created and destroyed.
+    unsigned reference_count = 0;
+    bool started = false;  ///< Started sending?
+    bool sent = false;     ///< Completed sending?
 
-    inline ResourceInfo()
-      : resource(nullptr)
-      , referenceCount(0)
-      , started(false)
-      , sent(false)
-    {}
-    inline ResourceInfo(const Resource *resource)
-      : resource(resource)
-      , referenceCount(1)
-      , started(false)
-      , sent(false)
+    ResourceInfo() = default;
+    ResourceInfo(ResourcePtr resource)
+      : resource(std::move(resource))
+      , reference_count(1)
     {}
   };
 
-  /// Decrement references count to the indicated @c resourceId, removing if necessary.
+  /// Decrement references count to the indicated @c resource_id, removing if necessary.
   ///
-  /// @note The @c _packetLock must be locked before calling this function.
-  unsigned releaseResource(uint64_t resourceId);
+  /// @note The @c _packet_lock must be locked before calling this function.
+  unsigned releaseResource(uint64_t resource_id);
+
+  /// Package and send @c DataMessage packets for @p shape assuming @p shape.isComplex().
+  ///
+  /// This sends all the data messages for @p shape. Such messages should only be sent if the
+  /// shape is complex (see @c Shape::isComplex() ) and this function assumes that has been checked
+  /// (assertion used if compile time enabled).
+  ///
+  /// @param shape The shape to send @c DataMessage packets for.
+  /// @return The number of bytes written on success (possibly zero), -1 on failure.
+  int sendShapeData(const Shape &shape);
+
+  /// Queue sending resources for @p shape .
+  ///
+  /// Uses @c Shape::enumerateResources() to collect resources for sending and adds them to the
+  /// queue. Note that transient objects - @c Shape::isTransient() - cannot have resources queued
+  /// as they do not persist long enough for resource book keeping. However, they can use existing
+  /// resources.
+  ///
+  /// If a transient @p shape is given, then this function checks that the shapes resource are
+  /// present in the resource set. A warning message is logged for each missing resource.
+  ///
+  /// This assumes @c Shape::skipResources() has already been checked.
+  ///
+  /// @param shape The shape to queue resources for.
+  /// @return The number of resources queued.
+  unsigned queueResources(const Shape &shape);
+
+  /// Check if the resources for @p shape are present in the resource set logging warnings for
+  /// missing resources.
+  /// @param shape The shape to check for.
+  /// @return True if all resources are present in the known resource set for this connection.
+  bool checkResources(const Shape &shape);
 
   /// Send pending collated/compressed data.
   ///
@@ -107,25 +139,27 @@ protected:
   ///
   /// Note: the @c _lock must be locked before calling this function.
   /// @param buffer The data buffer to send from.
-  /// @param byteCount Number of bytes from @p buffer to send.
+  /// @param byte_count Number of bytes from @p buffer to send.
   /// @param True to allow collation and compression for this packet.
-  int writePacket(const uint8_t *buffer, uint16_t byteCount, bool allowCollation);
+  int writePacket(const uint8_t *buffer, uint16_t byte_count, bool allow_collation);
 
   void ensurePacketBufferCapacity(size_t size);
 
-  Lock _packetLock;    ///< Lock for using @c _packet
-  Lock _sendLock;      ///< Lock for @c writePacket() and @c flushCollatedPacket()
-  Lock _resourceLock;  ///< Lock for @c _resources
-  PacketWriter *_packet;
-  std::vector<uint8_t> _packetBuffer;
-  ResourcePacker *_currentResource;  ///< Current resource being transmitted.
-  std::list<uint64_t> _resourceQueue;
+  Lock _packet_lock;    ///< Lock for using @c _packet
+  Lock _send_lock;      ///< Lock for @c writePacket() and @c flushCollatedPacket()
+  Lock _resource_lock;  ///< Lock for @c _resources
+  std::unique_ptr<PacketWriter> _packet;
+  std::vector<uint8_t> _packet_buffer;
+  std::unique_ptr<ResourcePacker> _current_resource;  ///< Current resource being transmitted.
+  std::list<uint64_t> _resource_queue;
   std::unordered_map<uint64_t, ResourceInfo> _resources;
-  ServerInfoMessage _serverInfo;
-  float _secondsToTimeUnit;
-  unsigned _serverFlags;
-  CollatedPacket *_collation;
-  std::atomic_bool _active;
+  /// Buffer used when calling @c Shape::enumerateResources() . Use is transient.
+  std::vector<ResourcePtr> _resource_buffer;
+  ServerInfoMessage _server_info = {};
+  float _seconds_to_time_unit = 0;
+  unsigned _server_flags = 0;
+  std::unique_ptr<CollatedPacket> _collation;
+  std::atomic_bool _active = { true };
 };
 }  // namespace tes
 

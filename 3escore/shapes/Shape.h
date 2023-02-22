@@ -10,9 +10,12 @@
 
 #include <3escore/Colour.h>
 #include <3escore/Messages.h>
+#include <3escore/Ptr.h>
 #include <3escore/Transform.h>
 
 #include <cstdint>
+#include <memory>
+#include <vector>
 
 #ifdef WIN32
 #pragma warning(push)
@@ -77,57 +80,73 @@ class Resource;
 class TES_CORE_API Shape
 {
 public:
+  using ResourcePtr = Ptr<const Resource>;
+
   /// Create a new shape with the given @c routingId and instance @c id .
   /// @param routingId Identifies the shape type.
   /// @param id The shape instance id.
-  Shape(uint16_t routingId, const Id &id = Id(), const Transform &transform = Transform());
+  Shape(uint16_t routing_id, const Id &id = Id(), const Transform &transform = Transform());
 
   /// Copy constructor.
   /// @param other Object to copy.
-  Shape(const Shape &other);
+  Shape(const Shape &other) = default;
+
+  /// Move constructor.
+  /// @param other Object to move.
+  Shape(Shape &&other) noexcept = default;
 
   /// Virtual destructor.
-  virtual inline ~Shape() = default;
+  virtual ~Shape() = default;
+
+  Shape &operator=(const Shape &other) = default;
+  Shape &operator=(Shape &&other) noexcept = default;
 
   /// Return a reference name for the shape type; e.g., "box". Essentially the class name.
   ///
   /// Note this cannot be relied upon except during initial creation.
   ///
   /// @return The shape type name.
-  virtual inline const char *type() const { return "unknown"; }
+  [[nodiscard]] virtual const char *type() const { return "unknown"; }
 
-  /// Identifies the shape routing id. This is used to route to the correct message handler in the viewer application
-  /// and essentially uniquely identifies the shape type.
+  /// Identifies the shape routing id. This is used to route to the correct message handler in the
+  /// viewer application and essentially uniquely identifies the shape type.
   /// @return The shape routing id. See @c ShapeHandlerIDs .
-  uint16_t routingId() const;
+  [[nodiscard]] uint16_t routingId() const;
 
   /// Direct access to the internal data.
   /// @return The @c CreateMessage used to represent this shape.
-  inline const CreateMessage &data() const { return _data; }
+  [[nodiscard]] const CreateMessage &data() const { return _data; }
 
-  /// Direct access to the shape attributes. These are stored in double precision, but transmission depends on the
+  /// Direct access to the shape attributes. These are stored in double precision, but transmission
+  /// depends on the
   /// @c CreateMessage::flag @c OFDoublePrecision . See @c setDoublePrecision() .
-  inline const ObjectAttributesd &attributes() const { return _attributes; }
+  [[nodiscard]] const ObjectAttributesd &attributes() const { return _attributes; }
 
   /// Access the instance id of this shape.
   ///
-  /// Shapes must have either a zero id or a unique id. A zero id represents a transient shape which does not need to
-  /// be explicitly deleted, while any non-zero id must be unique.
+  /// Shapes must have either a zero id or a unique id. A zero id represents a transient shape which
+  /// does not need to be explicitly deleted, while any non-zero id must be unique.
   ///
   /// @return The shape instance id.
-  uint32_t id() const;
+  [[nodiscard]] uint32_t id() const;
 
   /// Set the instance id.
   /// @param id The new shape id.
   Shape &setId(uint32_t id);
 
+  /// Check if this is a transient object.
+  /// Transient objects are only visible for a single update on the client and have a zero @c id() .
+  /// @return True if transient.
+  [[nodiscard]] bool isTransient() const { return id() == 0; }
+
   /// Access the shape category.
   ///
-  /// Categories can be used by the viewer to perform collective operations on shapes, such as disable rendering for
-  /// particular categories. The category structure is hierarchical, but user defined.
+  /// Categories can be used by the viewer to perform collective operations on shapes, such as
+  /// disable rendering for particular categories. The category structure is hierarchical, but user
+  /// defined.
   ///
   /// @return The shape's category.
-  uint16_t category() const;
+  [[nodiscard]] uint16_t category() const;
 
   /// Set the shape's category.
   /// @return category The new category value.
@@ -139,7 +158,7 @@ public:
   Shape &setWireframe(bool wire);
   /// Returns true if the wireframe flag is set.
   /// @return True if wireframe flag is set.
-  bool wireframe() const;
+  [[nodiscard]] bool wireframe() const;
 
   /// Sets the transparent flag value for this shape. Only before sending create.
   /// Not all shapes will respect the flag.
@@ -147,15 +166,15 @@ public:
   Shape &setTransparent(bool transparent);
   /// Returns true if the transparent flag is set.
   /// @return True if transparent flag is set.
-  bool transparent() const;
+  [[nodiscard]] bool transparent() const;
 
   /// Sets the two sided shader flag value for this shape. Only before sending create.
   /// Not all shapes will respect the flag.
   /// @return @c *this.
-  Shape &setTwoSided(bool twoSided);
+  Shape &setTwoSided(bool two_sided);
   /// Returns true if the two sided shader flag is set.
   /// @return True if two sided flag is set.
-  bool twoSided() const;
+  [[nodiscard]] bool twoSided() const;
 
   /// Configures the shape to replace any previous shape with the same ID on creation.
   /// Only valid on creation.
@@ -163,24 +182,24 @@ public:
   Shape &setReplace(bool replace);
   /// Returns true set to replace pre-existing shape with the same ID.
   /// @return True if the replace flag is set.
-  bool replace() const;
+  [[nodiscard]] bool replace() const;
 
-  /// Configures the shape to skip referencing resources for this instance. See @c ObjectFlag::OFSkipResources .
-  /// Must be set on both creation and destruction.
+  /// Configures the shape to skip referencing resources for this instance. See @c
+  /// ObjectFlag::OFSkipResources . Must be set on both creation and destruction.
   /// @return @c *this.
   Shape &setSkipResources(bool skip);
   /// Returns true set to skip resource referencing for this shape instance.
   /// @return True if the skip resources flag is set.
-  bool skipResources() const;
+  [[nodiscard]] bool skipResources() const;
 
   /// Configures the shape to use double or (on) single (off) precision attributes. See
-  /// @c ObjectFlag::OFDoublePrecision . This is normally implicytly set by how the @c Transform() constructor argument
-  /// is given.
+  /// @c ObjectFlag::OFDoublePrecision . This is normally implicytly set by how the @c Transform()
+  /// constructor argument is given.
   /// @return @c *this.
-  Shape &setDoublePrecision(bool doublePrecision);
+  Shape &setDoublePrecision(bool double_precision);
   /// Returns true set to skip resource referencing for this shape instance.
   /// @return True if the skip resources flag is set.
-  bool doublePrecision() const;
+  [[nodiscard]] bool doublePrecision() const;
 
   /// Set the full set of @c ObjectFlag values.
   /// This affects attributes such as @c isTwoSided() and @c isWireframe().
@@ -189,35 +208,35 @@ public:
   Shape &setFlags(uint16_t flags);
   /// Retrieve the full set of @c ObjectFlag values.
   /// @return Active flag set.
-  uint16_t flags() const;
+  [[nodiscard]] uint16_t flags() const;
 
   /// Update the @c position(), @c rotation(), @c scale() and @c doublePrecision() flag.
   /// @return @c *this
   Shape &setTransform(const Transform &transform);
 
   /// Query the @c position(), @c rotation(), @c scale() and @c doublePrecision() flag.
-  Transform transform() const;
+  [[nodiscard]] Transform transform() const;
 
   Shape &setPosition(const Vector3d &pos);
-  Vector3d position() const;
+  [[nodiscard]] Vector3d position() const;
 
   Shape &setPosX(double p);
   Shape &setPosY(double p);
   Shape &setPosZ(double p);
 
   Shape &setRotation(const Quaterniond &rot);
-  Quaterniond rotation() const;
+  [[nodiscard]] Quaterniond rotation() const;
 
   Shape &setScale(const Vector3d &scale);
-  Vector3d scale() const;
+  [[nodiscard]] Vector3d scale() const;
 
   Shape &setColour(const Colour &colour);
-  Colour colour() const;
+  [[nodiscard]] Colour colour() const;
 
   /// Is this a complex shape? Complex shapes require @c writeData() to be
   /// called.
   /// @return True if complex, false if simple.
-  virtual inline bool isComplex() const { return false; }
+  [[nodiscard]] virtual bool isComplex() const { return false; }
 
   /// Update the attributes of this shape to match @p other.
   /// Used in maintaining cached copies of shapes. The shapes should
@@ -245,20 +264,21 @@ public:
 
   /// Called only for complex shapes to write additional creation data.
   ///
-  /// Complex shapes implementing this method must first write the @c DataMessage as a header identifying
-  /// the shape for which the message is intended, via it's ID. The @c DataMessage acts as a header and
-  /// the data format following the message is entirely dependent on the implementing shape.
+  /// Complex shapes implementing this method must first write the @c DataMessage as a header
+  /// identifying the shape for which the message is intended, via it's ID. The @c DataMessage acts
+  /// as a header and the data format following the message is entirely dependent on the
+  /// implementing shape.
   ///
   /// @param stream The data stream to write to.
-  /// @param[in,out] progressMarker Indicates data transfer progress.
+  /// @param[in,out] progress_marker Indicates data transfer progress.
   ///   Initially zero, the @c Shape manages its own semantics.
   /// @return Indicates completion progress. 0 indicates completion,
   ///   1 indicates more data are available and more calls should be made.
   ///   -1 indicates an error. No more calls should be made.
-  virtual inline int writeData(PacketWriter &stream, unsigned &progressMarker) const
+  virtual int writeData(PacketWriter &stream, unsigned &progress_marker) const
   {
     TES_UNUSED(stream);
-    TES_UNUSED(progressMarker);
+    TES_UNUSED(progress_marker);
     return 0;
   }
 
@@ -310,29 +330,16 @@ public:
   /// Enumerate the resources used by this shape. Resources are most commonly used by
   /// mesh shapes to expose the mesh data, where the shape simply positions the mesh.
   ///
-  /// The function is called to fetch the shape's resources into @p resources,
-  /// up to the given @p capacity. Repeated calls may be used to fetch all resources
-  /// into a smaller array by using the @p fetchOffset parameter as a marker indicating
-  /// how many items have already been fetched. Regardless, data are always written to
-  /// @p resources starting at index zero.
-  ///
-  /// This function may also be called with a @c nullptr for @p resources and/or
-  /// a zero @p capacity. In this case the return value indicates the number of
-  /// resources used by the shape.
-  ///
-  /// @param resources The array to populate with this shape's resources.
-  /// @param capacity The element count capacity of @p resources.
-  /// @param fetchOffset An offset used to fetch resources into an array too small to
-  ///   hold all available resources. It is essentially the running sum of resources
-  ///   fetched so far.
+  /// @param resources The array to populate with this shape's resources. Expected empty before
+  ///   calling.
   /// @return The number of items added to @p resources when @p resources and @p capacity
   ///   are non zero. When @p resources is null or @p capacity zero, the return value
   ///   indicates the total number of resources used by the shape.
-  virtual unsigned enumerateResources(const Resource **resources, unsigned capacity, unsigned fetchOffset = 0) const;
+  virtual unsigned enumerateResources(std::vector<ResourcePtr> &resources) const;
 
   /// Deep copy clone.
   /// @return A deep copy.
-  virtual Shape *clone() const;
+  [[nodiscard]] virtual std::shared_ptr<Shape> clone() const;
 
 protected:
   /// Called when @p copy is created from this object to copy appropriate attributes to @p copy.
@@ -341,29 +348,22 @@ protected:
   /// concrete type, then call @c onClone() to copy data. The advantage is that @p onClone()
   /// can recursively call up the class hierarchy.
   /// @param copy The newly cloned object to copy data to. Must not be null.
-  void onClone(Shape *copy) const;
+  void onClone(Shape &copy) const;
 
   void init(const Id &id, const Transform &transform, uint16_t flags = 0);
 
-  uint16_t _routingId;
-  CreateMessage _data;
-  ObjectAttributesd _attributes;
+  uint16_t _routing_id = 0;
+  CreateMessage _data = {};
+  ObjectAttributesd _attributes = {};
 };
 
 
-inline Shape::Shape(uint16_t routingId, const Id &id, const Transform &transform)
-  : _routingId(routingId)
+inline Shape::Shape(uint16_t routing_id, const Id &id, const Transform &transform)
+  : _routing_id(routing_id)
 {
   init(id, transform);
   setDoublePrecision(transform.preferDoublePrecision());
 }
-
-
-inline Shape::Shape(const Shape &other)
-  : _routingId(other._routingId)
-  , _data(other._data)
-  , _attributes(other._attributes)
-{}
 
 
 inline void Shape::init(const Id &id, const Transform &transform, uint16_t flags)
@@ -388,7 +388,7 @@ inline void Shape::init(const Id &id, const Transform &transform, uint16_t flags
 
 inline uint16_t Shape::routingId() const
 {
-  return _routingId;
+  return _routing_id;
 }
 
 
@@ -420,8 +420,8 @@ inline Shape &Shape::setCategory(uint16_t category)
 
 inline Shape &Shape::setWireframe(bool wire)
 {
-  _data.flags = uint16_t(_data.flags & ~OFWire);
-  _data.flags |= uint16_t(OFWire * !!wire);
+  _data.flags = static_cast<uint16_t>(_data.flags & ~OFWire);
+  _data.flags |= static_cast<uint16_t>(OFWire * !!wire);
   return *this;
 }
 
@@ -434,8 +434,8 @@ inline bool Shape::wireframe() const
 
 inline Shape &Shape::setTransparent(bool transparent)
 {
-  _data.flags = uint16_t(_data.flags & ~OFTransparent);
-  _data.flags |= uint16_t(OFTransparent * !!transparent);
+  _data.flags = static_cast<uint16_t>(_data.flags & ~OFTransparent);
+  _data.flags |= static_cast<uint16_t>(OFTransparent * !!transparent);
   return *this;
 }
 
@@ -446,10 +446,10 @@ inline bool Shape::transparent() const
 }
 
 
-inline Shape &Shape::setTwoSided(bool twoSided)
+inline Shape &Shape::setTwoSided(bool two_sided)
 {
-  _data.flags = uint16_t(_data.flags & ~OFTwoSided);
-  _data.flags |= uint16_t(OFTwoSided * !!twoSided);
+  _data.flags = static_cast<uint16_t>(_data.flags & ~OFTwoSided);
+  _data.flags |= static_cast<uint16_t>(OFTwoSided * !!two_sided);
   return *this;
 }
 
@@ -462,8 +462,8 @@ inline bool Shape::twoSided() const
 
 inline Shape &Shape::setReplace(bool replace)
 {
-  _data.flags = uint16_t(_data.flags & ~OFReplace);
-  _data.flags |= uint16_t(OFReplace * !!replace);
+  _data.flags = static_cast<uint16_t>(_data.flags & ~OFReplace);
+  _data.flags |= static_cast<uint16_t>(OFReplace * !!replace);
   return *this;
 }
 
@@ -476,8 +476,8 @@ inline bool Shape::replace() const
 
 inline Shape &Shape::setSkipResources(bool skip)
 {
-  _data.flags = uint16_t(_data.flags & ~OFSkipResources);
-  _data.flags |= uint16_t(OFSkipResources * !!skip);
+  _data.flags = static_cast<uint16_t>(_data.flags & ~OFSkipResources);
+  _data.flags |= static_cast<uint16_t>(OFSkipResources * !!skip);
   return *this;
 }
 
@@ -488,10 +488,10 @@ inline bool Shape::skipResources() const
 }
 
 
-inline Shape &Shape::setDoublePrecision(bool doublePrecision)
+inline Shape &Shape::setDoublePrecision(bool double_precision)
 {
-  _data.flags = uint16_t(_data.flags & ~OFDoublePrecision);
-  _data.flags |= uint16_t(OFDoublePrecision * !!doublePrecision);
+  _data.flags = static_cast<uint16_t>(_data.flags & ~OFDoublePrecision);
+  _data.flags |= static_cast<uint16_t>(OFDoublePrecision * !!double_precision);
   return *this;
 }
 
@@ -544,7 +544,7 @@ inline Shape &Shape::setPosition(const Vector3d &pos)
 
 inline Vector3d Shape::position() const
 {
-  return Vector3d(_attributes.position[0], _attributes.position[1], _attributes.position[2]);
+  return { _attributes.position[0], _attributes.position[1], _attributes.position[2] };
 }
 
 
@@ -581,8 +581,8 @@ inline Shape &Shape::setRotation(const Quaterniond &rot)
 
 inline Quaterniond Shape::rotation() const
 {
-  return Quaterniond(_attributes.rotation[0], _attributes.rotation[1], _attributes.rotation[2],
-                     _attributes.rotation[3]);
+  return { _attributes.rotation[0], _attributes.rotation[1], _attributes.rotation[2],
+           _attributes.rotation[3] };
 }
 
 
@@ -597,20 +597,20 @@ inline Shape &Shape::setScale(const Vector3d &scale)
 
 inline Vector3d Shape::scale() const
 {
-  return Vector3d(_attributes.scale[0], _attributes.scale[1], _attributes.scale[2]);
+  return { _attributes.scale[0], _attributes.scale[1], _attributes.scale[2] };
 }
 
 
 inline Shape &Shape::setColour(const Colour &colour)
 {
-  _attributes.colour = colour.c;
+  _attributes.colour = colour.colour32();
   return *this;
 }
 
 
 inline Colour Shape::colour() const
 {
-  return Colour(_attributes.colour);
+  return { _attributes.colour };
 }
 }  // namespace tes
 

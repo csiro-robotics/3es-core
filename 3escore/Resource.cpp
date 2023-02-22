@@ -3,7 +3,7 @@
 //
 #include "Resource.h"
 
-using namespace tes;
-
-
+namespace tes
+{
 Resource::~Resource() = default;
+}  // namespace tes

@@ -14,22 +14,15 @@ namespace tes
 {
 struct TcpSocketDetail
 {
-  QTcpSocket *socket;
-  int readTimeout;
-  int writeTimeout;
-
-  inline TcpSocketDetail()
-    : socket(nullptr)
-    , readTimeout(~0u)
-    , writeTimeout(~0u)
-  {}
-
+  std::unique_ptr<QTcpSocket> socket;
+  int read_timeout = -1;
+  int write_timeout = -1;
   inline ~TcpSocketDetail() { delete socket; }
 };
 
 struct TcpListenSocketDetail
 {
-  QTcpServer listenSocket;
+  QTcpServer listen_socket;
 };
 }  // namespace tes
 

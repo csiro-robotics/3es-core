@@ -80,7 +80,8 @@ struct PlyReader
       return false;
     }
 
-    if (xData->count != yData->count || yData->count != zData->count || zData->count != tData->count)
+    if (xData->count != yData->count || yData->count != zData->count ||
+        zData->count != tData->count)
     {
       return false;
     }
@@ -97,14 +98,17 @@ struct PlyReader
     }
 
     timestamp = readAs<double>(tData->buffer.get(), tData->t, nextPointIndex);
-    pt.x = readAs<double>(xData->buffer.get(), xData->t, nextPointIndex);
-    pt.y = readAs<double>(yData->buffer.get(), yData->t, nextPointIndex);
-    pt.z = readAs<double>(zData->buffer.get(), zData->t, nextPointIndex);
+    pt.x() = readAs<double>(xData->buffer.get(), xData->t, nextPointIndex);
+    pt.y() = readAs<double>(yData->buffer.get(), yData->t, nextPointIndex);
+    pt.z() = readAs<double>(zData->buffer.get(), zData->t, nextPointIndex);
     ++nextPointIndex;
     return true;
   }
 
-  static bool validField(const std::shared_ptr<tinyply::PlyData> &field) { return field && field->count; }
+  static bool validField(const std::shared_ptr<tinyply::PlyData> &field)
+  {
+    return field && field->count;
+  }
 
   template <class T>
   static T readAs(const void *const data, const tinyply::Type &t, const size_t index)
@@ -140,7 +144,7 @@ struct OccupancyLoaderDetail
   std::string sampleFilePath;
   std::string trajectoryFilePath;
   std::ifstream sampleFile;
-  std::ifstream trajectoryFile;
+  std::ifstream trajectory_file;
   TrajectoryPoint trajectoryBuffer[2];
 
   inline OccupancyLoaderDetail() { memset(&trajectoryBuffer, 0, sizeof(trajectoryBuffer)); }
@@ -165,7 +169,7 @@ bool OccupancyLoader::open(const char *sampleFilePath, const char *trajectoryFil
   _imp->trajectoryFilePath = trajectoryFilePath;
 
   _imp->sampleFile.open(_imp->sampleFilePath, std::ios::binary | std::ios::in);
-  _imp->trajectoryFile.open(_imp->trajectoryFilePath, std::ios::binary | std::ios::in);
+  _imp->trajectory_file.open(_imp->trajectoryFilePath, std::ios::binary | std::ios::in);
 
   if (!sampleFileIsOpen() || !trajectoryFileIsOpen())
   {
@@ -174,19 +178,20 @@ bool OccupancyLoader::open(const char *sampleFilePath, const char *trajectoryFil
   }
 
   _imp->sampleReader.plyFile.parse_header(_imp->sampleFile);
-  _imp->trajectoryReader.plyFile.parse_header(_imp->trajectoryFile);
+  _imp->trajectoryReader.plyFile.parse_header(_imp->trajectory_file);
 
   _imp->sampleReader.bindProperties();
   _imp->trajectoryReader.bindProperties();
 
   _imp->sampleReader.plyFile.read(_imp->sampleFile);
-  _imp->trajectoryReader.plyFile.read(_imp->trajectoryFile);
+  _imp->trajectoryReader.plyFile.read(_imp->trajectory_file);
 
   // Prime the trajectory buffer.
   bool trajectoryPrimed = true;
   for (int i = 0; i < 2; ++i)
   {
-    if (!_imp->trajectoryReader.nextPoint(_imp->trajectoryBuffer[i].timestamp, _imp->trajectoryBuffer[i].position))
+    if (!_imp->trajectoryReader.nextPoint(_imp->trajectoryBuffer[i].timestamp,
+                                          _imp->trajectoryBuffer[i].position))
     {
       trajectoryPrimed = false;
     }
@@ -207,7 +212,7 @@ void OccupancyLoader::close()
   _imp->sampleReader.close();
   _imp->trajectoryReader.close();
   _imp->sampleFile.close();
-  _imp->trajectoryFile.close();
+  _imp->trajectory_file.close();
   _imp->sampleFilePath.clear();
   _imp->trajectoryFilePath.clear();
 }
@@ -221,13 +226,14 @@ bool OccupancyLoader::sampleFileIsOpen() const
 
 bool OccupancyLoader::trajectoryFileIsOpen() const
 {
-  return _imp->trajectoryFile.is_open();
+  return _imp->trajectory_file.is_open();
 }
 
 
 bool OccupancyLoader::nextPoint(tes::Vector3f &sample, tes::Vector3f &origin, double *timestamp)
 {
-  tes::Vector3d sd, od;
+  tes::Vector3d sd;
+  tes::Vector3d od;
   if (!nextPoint(sd, od, timestamp))
   {
     return false;
@@ -262,18 +268,21 @@ bool OccupancyLoader::sampleTrajectory(tes::Vector3d &position, double timestamp
   {
     double nextTimestamp;
     tes::Vector3d pt;
-    while (timestamp > _imp->trajectoryBuffer[1].timestamp && _imp->trajectoryReader.nextPoint(nextTimestamp, pt))
+    while (timestamp > _imp->trajectoryBuffer[1].timestamp &&
+           _imp->trajectoryReader.nextPoint(nextTimestamp, pt))
     {
       _imp->trajectoryBuffer[0] = _imp->trajectoryBuffer[1];
       _imp->trajectoryBuffer[1].timestamp = nextTimestamp;
       _imp->trajectoryBuffer[1].position = pt;
     }
 
-    if (_imp->trajectoryBuffer[0].timestamp <= timestamp && timestamp <= _imp->trajectoryBuffer[1].timestamp &&
+    if (_imp->trajectoryBuffer[0].timestamp <= timestamp &&
+        timestamp <= _imp->trajectoryBuffer[1].timestamp &&
         _imp->trajectoryBuffer[0].timestamp != _imp->trajectoryBuffer[1].timestamp)
     {
-      double lerp = double((timestamp - _imp->trajectoryBuffer[0].timestamp) /
-                           (_imp->trajectoryBuffer[1].timestamp - _imp->trajectoryBuffer[0].timestamp));
+      double lerp =
+        double((timestamp - _imp->trajectoryBuffer[0].timestamp) /
+               (_imp->trajectoryBuffer[1].timestamp - _imp->trajectoryBuffer[0].timestamp));
       position = _imp->trajectoryBuffer[0].position +
                  lerp * (_imp->trajectoryBuffer[1].position - _imp->trajectoryBuffer[0].position);
       return true;

@@ -1,5 +1,7 @@
 #include "Log.h"
 
+#include "CoreUtil.h"
+
 #include <array>
 #include <iostream>
 
@@ -7,26 +9,42 @@ namespace tes::log
 {
 namespace
 {
-LogFunction log_function = defaultLogger;
+// Clang tidy erroneously considers this a global variable. It should be more of a static variable.
+// NOLINTNEXTLINE(readability-identifier-naming)
+LogFunction s_log_function;
+
+struct DefaultLogFunctionInit
+{
+  DefaultLogFunctionInit()
+  {
+    if (!s_log_function)
+    {
+      s_log_function = defaultLogger;
+    }
+  }
+};
 }  // namespace
 
 
 void defaultLogger(Level level, const std::string &message)
 {
-  std::ostream &o = (unsigned(level) <= unsigned(Level::Error)) ? std::cerr : std::cout;
+  std::ostream &o =
+    (static_cast<unsigned>(level) <= static_cast<unsigned>(Level::Error)) ? std::cerr : std::cout;
   o << message;
 }
 
 
 LogFunction logger()
 {
-  return log_function;
+  static const DefaultLogFunctionInit logger_init;
+  return s_log_function;
 }
 
 
 void setLogger(LogFunction logger)
 {
-  log_function = logger;
+  (void)tes::log::logger();  // Ensure initialisation.
+  s_log_function = std::move(logger);
 }
 
 
@@ -35,7 +53,7 @@ const std::string &toString(Level level)
   static const std::array<std::string, 5> names = {
     "Fatal", "Error", "Warn", "Info", "Trace",
   };
-  return names[unsigned(level)];
+  return names[static_cast<unsigned>(level)];
 }
 
 
@@ -44,13 +62,13 @@ const std::string &prefix(Level level)
   static const std::array<std::string, 5> prefixes = {
     "[Fatal] : ", "[Error] : ", "[Warn] : ", "[Info] : ", "[Trace] : ",
   };
-  return prefixes[unsigned(level)];
+  return prefixes[static_cast<unsigned>(level)];
 }
 
 
 void log(Level level, const std::string &message)
 {
-  log_function(level, message);
+  logger()(level, message);
 }
 
 void fatal(const std::string &message)

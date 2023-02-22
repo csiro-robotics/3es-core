@@ -14,20 +14,23 @@
 
 namespace tes
 {
+// NOLINTBEGIN(modernize-use-auto, modernize-avoid-c-arrays, modernize-loop-convert,
+// google-readability-casting)
+
 /// List of routing IDs of common, built in message handlers.
 /// These map to the @c MessageHandler::routingId() member.
 ///
 /// Limited to 2^16 - 1.
 ///
 /// @todo Rename to RoutingIDs that is used first then a message ID is assigned.
-enum MessageTypeIDs
+enum MessageTypeIDs : unsigned
 {
   MtNull,
   MtServerInfo,
   MtControl,
   MtCollatedPacket,
 
-  // TODO: Move MtMesh and MtMaterial into a resources set.
+  // TODO(KS): Move MtMesh and MtMaterial into a resources set.
   MtMesh,
   MtCamera,
   MtCategory,
@@ -41,7 +44,7 @@ enum MessageTypeIDs
 };
 
 /// Default/built in renderers (routing IDs).
-enum ShapeHandlerIDs
+enum ShapeHandlerIDs : unsigned
 {
   SIdSphere = ShapeHandlersIDStart,
   SIdBox,
@@ -53,7 +56,7 @@ enum ShapeHandlerIDs
   SIdArrow,
   SIdMeshShape,
   SIdMeshSet,
-  SIdPointCloud,
+  SIdPointCloudDeprecated,
   SIdText3D,
   SIdText2D,
   SIdPose,  ///< A set of axes representing a pose. Coloured XYZ => RGB.
@@ -62,7 +65,7 @@ enum ShapeHandlerIDs
 };
 
 /// Message IDs for a @c ControlMessage.
-enum ControlId
+enum ControlId : unsigned
 {
   CIdNull,
   /// Marks a change of frame. Pending objects changes are applied Defines a new
@@ -94,13 +97,13 @@ enum ControlId
 };
 
 /// Message IDs for @c MtCategory routing.
-enum CategoryMessageId
+enum CategoryMessageId : unsigned
 {
   CMIdName,  ///< Category name definition.
 };
 
 /// Object/shape management message ID. Used with @c ShapeHandlerIDs routing IDs.
-enum ObjectMessageId
+enum ObjectMessageId : unsigned
 {
   OIdNull,
   OIdCreate,
@@ -110,89 +113,101 @@ enum ObjectMessageId
 };
 
 /// Flags controlling the creation and appearance of an object.
-enum ObjectFlag
+enum ObjectFlag : unsigned
 {
   OFNone = 0,  ///< No flags. Default appearance.
   /// Indicates @c ObjectAttributes is in double precision.
-  OFDoublePrecision = (1 << 0),
-  OFWire = (1 << 1),         ///< Show the object as a wireframe mesh.
-  OFTransparent = (1 << 2),  ///< The object supports transparency. Use the colour alpha channel.
-  OFTwoSided = (1 << 3),     ///< Use a two sided shader.
+  OFDoublePrecision = (1u << 0u),
+  OFWire = (1u << 1u),         ///< Show the object as a wireframe mesh.
+  OFTransparent = (1u << 2u),  ///< The object supports transparency. Use the colour alpha channel.
+  OFTwoSided = (1u << 3u),     ///< Use a two sided shader.
   /// Shape creation should replace any pre-exiting shape with the same object ID.
-  /// Normally duplicate shape creation messages are not allowed. This flag allows a duplicate shape ID
-  /// (non-transient) by replacing the previous shape.
-  OFReplace = (1 << 4),
+  /// Normally duplicate shape creation messages are not allowed. This flag allows a duplicate shape
+  /// ID (non-transient) by replacing the previous shape.
+  OFReplace = (1u << 4u),
   /// Creating multiple shapes in one message.
-  OFMultiShape = (1 << 5),
+  OFMultiShape = (1u << 5u),
   /// Do not reference count resources or queue resources for sending.
   ///
-  /// By default each connection reference counts and queues resources for each shape, sending them from
-  /// @c Connection::updateTransfers() . This flag prevents resources from being sent automatically for a shape.
-  /// References are then dereferenced (potentially destroyed) when destroying a resource using shape. This flag
-  /// prevents this reference counting for a shape, essentially assuming the client has the resources via explicit
-  /// references using @c Connection::referenceResource() .
+  /// By default each connection reference counts and queues resources for each shape, sending them
+  /// from
+  /// @c Connection::updateTransfers() . This flag prevents resources from being sent automatically
+  /// for a shape. References are then dereferenced (potentially destroyed) when destroying a
+  /// resource using shape. This flag prevents this reference counting for a shape, essentially
+  /// assuming the client has the resources via explicit references using @c
+  /// Connection::referenceResource() .
   ///
-  /// This should always be used when using the @c OFReplace flag as reference counting can only be maintained with
-  /// proper create/destroy command pairs.
-  OFSkipResources = (1 << 6),
+  /// This should always be used when using the @c OFReplace flag as reference counting can only be
+  /// maintained with proper create/destroy command pairs.
+  OFSkipResources = (1u << 6u),
 
-  OFUser = (1 << 8)  ///< User flags start here.
+  OFExtended = (1u << 8u)  ///< User flags start here.
 };
 
 /// Additional attributes for point data sources.
-enum PointsAttributeFlag
+enum PointsAttributeFlag : unsigned
 {
-  PAFNone = 0,            ///< No additional data (points only)
-  PAFNormals = (1 << 0),  ///< Per point normals.
-  PAFColours = (1 << 1)   ///< Per point colours.
+  PAFNone = 0,              ///< No additional data (points only)
+  PAFNormals = (1u << 0u),  ///< Per point normals.
+  PAFColours = (1u << 1u)   ///< Per point colours.
 };
 
 /// @c ObjectFlag extensions for Text2D rendering.
-enum Text2DFlag
+enum Text2DFlag : unsigned
 {
-  Text2DFWorldSpace = OFUser  ///< Position is given in world space and mapped to screen space.
-                              ///< Otherwise in screen space with (0, 0, z) at the top left corner
-                              ///< and (1, 1, z) at the bottom right.
+  Text2DFWorldSpace = OFExtended  ///< Position is given in world space and mapped to screen space.
+                                  ///< Otherwise in screen space with (0, 0, z) at the top left
+                                  ///< corner and (1, 1, z) at the bottom right.
 };
 
 /// @c ObjectFlag extensions for Text2D rendering.
-enum Text3DFlag
+enum Text3DFlag : unsigned
 {
-  Text3DFScreenFacing = OFUser  ///< Text is oriented to face the screen.
+  Text3DFScreenFacing = OFExtended  ///< Text is oriented to face the screen.
 };
 
 /// @c ObjectFlag extensions for @c MeshShape.
-enum MeshShapeFlag
+enum MeshShapeFlag : unsigned
 {
-  MeshShapeCalculateNormals = OFUser  ///< Calculate normals and rendering with lighting.
+  MeshShapeCalculateNormals = OFExtended  ///< Calculate normals and rendering with lighting.
 };
 
 /// Flags controlling the creation and appearance of an object.
-enum UpdateFlag
+enum UpdateFlag : unsigned
 {
-  UFUpdateMode = (OFUser << 1),  ///< Update attributes using only explicitly specified flags from the following.
-  UFPosition = (OFUser << 2),    ///< Update position data.
-  UFRotation = (OFUser << 3),    ///< Update rotation data.
-  UFScale = (OFUser << 4),       ///< Update scale data.
-  UFColour = (OFUser << 5),      ///< Update colour data.
+  // NOLINTBEGIN(hicpp-signed-bitwise)
+  /// This flag indicates that the @c UpdateMessage only contains data for specific items.
+  /// Combined with `{UFPosition, UFRotation, UFScale, UFColour}` to indicate what data are present.
+  ///
+  /// When this flag is not present, then all @c ObjectAttributes are being updated and none of the
+  /// aforementioned flags should be set.
+  UFUpdateMode = (OFExtended << 1u),
+  UFPosition = (OFExtended << 2u),  ///< Update position data.
+  UFRotation = (OFExtended << 3u),  ///< Update rotation data.
+  UFScale = (OFExtended << 4u),     ///< Update scale data.
+  UFColour = (OFExtended << 5u),    ///< Update colour data.
+  UFPosRotScaleColour = UFPosition | UFRotation | UFScale | UFColour,
+  // NOLINTEND(hicpp-signed-bitwise)
 };
 
 /// Flags for @c CollatedPacketMessage.
-enum CollatedPacketFlag
+enum CollatedPacketFlag : unsigned
 {
-  CPFCompress = (1 << 0),
+  CPFCompress = (1u << 0u),
 };
 
 /// Flags for various @c ControlId messages.
-enum ControlFlag
+enum ControlFlag : unsigned
 {
-  /// Flag for @c CIdFrame indicating transient objects should be maintained and not flushed for this frame.
-  CFFramePersist = (1 << 0),
+  /// Flag for @c CIdFrame indicating transient objects should be maintained and not flushed for
+  /// this frame.
+  CFFramePersist = (1u << 0u),
 };
 
-/// Data type identifies for any data stream type. Also used in @c DataBuffer to identify the contained data type.
-/// Note the packed types are not valid to be held in a @c DataBuffer and are only used in transmission.
-enum DataStreamType
+/// Data type identifies for any data stream type. Also used in @c DataBuffer to identify the
+/// contained data type. Note the packed types are not valid to be held in a @c DataBuffer and are
+/// only used in transmission.
+enum DataStreamType : unsigned
 {
   DctNone,     ///< No type: invalid.
   DctInt8,     ///< Elements using 8-bit signed integers.
@@ -205,11 +220,13 @@ enum DataStreamType
   DctUInt64,   ///< Elements using 64-bit unsigned integers.
   DctFloat32,  ///< Elements using single precision floating point values.
   DctFloat64,  ///< Elements using double precision floating point values.
-  /// Elements packed using 16-bit signed integers used to quantise single precision floating point values.
-  /// The quantisation scale factor immeidately preceeds the data array as a 32-bit floating point value.
+  /// Elements packed using 16-bit signed integers used to quantise single precision floating point
+  /// values. The quantisation scale factor immeidately preceeds the data array as a 32-bit floating
+  /// point value.
   DctPackedFloat16,
-  /// Elements packed using 32-bit signed integers used to quantise double precision floating point values.
-  /// The quantisation scale factor immeidately preceeds the data array as a 64-bit floating point value.
+  /// Elements packed using 32-bit signed integers used to quantise double precision floating point
+  /// values. The quantisation scale factor immeidately preceeds the data array as a 64-bit floating
+  /// point value.
   DctPackedFloat32,
 };
 
@@ -223,21 +240,21 @@ struct TES_CORE_API ServerInfoMessage
   /// This value is specified in micro-seconds.
   ///
   /// The default is 1000us (1 millisecond).
-  uint64_t timeUnit;
+  uint64_t time_unit;
   /// The default time delta between frames to used when none is specified.
   /// Only used in replay.
   ///
-  /// This value is specified in the @c timeUnit.
+  /// This value is specified in the @c time_unit.
   ///
   /// The default is 33ms (1/30s).
-  uint32_t defaultFrameTime;
+  uint32_t default_frame_time;
   /// Specifies the @c CoordinateFrame used by this server.
   ///
   /// The default is @c XYZ.
-  uint8_t coordinateFrame;
+  uint8_t coordinate_frame;
   /// Reserved for future use. Must be zero.
   /// Aiming to pad out to a total of 64-bytes in the packet.
-  uint8_t reserved[35];
+  uint8_t reserved[35];  // NOLINT(readability-magic-numbers)
 
   /// Read this message from @p reader.
   /// @param reader The data source.
@@ -245,10 +262,11 @@ struct TES_CORE_API ServerInfoMessage
   inline bool read(PacketReader &reader)
   {
     bool ok = true;
-    ok = reader.readElement(timeUnit) == sizeof(timeUnit) && ok;
-    ok = reader.readElement(defaultFrameTime) == sizeof(defaultFrameTime) && ok;
-    ok = reader.readElement(coordinateFrame) == sizeof(coordinateFrame) && ok;
-    ok = reader.readArray(reserved, sizeof(reserved) / sizeof(reserved[0])) == sizeof(reserved) / sizeof(reserved[0]) &&
+    ok = reader.readElement(time_unit) == sizeof(time_unit) && ok;
+    ok = reader.readElement(default_frame_time) == sizeof(default_frame_time) && ok;
+    ok = reader.readElement(coordinate_frame) == sizeof(coordinate_frame) && ok;
+    ok = reader.readArray(reserved, sizeof(reserved) / sizeof(reserved[0])) ==
+           sizeof(reserved) / sizeof(reserved[0]) &&
          ok;
     return ok;
   }
@@ -259,12 +277,12 @@ struct TES_CORE_API ServerInfoMessage
   inline bool write(PacketWriter &writer) const
   {
     bool ok = true;
-    ok = writer.writeElement(timeUnit) == sizeof(timeUnit) && ok;
-    ok = writer.writeElement(defaultFrameTime) == sizeof(defaultFrameTime) && ok;
-    ok = writer.writeElement(coordinateFrame) == sizeof(coordinateFrame) && ok;
-    ok =
-      writer.writeArray(reserved, sizeof(reserved) / sizeof(reserved[0])) == sizeof(reserved) / sizeof(reserved[0]) &&
-      ok;
+    ok = writer.writeElement(time_unit) == sizeof(time_unit) && ok;
+    ok = writer.writeElement(default_frame_time) == sizeof(default_frame_time) && ok;
+    ok = writer.writeElement(coordinate_frame) == sizeof(coordinate_frame) && ok;
+    ok = writer.writeArray(reserved, sizeof(reserved) / sizeof(reserved[0])) ==
+           sizeof(reserved) / sizeof(reserved[0]) &&
+         ok;
     return ok;
   }
 };
@@ -277,7 +295,7 @@ void TES_CORE_API initDefaultServerInfo(ServerInfoMessage *info);
 struct TES_CORE_API ControlMessage
 {
   /// Flags particular to this type of control message.
-  uint32_t controlFlags;
+  uint32_t control_flags;
   /// 32-bit value particular to this type of control message.
   uint32_t value32;
   /// 32-bit value particular to this type of control message.
@@ -289,7 +307,7 @@ struct TES_CORE_API ControlMessage
   inline bool read(PacketReader &reader)
   {
     bool ok = true;
-    ok = reader.readElement(controlFlags) == sizeof(controlFlags) && ok;
+    ok = reader.readElement(control_flags) == sizeof(control_flags) && ok;
     ok = reader.readElement(value32) == sizeof(value32) && ok;
     ok = reader.readElement(value64) == sizeof(value64) && ok;
     return ok;
@@ -301,7 +319,7 @@ struct TES_CORE_API ControlMessage
   inline bool write(PacketWriter &writer) const
   {
     bool ok = true;
-    ok = writer.writeElement(controlFlags) == sizeof(controlFlags) && ok;
+    ok = writer.writeElement(control_flags) == sizeof(control_flags) && ok;
     ok = writer.writeElement(value32) == sizeof(value32) && ok;
     ok = writer.writeElement(value64) == sizeof(value64) && ok;
     return ok;
@@ -312,42 +330,42 @@ struct TES_CORE_API ControlMessage
 struct TES_CORE_API CategoryNameMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = CMIdName
   };
   /// Identifies the category for the message.
-  uint16_t categoryId;
-  /// The (new) parent category for @c categoryId. Zero for none.
-  uint16_t parentId;
-  /// Default @c categoryId to active? Non zero for yes (1).
-  uint16_t defaultActive;
+  uint16_t category_id;
+  /// The (new) parent category for @c category_id. Zero for none.
+  uint16_t parent_id;
+  /// Default @c category_id to active? Non zero for yes (1).
+  uint16_t default_active;
   /// Number of bytes in @c name, excluding a null terminator.
-  uint16_t nameLength;
+  uint16_t name_length;
   /// The name string @em without a null terminator. Must be exactly
-  /// @c nameLength bytes.
+  /// @c name_length bytes.
   const char *name;
 
   /// Read message content.
   /// @param reader The stream to read from.
   /// @return True on success, false if there is an issue with amount
   ///   of data available.
-  inline bool read(PacketReader &reader, char *nameBuffer, size_t nameBufferSize)
+  inline bool read(PacketReader &reader, char *name_buffer, size_t name_buffer_size)
   {
     bool ok = true;
-    ok = reader.readElement(categoryId) == sizeof(categoryId) && ok;
-    ok = reader.readElement(parentId) == sizeof(parentId) && ok;
-    ok = reader.readElement(defaultActive) == sizeof(defaultActive) && ok;
-    ok = reader.readElement(nameLength) == sizeof(nameLength) && ok;
-    name = nameBuffer;
+    ok = reader.readElement(category_id) == sizeof(category_id) && ok;
+    ok = reader.readElement(parent_id) == sizeof(parent_id) && ok;
+    ok = reader.readElement(default_active) == sizeof(default_active) && ok;
+    ok = reader.readElement(name_length) == sizeof(name_length) && ok;
+    name = name_buffer;
 
-    if (!nameBuffer && nameLength || nameLength + 1u > nameBufferSize)
+    if (!name_buffer && name_length || name_length + 1u > name_buffer_size)
     {
       return false;
     }
 
-    reader.readRaw((uint8_t *)nameBuffer, nameLength);
-    nameBuffer[nameLength] = '\0';
+    reader.readRaw((uint8_t *)name_buffer, name_length);
+    name_buffer[name_length] = '\0';
 
     return ok;
   }
@@ -358,16 +376,16 @@ struct TES_CORE_API CategoryNameMessage
   inline bool write(PacketWriter &writer) const
   {
     bool ok = true;
-    uint16_t nameLength = (uint16_t)((name) ? strlen(name) : 0);
-    ok = writer.writeElement(categoryId) == sizeof(categoryId) && ok;
-    ok = writer.writeElement(parentId) == sizeof(parentId) && ok;
-    ok = writer.writeElement(defaultActive) == sizeof(defaultActive) && ok;
-    ok = writer.writeElement(nameLength) == sizeof(nameLength) && ok;
-    if (nameLength > 0)
+    const uint16_t name_length = (uint16_t)((name) ? strlen(name) : 0);
+    ok = writer.writeElement(category_id) == sizeof(category_id) && ok;
+    ok = writer.writeElement(parent_id) == sizeof(parent_id) && ok;
+    ok = writer.writeElement(default_active) == sizeof(default_active) && ok;
+    ok = writer.writeElement(name_length) == sizeof(name_length) && ok;
+    if (name_length > 0)
     {
       if (name)
       {
-        ok = writer.writeRaw((const uint8_t *)name, nameLength) == nameLength && ok;
+        ok = writer.writeRaw((const uint8_t *)name, name_length) == name_length && ok;
       }
       else
       {
@@ -386,7 +404,7 @@ struct TES_CORE_API CollatedPacketMessage
   /// Reserved: must be zero.
   uint16_t reserved;
   /// Number of uncompressed bytes in the payload.
-  uint32_t uncompressedBytes;
+  uint32_t uncompressed_bytes;
 
   /// Read this message from @p reader.
   /// @param reader The data source.
@@ -396,7 +414,7 @@ struct TES_CORE_API CollatedPacketMessage
     bool ok = true;
     ok = reader.readElement(flags) == sizeof(flags) && ok;
     ok = reader.readElement(reserved) == sizeof(reserved) && ok;
-    ok = reader.readElement(uncompressedBytes) == sizeof(uncompressedBytes) && ok;
+    ok = reader.readElement(uncompressed_bytes) == sizeof(uncompressed_bytes) && ok;
     return ok;
   }
 
@@ -408,20 +426,20 @@ struct TES_CORE_API CollatedPacketMessage
     bool ok = true;
     ok = writer.writeElement(flags) == sizeof(flags) && ok;
     ok = writer.writeElement(reserved) == sizeof(reserved) && ok;
-    ok = writer.writeElement(uncompressedBytes) == sizeof(uncompressedBytes) && ok;
+    ok = writer.writeElement(uncompressed_bytes) == sizeof(uncompressed_bytes) && ok;
     return ok;
   }
 };
 
 /// Contains core object attributes. This includes details
 /// of the model transform and colour.
-template <typename real>
+template <typename Real>
 struct TES_CORE_API ObjectAttributes
 {
   uint32_t colour;   ///< Initial object colour.
-  real position[3];  ///< Object position.
-  real rotation[4];  ///< Object rotation (quaternion) xyzw order.
-  real scale[3];     ///< Object scale.
+  Real position[3];  ///< Object position.
+  Real rotation[4];  ///< Object rotation (quaternion) xyzw order.
+  Real scale[3];     ///< Object scale.
 
   /// Set to an identity transform coloured white.
   inline void identity()
@@ -435,9 +453,10 @@ struct TES_CORE_API ObjectAttributes
   /// Read this message from @p reader as is.
   /// @param reader The data source.
   /// @return True on success.
-  inline bool read(PacketReader &reader) { return readT<real>(reader); }
+  inline bool read(PacketReader &reader) { return readT<Real>(reader); }
 
-  /// Read this message from @p reader reading either double or single precision depending on @p read_double_precision .
+  /// Read this message from @p reader reading either double or single precision depending on @p
+  /// read_double_precision .
   /// @param reader The data source.
   /// @param read_double_precision True to try read double precision, false to try single precision.
   /// @return True on success.
@@ -450,7 +469,8 @@ struct TES_CORE_API ObjectAttributes
     return readT<float>(reader);
   }
 
-  /// Read this message from @p reader using the type @p T to decode position, rotation and scale elements.
+  /// Read this message from @p reader using the type @p T to decode position, rotation and scale
+  /// elements.
   /// @param reader The data source.
   /// @return True on success.
   /// @tparam T Either @c float or @c double
@@ -463,17 +483,17 @@ struct TES_CORE_API ObjectAttributes
     for (int i = 0; i < 3; ++i)
     {
       ok = reader.readElement(value) == sizeof(value) && ok;
-      position[i] = real(value);
+      position[i] = Real(value);
     }
     for (int i = 0; i < 4; ++i)
     {
       ok = reader.readElement(value) == sizeof(value) && ok;
-      rotation[i] = real(value);
+      rotation[i] = Real(value);
     }
     for (int i = 0; i < 3; ++i)
     {
       ok = reader.readElement(value) == sizeof(value) && ok;
-      scale[i] = real(value);
+      scale[i] = Real(value);
     }
     return ok;
   }
@@ -481,11 +501,13 @@ struct TES_CORE_API ObjectAttributes
   /// Write this message to @p writer as is.
   /// @param writer The target buffer.
   /// @return True on success.
-  inline bool write(PacketWriter &writer) const { return writeT<real>(writer); }
+  inline bool write(PacketWriter &writer) const { return writeT<Real>(writer); }
 
-  /// Write this message to @p writer selecting the packing precision based on @c write_double_precision .
+  /// Write this message to @p writer selecting the packing precision based on @c
+  /// write_double_precision .
   /// @param writer The target buffer.
-  /// @param write_double_precision True to write double precision values, false for single precision.
+  /// @param write_double_precision True to write double precision values, false for single
+  /// precision.
   /// @return True on success.
   inline bool write(PacketWriter &writer, bool write_double_precision) const
   {
@@ -496,7 +518,8 @@ struct TES_CORE_API ObjectAttributes
     return writeT<float>(writer);
   }
 
-  /// Write this message to @p writer using the type @p T to encoder position, rotation and scale elements.
+  /// Write this message to @p writer using the type @p T to encoder position, rotation and scale
+  /// elements.
   /// @param writer The target buffer.
   /// @return True on success.
   /// @tparam T Either @c float or @c double
@@ -548,20 +571,20 @@ template struct TES_CORE_API ObjectAttributes<double>;
 using ObjectAttributesf = ObjectAttributes<float>;
 using ObjectAttributesd = ObjectAttributes<double>;
 
-/// Defines an object creation message. This is the message header and is immediately followed by @c ObjectAttributes
-/// in either single or double precision depending on the @c OFDoublePrecision flag. Any type type specific payload
-/// follows.
+/// Defines an object creation message. This is the message header and is immediately followed by @c
+/// ObjectAttributes in either single or double precision depending on the @c OFDoublePrecision
+/// flag. Any type type specific payload follows.
 struct TES_CORE_API CreateMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = OIdCreate
   };
 
   uint32_t id;        ///< Id of the object to create. Zero for transient objects.
   uint16_t category;  ///< Object categorisation. Used to control visibility.
-  uint16_t flags;     ///< Flags controlling the appearance and creation of the object (@c ObjectFlag).
+  uint16_t flags;  ///< Flags controlling the appearance and creation of the object (@c ObjectFlag).
   uint16_t reserved;  ///< Reserved for future use.
 
   /// Read message content.
@@ -569,8 +592,8 @@ struct TES_CORE_API CreateMessage
   /// @param reader The stream to read from.
   /// @return True on success, false if there is an issue with amount
   ///   of data available.
-  template <typename real>
-  inline bool read(PacketReader &reader, ObjectAttributes<real> &attributes)
+  template <typename Real>
+  inline bool read(PacketReader &reader, ObjectAttributes<Real> &attributes)
   {
     bool ok = true;
     ok = reader.readElement(id) == sizeof(id) && ok;
@@ -583,8 +606,8 @@ struct TES_CORE_API CreateMessage
 
   /// Write this message to @p writer.
   /// @return True on success.
-  template <typename real>
-  inline bool write(PacketWriter &writer, const ObjectAttributes<real> &attributes) const
+  template <typename Real>
+  inline bool write(PacketWriter &writer, const ObjectAttributes<Real> &attributes) const
   {
     bool ok = true;
     ok = writer.writeElement(id) == sizeof(id) && ok;
@@ -603,7 +626,7 @@ struct TES_CORE_API CreateMessage
 struct TES_CORE_API DataMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = OIdData
   };
@@ -634,17 +657,18 @@ struct TES_CORE_API DataMessage
 };
 
 /// A update message is identical in header to a @c CreateMessage. It's payload
-/// may vary and in many cases it will have no further payload.
+/// may vary and in some cases it will have no further payload. See @c UpdateFlag .
 struct TES_CORE_API UpdateMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = OIdUpdate
   };
 
   uint32_t id;  ///< Object creation id. Zero if defining a transient/single frame message.
-  /// Update flags from @c UpdateFlag. Note: @c OFDoublePrecision controls the precision of @c ObjectAttributes.
+  /// Update flags from @c UpdateFlag. Note: @c OFDoublePrecision controls the precision of @c
+  /// ObjectAttributes.
   uint16_t flags;
 
   /// Read message content.
@@ -652,8 +676,8 @@ struct TES_CORE_API UpdateMessage
   /// @param reader The stream to read from.
   /// @return True on success, false if there is an issue with amount
   ///   of data available.
-  template <typename real>
-  inline bool read(PacketReader &reader, ObjectAttributes<real> &attributes)
+  template <typename Real>
+  inline bool read(PacketReader &reader, ObjectAttributes<Real> &attributes)
   {
     bool ok = true;
     ok = reader.readElement(id) == sizeof(id) && ok;
@@ -665,8 +689,8 @@ struct TES_CORE_API UpdateMessage
   /// Write this message to @p writer.
   /// @param writer The target buffer.
   /// @return True on success.
-  template <typename real>
-  inline bool write(PacketWriter &writer, const ObjectAttributes<real> &attributes) const
+  template <typename Real>
+  inline bool write(PacketWriter &writer, const ObjectAttributes<Real> &attributes) const
   {
     bool ok = true;
     ok = writer.writeElement(id) == sizeof(id) && ok;
@@ -680,7 +704,7 @@ struct TES_CORE_API UpdateMessage
 struct TES_CORE_API DestroyMessage
 {
   /// ID for this message.
-  enum
+  enum : unsigned
   {
     MessageId = OIdDestroy
   };
@@ -715,13 +739,13 @@ struct TES_CORE_API DestroyMessage
 /// Note, we only expect message id zero.
 struct TES_CORE_API CameraMessage
 {
-  /// Reserved @c cameraId for recording the camera properties during playback.
+  /// Reserved @c camera_id for recording the camera properties during playback.
   static constexpr uint8_t kRecordedCameraID = 255u;
 
   /// ID of the camera. 255 is reserved to record the view used while recording.
-  uint8_t cameraId;
-  /// Flags. Currently must be zero as the only valid flag is the double precision indicator (value 1), which is not
-  /// supported this structure. All values are floats.
+  uint8_t camera_id;
+  /// Flags. Currently must be zero as the only valid flag is the double precision indicator (value
+  /// 1), which is not supported this structure. All values are floats.
   uint8_t flags;
   /// Padding/reserved. Must be zero.
   uint32_t reserved;
@@ -751,14 +775,15 @@ struct TES_CORE_API CameraMessage
   float near;
   /// Far clip plane (optional). Zero or less implies an unspecified or unchanged value.
   float far;
-  /// Horizontal field of view in degrees (optional). Zero or less implies an unspecified or unchanged value.
+  /// Horizontal field of view in degrees (optional). Zero or less implies an unspecified or
+  /// unchanged value.
   float fov;
 
   /// Read the message from the given <paramref name="reader"/>.
   inline bool read(PacketReader &reader)
   {
     bool ok = true;
-    ok = reader.readElement(cameraId) == sizeof(cameraId) && ok;
+    ok = reader.readElement(camera_id) == sizeof(camera_id) && ok;
     ok = reader.readElement(flags) == sizeof(flags) && ok;
     ok = reader.readElement(reserved) == sizeof(reserved) && ok;
     ok = reader.readElement(x) == sizeof(x) && ok;
@@ -785,7 +810,7 @@ struct TES_CORE_API CameraMessage
   inline bool write(PacketWriter &packet)
   {
     bool ok = true;
-    ok = packet.writeElement(cameraId) == sizeof(cameraId) && ok;
+    ok = packet.writeElement(camera_id) == sizeof(camera_id) && ok;
     ok = packet.writeElement(flags) == sizeof(flags) && ok;
     ok = packet.writeElement(reserved) == sizeof(reserved) && ok;
     ok = packet.writeElement(x) == sizeof(x) && ok;
@@ -803,6 +828,9 @@ struct TES_CORE_API CameraMessage
     return ok;
   }
 };
+
+// NOLINTEND(modernize-use-auto, modernize-avoid-c-arrays, modernize-loop-convert,
+// google-readability-casting)
 }  // namespace tes
 
 #endif  // TES_CORE_MESSAGES_H

@@ -26,13 +26,30 @@ namespace tes::view::handler
 /// The base class for a 3es message handler.
 ///
 /// @par Thread safety
-/// A @c Message handler will typically have functions called from at least two different threads. In particular the
-/// @c readMessage() function is called from the data processing thread, while @c beginFrame(), @c endFrame(),
-/// and @c draw() are called from the render thread - likely the main thread. Other functions are called from the main
-/// thread.
+/// A @c Message handler will typically have functions called from at least two different threads.
+/// In particular the @c readMessage() and @c endFrame() functions are called from the data
+/// processing thread, while @c prepareFrame() and @c draw() are called from the main thread.
+/// Other functions are called from the main thread. As such, the @c readMessage() and @c endFrame()
+/// functions must be thread safe with respect to @c prepareFrame() and @c draw().
 ///
-/// As such, the @c readMessage() function must be thread safe with respect to @c beginFrame(), @c endFrame() and
-/// @c draw().
+/// Note that the data thread functions and draw functions - @c prepareFrame() and @c draw() - are
+/// independent of one another. There are no call order of frequency guarantees relating
+/// @c endFrame() to the two draw functions. That is, the data thread may run independently of draw
+/// function calls, calling @c readMessage() zero or more times for each call to @c endFrame() .
+/// Mean while, the main thread may or may not call @c prepareFrame() and @c draw() at any time
+/// in between. However, it is worth noting that a @c prepareFrame() call which is followed by a
+/// @c draw() call cannot have @c endFrame() called in between.
+///
+/// Generally we expect that every @c prepareFrame() call will be followed by @c draw() calls, but
+/// not every @c draw() call is preceeded by a @c prepareFrame() call. This is partly because
+/// @c draw() is called with multiple @c DrawPass values, but also because @c prepareFrame() is only
+/// called when needed, which is whenever @c draw() calls must be made after @c endFrame() has been
+/// called. Multiple sets of @c draw() calls may be made without @c prepareFrame() so long as
+/// @c endFrame() has not been called. Meanwhile, @c readMessage() may continue to be called in
+/// between @c prepareFrame() and @c draw() calls.
+///
+/// The @c ThirdEyeScene class manages and enforces this call relationship and associated
+/// synchronisation and locking.
 class TES_VIEWER_API Message
 {
 public:
@@ -50,14 +67,16 @@ public:
   {
     /// No flags set.
     Zero = 0u,
-    /// Item is pending commit for render on the next frame.
+    /// Item is pending commit for render on a future frame.
     Pending = 1u << 0u,
+    /// Pending item is ready to be committed on the next frame.
+    Ready = 1u << 1u,
     /// Item is to be removed/disposed of on the next commit.
-    MarkForDeath = 1u << 1u,
+    MarkForDeath = 1u << 2u,
     /// Item has dirty @c ObjectAttributes - transform and/or colour.
-    DirtyAttributes = 1u << 2u,
+    DirtyAttributes = 1u << 3u,
     /// Item has dirty mesh resources.
-    DirtyMesh = 1u << 3u,
+    DirtyMesh = 1u << 4u,
 
     /// A combination of @c DirtyAttributes and @c DirtyMesh .
     Dirty = DirtyAttributes | DirtyMesh
@@ -94,35 +113,69 @@ public:
 
   /// Called to initialise the handler with various 3rd Eye Scene components.
   virtual void initialise() = 0;
+
   /// Clear all data in the handler. This resets it to the default, initialised state.
+  ///
   /// For example, this method may be called to clear the scene.
+  ///
+  /// Called from the data thread. Some changes may need to be deferred until the next
+  /// @c prepareFrame() call - e.g., releasing OpenGL resources.
   virtual void reset() = 0;
 
   /// Called on all handlers whenever the server info changes.
   virtual void updateServerInfo(const ServerInfoMessage &info);
 
-  /// Called at the start of a new frame, before processing new messages.
+  /// Called from the main thread to prepare the next @c draw() calls following and @c endFrame()
+  /// call.
   ///
-  /// In practice, this method is called when the @c ControlId::CIdEnd message arrives, just prior to processing all
-  /// messages for the completed frame.
+  /// A set of @c draw() calls (varying @c DrawPass values) with the same @c stamp will immediately
+  /// follow before another @c endFrame() call can be made. See class comments for more data/main
+  /// thread synchronisation details.
   ///
-  /// @param frame_stamp The frame render stamp to begin.
-  /// @param render_mark The rendering mark which was used to cull the current frame.
-  virtual void beginFrame(const FrameStamp &stamp) = 0;
+  /// The primary purpose of this function is to prepare render resources - OpenGL resources - of
+  /// newly active objects for the next draw call. This finalises any objects pending such from the
+  /// last @c endFrame() calls since the last @c draw() call.
+  ///
+  /// @param stamp The frame render stamp to begin.
+  virtual void prepareFrame(const FrameStamp &stamp) = 0;
 
-  /// Called at the end of a frame. In practice, this is likely to be called
-  /// at the same time as @c beginFrame() .
+  /// Called by the data thread at the end of a frame.
   ///
-  /// @param frame_stamp The frame render stamp to end.
+  /// This indicates that the data thread has processed a @c CIdFrame @c ControlMessage and the
+  /// state collected since the last @c endFrame() is now ready for visualisation.
+  ///
+  /// Generally an implementation has the following expectations:
+  ///
+  /// - This is threadsafe with respect to other functions modifying the internal visualsation state
+  ///   in particular with respect to @c prepareFrame() and @c draw() calls.
+  /// - Active transient shapes are discared.
+  /// - Pending effects from @c readMessage() calls are effected and ready for visualisation on the
+  ///   next @c draw() call. This includes:
+  ///   - Activating new transient objects.
+  ///   - Activating new persistent objects
+  ///   - Removing destroyed persistent objects.
+  ///   - Effecting object updates.
+  /// - No direct render resources can be changed from this function when using rendering APIs such
+  ///   as OpenGL. That is no OpenGL function calls can be made from here, directly or indirectly,
+  ///   as this is called from the background thread.
+  ///
+  /// @param stamp The frame render stamp to end.
   virtual void endFrame(const FrameStamp &stamp) = 0;
 
   /// Render the current objects.
+  /// @param pass The draw pass indicating what type of rendering to perform.
+  /// @param stamp The frame stamp. The @c FrameStamp::frame_number always matches value given to
+  /// the last @c prepareFrame() call, while the @c FrameStamp::render_mark is monotonic increasing.
+  /// @param params Camera, view and projection parameters.
   virtual void draw(DrawPass pass, const FrameStamp &stamp, const DrawParams &params) = 0;
 
   /// Read a message which has been predetermined to be belong to this handler.
   ///
-  /// Any changes described by the message must not be effected until the next call to @c beginFrame() with matching
-  /// @p frame_number. Additionally, see thread safety requirements described in the class documentation.
+  /// Called by the data thread.
+  ///
+  /// Any changes described by the message must not be effected until the next call to
+  /// @c endFrame() . Additionally, see thread safety requirements described in the class
+  /// documentation.
   ///
   /// @param reader The message data reader.
   virtual void readMessage(PacketReader &reader) = 0;
@@ -132,8 +185,9 @@ public:
     ServerInfoMessage info = {};
     serialise(out, info);
   }
-  /// Serialise a snapshot of the renderable objects for the specified frame. Serialisation is performed using the
-  /// messages required to restore the current state.
+
+  /// Serialise a snapshot of the renderable objects for the specified frame. Serialisation is
+  /// performed using the messages required to restore the current state.
   /// @param out Stream to write to.
   /// @param[out] info Provides information about about the serialisation.
   virtual void serialise(Connection &out, ServerInfoMessage &info) = 0;
@@ -144,7 +198,6 @@ public:
 protected:
   uint16_t _routing_id = 0u;
   unsigned _mode_flags = 0u;
-  FrameStamp _frame_stamp;
   ServerInfoMessage _server_info = {};
   std::string _name;
 };

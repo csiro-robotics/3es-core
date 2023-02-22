@@ -11,6 +11,8 @@
 
 namespace tes
 {
+// NOLINTBEGIN(readability-identifier-length)
+
 /// A row major 4x4 transformation matrix.
 ///
 /// The matrix is laid out as follows:
@@ -27,39 +29,40 @@ template <typename T>
 class Matrix4
 {
 public:
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
-#pragma GCC diagnostic ignored "-Wnested-anon-types"
-#else  // __clang__
-#pragma GCC diagnostic ignored "-Wpedantic"
-#endif  // __clang__
-#endif  // __GNUC__
-  union
-  {
-    T rc[4][4];  ///< Row/column indexing representation.
-    T m[16];     ///< Array representation.
-  };
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif  // __GNUC__
+  /// Internal storage array type.
+  using StorageType = std::array<T, 16>;
 
-  static const Matrix4<T> zero;      ///< A matrix with all zero elements.
-  static const Matrix4<T> identity;  ///< The identity matrix.
+  static const Matrix4<T> Zero;      ///< A matrix with all zero elements.
+  static const Matrix4<T> Identity;  ///< The identity matrix.
 
   /// Empty constructor; contents are undefined.
-  inline Matrix4() {}
+  Matrix4() noexcept = default;
   /// Array initialisation constructor from an array of at least 16 elements. No bounds checking.
   /// @param array16 The array of at least 16 value to initialise from.
-  Matrix4(const T *array16);
+  Matrix4(const T array16[16]);  // NOLINT(modernize-avoid-c-arrays)
+  /// Construct from a @c std::array.
+  ///
+  /// Expects a row major format. Use @c transpose() when providing column major data.
+  ///
+  /// @param array Array to construct from.
+  Matrix4(const StorageType &array) noexcept;
+  /// Construct from a @c std::array.
+  ///
+  /// Expects a row major format. Use @c transpose() when providing column major data.
+  ///
+  /// @param array Array to construct from.
+  template <typename U>
+  Matrix4(const std::array<U, 16> &array) noexcept;
   /// Copy constructor.
   /// @param other The matrix to copy from.
-  Matrix4(const Matrix4<T> &other);
+  Matrix4(const Matrix4<T> &other) noexcept = default;
   /// Copy constructor from a different numeric type.
   /// @param other The matrix to copy from.
   template <typename Q>
-  Matrix4(const Matrix4<Q> &other);
+  Matrix4(const Matrix4<Q> &other) noexcept;
+  /// Move constructor.
+  /// @param other The matrix to move from.
+  Matrix4(Matrix4<T> &&other) noexcept = default;
 
   /// Per element constructor, specifying each row in order.
   /// @param rc00 Element at row/column 00
@@ -78,48 +81,52 @@ public:
   /// @param rc31 Element at row/column 31
   /// @param rc32 Element at row/column 32
   /// @param rc33 Element at row/column 33
-  Matrix4(const T &rc00, const T &rc01, const T &rc02, const T &rc03, const T &rc10, const T &rc11, const T &rc12,
-          const T &rc13, const T &rc20, const T &rc21, const T &rc22, const T &rc23, const T &rc30, const T &rc31,
-          const T &rc32, const T &rc33);
+  Matrix4(const T &rc00, const T &rc01, const T &rc02, const T &rc03, const T &rc10, const T &rc11,
+          const T &rc12, const T &rc13, const T &rc20, const T &rc21, const T &rc22, const T &rc23,
+          const T &rc30, const T &rc31, const T &rc32, const T &rc33) noexcept;
 
   /// Move assignment.
   /// @param other Matrix to assign from.
   /// @return @c *this
-  Matrix4<T> &operator=(Matrix4<T> &&other) = default;
+  Matrix4<T> &operator=(Matrix4<T> &&other) noexcept = default;
 
   /// Copy assignment.
   /// @param other Matrix to assign from.
   /// @return @c *this
-  Matrix4<T> &operator=(const Matrix4<T> &other) = default;
+  Matrix4<T> &operator=(const Matrix4<T> &other) noexcept = default;
 
   /// Row/column access. Not bounds checked.
   /// @param r The row to access [0, 3]
   /// @param c The column to access [0, 3].
-  inline T &operator()(int r, int c) { return rc[r][c]; }
+  T &operator()(size_t r, size_t c) { return _storage[r * 4 + c]; }
   /// Row/column immutable access. Not bounds checked.
   /// @param r The row to access [0, 3]
   /// @param c The column to access [0, 3].
-  inline const T &operator()(int r, int c) const { return rc[r][c]; }
+  [[nodiscard]] const T &operator()(size_t r, size_t c) const { return _storage[r * 4 + c]; }
 
   /// Indexing operator (no bounds checking).
   /// @param index The element to access [0, 15].
   /// @return The matrix element at @p index.
-  inline T &operator[](int index) { return m[index]; }
+  T &operator[](size_t index) { return _storage[index]; }
 
   /// Indexing operator (no bounds checking).
   /// @param index The element to access [0, 15].
   /// @return The matrix element at @p index.
-  inline const T &operator[](int index) const { return m[index]; }
+  [[nodiscard]] const T &operator[](size_t index) const { return _storage[index]; }
+
+  /// Access the internal storage for direct memory copies.
+  /// @return The internal storage.
+  [[nodiscard]] const StorageType &storage() const { return _storage; }
 
   /// Create a matrix which represents a rotation around the X axis.
   /// @param angle The rotation angle in radians.
   /// @return The rotation matrix.
-  static Matrix4<T> rotationX(const T &angle);
+  [[nodiscard]] static Matrix4<T> rotationX(const T &angle);
 
   /// Initialise this matrix as a rotation around the X axis.
   /// @param angle The rotation angle (radians).
   /// @return @c this
-  inline Matrix4<T> &initRotationX(const T &angle)
+  Matrix4<T> &initRotationX(const T &angle)
   {
     *this = rotationX(angle);
     return *this;
@@ -128,12 +135,12 @@ public:
   /// Create a matrix which represents a rotation around the Y axis.
   /// @param angle The rotation angle in radians.
   /// @return The rotation matrix.
-  static Matrix4<T> rotationY(const T &angle);
+  [[nodiscard]] static Matrix4<T> rotationY(const T &angle);
 
   /// Initialise this matrix as a rotation around the Y axis.
   /// @param angle The rotation angle (radians).
   /// @return @c this
-  inline Matrix4<T> &initRotationY(const T &angle)
+  Matrix4<T> &initRotationY(const T &angle)
   {
     *this = rotationY(angle);
     return *this;
@@ -142,12 +149,12 @@ public:
   /// Create a matrix which represents a rotation around the Z axis.
   /// @param angle The rotation angle in radians.
   /// @return The rotation matrix.
-  static Matrix4<T> rotationZ(const T &angle);
+  [[nodiscard]] static Matrix4<T> rotationZ(const T &angle);
 
   /// Initialise this matrix as a rotation around the Z axis.
   /// @param angle The rotation angle (radians).
   /// @return @c this
-  inline Matrix4<T> &initRotationZ(const T &angle)
+  Matrix4<T> &initRotationZ(const T &angle)
   {
     *this = rotationZ(angle);
     return *this;
@@ -159,14 +166,14 @@ public:
   /// @param y Rotation around the Y axis (radians).
   /// @param z Rotation around the Z axis (radians).
   /// @return The rotation matrix.
-  static Matrix4<T> rotation(const T &x, const T &y, const T &z);
+  [[nodiscard]] static Matrix4<T> rotation(const T &x, const T &y, const T &z);
 
   /// Initialise this matrix as a rotation using the given Euler angles.
   /// @param x Rotation around the X axis (radians).
   /// @param y Rotation around the Y axis (radians).
   /// @param z Rotation around the Z axis (radians).
   /// @return  @c this
-  inline Matrix4<T> &initRotation(const T &x, const T &y, const T &z)
+  Matrix4<T> &initRotation(const T &x, const T &y, const T &z)
   {
     *this = rotation(x, y, z);
     return *this;
@@ -175,26 +182,28 @@ public:
   /// Create a translation matrix (no rotation).
   /// @param trans The translation the matrix applies.
   /// @return The translation matrix.
-  static Matrix4<T> translation(const Vector3<T> &trans);
+  [[nodiscard]] static Matrix4<T> translation(const Vector3<T> &trans);
 
   /// Initialise this matrix as a translation only matrix.
   /// @param trans The translation.
   /// @return  @c this
-  inline Matrix4<T> initTranslation(const Vector3<T> &trans)
+  Matrix4<T> initTranslation(const Vector3<T> &trans)
   {
     *this = translation(trans);
     return *this;
   }
 
-  /// Create a transformation matrix with rotation (Euler angles) and translation. Rotation is applied first.
+  /// Create a transformation matrix with rotation (Euler angles) and translation. Rotation is
+  /// applied first.
   /// @param x Rotation around the X axis (radians).
   /// @param y Rotation around the Y axis (radians).
   /// @param z Rotation around the Z axis (radians).
   /// @param trans The translation the matrix applies.
   /// @return The transformation matrix.
-  static Matrix4<T> rotationTranslation(const T &x, const T &y, const T &z, const Vector3<T> &trans);
+  [[nodiscard]] static Matrix4<T> rotationTranslation(const T &x, const T &y, const T &z,
+                                                      const Vector3<T> &trans);
   /// @return @c this
-  inline Matrix4<T> &initRotationTranslation(const T &x, const T &y, const T &z, const Vector3<T> &trans)
+  Matrix4<T> &initRotationTranslation(const T &x, const T &y, const T &z, const Vector3<T> &trans)
   {
     *this = rotationTranslation(x, y, z, trans);
     return *this;
@@ -203,12 +212,12 @@ public:
   /// Create a scaling matrix.
   /// @param scale The scaling to apply along each axis.
   /// @return The scaling matrix.
-  static Matrix4<T> scaling(const Vector3<T> &scale);
+  [[nodiscard]] static Matrix4<T> scaling(const Vector3<T> &scale);
 
   /// Initialise this matrix as scaling matrix with no rotation or translation.
   /// @param scale The scaling vector. Each component corresponds to each axis.
   /// @return @c this
-  inline Matrix4<T> &initScaling(const Vector3<T> &scale)
+  Matrix4<T> &initScaling(const Vector3<T> &scale)
   {
     *this = scaling(scale);
     return *this;
@@ -228,8 +237,9 @@ public:
   /// @param upAxisIndex The index of the up axis. Must not be equal to @p forwardAxisIndex.
   /// @return A model matrix at @p eye pointing at @p target. Returns identity if
   /// there are errors in the specification of @p forwardAxisIndex and @p upAxisIndex.
-  static Matrix4<T> lookAt(const Vector3<T> &eye, const Vector3<T> &target, const Vector3<T> &axisUp,
-                           int forwardAxisIndex = 1, int upAxisIndex = 2);
+  [[nodiscard]] static Matrix4<T> lookAt(const Vector3<T> &eye, const Vector3<T> &target,
+                                         const Vector3<T> &axis_up, int forward_axis_index = 1,
+                                         int up_axis_index = 2);
 
   /// Initialise this matrix as a model or camera matrix.
   /// @see @c lookAt().
@@ -239,10 +249,10 @@ public:
   /// @param forwardAxisIndex The index of the forward axis. This is to point at @p target.
   /// @param upAxisIndex The index of the up axis. Must not be equal to @p forwardAxisIndex.
   /// @return @c this
-  inline Matrix4<T> &initLookAt(const Vector3<T> &eye, const Vector3<T> &target, const Vector3<T> &axisUp,
-                                int forwardAxisIndex = 1, int upAxisIndex = 2)
+  Matrix4<T> &initLookAt(const Vector3<T> &eye, const Vector3<T> &target, const Vector3<T> &axis_up,
+                         int forward_axis_index = 1, int up_axis_index = 2)
   {
-    *this = lookAt(eye, target, axisUp, forwardAxisIndex, upAxisIndex);
+    *this = lookAt(eye, target, axis_up, forward_axis_index, up_axis_index);
     return *this;
   }
 
@@ -252,7 +262,7 @@ public:
 
   /// Returns the transpose of this matrix, leaving this matrix unchanged.
   /// @return The transpose of this matrix.
-  Matrix4<T> transposed() const;
+  [[nodiscard]] Matrix4<T> transposed() const;
 
   /// Inverts this matrix.
   /// @return This matrix after the operation.
@@ -260,7 +270,7 @@ public:
 
   /// Returns the inverse of this matrix, leaving this matrix unchanged.
   /// @return The inverse of this matrix.
-  Matrix4<T> inverse() const;
+  [[nodiscard]] Matrix4<T> inverse() const;
 
   /// Inverts this matrix assuming this matrix represents a rigid body transformation.
   ///
@@ -275,35 +285,35 @@ public:
   /// Returns the inverse of this matrix assuming this is a rigid body transformation.
   /// See @c rigidBodyInvert().
   /// @return The inverse of this matrix.
-  Matrix4<T> rigidBodyInverse() const;
+  [[nodiscard]] Matrix4<T> rigidBodyInverse() const;
 
   /// Calculates the determinant of this matrix.
   /// @return The determinant.
-  T determinant() const;
+  [[nodiscard]] T determinant() const;
 
   /// Returns the X axis of this matrix (elements (0, 0), (1, 0), (2, 0)).
   /// @return The X axis.
-  Vector3<T> axisX() const;
+  [[nodiscard]] Vector3<T> axisX() const;
   /// Returns the Y axis of this matrix (elements (0, 1), (1, 1), (2, 1)).
   /// @return The Y axis.
-  Vector3<T> axisY() const;
+  [[nodiscard]] Vector3<T> axisY() const;
   /// Returns the Z axis of this matrix (elements (0, 2), (1, 2), (2, 2)).
   /// @return The Z axis.
-  Vector3<T> axisZ() const;
+  [[nodiscard]] Vector3<T> axisZ() const;
 
   /// Returns the T axis or translation component of this matrix (elements (0, 3), (1, 3), (2, 3)).
   /// @return The translation component.
-  Vector3<T> axisT() const;
+  [[nodiscard]] Vector3<T> axisT() const;
 
   /// Returns the T axis or translation component of this matrix (elements (0, 3), (1, 3), (2, 3)).
   /// @return The translation component.
-  Vector3<T> translation() const;
+  [[nodiscard]] Vector3<T> translation() const;
 
   /// Returns one of the axes of this matrix.
   /// @param index The index of the axis of interest.
   ///   0 => X, 1 => Y, 2 => Z, 3 => T/translation.
   /// @return The axis of interest.
-  Vector3<T> axis(int index) const;
+  [[nodiscard]] Vector3<T> axis(int index) const;
 
   /// Sets the X axis of this matrix. See @p axisX().
   /// @param axis The value to set the axis to.
@@ -339,7 +349,7 @@ public:
 
   /// Returns the scale contained in this matrix. This is the length of each axis.
   /// @return The scale of each rotation axis in this matrix.
-  Vector3<T> scale() const;
+  [[nodiscard]] Vector3<T> scale() const;
 
   /// Removes scale from the matrix, leaving a rotation/translation matrix.
   /// @return The scale which was present along each axis.
@@ -352,35 +362,40 @@ public:
 
   /// Transforms the vector @p v by this matrix.
   /// @return Av, where A is this matrix.
-  Vector3<T> transform(const Vector3<T> &v) const;
+  [[nodiscard]] Vector3<T> transform(const Vector3<T> &v) const;
 
   /// Transforms the vector @p v by this matrix.
   /// @return Av, where A is this matrix.
-  Vector4<T> transform(const Vector4<T> &v) const;
+  [[nodiscard]] Vector4<T> transform(const Vector4<T> &v) const;
 
-  /// Transforms the vector @p v by the rotation component of this matrix. No translation is applied.
+  /// Transforms the vector @p v by the rotation component of this matrix. No translation is
+  /// applied.
   /// @return Av, where A is this matrix converted to a 3x3 rotation matrix (no translation).
-  Vector3<T> rotate(const Vector3<T> &v) const;
+  [[nodiscard]] Vector3<T> rotate(const Vector3<T> &v) const;
 
-  /// Transforms the vector @p v by the rotation component of this matrix. No translation is applied.
+  /// Transforms the vector @p v by the rotation component of this matrix. No translation is
+  /// applied.
   /// @return Av, where A is this matrix converted to a 3x3 rotation matrix (no translation).
-  Vector4<T> rotate(const Vector4<T> &v) const;
+  [[nodiscard]] Vector4<T> rotate(const Vector4<T> &v) const;
 
   /// Numerical equality comparison. Reports @c true if each element of this matrix is within of
   /// @p Epsilon @p a (or equal to).
   /// @return a Matrix to compare to.
   /// @param epsilon Comparison tolerance value.
   /// @return @c true when each element in this matrix is within @p epsilon of each element of @p a.
-  bool isEqual(const Matrix4<T> &a, const T epsilon = Vector3<T>::Epsilon) const;
+  [[nodiscard]] bool isEqual(const Matrix4<T> &a, T epsilon = Vector3<T>::Epsilon) const;
+
+private:
+  StorageType _storage;
 };
 
 /// Defines a single precision 4x4 matrix.
-typedef Matrix4<float> Matrix4f;
+using Matrix4f = Matrix4<float>;
 /// Defines a double precision 4x4 matrix.
-typedef Matrix4<double> Matrix4d;
+using Matrix4d = Matrix4<double>;
 
-_3es_extern template class TES_CORE_API Matrix4<float>;
-_3es_extern template class TES_CORE_API Matrix4<double>;
+TES_EXTERN template class TES_CORE_API Matrix4<float>;
+TES_EXTERN template class TES_CORE_API Matrix4<double>;
 
 /// Performs the matrix multiplication AB.
 /// @return The result of AB.
@@ -396,6 +411,8 @@ Vector3<T> operator*(const Matrix4<T> &a, const Vector3<T> &v);
 /// @return The result of Av.
 template <typename T>
 Vector4<T> operator*(const Matrix4<T> &a, const Vector4<T> &v);
+
+// NOLINTEND(readability-identifier-length)
 }  // namespace tes
 
 #include "Matrix4.inl"

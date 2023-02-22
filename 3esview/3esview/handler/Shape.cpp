@@ -11,8 +11,9 @@
 namespace tes::view::handler
 {
 bool readMultiShape(const Shape &shape, painter::ShapePainter &painter,
-                    const painter::ShapePainter::ParentId &parent_id, painter::ShapePainter::Type draw_type,
-                    unsigned shape_count, PacketReader &reader, bool double_precision)
+                    const painter::ShapePainter::ParentId &parent_id,
+                    painter::ShapePainter::Type draw_type, unsigned shape_count,
+                    PacketReader &reader, bool double_precision)
 {
   Shape::ObjectAttributes multi_attrs = {};
   for (unsigned i = 0; i < shape_count; ++i)
@@ -24,13 +25,15 @@ bool readMultiShape(const Shape &shape, painter::ShapePainter &painter,
     }
     auto transform = shape.composeTransform(multi_attrs);
     const Colour c(multi_attrs.colour);
-    painter.addChild(parent_id, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
+    painter.addChild(parent_id, draw_type, transform,
+                     Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()));
   }
   return true;
 }
 
 
-Shape::Shape(uint16_t routing_id, const std::string &name, std::shared_ptr<painter::ShapePainter> painter)
+Shape::Shape(uint16_t routing_id, const std::string &name,
+             std::shared_ptr<painter::ShapePainter> painter)
   : Message(routing_id, name)
   , _painter(std::exchange(painter, nullptr))
 {}
@@ -46,7 +49,7 @@ void Shape::reset()
 }
 
 
-void Shape::beginFrame(const FrameStamp &stamp)
+void Shape::prepareFrame(const FrameStamp &stamp)
 {
   (void)stamp;
 }
@@ -104,7 +107,8 @@ void Shape::readMessage(PacketReader &reader)
     break;
   }
   case OIdData: {
-    // We only expect data messages for multi-shape messages where the create message does not contain all the shapes.
+    // We only expect data messages for multi-shape messages where the create message does not
+    // contain all the shapes.
     DataMessage msg;
     ok = msg.read(reader) && handleData(msg, reader);
     break;
@@ -131,9 +135,10 @@ void Shape::serialise(Connection &out, ServerInfoMessage &info)
   CreateMessage create = {};
   ObjectAttributes attrs = {};
 
-  const std::array<painter::ShapePainter::Type, 3> shape_types = { painter::ShapePainter::Type::Solid,
-                                                                   painter::ShapePainter::Type::Wireframe,
-                                                                   painter::ShapePainter::Type::Transparent };
+  const std::array<painter::ShapePainter::Type, 3> shape_types = {
+    painter::ShapePainter::Type::Solid, painter::ShapePainter::Type::Wireframe,
+    painter::ShapePainter::Type::Transparent
+  };
 
   for (auto shape_type : shape_types)
   {
@@ -156,7 +161,7 @@ void Shape::serialise(Connection &out, ServerInfoMessage &info)
       }
 
       decomposeTransform(transform, attrs);
-      attrs.colour = Colour(colour.x(), colour.y(), colour.z(), colour.w()).c;
+      attrs.colour = Colour(colour.x(), colour.y(), colour.z(), colour.w()).colour32();
 
       writer.reset(routingId(), OIdCreate);
       bool ok = true;
@@ -171,7 +176,7 @@ void Shape::serialise(Connection &out, ServerInfoMessage &info)
         for (uint32_t i = 0; i < child_count; ++i)
         {
           decomposeTransform(transform, attrs);
-          attrs.colour = Colour(colour.x(), colour.y(), colour.z(), colour.w()).c;
+          attrs.colour = Colour(colour.x(), colour.y(), colour.z(), colour.w()).colour32();
           ok = attrs.write(writer) && ok;
         }
       }
@@ -203,7 +208,8 @@ void Shape::decomposeTransform(const Magnum::Matrix4 &transform, ObjectAttribute
 }
 
 
-bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader)
+bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs,
+                         PacketReader &reader)
 {
   painter::ShapePainter::Type draw_type = painter::ShapePainter::Type::Solid;
 
@@ -226,8 +232,8 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
   auto transform = composeTransform(attrs);
   auto c = Colour(attrs.colour);
   const auto multi_shape = (msg.flags & OFMultiShape) != 0;
-  const auto parent_id =
-    _painter->add(id, draw_type, transform, Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()), multi_shape);
+  const auto parent_id = _painter->add(id, draw_type, transform,
+                                       Magnum::Color4(c.rf(), c.gf(), c.bf(), c.af()), multi_shape);
 
   if (multi_shape)
   {
@@ -236,7 +242,8 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
     uint16_t create_count = 0;  // Current packet items.
     reader.readElement(shape_count);
     reader.readElement(create_count);
-    readMultiShape(*this, *_painter, parent_id, draw_type, create_count, reader, (msg.flags & OFDoublePrecision) != 0);
+    readMultiShape(*this, *_painter, parent_id, draw_type, create_count, reader,
+                   (msg.flags & OFDoublePrecision) != 0);
 
     const MultiShapeInfo info = { shape_count, (msg.flags & OFDoublePrecision) != 0 };
     if (msg.id)
@@ -253,7 +260,8 @@ bool Shape::handleCreate(const CreateMessage &msg, const ObjectAttributes &attrs
 }
 
 
-bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs, PacketReader &reader)
+bool Shape::handleUpdate(const UpdateMessage &msg, const ObjectAttributes &attrs,
+                         PacketReader &reader)
 {
   (void)reader;
   const Id id(msg.id);
@@ -349,7 +357,8 @@ bool Shape::handleData(const DataMessage &msg, PacketReader &reader)
 
   uint16_t block_count = 0;
   ok = reader.readElement(block_count) == sizeof(block_count) && ok;
-  ok = ok && readMultiShape(*this, *_painter, parent_id, draw_type, block_count, reader, info.double_precision);
+  ok = ok && readMultiShape(*this, *_painter, parent_id, draw_type, block_count, reader,
+                            info.double_precision);
   return ok;
 }
 }  // namespace tes::view::handler

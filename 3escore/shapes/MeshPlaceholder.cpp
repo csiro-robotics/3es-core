@@ -3,16 +3,16 @@
 //
 #include "MeshPlaceholder.h"
 
-using namespace tes;
-
+namespace tes
+{
 MeshPlaceholder::MeshPlaceholder(uint32_t id)
   : _id(id)
 {}
 
 
-void MeshPlaceholder::setId(uint32_t newId)
+void MeshPlaceholder::setId(uint32_t new_id)
 {
-  _id = newId;
+  _id = new_id;
 }
 
 
@@ -40,6 +40,12 @@ uint8_t MeshPlaceholder::drawType(int /* stream */) const
 }
 
 
+float MeshPlaceholder::drawScale(int /* stream */) const
+{
+  return 0;
+}
+
+
 unsigned MeshPlaceholder::vertexCount(int /* stream */) const
 {
   return 0;
@@ -55,39 +61,40 @@ unsigned MeshPlaceholder::indexCount(int /* stream */) const
 DataBuffer MeshPlaceholder::vertices(int stream) const
 {
   TES_UNUSED(stream);
-  return DataBuffer();
+  return {};
 }
 
 
 DataBuffer MeshPlaceholder::indices(int stream) const
 {
   TES_UNUSED(stream);
-  return DataBuffer();
+  return {};
 }
 
 
 DataBuffer MeshPlaceholder::normals(int stream) const
 {
   TES_UNUSED(stream);
-  return DataBuffer();
+  return {};
 }
 
 
 DataBuffer MeshPlaceholder::uvs(int stream) const
 {
   TES_UNUSED(stream);
-  return DataBuffer();
+  return {};
 }
 
 
 DataBuffer MeshPlaceholder::colours(int stream) const
 {
   TES_UNUSED(stream);
-  return DataBuffer();
+  return {};
 }
 
 
-Resource *MeshPlaceholder::clone() const
+std::shared_ptr<Resource> MeshPlaceholder::clone() const
 {
-  return new MeshPlaceholder(_id);
+  return std::make_shared<MeshPlaceholder>(_id);
 }
+}  // namespace tes

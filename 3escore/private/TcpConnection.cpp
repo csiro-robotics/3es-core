@@ -5,18 +5,18 @@
 
 #include <3escore/TcpSocket.h>
 
-using namespace tes;
-
-TcpConnection::TcpConnection(TcpSocket *clientSocket, const ServerSettings &settings)
+namespace tes
+{
+TcpConnection::TcpConnection(std::shared_ptr<TcpSocket> client_socket,
+                             const ServerSettings &settings)
   : BaseConnection(settings)
-  , _client(clientSocket)
+  , _client(std::move(client_socket))
 {}
 
 
 TcpConnection::~TcpConnection()
 {
   close();
-  delete _client;
 }
 
 
@@ -49,7 +49,8 @@ bool TcpConnection::isConnected() const
 }
 
 
-int TcpConnection::writeBytes(const uint8_t *data, int byteCount)
+int TcpConnection::writeBytes(const uint8_t *data, int byte_count)
 {
-  return _client->write(data, byteCount);
+  return _client->write(data, byte_count);
 }
+}  // namespace tes

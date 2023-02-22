@@ -3,8 +3,9 @@
 //
 #include <3escore/TcpSocket.h>
 
-#include "TcpBase.h"
+#include <3escore/CoreUtil.h>
 
+#include "TcpBase.h"
 #include "TcpDetail.h"
 
 #include <cerrno>
@@ -16,9 +17,9 @@
 #include <Ws2tcpip.h>
 #endif  // WIN32
 
-using namespace tes;
-
-const unsigned TcpSocket::IndefiniteTimeout = ~unsigned(0u);
+namespace tes
+{
+const unsigned TcpSocket::IndefiniteTimeout = ~0u;
 
 namespace
 {
@@ -64,23 +65,22 @@ const char *socketErrorString(int err)
 
 
 TcpSocket::TcpSocket()
-  : _detail(new TcpSocketDetail)
+  : _detail(std::make_unique<TcpSocketDetail>())
 {}
 
 
-TcpSocket::TcpSocket(TcpSocketDetail *detail)
-  : _detail(detail)
+TcpSocket::TcpSocket(std::unique_ptr<TcpSocketDetail> &&detail)
+  : _detail(std::move(detail))
 {}
 
 
 TcpSocket::~TcpSocket()
 {
   close();
-  delete _detail;
 }
 
 
-bool TcpSocket::open(const char *host, unsigned short port)
+bool TcpSocket::open(const char *host, uint16_t port)
 {
   if (_detail->socket != -1)
   {
@@ -88,7 +88,6 @@ bool TcpSocket::open(const char *host, unsigned short port)
   }
 
   _detail->socket = tcpbase::create();
-
   _detail->address.sin_family = AF_INET;
   _detail->address.sin_port = htons(port);
 
@@ -99,9 +98,10 @@ bool TcpSocket::open(const char *host, unsigned short port)
   }
 
   // Connect to server
-  if (::connect(_detail->socket, (struct sockaddr *)&_detail->address, sizeof(_detail->address)) != 0)
+  if (::connect(_detail->socket, reinterpret_cast<struct sockaddr *>(&_detail->address),
+                sizeof(_detail->address)) != 0)
   {
-    int err = errno;
+    const int err = errno;
     if (err && err != ECONNREFUSED)
     {
       fprintf(stderr, "errno : %d -> %s\n", err, socketErrorString(err));
@@ -117,8 +117,8 @@ bool TcpSocket::open(const char *host, unsigned short port)
 
 #ifdef WIN32
   // Set non blocking.
-  u_long iMode = 1;
-  ::ioctlsocket(_detail->socket, FIONBIO, &iMode);
+  u_long i_mode = 1;
+  ::ioctlsocket(_detail->socket, FIONBIO, &i_mode);
 #endif  // WIN32
 
   return true;
@@ -147,9 +147,9 @@ bool TcpSocket::isConnected() const
 }
 
 
-void TcpSocket::setNoDelay(bool noDelay)
+void TcpSocket::setNoDelay(bool no_delay)
 {
-  tcpbase::setNoDelay(_detail->socket, noDelay);
+  tcpbase::setNoDelay(_detail->socket, no_delay);
 }
 
 
@@ -159,9 +159,9 @@ bool TcpSocket::noDelay() const
 }
 
 
-void TcpSocket::setReadTimeout(unsigned timeoutMs)
+void TcpSocket::setReadTimeout(unsigned timeout_ms)
 {
-  tcpbase::setReceiveTimeout(_detail->socket, timeoutMs);
+  tcpbase::setReceiveTimeout(_detail->socket, timeout_ms);
 }
 
 
@@ -177,9 +177,9 @@ void TcpSocket::setIndefiniteReadTimeout()
 }
 
 
-void TcpSocket::setWriteTimeout(unsigned timeoutMs)
+void TcpSocket::setWriteTimeout(unsigned timeout_ms)
 {
-  tcpbase::setSendTimeout(_detail->socket, timeoutMs);
+  tcpbase::setSendTimeout(_detail->socket, timeout_ms);
 }
 
 
@@ -195,9 +195,9 @@ void TcpSocket::setIndefiniteWriteTimeout()
 }
 
 
-void TcpSocket::setReadBufferSize(int bufferSize)
+void TcpSocket::setReadBufferSize(int buffer_size)
 {
-  tcpbase::setReceiveBufferSize(_detail->socket, bufferSize);
+  tcpbase::setReceiveBufferSize(_detail->socket, buffer_size);
 }
 
 
@@ -207,9 +207,9 @@ int TcpSocket::readBufferSize() const
 }
 
 
-void TcpSocket::setSendBufferSize(int bufferSize)
+void TcpSocket::setSendBufferSize(int buffer_size)
 {
-  tcpbase::setSendBufferSize(_detail->socket, bufferSize);
+  tcpbase::setSendBufferSize(_detail->socket, buffer_size);
 }
 
 
@@ -219,14 +219,15 @@ int TcpSocket::sendBufferSize() const
 }
 
 
-int TcpSocket::read(char *buffer, int bufferLength) const
+int TcpSocket::read(char *buffer, int buffer_length) const
 {
 #if 0
-  int bytesRead = 0;    // bytes read so far
+  int bytesRead = 0;  // bytes read so far
 
-  while (bytesRead < bufferLength)
+  while (bytesRead < buffer_length)
   {
-    int read = ::recv(_detail->socket, buffer + bytesRead, bufferLength - bytesRead, 0);
+    const auto read =
+      static_cast<int>(::recv(_detail->socket, buffer + bytesRead, buffer_length - bytesRead, 0));
 
     if (read < 0)
     {
@@ -251,8 +252,8 @@ int TcpSocket::read(char *buffer, int bufferLength) const
     return -1;
   }
 
-  int flags = MSG_WAITALL;
-  int read = int(::recv(_detail->socket, buffer, unsigned(bufferLength), flags));
+  const int flags = MSG_WAITALL;
+  const auto read = static_cast<int>(::recv(_detail->socket, buffer, buffer_length, flags));
   if (read < 0)
   {
     if (!tcpbase::checkRecv(_detail->socket, read))
@@ -266,7 +267,7 @@ int TcpSocket::read(char *buffer, int bufferLength) const
 }
 
 
-int TcpSocket::readAvailable(char *buffer, int bufferLength) const
+int TcpSocket::readAvailable(char *buffer, int buffer_length) const
 {
   if (_detail->socket == -1)
   {
@@ -274,11 +275,11 @@ int TcpSocket::readAvailable(char *buffer, int bufferLength) const
   }
 
   //  tcpbase::disableBlocking(_detail->socket);
-  int flags = 0;
+  int flags = 0;  // NOLINT(misc-const-correctness)
 #ifndef WIN32
   flags |= MSG_DONTWAIT;
 #endif  // WIN32
-  int read = int(::recv(_detail->socket, buffer, unsigned(bufferLength), flags));
+  const auto read = static_cast<int>(::recv(_detail->socket, buffer, buffer_length, flags));
   if (read == -1)
   {
     if (!tcpbase::checkRecv(_detail->socket, read))
@@ -291,18 +292,18 @@ int TcpSocket::readAvailable(char *buffer, int bufferLength) const
 }
 
 
-int TcpSocket::write(const char *buffer, int bufferLength) const
+int TcpSocket::write(const char *buffer, int buffer_length) const
 {
   if (_detail->socket == -1)
   {
     return -1;
   }
 
-  int bytesSent = 0;
+  int bytes_sent = 0;
 
-  while (bytesSent < bufferLength)
+  while (bytes_sent < buffer_length)
   {
-    int flags = 0;
+    int flags = 0;  // NOLINT(misc-const-correctness)
 #ifdef __linux__
     flags = MSG_NOSIGNAL;
 #endif  // __linux__
@@ -313,7 +314,9 @@ int TcpSocket::write(const char *buffer, int bufferLength) const
     while (retry)
     {
       retry = false;
-      sent = int(::send(_detail->socket, (char *)buffer + bytesSent, unsigned(bufferLength - bytesSent), flags));
+      sent = static_cast<int>(::send(_detail->socket,
+                                     reinterpret_cast<const char *>(buffer) + bytes_sent,
+                                     buffer_length - bytes_sent, flags));
 #ifdef WIN32
       if (sent < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
 #else   // WIN32
@@ -344,19 +347,21 @@ int TcpSocket::write(const char *buffer, int bufferLength) const
       }
       return 0;
     }
-    else if (sent == 0)
+
+    if (sent == 0)
     {
-      return bytesSent;
+      return bytes_sent;
     }
 
-    bytesSent += sent;
+    bytes_sent += sent;
   }
 
-  return bytesSent;
+  return bytes_sent;
 }
 
 
-unsigned short TcpSocket::port() const
+uint16_t TcpSocket::port() const
 {
   return _detail->address.sin_port;
 }
+}  // namespace tes

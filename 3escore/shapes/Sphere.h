@@ -14,27 +14,35 @@ namespace tes
 ///
 /// A sphere is defined by:
 /// Component      | Description
-/// -------------- | -----------------------------------------------------------------------------------------------
+/// -------------- |
+/// -----------------------------------------------------------------------------------------------
 /// @c centre()    | The sphere centre. An alias for @p position().
 /// @c radius()    | The sphere radius.
 class TES_CORE_API Sphere : public Shape
 {
 public:
   /// Create a sphere.
-  /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a transient shape.
+  /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a
+  /// transient shape.
   /// @param transform The spherical transform for the sphere.
   Sphere(const Id &id = Id(), const Spherical &transform = Spherical());
 
-  /// Create an ellipsoid. This constructor allows for scaling and rotating the sphere in order to create an ellipsoid.
-  /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a transient shape.
+  /// Create an ellipsoid. This constructor allows for scaling and rotating the sphere in order to
+  /// create an ellipsoid.
+  /// @param id The shape id and category, with unique id among @c Sphere objects, or zero for a
+  /// transient shape.
   /// @param transform An arbitrary transform for the shape, supporting non-uniform scaling.
   Sphere(const Id &id, const Transform &transform);
 
   /// Copy constructor.
   /// Shape to copy.
-  Sphere(const Sphere &other);
+  Sphere(const Sphere &other) = default;
 
-  inline const char *type() const override { return "sphere"; }
+  /// Move constructor.
+  /// @param other Object to move.
+  Sphere(Sphere &&other) noexcept = default;
+
+  [[nodiscard]] const char *type() const override { return "sphere"; }
 
   /// Set the sphere radius. This sets the same scale for all dimensions.
   /// @param radius The sphere radius.
@@ -42,7 +50,7 @@ public:
   Sphere &setRadius(double radius);
   /// Get the sphere radius.
   /// @return The sphere radius.
-  double radius() const;
+  [[nodiscard]] double radius() const;
 
   /// Set the sphere centre coordinate.
   /// @param centre The new sphere centre.
@@ -50,7 +58,7 @@ public:
   Sphere &setCentre(const Vector3d &centre);
   /// Get the sphere centre coordinate.
   /// @return The sphere centre.
-  Vector3d centre() const;
+  [[nodiscard]] Vector3d centre() const;
 };
 
 
@@ -63,10 +71,6 @@ inline Sphere::Sphere(const Id &id, const Transform &transform)
   : Shape(SIdSphere, id, transform)
 {}
 
-inline Sphere::Sphere(const Sphere &other)
-  : Shape(other)
-{}
-
 
 inline Sphere &Sphere::setRadius(double radius)
 {
@@ -77,7 +81,7 @@ inline Sphere &Sphere::setRadius(double radius)
 
 inline double Sphere::radius() const
 {
-  return scale().x;
+  return scale().x();
 }
 
 

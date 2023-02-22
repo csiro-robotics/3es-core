@@ -7,44 +7,67 @@
 
 namespace
 {
-int matModeId = std::ios_base::xalloc();
-int v4WModeId = std::ios_base::xalloc();
-int quatWModeId = std::ios_base::xalloc();
+struct ModeId
+{
+  int id = std::ios_base::xalloc();
+};
+
+int matModeId()
+{
+  static const ModeId id;
+  return id.id;
+}
+
+int v4WModeId()
+{
+  static const ModeId id;
+  return id.id;
+}
+
+int quatWModeId()
+{
+  static const ModeId id;
+  return id.id;
+}
+
 }  // namespace
 
 
 namespace tes
 {
-int getMatMode(std::ostream &o)
+MatrixMode getMatMode(std::ostream &stream)
 {
-  return int(o.iword(matModeId));
+  const auto val = stream.iword(matModeId());
+  return static_cast<MatrixMode>(val);
 }
-int getQuatWMode(std::ostream &o)
+WMode getQuatWMode(std::ostream &stream)
 {
-  return int(o.iword(v4WModeId));
+  const auto val = stream.iword(v4WModeId());
+  return static_cast<WMode>(val);
 }
-int getV4WMode(std::ostream &o)
+WMode getV4WMode(std::ostream &stream)
 {
-  return int(o.iword(quatWModeId));
+  const auto val = stream.iword(quatWModeId());
+  return static_cast<WMode>(val);
 }
 }  // namespace tes
 
-std::ostream &matmode(std::ostream &o, int mode)
+std::ostream &tesMatrixMode(std::ostream &stream, tes::MatrixMode mode)
 {
-  o.iword(matModeId) = mode;
-  return o;
+  stream.iword(matModeId()) = static_cast<int>(mode);
+  return stream;
 }
 
 
-std::ostream &v4wmode(std::ostream &o, int mode)
+std::ostream &tesV4WMode(std::ostream &stream, tes::WMode mode)
 {
-  o.iword(v4WModeId) = mode;
-  return o;
+  stream.iword(v4WModeId()) = static_cast<int>(mode);
+  return stream;
 }
 
 
-std::ostream &quatwmode(std::ostream &o, int mode)
+std::ostream &tesQuatWMode(std::ostream &stream, tes::WMode mode)
 {
-  o.iword(quatWModeId) = mode;
-  return o;
+  stream.iword(quatWModeId()) = static_cast<int>(mode);
+  return stream;
 }

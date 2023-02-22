@@ -46,6 +46,7 @@ bool Camera::lookup(CameraId camera_id, tes::camera::Camera &camera) const
 void Camera::initialise()
 {}
 
+
 void Camera::reset()
 {
   std::lock_guard guard(_mutex);
@@ -54,24 +55,28 @@ void Camera::reset()
   {
     camera.second = false;
   }
-  for (auto &camera : _pending_cameras)
-  {
-    camera.second = false;
-  }
+  _pending_cameras.clear();
 }
 
 
-void Camera::beginFrame(const FrameStamp &stamp)
+void Camera::prepareFrame(const FrameStamp &stamp)
 {
   (void)stamp;
-  std::lock_guard guard(_mutex);
-  std::copy(_pending_cameras.begin(), _pending_cameras.end(), _cameras.begin());
 }
 
 
 void Camera::endFrame(const FrameStamp &stamp)
 {
   (void)stamp;
+  std::lock_guard guard(_mutex);
+  for (auto &[id, camera] : _pending_cameras)
+  {
+    if (id < _cameras.size())
+    {
+      _cameras[id] = std::pair(camera, true);
+    }
+  }
+  _pending_cameras.clear();
 }
 
 
@@ -97,17 +102,18 @@ void Camera::readMessage(PacketReader &reader)
   camera.clip_near = msg.near;
   camera.clip_far = msg.far;
   camera.fov_horizontal = msg.fov;
-  camera.frame = tes::CoordinateFrame(_server_info.coordinateFrame);
+  camera.frame = tes::CoordinateFrame(_server_info.coordinate_frame);
 
   // Determine pitch and yaw by a deviation from the expected axis.
   Magnum::Vector3 ref_dir;
   Magnum::Vector3 ref_up;
   getWorldAxes(camera.frame, nullptr, &ref_dir, &ref_up);
-  calculatePitchYaw(Magnum::Vector3(msg.dirX, msg.dirY, msg.dirZ), Magnum::Vector3(msg.upX, msg.upY, msg.upZ), ref_dir,
-                    ref_up, camera.pitch, camera.yaw);
+  calculatePitchYaw(Magnum::Vector3(msg.dirX, msg.dirY, msg.dirZ),
+                    Magnum::Vector3(msg.upX, msg.upY, msg.upZ), ref_dir, ref_up, camera.pitch,
+                    camera.yaw);
 
   std::lock_guard guard(_mutex);
-  _pending_cameras[msg.cameraId] = std::make_pair(camera, true);
+  _pending_cameras.emplace_back(std::pair(msg.camera_id, camera));
 }
 
 
@@ -134,7 +140,7 @@ void Camera::serialise(Connection &out, ServerInfoMessage &info)
       continue;
     }
     const auto camera = _cameras[i].first;
-    msg.cameraId = uint8_t(i);
+    msg.camera_id = uint8_t(i);
     msg.flags = 0;
     msg.reserved = 0;
 
@@ -170,7 +176,8 @@ void Camera::serialise(Connection &out, ServerInfoMessage &info)
 }
 
 
-void Camera::getWorldAxes(tes::CoordinateFrame frame, Magnum::Vector3 *side, Magnum::Vector3 *fwd, Magnum::Vector3 *up)
+void Camera::getWorldAxes(tes::CoordinateFrame frame, Magnum::Vector3 *side, Magnum::Vector3 *fwd,
+                          Magnum::Vector3 *up)
 {
   Magnum::Vector3 ref_side;
   Magnum::Vector3 ref_dir;
@@ -257,8 +264,8 @@ void Camera::getWorldAxes(tes::CoordinateFrame frame, Magnum::Vector3 *side, Mag
 
 
 void Camera::calculatePitchYaw(const Magnum::Vector3 &camera_fwd, const Magnum::Vector3 &camera_up,
-                               const Magnum::Vector3 &world_fwd, const Magnum::Vector3 &world_up, float &pitch,
-                               float &yaw)
+                               const Magnum::Vector3 &world_fwd, const Magnum::Vector3 &world_up,
+                               float &pitch, float &yaw)
 {
   // Pitch
   Magnum::Vector3 ref_fwd;
@@ -285,8 +292,8 @@ void Camera::calculatePitchYaw(const Magnum::Vector3 &camera_fwd, const Magnum::
   pitch *= (fwd_up_dot > 0) ? -1.0f : 1.0f;
 
   // Yaw
-  // Calculate yaw as the deviation between the reference forward and the camera forward projected onto the plane
-  // perpendicular to the world up axis.
+  // Calculate yaw as the deviation between the reference forward and the camera forward projected
+  // onto the plane perpendicular to the world up axis.
   fwd_up_dot = Magnum::Math::dot(ref_fwd, world_up);
   ref_fwd -= world_up * fwd_up_dot;
   ref_fwd = ref_fwd.normalized();

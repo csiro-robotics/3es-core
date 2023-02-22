@@ -152,7 +152,8 @@ void StreamThread::run()
         while (auto *header = packer_decoder.next())
         {
           PacketReader packet(header);
-          // Lock for frame control messages as these tell us to advance the frame and how long to wait.
+          // Lock for frame control messages as these tell us to advance the frame and how long to
+          // wait.
           switch (packet.routingId())
           {
           case MtControl:
@@ -192,7 +193,7 @@ bool StreamThread::blockOnPause()
 {
   if (_paused && targetFrame() == 0)
   {
-    std::unique_lock lock(_notify_mutex);
+    std::unique_lock lock(_data_mutex);
     // Wait for unpause.
     _notify.wait(lock, [this] {
       if (!_paused || targetFrame() != 0)
@@ -223,13 +224,13 @@ StreamThread::Clock::duration StreamThread::processControlMessage(PacketReader &
     // Frame ending.
     _tes->updateToFrame(++_currentFrame);
     // Work out how long to the next frame.
-    const auto dt = (msg.value32) ? msg.value32 : _server_info.defaultFrameTime;
-    return std::chrono::microseconds(_server_info.timeUnit * dt);
+    const auto dt = (msg.value32) ? msg.value32 : _server_info.default_frame_time;
+    return std::chrono::microseconds(_server_info.time_unit * dt);
   }
   case CIdCoordinateFrame:
     if (msg.value32 < CFCount)
     {
-      _server_info.coordinateFrame = CoordinateFrame(msg.value32);
+      _server_info.coordinate_frame = CoordinateFrame(msg.value32);
       _tes->updateServerInfo(_server_info);
     }
     else
@@ -242,10 +243,10 @@ StreamThread::Clock::duration StreamThread::processControlMessage(PacketReader &
     break;
   case CIdForceFrameFlush:
     _tes->updateToFrame(_currentFrame);
-    return std::chrono::microseconds(_server_info.timeUnit * _server_info.defaultFrameTime);
+    return std::chrono::microseconds(_server_info.time_unit * _server_info.default_frame_time);
   case CIdReset:
-    // This doesn't seem right any more. Need to check what the Unity viewer did with this. It may be an artifact of
-    // the main thread needing to do so much work in Unity.
+    // This doesn't seem right any more. Need to check what the Unity viewer did with this. It may
+    // be an artifact of the main thread needing to do so much work in Unity.
     _currentFrame = msg.value32;
     _tes->reset();
     break;

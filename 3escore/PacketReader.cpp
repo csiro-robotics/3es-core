@@ -9,7 +9,8 @@
 #include <cstring>
 #include <utility>
 
-using namespace tes;
+namespace tes
+{
 
 PacketReader::PacketReader(const PacketHeader *packet)
   : PacketStream<const PacketHeader>(packet)
@@ -18,27 +19,27 @@ PacketReader::PacketReader(const PacketHeader *packet)
 }
 
 
-PacketReader::PacketReader(PacketReader &&other)
+PacketReader::PacketReader(PacketReader &&other) noexcept
   : PacketStream<const PacketHeader>(nullptr)
 {
   _packet = std::exchange(other._packet, nullptr);
   _status = std::exchange(other._status, Ok);
-  _payloadPosition = std::exchange(other._payloadPosition, 0);
+  _payload_position = std::exchange(other._payload_position, 0);
 }
 
 
-PacketReader &PacketReader::operator=(PacketReader &&other)
+PacketReader &PacketReader::operator=(PacketReader &&other) noexcept
 {
   other.swap(*this);
   return *this;
 }
 
 
-void PacketReader::swap(PacketReader &other)
+void PacketReader::swap(PacketReader &other) noexcept
 {
   std::swap(_packet, other._packet);
   std::swap(_status, other._status);
-  std::swap(_payloadPosition, other._payloadPosition);
+  std::swap(_payload_position, other._payload_position);
 }
 
 
@@ -49,15 +50,15 @@ bool PacketReader::checkCrc()
     return true;
   }
 
-  if ((flags() & PF_NoCrc))
+  if ((flags() & PFNoCrc))
   {
     _status |= CrcValid;
     return true;
   }
 
-  const CrcType packetCrc = crc();
-  const CrcType crcVal = calculateCrc();
-  if (crcVal == packetCrc)
+  const CrcType packet_crc = crc();
+  const CrcType crc_val = calculateCrc();
+  if (crc_val == packet_crc)
   {
     _status |= CrcValid;
     return true;
@@ -68,66 +69,68 @@ bool PacketReader::checkCrc()
 
 PacketReader::CrcType PacketReader::calculateCrc() const
 {
-  const CrcType crcVal = crc16(reinterpret_cast<const uint8_t *>(_packet), sizeof(PacketHeader) + payloadSize());
-  return crcVal;
+  const CrcType crc_val =
+    crc16(reinterpret_cast<const uint8_t *>(_packet), sizeof(PacketHeader) + payloadSize());
+  return crc_val;
 }
 
 
-size_t PacketReader::readElement(uint8_t *bytes, size_t elementSize)
+size_t PacketReader::readElement(uint8_t *bytes, size_t element_size)
 {
-  if (bytesAvailable() >= elementSize)
+  if (bytesAvailable() >= element_size)
   {
-    memcpy(bytes, payload() + _payloadPosition, elementSize);
-    networkEndianSwap(bytes, elementSize);
-    _payloadPosition = uint16_t(_payloadPosition + elementSize);
-    return elementSize;
+    std::memcpy(bytes, payload() + _payload_position, element_size);
+    networkEndianSwap(bytes, element_size);
+    _payload_position = static_cast<uint16_t>(_payload_position + element_size);
+    return element_size;
   }
 
   return 0;
 }
 
 
-size_t PacketReader::readArray(uint8_t *bytes, size_t elementSize, size_t elementCount)
+size_t PacketReader::readArray(uint8_t *bytes, size_t element_size, size_t element_count)
 {
-  size_t copyCount = bytesAvailable() / elementSize;
-  if (copyCount > 0)
+  size_t copy_count = bytesAvailable() / element_size;
+  if (copy_count > 0)
   {
-    copyCount = (copyCount > elementCount) ? elementCount : copyCount;
-    memcpy(bytes, payload() + _payloadPosition, copyCount * elementSize);
+    copy_count = (copy_count > element_count) ? element_count : copy_count;
+    std::memcpy(bytes, payload() + _payload_position, copy_count * element_size);
 #if !TES_IS_NETWORK_ENDIAN
-    uint8_t *fixBytes = bytes;
-    for (unsigned i = 0; i < copyCount; ++i, fixBytes += elementSize)
+    uint8_t *fix_bytes = bytes;
+    for (unsigned i = 0; i < copy_count; ++i, fix_bytes += element_size)
     {
-      networkEndianSwap(fixBytes, elementSize);
+      networkEndianSwap(fix_bytes, element_size);
     }
 #endif  // !TES_IS_NETWORK_ENDIAN
-    _payloadPosition = uint16_t(_payloadPosition + elementSize * copyCount);
-    return copyCount;
+    _payload_position = static_cast<uint16_t>(_payload_position + element_size * copy_count);
+    return copy_count;
   }
 
   return 0;
 }
 
 
-size_t PacketReader::readRaw(uint8_t *bytes, size_t byteCount)
+size_t PacketReader::readRaw(uint8_t *bytes, size_t byte_count)
 {
-  size_t copyCount = (byteCount <= bytesAvailable()) ? byteCount : bytesAvailable();
-  memcpy(bytes, payload() + _payloadPosition, copyCount);
-  _payloadPosition = uint16_t(_payloadPosition + copyCount);
-  return copyCount;
+  const size_t copy_count = (byte_count <= bytesAvailable()) ? byte_count : bytesAvailable();
+  std::memcpy(bytes, payload() + _payload_position, copy_count);
+  _payload_position = static_cast<uint16_t>(_payload_position + copy_count);
+  return copy_count;
 }
 
 
-size_t PacketReader::peek(uint8_t *dst, size_t byteCount, bool allowByteSwap)
+size_t PacketReader::peek(uint8_t *dst, size_t byte_count, bool allow_byte_swap)
 {
-  size_t copyCount = (byteCount <= bytesAvailable()) ? byteCount : bytesAvailable();
-  memcpy(dst, payload() + _payloadPosition, copyCount);
+  const size_t copy_count = (byte_count <= bytesAvailable()) ? byte_count : bytesAvailable();
+  std::memcpy(dst, payload() + _payload_position, copy_count);
   // Do not adjust the payload position.
 
-  if (allowByteSwap)
+  if (allow_byte_swap)
   {
-    networkEndianSwap(dst, byteCount);
+    networkEndianSwap(dst, byte_count);
   }
 
-  return copyCount;
+  return copy_count;
 }
+}  // namespace tes

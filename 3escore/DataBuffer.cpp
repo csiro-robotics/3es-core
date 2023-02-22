@@ -7,10 +7,9 @@
 
 #include <array>
 
-using namespace tes;
-
-
-namespace tes::detail
+namespace tes
+{
+namespace detail
 {
 DataBufferAffordances::~DataBufferAffordances() = default;
 
@@ -24,7 +23,7 @@ template class DataBufferAffordancesT<int64_t>;
 template class DataBufferAffordancesT<uint64_t>;
 template class DataBufferAffordancesT<float>;
 template class DataBufferAffordancesT<double>;
-}  // namespace tes::detail
+}  // namespace detail
 
 
 void DataBuffer::reset()
@@ -32,7 +31,7 @@ void DataBuffer::reset()
   if (ownPointer() && _affordances)
   {
     _affordances->release(&_stream, ownPointer());
-    _flags &= uint8_t(~Flag::OwnPointer);
+    _flags &= static_cast<uint8_t>(~Flag::OwnPointer);
   }
 }
 
@@ -49,14 +48,15 @@ DataBuffer &DataBuffer::duplicate()
 }
 
 
-unsigned DataBuffer::write(PacketWriter &packet, uint32_t offset, unsigned byteLimit, uint32_t receiveOffset) const
+unsigned DataBuffer::write(PacketWriter &packet, uint32_t offset, unsigned byte_limit,
+                           uint32_t receive_offset) const
 {
-  return _affordances->write(packet, offset, type(), byteLimit, receiveOffset, *this);
+  return _affordances->write(packet, offset, type(), byte_limit, receive_offset, *this);
 }
 
 
-unsigned DataBuffer::writePacked(PacketWriter &packet, uint32_t offset, double quantisation_unit, unsigned byteLimit,
-                                 uint32_t receiveOffset) const
+unsigned DataBuffer::writePacked(PacketWriter &packet, uint32_t offset, double quantisation_unit,
+                                 unsigned byte_limit, uint32_t receive_offset) const
 {
   DataStreamType packed_type = type();
   switch (packed_type)
@@ -70,7 +70,8 @@ unsigned DataBuffer::writePacked(PacketWriter &packet, uint32_t offset, double q
   default:
     break;
   }
-  return _affordances->write(packet, offset, packed_type, byteLimit, receiveOffset, *this, quantisation_unit);
+  return _affordances->write(packet, offset, packed_type, byte_limit, receive_offset, *this,
+                             quantisation_unit);
 }
 
 
@@ -78,13 +79,13 @@ unsigned DataBuffer::read(PacketReader &packet)
 {
   void *dst = writePtr();
   bool own_pointer = ownPointer();
-  unsigned res = _affordances->read(packet, &dst, &_count, &own_pointer, *this);
+  const unsigned res = _affordances->read(packet, &dst, &_count, &own_pointer, *this);
   if (_stream != dst)
   {
     // If we reallocated, then we will have allocated more compactly.
-    _elementStride = _componentCount;
+    _element_stride = _component_count;
   }
-  _flags |= uint8_t(!!own_pointer * Flag::OwnPointer);
+  _flags |= static_cast<uint8_t>(!!own_pointer * Flag::OwnPointer);
   _stream = dst;
   return res;
 }
@@ -94,13 +95,15 @@ unsigned DataBuffer::read(PacketReader &packet, unsigned offset, unsigned count)
 {
   void *dst = writePtr();
   bool own_pointer = ownPointer();
-  unsigned res = _affordances->read(packet, &dst, &_count, &own_pointer, *this, offset, count);
+  const unsigned res =
+    _affordances->read(packet, &dst, &_count, &own_pointer, *this, offset, count);
   if (_stream != dst)
   {
     // If we reallocated, then we will have allocated more compactly.
-    _elementStride = _componentCount;
+    _element_stride = _component_count;
   }
-  _flags |= uint8_t(!!own_pointer * Flag::OwnPointer);
+  _flags |= static_cast<uint8_t>(!!own_pointer * Flag::OwnPointer);
   _stream = dst;
   return res;
 }
+}  // namespace tes

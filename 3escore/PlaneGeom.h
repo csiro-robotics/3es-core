@@ -6,20 +6,18 @@
 
 #include "Vector4.h"
 
-namespace tes
-{
 /// Plane geometry functions.
 ///
-/// A plane is defined by a @c Vector4 where the xyz components are the normal and the w component is the
-/// plane distance.
-namespace planegeom
+/// A plane is defined by a @c Vector4 where the xyz components are the normal and the w component
+/// is the plane distance.
+namespace tes::planegeom
 {
 /// Point classification results.
 enum PlaneClassification
 {
-  PC_Behind = -1,  ///< Behind the plane.
-  PC_On = 0,       ///< On or part of the plane.
-  PC_InFront = 1   ///< In front of the plane.
+  PCBehind = -1,  ///< Behind the plane.
+  PCOn = 0,       ///< On or part of the plane.
+  PCInFront = 1   ///< In front of the plane.
 };
 
 /// Create a plane from a normal and distance (D) value.
@@ -27,19 +25,20 @@ enum PlaneClassification
 /// @param distance the plane D component.
 /// @return The plane equation.
 template <typename T>
-inline Vector4<T> create(const Vector3<T> &normal, T distance)
+[[nodiscard]] inline Vector4<T> create(const Vector3<T> &normal, T distance)
 {
   return Vector4f(normal, distance);
 }
 
 /// Create a plane from a normal and a point on the plane.
 /// @param normal The plane normal. Must be normalised.
-/// @param pointOnPlane An arbitrary point on the plane.
+/// @param point_on_plane An arbitrary point on the plane.
 /// @return The plane equation.
 template <typename T>
-Vector4<T> fromNormalAndPoint(const Vector3<T> &normal, const Vector3<T> &pointOnPlane)
+[[nodiscard]] Vector4<T> fromNormalAndPoint(const Vector3<T> &normal,
+                                            const Vector3<T> &point_on_plane)
 {
-  const T distance = -normal.dot(pointOnPlane);
+  const T distance = -normal.dot(point_on_plane);
   return Vector4<T>(normal, distance);
 }
 
@@ -49,9 +48,9 @@ Vector4<T> fromNormalAndPoint(const Vector3<T> &normal, const Vector3<T> &pointO
 /// @param point The point of interest.
 /// @return The shorted distance from @p point to the plane (signed).
 template <typename T>
-inline T signedDistanceToPoint(const Vector4<T> &plane, const Vector3<T> &point)
+[[nodiscard]] inline T signedDistanceToPoint(const Vector4<T> &plane, const Vector3<T> &point)
 {
-  return plane.xyz().dot(point) + plane.w;
+  return plane.xyz().dot(point) + plane.w();
 }
 
 
@@ -60,7 +59,7 @@ inline T signedDistanceToPoint(const Vector4<T> &plane, const Vector3<T> &point)
 /// @param point The point of interest.
 /// @return The closest point on the plane to @p point.
 template <typename T>
-inline Vector3<T> projectPoint(const Vector4<T> &plane, const Vector3<T> &point)
+[[nodiscard]] inline Vector3<T> projectPoint(const Vector4<T> &plane, const Vector3<T> &point)
 {
   const T signedDistance = signedDistanceToPoint(plane, point);
   return point - plane.xyz() * signedDistance;
@@ -70,25 +69,25 @@ inline Vector3<T> projectPoint(const Vector4<T> &plane, const Vector3<T> &point)
 /// Classify a point with respect to a plane (see @c PlaneClassification).
 /// @param plane The plane equation.
 /// @param point The point of interest.
-/// @param epsilon Epsilon value used as a tolerance for @c PC_On results.
+/// @param epsilon Epsilon value used as a tolerance for @c PCOn results.
 /// @return The point's @c PlaneClassification.
 template <typename T>
-inline int classifyPoint(const Vector4<T> &plane, const Vector3<T> &point, T epsilon = 0)
+[[nodiscard]] inline int classifyPoint(const Vector4<T> &plane, const Vector3<T> &point,
+                                       T epsilon = 0)
 {
   const T signedDistance = signedDistanceToPoint(plane, point);
   if (signedDistance < -epsilon)
   {
-    return PC_Behind;
+    return PCBehind;
   }
 
   if (signedDistance > epsilon)
   {
-    return PC_InFront;
+    return PCInFront;
   }
 
-  return PC_On;
+  return PCOn;
 }
-}  // namespace planegeom
-}  // namespace tes
+}  // namespace tes::planegeom
 
 #endif  // TES_CORE_PLANE_GEOM_H

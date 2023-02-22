@@ -28,6 +28,7 @@
 #include <Magnum/GL/Version.h>
 
 #include <fstream>
+#include <iostream>
 
 #include <cxxopts.hpp>
 
@@ -41,7 +42,7 @@ namespace tes::view
 {
 uint16_t Viewer::defaultPort()
 {
-  return ServerSettings().listenPort;
+  return ServerSettings().listen_port;
 }
 
 Viewer::Viewer(const Arguments &arguments)
@@ -95,7 +96,8 @@ bool Viewer::open(const std::filesystem::path &path)
     return false;
   }
 
-  _data_thread = std::make_shared<StreamThread>(_tes, std::make_shared<std::ifstream>(std::move(file)));
+  _data_thread =
+    std::make_shared<StreamThread>(_tes, std::make_shared<std::ifstream>(std::move(file)));
   _data_thread->setLooping(true);
   return true;
 }
@@ -112,7 +114,8 @@ bool Viewer::connect(const std::string &host, uint16_t port, bool allow_reconnec
     const auto start_time = std::chrono::steady_clock::now();
     // ...but don't wait forever.
     const auto timeout = std::chrono::seconds(5);
-    while (!net_thread->connectionAttempted() && (std::chrono::steady_clock::now() - start_time) < timeout)
+    while (!net_thread->connectionAttempted() &&
+           (std::chrono::steady_clock::now() - start_time) < timeout)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
@@ -224,7 +227,8 @@ void Viewer::mouseMoveEvent(MouseMoveEvent &event)
     return;
   }
 
-  _fly.updateMouse(float(event.relativePosition().x()), float(event.relativePosition().y()), _tes->camera());
+  _fly.updateMouse(float(event.relativePosition().x()), float(event.relativePosition().y()),
+                   _tes->camera());
 
   event.setAccepted();
   redraw();
@@ -489,7 +493,7 @@ Viewer::StartupMode Viewer::parseStartupArgs(const Arguments &arguments, Command
       return StartupMode::Help;
     }
   }
-  catch (const cxxopts::OptionException &e)
+  catch (const cxxopts::exceptions::parsing &e)
   {
     std::cerr << "Argument error\n" << e.what() << std::endl;
     return StartupMode::Error;

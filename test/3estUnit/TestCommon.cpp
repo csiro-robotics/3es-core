@@ -14,22 +14,24 @@
 
 namespace tes
 {
-void makeHiResSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> *normals)
+void makeHiResSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+                     std::vector<Vector3f> *normals)
 {
   makeSphere(vertices, indices, normals, 5);
 }
 
-void makeLowResSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> *normals)
+void makeLowResSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+                      std::vector<Vector3f> *normals)
 {
   makeSphere(vertices, indices, normals, 0);
 }
 
-void makeSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices, std::vector<Vector3f> *normals,
-                int iterations)
+void makeSphere(std::vector<Vector3f> &vertices, std::vector<unsigned> &indices,
+                std::vector<Vector3f> *normals, int iterations)
 {
   // Start with a unit sphere so we have normals precalculated.
   // Use a fine subdivision to ensure we need multiple data packets to transfer vertices.
-  sphere::solid(vertices, indices, 1.0f, Vector3f::zero, iterations);
+  sphere::solid(vertices, indices, 1.0f, Vector3f::Zero, iterations);
 
   // Normals as vertices. Scale and offset.
   if (normals)
@@ -74,12 +76,15 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
 
     for (unsigned i = 0; i < mesh.vertexCount(); ++i)
     {
-      const Vector3f meshVert(meshVerts.get<float>(i, 0), meshVerts.get<float>(i, 1), meshVerts.get<float>(i, 2));
-      const Vector3f refVert(meshVerts.get<float>(i, 0), refVerts.get<float>(i, 1), refVerts.get<float>(i, 2));
+      const Vector3f meshVert(meshVerts.get<float>(i, 0), meshVerts.get<float>(i, 1),
+                              meshVerts.get<float>(i, 2));
+      const Vector3f refVert(meshVerts.get<float>(i, 0), refVerts.get<float>(i, 1),
+                             refVerts.get<float>(i, 2));
       if (meshVert[0] != refVert[0] || meshVert[1] != refVert[1] || meshVert[2] != refVert[2])
       {
-        FAIL() << "vertex[" << i << "]: (" << meshVert[0] << ',' << meshVert[1] << ',' << meshVert[2] << ") != ("
-               << refVert[0] << ',' << refVert[1] << ',' << refVert[2] << ")";
+        FAIL() << "vertex[" << i << "]: (" << meshVert[0] << ',' << meshVert[1] << ','
+               << meshVert[2] << ") != (" << refVert[0] << ',' << refVert[1] << ',' << refVert[2]
+               << ")";
       }
     }
 
@@ -95,12 +100,15 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
 
       for (unsigned i = 0; i < meshNorms.count(); ++i)
       {
-        const Vector3f meshNorm(meshNorms.get<float>(i, 0), meshNorms.get<float>(i, 1), meshNorms.get<float>(i, 2));
-        const Vector3f refNorm(meshNorms.get<float>(i, 0), refNorms.get<float>(i, 1), refNorms.get<float>(i, 2));
+        const Vector3f meshNorm(meshNorms.get<float>(i, 0), meshNorms.get<float>(i, 1),
+                                meshNorms.get<float>(i, 2));
+        const Vector3f refNorm(meshNorms.get<float>(i, 0), refNorms.get<float>(i, 1),
+                               refNorms.get<float>(i, 2));
         if (meshNorm[0] != refNorm[0] || meshNorm[1] != refNorm[1] || meshNorm[2] != refNorm[2])
         {
-          FAIL() << "normal[" << i << "]: (" << meshNorm[0] << ',' << meshNorm[1] << ',' << meshNorm[2] << ") != ("
-                 << refNorm[0] << ',' << refNorm[1] << ',' << refNorm[2] << ")";
+          FAIL() << "normal[" << i << "]: (" << meshNorm[0] << ',' << meshNorm[1] << ','
+                 << meshNorm[2] << ") != (" << refNorm[0] << ',' << refNorm[1] << ',' << refNorm[2]
+                 << ")";
         }
       }
     }
@@ -115,13 +123,21 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
 
       ASSERT_EQ(meshColours.count(), refColours.count());
 
+      // Colour buffer formats may be different, so read into Colour types.
       for (unsigned i = 0; i < meshColours.count(); ++i)
       {
-        if (meshColours.get<uint32_t>(i) != refColours.get<uint32_t>(i))
+        Colour mesh_colour;
+        Colour ref_colour;
+
+        bool ok = true;
+        ok = getColour(meshColours, i, mesh_colour) && ok;
+        ok = getColour(refColours, i, ref_colour) && ok;
+
+        if (mesh_colour != ref_colour || !ok)
         {
           FAIL() << "colour[" << i << "]: 0x" << std::hex << std::setw(8) << std::setfill('0')
-                 << meshColours.get<uint32_t>(i) << " != 0x" << refColours.get<uint32_t>(i) << std::dec << std::setw(0)
-                 << std::setfill(' ');
+                 << meshColours.get<uint32_t>(i) << " != 0x" << refColours.get<uint32_t>(i)
+                 << std::dec << std::setw(0) << std::setfill(' ');
         }
       }
     }
@@ -142,8 +158,8 @@ void validateMesh(const MeshResource &mesh, const MeshResource &reference)
         const float refUV[2] = { refUVs.get<float>(i, 1), refUVs.get<float>(i, 2) };
         if (meshUV[0] != refUV[0] || meshUV[1] != refUV[1])
         {
-          FAIL() << "uv[" << i << "]: (" << meshUV[0] << ',' << meshUV[1] << ") != (" << refUV[0] << ',' << refUV[1]
-                 << ")";
+          FAIL() << "uv[" << i << "]: (" << meshUV[0] << ',' << meshUV[1] << ") != (" << refUV[0]
+                 << ',' << refUV[1] << ")";
         }
       }
     }
@@ -201,8 +217,7 @@ template <typename T>
 void validateText(const T &shape, const T &reference, const ResourceMap &resources)
 {
   validateShape(static_cast<const Shape>(shape), static_cast<const Shape>(reference), resources);
-  EXPECT_EQ(shape.textLength(), reference.textLength());
-  EXPECT_STREQ(shape.text(), reference.text());
+  EXPECT_EQ(shape.text(), reference.text());
 }
 
 
@@ -321,39 +336,6 @@ void validateShape(const MeshShape &shape, const MeshShape &reference, const Res
 }
 
 
-void validateShape(const PointCloudShape &shape, const PointCloudShape &reference, const ResourceMap &resources)
-{
-  validateShape(static_cast<const Shape>(shape), static_cast<const Shape>(reference), resources);
-
-  EXPECT_EQ(shape.pointScale(), reference.pointScale());
-  EXPECT_EQ(shape.indexCount(), reference.indexCount());
-
-  // Note: We can't compare the contents of shape.mesh() as it is a placeholder reference.
-  // The real mesh is received and validated separately.
-  ASSERT_NE(shape.mesh(), nullptr);
-  ASSERT_NE(reference.mesh(), nullptr);
-  EXPECT_EQ(shape.mesh()->id(), reference.mesh()->id());
-  EXPECT_EQ(shape.mesh()->typeId(), reference.mesh()->typeId());
-  EXPECT_EQ(shape.mesh()->uniqueKey(), reference.mesh()->uniqueKey());
-
-  if (shape.indexCount() == reference.indexCount())
-  {
-    for (unsigned i = 0; i < shape.indexCount(); ++i)
-    {
-      EXPECT_EQ(shape.indices()[i], reference.indices()[i]);
-    }
-  }
-
-  // Validate resources. Fetch the transferred resource and compare against the reference resource.
-  auto resIter = resources.find(shape.mesh()->uniqueKey());
-  ASSERT_NE(resIter, resources.end());
-  ASSERT_EQ(resIter->second->typeId(), reference.mesh()->typeId());
-
-  const MeshResource *mesh = static_cast<const MeshResource *>(resIter->second);
-  validateMesh(*mesh, *reference.mesh());
-}
-
-
 void validateShape(const MeshSet &shape, const MeshSet &reference, const ResourceMap &resources)
 {
   validateShape(static_cast<const Shape>(shape), static_cast<const Shape>(reference), resources);
@@ -363,17 +345,49 @@ void validateShape(const MeshSet &shape, const MeshSet &reference, const Resourc
   for (unsigned i = 0; i < std::min(shape.partCount(), reference.partCount()); ++i)
   {
     // Remember, the mesh in shape is only a placeholder for the ID. The real mesh is in resources.
-    // Validate resources. Fetch the transferred resource and compare against the reference resource.
+    // Validate resources. Fetch the transferred resource and compare against the reference
+    // resource.
     auto resIter = resources.find(shape.partResource(i)->uniqueKey());
     ASSERT_NE(resIter, resources.end());
     ASSERT_EQ(resIter->second->typeId(), reference.partResource(i)->typeId());
 
-    const MeshResource *part = static_cast<const MeshResource *>(resIter->second);
-    const MeshResource *refPart = reference.partResource(i);
+    auto part = std::dynamic_pointer_cast<const MeshResource>(resIter->second);
+    auto refPart = reference.partResource(i);
 
     EXPECT_TRUE(shape.partTransform(i).isEqual(reference.partTransform(i)));
     EXPECT_EQ(shape.partColour(i), reference.partColour(i));
     validateMesh(*part, *refPart);
   }
+}
+
+
+bool getColour(const DataBuffer &stream, size_t index, Colour &colour)
+{
+  if (index >= stream.count())
+  {
+    return false;
+  }
+
+  if (stream.type() == DctUInt32 && stream.componentCount() == 1)
+  {
+    // Single channel uint32_t stream.
+    const uint32_t c32 = stream.get<uint32_t>(index);
+    colour = Colour(c32);
+    return true;
+  }
+
+  if (stream.type() == DctUInt8 && stream.componentCount() == 4)
+  {
+    // Single channel uint32_t stream.
+    std::array<uint8_t, 4> rgba;
+    rgba[0] = stream.get<uint8_t>(index, 0);
+    rgba[1] = stream.get<uint8_t>(index, 1);
+    rgba[2] = stream.get<uint8_t>(index, 2);
+    rgba[3] = stream.get<uint8_t>(index, 3);
+    colour = Colour(rgba);
+    return true;
+  }
+
+  return false;
 }
 }  // namespace tes

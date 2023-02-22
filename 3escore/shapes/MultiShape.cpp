@@ -1,22 +1,12 @@
 #include "MultiShape.h"
 
-using namespace tes;
+#include <3escore/CoreUtil.h>
 
-const unsigned MultiShape::BlockCountLimitSingle = 1024u;
-const unsigned MultiShape::ShapeCountLimit = 0xffffu;
-
-MultiShape::~MultiShape()
+namespace tes
 {
-  if (_ownShapes)
-  {
-    for (unsigned i = 0; i < _itemCount; ++i)
-    {
-      delete _shapes[i];
-    }
+const unsigned MultiShape::BlockCountLimitSingle = 1024u;
 
-    delete[] _shapes;
-  }
-}
+MultiShape::~MultiShape() = default;
 
 
 bool MultiShape::isComplex() const
@@ -33,14 +23,16 @@ bool MultiShape::writeCreate(PacketWriter &stream) const
   }
 
   bool ok = true;
+  const uint32_t item_count = int_cast<uint32_t>(_shapes.size());
+
   // Write the total number of items.
-  stream.writeElement(_itemCount) == sizeof(_itemCount) && ok;
+  ok = stream.writeElement(item_count) == sizeof(item_count) && ok;
 
   // Write the number of items in the creation message.
-  uint16_t creationBlockCount = uint16_t(std::min(_itemCount, blockCountLimit()));
-  stream.writeElement(creationBlockCount) == sizeof(creationBlockCount) && ok;
+  const auto creation_block_count = int_cast<uint16_t>(std::min(item_count, blockCountLimit()));
+  ok = stream.writeElement(creation_block_count) == sizeof(creation_block_count) && ok;
 
-  for (unsigned i = 0; ok && i < creationBlockCount; ++i)
+  for (unsigned i = 0; ok && i < creation_block_count; ++i)
   {
     ok = _shapes[i]->attributes().write(stream, _shapes[i]->data().flags & OFDoublePrecision) && ok;
   }
@@ -49,9 +41,10 @@ bool MultiShape::writeCreate(PacketWriter &stream) const
 }
 
 
-int MultiShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
+int MultiShape::writeData(PacketWriter &stream, unsigned &progress_marker) const
 {
-  if (_itemCount <= blockCountLimit())
+  const uint32_t item_count = int_cast<uint32_t>(_shapes.size());
+  if (item_count <= blockCountLimit())
   {
     // Nothing more to write. Creation packet was enough.
     return 0;
@@ -67,18 +60,19 @@ int MultiShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
     return -1;
   }
 
-  const unsigned itemOffset = (progressMarker + blockCountLimit());
-  const unsigned remainingItems = _itemCount - itemOffset;
-  const uint16_t blockCount = uint16_t(std::min<unsigned>(remainingItems, blockCountLimit()));
-  stream.writeElement(blockCount) == sizeof(blockCount) && ok;
+  const unsigned item_offset = (progress_marker + blockCountLimit());
+  const unsigned remaining_items = item_count - item_offset;
+  const auto block_count =
+    int_cast<uint16_t>(std::min<unsigned>(remaining_items, blockCountLimit()));
+  ok = stream.writeElement(block_count) == sizeof(block_count) && ok;
 
-  for (unsigned i = 0; i < blockCount; ++i)
+  for (unsigned i = 0; i < block_count; ++i)
   {
-    const Shape *shape = _shapes[itemOffset + i];
+    const Shape *shape = _shapes[item_offset + i].get();
     ok = shape->attributes().write(stream, shape->data().flags & OFDoublePrecision) && ok;
   }
 
-  progressMarker += blockCount;
+  progress_marker += block_count;
 
   if (!ok)
   {
@@ -86,7 +80,7 @@ int MultiShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
     return -1;
   }
 
-  if (remainingItems > blockCount)
+  if (remaining_items > block_count)
   {
     // More to come.
     return 1;
@@ -99,16 +93,19 @@ int MultiShape::writeData(PacketWriter &stream, unsigned &progressMarker) const
 
 MultiShape &MultiShape::takeOwnership()
 {
-  if (!_ownShapes)
+  if (!_own_shapes)
   {
-    Shape **shapes = new Shape *[_itemCount];
-    for (unsigned i = 0; i < _itemCount; ++i)
+    // Clone any borrowed pointers.
+    for (auto &ptr : _shapes)
     {
-      shapes[i] = _shapes[i];
+      if (ptr.status() == ShapePtr::Status::Borrowed)
+      {
+        ptr = ptr->clone();
+      }
     }
-    _shapes = shapes;
-    _ownShapes = true;
+    _own_shapes = true;
   }
 
   return *this;
 }
+}  // namespace tes

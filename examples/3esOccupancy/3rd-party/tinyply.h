@@ -397,6 +397,7 @@ bool PlyFile::PlyFileImpl::parse_header(std::istream & is)
 
 void PlyFile::PlyFileImpl::read_header_text(std::string line, std::istream & is, std::vector<std::string>& place, int erase)
 {
+    (void)is;
     place.push_back((erase > 0) ? line.erase(0, erase) : line);
 }
 
@@ -421,6 +422,7 @@ void PlyFile::PlyFileImpl::read_header_property(std::istream & is)
 
 size_t PlyFile::PlyFileImpl::read_property_binary(const Type & t, const size_t & stride, void * dest, size_t & destOffset, std::istream & is)
 {
+    (void)t;
     destOffset += stride;
     is.read((char*)dest, stride);
     return stride;
@@ -464,6 +466,7 @@ void PlyFile::PlyFileImpl::write_property_ascii(Type t, std::ostream & os, uint8
 
 void PlyFile::PlyFileImpl::write_property_binary(Type t, std::ostream & os, uint8_t * src, size_t & srcOffset, const size_t & stride)
 {
+    (void)t;
     os.write((char *)src, stride);
     srcOffset += stride;
 }

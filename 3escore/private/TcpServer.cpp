@@ -11,42 +11,34 @@
 #include <algorithm>
 #include <mutex>
 
-using namespace tes;
-
-Server *Server::create(const ServerSettings &settings, const ServerInfoMessage *serverInfo)
+namespace tes
 {
-  return new TcpServer(settings, serverInfo);
+std::shared_ptr<Server> Server::create(const ServerSettings &settings,
+                                       const ServerInfoMessage *server_info)
+{
+  return std::make_shared<TcpServer>(settings, server_info);
 }
 
 
-TcpServer::TcpServer(const ServerSettings &settings, const ServerInfoMessage *serverInfo)
+TcpServer::TcpServer(const ServerSettings &settings, const ServerInfoMessage *server_info)
   : _monitor(nullptr)
   , _settings(settings)
   , _active(true)
 {
-  _monitor = new TcpConnectionMonitor(*this);
+  _monitor = std::make_shared<TcpConnectionMonitor>(*this);
 
-  if (serverInfo)
+  if (server_info)
   {
-    memcpy(&_serverInfo, serverInfo, sizeof(_serverInfo));
+    std::memcpy(&_server_info, server_info, sizeof(_server_info));
   }
   else
   {
-    initDefaultServerInfo(&_serverInfo);
+    initDefaultServerInfo(&_server_info);
   }
 }
 
 
-TcpServer::~TcpServer()
-{
-  delete _monitor;
-}
-
-
-void TcpServer::dispose()
-{
-  delete this;
-}
+TcpServer::~TcpServer() = default;
 
 
 unsigned TcpServer::flags() const
@@ -60,9 +52,9 @@ void TcpServer::close()
   _monitor->stop();
   _monitor->join();
 
-  std::lock_guard<Lock> guard(_lock);
+  const std::lock_guard<Lock> guard(_lock);
 
-  for (BaseConnection *con : _connections)
+  for (const auto &con : _connections)
   {
     con->close();
   }
@@ -89,13 +81,13 @@ const char *TcpServer::address() const
 
 uint16_t TcpServer::port() const
 {
-  return _monitor->mode() != ConnectionMonitor::None ? _settings.listenPort : 0;
+  return _monitor->mode() != ConnectionMode::None ? _settings.listen_port : 0;
 }
 
 
 bool TcpServer::isConnected() const
 {
-  std::lock_guard<Lock> guard(_lock);
+  const std::lock_guard<Lock> guard(_lock);
   return !_connections.empty();
 }
 
@@ -107,12 +99,12 @@ int TcpServer::create(const Shape &shape)
     return 0;
   }
 
-  std::lock_guard<Lock> guard(_lock);
+  const std::lock_guard<Lock> guard(_lock);
   int transferred = 0;
   bool error = false;
-  for (BaseConnection *con : _connections)
+  for (const auto &con : _connections)
   {
-    int txc = con->create(shape);
+    const int txc = con->create(shape);
     if (txc >= 0)
     {
       transferred += txc;
@@ -134,12 +126,12 @@ int TcpServer::destroy(const Shape &shape)
     return 0;
   }
 
-  std::lock_guard<Lock> guard(_lock);
+  const std::lock_guard<Lock> guard(_lock);
   int transferred = 0;
   bool error = false;
-  for (BaseConnection *con : _connections)
+  for (const auto &con : _connections)
   {
-    int txc = con->destroy(shape);
+    const int txc = con->destroy(shape);
     if (txc >= 0)
     {
       transferred += txc;
@@ -161,12 +153,12 @@ int TcpServer::update(const Shape &shape)
     return 0;
   }
 
-  std::lock_guard<Lock> guard(_lock);
+  const std::lock_guard<Lock> guard(_lock);
   int transferred = 0;
   bool error = false;
-  for (BaseConnection *con : _connections)
+  for (const auto &con : _connections)
   {
-    int txc = con->update(shape);
+    const int txc = con->update(shape);
     if (txc >= 0)
     {
       transferred += txc;
@@ -191,9 +183,9 @@ int TcpServer::updateFrame(float dt, bool flush)
   std::unique_lock<Lock> guard(_lock);
   int transferred = 0;
   bool error = false;
-  for (BaseConnection *con : _connections)
+  for (const auto &con : _connections)
   {
-    int txc = con->updateFrame(dt, flush);
+    const int txc = con->updateFrame(dt, flush);
     if (txc >= 0)
     {
       transferred += txc;
@@ -213,7 +205,7 @@ int TcpServer::updateFrame(float dt, bool flush)
   // create messages. Alternatively, if the server is not in collated mode, the
   // we'll get different behaviour between collated and uncollated modes.
   guard.unlock();
-  if (_monitor->mode() == tes::ConnectionMonitor::Asynchronous)
+  if (_monitor->mode() == ConnectionMode::Asynchronous)
   {
     _monitor->commitConnections();
   }
@@ -222,19 +214,19 @@ int TcpServer::updateFrame(float dt, bool flush)
 }
 
 
-int TcpServer::updateTransfers(unsigned byteLimit)
+int TcpServer::updateTransfers(unsigned byte_limit)
 {
   if (!_active)
   {
     return 0;
   }
 
-  std::lock_guard<Lock> guard(_lock);
+  const std::lock_guard<Lock> guard(_lock);
   int transferred = 0;
   bool error = false;
-  for (BaseConnection *con : _connections)
+  for (const auto &con : _connections)
   {
-    int txc = con->updateTransfers(byteLimit);
+    const int txc = con->updateTransfers(byte_limit);
     if (txc >= 0)
     {
       transferred += txc;
@@ -256,43 +248,43 @@ bool TcpServer::sendServerInfo(const ServerInfoMessage &info)
 }
 
 
-unsigned TcpServer::referenceResource(const Resource *resource)
+unsigned TcpServer::referenceResource(const ResourcePtr &resource)
 {
   if (!_active)
   {
     return 0;
   }
 
-  std::lock_guard<Lock> guard(_lock);
-  unsigned lastCount = 0;
-  for (BaseConnection *con : _connections)
+  const std::lock_guard<Lock> guard(_lock);
+  unsigned last_count = 0;
+  for (const auto &con : _connections)
   {
-    lastCount = con->referenceResource(resource);
+    last_count = con->referenceResource(resource);
   }
-  return lastCount;
+  return last_count;
 }
 
 
-unsigned TcpServer::releaseResource(const Resource *resource)
+unsigned TcpServer::releaseResource(const ResourcePtr &resource)
 {
   if (!_active)
   {
     return 0;
   }
 
-  std::lock_guard<Lock> guard(_lock);
-  unsigned lastCount = 0;
-  for (BaseConnection *con : _connections)
+  const std::lock_guard<Lock> guard(_lock);
+  unsigned last_count = 0;
+  for (const auto &con : _connections)
   {
-    lastCount = con->releaseResource(resource);
+    last_count = con->releaseResource(resource);
   }
-  return lastCount;
+  return last_count;
 }
 
 
-int TcpServer::send(const PacketWriter &packet, bool allowCollation)
+int TcpServer::send(const PacketWriter &packet, bool allow_collation)
 {
-  return send(packet.data(), packet.packetSize(), allowCollation);
+  return send(packet.data(), packet.packetSize(), allow_collation);
 }
 
 
@@ -305,8 +297,8 @@ int TcpServer::send(const CollatedPacket &collated)
 
   int sent = 0;
   bool failed = false;
-  std::lock_guard<Lock> guard(_lock);
-  for (BaseConnection *con : _connections)
+  const std::lock_guard<Lock> guard(_lock);
+  for (const auto &con : _connections)
   {
     sent = con->send(collated);
     if (sent == -1)
@@ -319,7 +311,7 @@ int TcpServer::send(const CollatedPacket &collated)
 }
 
 
-int TcpServer::send(const uint8_t *data, int byteCount, bool allowCollation)
+int TcpServer::send(const uint8_t *data, int byte_count, bool allow_collation)
 {
   if (!_active)
   {
@@ -328,10 +320,10 @@ int TcpServer::send(const uint8_t *data, int byteCount, bool allowCollation)
 
   int sent = 0;
   bool failed = false;
-  std::lock_guard<Lock> guard(_lock);
-  for (BaseConnection *con : _connections)
+  const std::lock_guard<Lock> guard(_lock);
+  for (const auto &con : _connections)
   {
-    sent = con->send(data, byteCount, allowCollation);
+    sent = con->send(data, byte_count, allow_collation);
     if (sent == -1)
     {
       failed = true;
@@ -342,7 +334,7 @@ int TcpServer::send(const uint8_t *data, int byteCount, bool allowCollation)
 }
 
 
-ConnectionMonitor *TcpServer::connectionMonitor()
+std::shared_ptr<ConnectionMonitor> TcpServer::connectionMonitor()
 {
   return _monitor;
 }
@@ -350,34 +342,34 @@ ConnectionMonitor *TcpServer::connectionMonitor()
 
 unsigned TcpServer::connectionCount() const
 {
-  std::lock_guard<Lock> guard(_lock);
-  return unsigned(_connections.size());
+  const std::lock_guard<Lock> guard(_lock);
+  return static_cast<unsigned>(_connections.size());
 }
 
 
-Connection *TcpServer::connection(unsigned index)
+std::shared_ptr<Connection> TcpServer::connection(unsigned index)
 {
-  std::lock_guard<Lock> guard(_lock);
+  const std::lock_guard<Lock> guard(_lock);
   if (index < _connections.size())
   {
     return _connections[index];
   }
-  return nullptr;
+  return {};
 }
 
 
-const Connection *TcpServer::connection(unsigned index) const
+std::shared_ptr<const Connection> TcpServer::connection(unsigned index) const
 {
-  std::lock_guard<Lock> guard(_lock);
+  const std::lock_guard<Lock> guard(_lock);
   if (index < _connections.size())
   {
     return _connections[index];
   }
-  return nullptr;
+  return {};
 }
 
 
-void TcpServer::updateConnections(const std::vector<BaseConnection *> &connections,
+void TcpServer::updateConnections(const std::vector<std::shared_ptr<Connection>> &connections,
                                   const std::function<void(Server &, Connection &)> &callback)
 {
   if (!_active)
@@ -385,16 +377,16 @@ void TcpServer::updateConnections(const std::vector<BaseConnection *> &connectio
     return;
   }
 
-  std::lock_guard<Lock> guard(_lock);
-  std::vector<BaseConnection *> newConnections;
+  const std::lock_guard<Lock> guard(_lock);
+  std::vector<std::shared_ptr<Connection>> new_connections;
 
   if (!connections.empty())
   {
-    newConnections.reserve(32);
-    for (BaseConnection *con : connections)
+    new_connections.reserve(32);
+    for (const auto &con : connections)
     {
       bool existing = false;
-      for (BaseConnection *exist : _connections)
+      for (const auto &exist : _connections)
       {
         if (exist == con)
         {
@@ -405,21 +397,23 @@ void TcpServer::updateConnections(const std::vector<BaseConnection *> &connectio
 
       if (!existing)
       {
-        newConnections.push_back(con);
+        new_connections.push_back(con);
       }
     }
   }
 
   _connections.clear();
-  std::for_each(connections.begin(), connections.end(), [this](BaseConnection *con) { _connections.push_back(con); });
+  std::for_each(connections.begin(), connections.end(),
+                [this](const std::shared_ptr<Connection> &con) { _connections.push_back(con); });
 
   // Send server info to new connections.
-  for (BaseConnection *con : newConnections)
+  for (const auto &con : new_connections)
   {
-    con->sendServerInfo(_serverInfo);
+    con->sendServerInfo(_server_info);
     if (callback)
     {
       (callback)(*this, *con);
     }
   }
 }
+}  // namespace tes

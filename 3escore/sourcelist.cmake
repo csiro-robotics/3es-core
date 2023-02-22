@@ -35,6 +35,7 @@ list(APPEND PUBLIC_HEADERS
   PacketStreamReader.h
   PacketWriter.h
   PlaneGeom.h
+  Ptr.h
   Quaternion.h
   Quaternion.inl
   QuaternionArg.h
@@ -43,9 +44,9 @@ list(APPEND PUBLIC_HEADERS
   Rotation.h
   Rotation.inl
   Server.h
-  ServerMacros.h
+  ServerApi.h
+  ServerApiMinimal.h
   ServerUtil.h
-  SpinLock.h
   StreamUtil.h
   TcpListenSocket.h
   TcpSocket.h
@@ -79,15 +80,14 @@ list(APPEND PUBLIC_SHAPE_HEADERS
   shapes/MutableMesh.h
   shapes/Plane.h
   shapes/PointCloud.h
-  shapes/PointCloudShape.h
   shapes/Pose.h
   shapes/Shape.h
   shapes/Shapes.h
   shapes/SimpleMesh.h
   shapes/Sphere.h
   shapes/Star.h
-  shapes/Text2d.h
-  shapes/Text3d.h
+  shapes/Text2D.h
+  shapes/Text3D.h
 )
 
 list(APPEND PUBLIC_TESSELLATE_HEADERS
@@ -105,6 +105,7 @@ list(APPEND SOURCES
   CollatedPacket.cpp
   CollatedPacketDecoder.cpp
   Colour.cpp
+  ConnectionMonitor.cpp
   CoreUtil.cpp
   Crc.cpp
   Endian.cpp
@@ -121,20 +122,25 @@ list(APPEND SOURCES
   PacketStream.cpp
   PacketStreamReader.cpp
   PacketWriter.cpp
+  PlaneGeom.cpp
+  Ptr.cpp
   Quaternion.cpp
   Resource.cpp
   ResourcePacker.cpp
   Rotation.cpp
-  SpinLock.cpp
+  ServerApi.cpp
+  ServerApiOff.cpp
   StreamUtil.cpp
   Throw.cpp
   Timer.cpp
   Transform.cpp
+  TriGeom.cpp
   Vector3.cpp
   Vector4.cpp
   DataBuffer.cpp
 
   shapes/Arrow.cpp
+  shapes/Box.cpp
   shapes/Capsule.cpp
   shapes/Cone.cpp
   shapes/Cylinder.cpp
@@ -146,12 +152,14 @@ list(APPEND SOURCES
   shapes/MutableMesh.cpp
   shapes/Plane.cpp
   shapes/PointCloud.cpp
-  shapes/PointCloudShape.cpp
+  shapes/Pose.cpp
   shapes/Shape.cpp
   shapes/Shapes.cpp
   shapes/SimpleMesh.cpp
-  shapes/Text2d.cpp
-  shapes/Text3d.cpp
+  shapes/Sphere.cpp
+  shapes/Star.cpp
+  shapes/Text2D.cpp
+  shapes/Text3D.cpp
 
   tessellate/Arrow.cpp
   tessellate/Box.cpp

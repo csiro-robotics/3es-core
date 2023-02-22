@@ -6,6 +6,7 @@
 
 #include "CoreConfig.h"
 
+#include <array>
 #include <cmath>
 #include <cstdlib>
 
@@ -14,184 +15,190 @@ namespace tes
 template <typename T>
 class Vector3;
 /// Defines a single precision vector.
-typedef Vector3<float> Vector3f;
+using Vector3f = Vector3<float>;
 /// Defines a double precision vector.
-typedef Vector3<double> Vector3d;
+using Vector3d = Vector3<double>;
 
 /// Represents a vector in R3.
 template <typename T>
 class Vector3
 {
 public:
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
-#pragma GCC diagnostic ignored "-Wnested-anon-types"
-#else  // __clang__
-#pragma GCC diagnostic ignored "-Wpedantic"
-#endif  // __clang__
-#endif  // __GNUC__
-  union
-  {
-    struct
-    {
-      /// Direct data member access.
-      T x, y, z;
-    };
-    /// Array representation of the vector members.
-    T v[3];
-  };
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif  // __GNUC__
-
   /// The default epsilon value used comparison operators.
-  static const T Epsilon;
+  static constexpr T kEpsilon = static_cast<T>(1e-6);
 
   /// A vector with all zero values.
-  static const Vector3<T> zero;
+  static const Vector3<T> Zero;
   /// The vector (1, 1, 1).
-  static const Vector3<T> one;
+  static const Vector3<T> One;
   /// The vector (1, 0, 0).
-  static const Vector3<T> axisx;
+  static const Vector3<T> AxisX;
   /// The vector (0, 1, 0).
-  static const Vector3<T> axisy;
+  static const Vector3<T> AxisY;
   /// The vector (0, 0, 1).
-  static const Vector3<T> axisz;
+  static const Vector3<T> AxisZ;
 
   /// Default constructor: undefined initialisation behaviour.
-  inline Vector3() {}
+  Vector3() noexcept = default;
   /// Initialises all members to @p scalar.
   /// @param scalar The value for all members.
-  inline Vector3(const T &scalar)
-    : x(scalar)
-    , y(scalar)
-    , z(scalar)
+  Vector3(const T &scalar) noexcept
+    : _storage({ scalar, scalar, scalar })
   {}
   /// Copy constructor.
   /// @param other Vector to copy the value of.
-  inline Vector3(const Vector3<T> &other)
-    : x(other.x)
-    , y(other.y)
-    , z(other.z)
+  Vector3(const Vector3<T> &other) noexcept
+    : _storage(other._storage)
   {}
+
+  // NOLINTBEGIN(readability-identifier-length)
   /// Per coordinate initialisation.
   /// @param x The x coordinate.
   /// @param y The y coordinate.
   /// @param z The z coordinate.
-  inline Vector3(const T &x, const T &y, const T &z)
-    : x(x)
-    , y(y)
-    , z(z)
+  Vector3(const T &x, const T &y, const T &z) noexcept
+    : _storage({ x, y, z })
   {}
+  // NOLINTEND(readability-identifier-length)
+
+  /// Initialisation from a array of at least length 3.
+  /// @param array Array to initialise from.
+  Vector3(const std::array<T, 3> &array) noexcept
+    : _storage(array)
+  {}
+
+  /// Initialisation from a array of at least length 3.
+  /// @param array Array to initialise from.
+  template <typename U>
+  Vector3(const std::array<U, 3> &array) noexcept
+    : _storage({ static_cast<T>(array[0]), static_cast<T>(array[1]), static_cast<T>(array[2]) })
+  {}
+
   /// Initialisation from a array of at least length 3.
   /// No bounds checking is performed.
   /// @param array3 An array of at least length 3. Copies elements (0, 1, 2).
-  inline Vector3(const T *array3)
-    : x(array3[0])
-    , y(array3[1])
-    , z(array3[2])
+  Vector3(const T array3[3]) noexcept  // NOLINT(modernize-avoid-c-arrays)
+    : _storage({ array3[0], array3[1], array3[2] })
   {}
+
   /// Initialisation from a array of at least length 3.
   /// No bounds checking is performed.
   /// @param array3 An array of at least length 3. Copies elements (0, 1, 2).
   template <typename U>
-  inline Vector3(const U *array3)
-    : x(T(array3[0]))
-    , y(T(array3[1]))
-    , z(T(array3[2]))
+  Vector3(const U array3[3]) noexcept  // NOLINT(modernize-avoid-c-arrays)
+    : _storage({ static_cast<T>(array3[0]), static_cast<T>(array3[1]), static_cast<T>(array3[2]) })
   {}
 
   /// Copy constructor from a different numeric type.
   /// @param other Vector to copy the value of.
-  template <typename Q>
-  inline Vector3(const Vector3<Q> &other)
-    : x(T(other.x))
-    , y(T(other.y))
-    , z(T(other.z))
+  template <typename U>
+  Vector3(const Vector3<U> &other) noexcept
+    : _storage({ static_cast<T>(other.x()), static_cast<T>(other.y()), static_cast<T>(other.z()) })
   {}
-
-  /// Index operator. Not bounds checked.
-  /// @param index Access coordinates by index; 0 = x, 1 = y, 2 = z.
-  /// @return The coordinate value.
-  inline T &operator[](int index) { return v[index]; }
-  /// @overload
-  inline const T &operator[](int index) const { return v[index]; }
-
-  /// Index operator. Not bounds checked.
-  /// @param index Access coordinates by index; 0 = x, 1 = y, 2 = z.
-  /// @return The coordinate value.
-  inline T &operator[](unsigned index) { return v[index]; }
-  /// @overload
-  inline const T &operator[](unsigned index) const { return v[index]; }
 
   /// Simple assignment operator.
   /// @param other Vector to copy the value of.
   /// @return This.
-  inline Vector3<T> &operator=(const Vector3<T> &other)
+  Vector3<T> &operator=(const Vector3<T> &other)
   {
-    x = other.x;
-    y = other.y;
-    z = other.z;
+    _storage = other._storage;
     return *this;
   }
 
   /// Simple assignment operator from a different numeric type.
   /// @param other Vector to copy the value of.
   /// @return This.
-  template <typename Q>
-  inline Vector3<T> &operator=(const Vector3<Q> &other)
+  template <typename U>
+  Vector3<T> &operator=(const Vector3<U> &other)
   {
-    x = T(other.x);
-    y = T(other.y);
-    z = T(other.z);
+    _storage[0] = static_cast<T>(other.storage()[0]);
+    _storage[1] = static_cast<T>(other.storage()[1]);
+    _storage[2] = static_cast<T>(other.storage()[2]);
     return *this;
   }
+
+  /// Return the internal data storage. Used for buffer packing and network transfer.
+  /// @return The internal array.
+  [[nodiscard]] const std::array<T, 3> &storage() const { return _storage; }
+
+  /// Get the x coordinate for read/write access.
+  /// @return The x coordinate.
+  T &x() { return _storage[0]; }
+  /// Get the x coordinate for read-only access.
+  /// @return The x coordinate.
+  [[nodiscard]] T x() const { return _storage[0]; }
+
+  /// Get the y coordinate for read/write access.
+  /// @return The y coordinate.
+  T &y() { return _storage[1]; }
+  /// Get the y coordinate for read-only access.
+  /// @return The y coordinate.
+  [[nodiscard]] T y() const { return _storage[1]; }
+
+  /// Get the z coordinate for read/write access.
+  /// @return The z coordinate.
+  T &z() { return _storage[2]; }
+  /// Get the z coordinate for read-only access.
+  /// @return The z coordinate.
+  [[nodiscard]] T z() const { return _storage[2]; }
+
+  /// Index operator. Not bounds checked.
+  /// @param index Access coordinates by index; 0 = x, 1 = y, 2 = z.
+  /// @return The coordinate value.
+  T &operator[](int index) { return _storage[index]; }
+  /// @overload
+  [[nodiscard]] const T &operator[](int index) const { return _storage[index]; }
+
+  /// Index operator. Not bounds checked.
+  /// @param index Access coordinates by index; 0 = x, 1 = y, 2 = z.
+  /// @return The coordinate value.
+  T &operator[](unsigned index) { return _storage[index]; }
+  /// @overload
+  [[nodiscard]] const T &operator[](unsigned index) const { return _storage[index]; }
 
   /// Exact equality operator. Compares each component with the same operator.
   /// @param other The vector to compare to.
   /// @return True if this is exactly equal to @p other.
-  bool operator==(const Vector3<T> &other) const;
+  bool operator==(const Vector3<T> &other) const { return _storage == other._storage; }
   /// Exact inequality operator. Compares each component with the same operator.
   /// @param other The vector to compare to.
   /// @return True if this is not exactly equal to @p other.
-  bool operator!=(const Vector3<T> &other) const;
+  bool operator!=(const Vector3<T> &other) const { return _storage != other._storage; }
 
   /// Unarary negation operator. Equivalent to calling @c negated().
   /// @return A negated copy of the vector.
-  inline Vector3<T> operator-() const { return negated(); }
+  [[nodiscard]] Vector3<T> operator-() const { return negated(); }
 
-  /// Equality test with error. Defaults to using @c Epsilon.
+  /// Equality test with error. Defaults to using @c kEpsilon.
   ///
   /// The vectors are considered equal if the distance between the vectors is
   /// less than @p epsilon.
   /// @param other The vector to compare to.
   /// @param epsilon The error tolerance.
   /// @return True this and @p other are equal with @p epsilon.
-  bool isEqual(const Vector3<T> &other, const T &epsilon = Epsilon) const;
+  [[nodiscard]] bool isEqual(const Vector3<T> &other, const T &epsilon = kEpsilon) const;
 
-  /// Zero test with error. Defaults to using @c Epsilon.
+  /// Zero test with error. Defaults to using @c kEpsilon.
   ///
   /// The vector is considered zero if the distance to zero
   /// less than @p epsilon.
   /// @param epsilon The error tolerance.
   /// @return True this within @p epsilon of zero.
-  bool isZero(const T &epsilon = Epsilon) const;
+  [[nodiscard]] bool isZero(const T &epsilon = kEpsilon) const;
 
   /// Negates all components of this vector.
   /// @return This.
-  inline Vector3<T> &negate()
+  Vector3<T> &negate()
   {
-    x = -x;
-    y = -y;
-    z = -y;
+    x() = -x();
+    y() = -y();
+    z() = -y();
     return *this;
   }
 
   /// Returns a negated copy of this vector. This vector is unchanged.
   /// @return The negated value of this vector.
-  inline Vector3<T> negated() const { return Vector3<T>(-x, -y, -z); }
+  [[nodiscard]] Vector3<T> negated() const { return Vector3<T>(-x(), -y(), -z()); }
 
   /// Attempts to normalise this vector.
   ///
@@ -200,7 +207,7 @@ public:
   ///
   /// @return The length of this vector before normalisation or
   /// zero if normalisation failed.
-  T normalise(const T &epsilon = Epsilon);
+  T normalise(const T &epsilon = kEpsilon);
 
   /// Returns a normalised copy of this vector.
   ///
@@ -209,7 +216,7 @@ public:
   ///
   /// @return A normalised copy of this vector, or a zero vector if
   /// if normalisation failed.
-  Vector3<T> normalised(const T &epsilon = Epsilon) const;
+  [[nodiscard]] Vector3<T> normalised(const T &epsilon = kEpsilon) const;
 
   /// Adds @p other to this vector. Component-wise addition.
   /// @param other The operand.
@@ -239,7 +246,7 @@ public:
   /// An alias for @p multiply(const T &).
   /// @param scalar The scalar value to multiply by.
   /// @return This vector after the operation.
-  inline Vector3<T> &scale(const T &scalar) { return multiply(scalar); }
+  Vector3<T> &scale(const T &scalar) { return multiply(scalar); }
 
   /// Divides all components in this vector by @p scalar.
   /// @param scalar The scalar value to divide by. Performs no operation if @p scalar is zero.
@@ -248,152 +255,143 @@ public:
 
   /// Calculates the dot product of this.other.
   /// @return The dot product.
-  T dot(const Vector3<T> &other) const;
+  [[nodiscard]] T dot(const Vector3<T> &other) const;
 
   /// Calculates the cross product of this x other.
   /// @return The cross product vector.
-  Vector3<T> cross(const Vector3<T> &other) const;
+  [[nodiscard]] Vector3<T> cross(const Vector3<T> &other) const;
 
   /// Calculates the magnitude of this vector.
   /// @return The magnitude.
-  T magnitude() const;
+  [[nodiscard]] T magnitude() const;
 
   /// Calculates the magnitude squared of this vector.
   /// @return The magnitude squared.
-  T magnitudeSquared() const;
+  [[nodiscard]] T magnitudeSquared() const;
 
   /// Arithmetic operator.
-  inline Vector3<T> &operator+=(const Vector3 &other) { return add(other); }
+  Vector3<T> &operator+=(const Vector3 &other) { return add(other); }
   /// Arithmetic operator.
-  inline Vector3<T> &operator+=(const T &scalar) { return add(scalar); }
+  Vector3<T> &operator+=(const T &scalar) { return add(scalar); }
   /// Arithmetic operator.
-  inline Vector3<T> &operator-=(const Vector3 &other) { return subtract(other); }
+  Vector3<T> &operator-=(const Vector3 &other) { return subtract(other); }
   /// Arithmetic operator.
-  inline Vector3<T> &operator-=(const T &scalar) { return subtract(scalar); }
+  Vector3<T> &operator-=(const T &scalar) { return subtract(scalar); }
   /// Arithmetic operator.
-  inline Vector3<T> &operator*=(const T &scalar) { return multiply(scalar); }
+  Vector3<T> &operator*=(const T &scalar) { return multiply(scalar); }
   /// Arithmetic operator.
-  inline Vector3<T> &operator/=(const T &scalar) { return divide(scalar); }
+  Vector3<T> &operator/=(const T &scalar) { return divide(scalar); }
 
   // Swizzle operations.
 
   /// Return a copy of this vector. Provided for swizzle completeness.
-  inline Vector3<T> xyz() const { return Vector3<T>(*this); }
+  [[nodiscard]] Vector3<T> xyz() const { return Vector3<T>(*this); }
   /// Return a copy of this vector. Provided for swizzle completeness.
-  inline Vector3<T> xzy() const { return Vector3<T>(x, z, y); }
+  [[nodiscard]] Vector3<T> xzy() const { return Vector3<T>(x(), z(), y()); }
   /// Swizzle operation.
-  inline Vector3<T> yzx() const { return Vector3<T>(y, z, x); }
+  [[nodiscard]] Vector3<T> yzx() const { return Vector3<T>(y(), z(), x()); }
   /// Swizzle operation.
-  inline Vector3<T> yxz() const { return Vector3<T>(y, x, z); }
+  [[nodiscard]] Vector3<T> yxz() const { return Vector3<T>(y(), x(), z()); }
   /// Swizzle operation.
-  inline Vector3<T> zxy() const { return Vector3<T>(z, x, y); }
+  [[nodiscard]] Vector3<T> zxy() const { return Vector3<T>(z(), x(), y()); }
   /// Swizzle operation.
-  inline Vector3<T> zyx() const { return Vector3<T>(x, y, x); }
+  [[nodiscard]] Vector3<T> zyx() const { return Vector3<T>(x(), y(), x()); }
+
+private:
+  std::array<T, 3> _storage;
 };
 
-_3es_extern template class TES_CORE_API Vector3<float>;
-_3es_extern template class TES_CORE_API Vector3<double>;
+TES_EXTERN template class TES_CORE_API Vector3<float>;
+TES_EXTERN template class TES_CORE_API Vector3<double>;
 
 
 //---------------------------------------------------------------------------
 // Arithmetic operators
 //---------------------------------------------------------------------------
 
+// NOLINTBEGIN(readability-identifier-length)
+
 /// Adds two vectors.
 template <class T>
-inline Vector3<T> operator+(const Vector3<T> &a, const Vector3<T> &b)
+[[nodiscard]] inline Vector3<T> operator+(const Vector3<T> &a, const Vector3<T> &b)
 {
-  Vector3<T> v(a);
-  v.add(b);
-  return v;
+  Vector3<T> vec(a);
+  vec.add(b);
+  return vec;
 }
 
 /// Adds two vectors.
 template <class T>
-inline Vector3<T> operator+(const Vector3<T> &a, const T &b)
+[[nodiscard]] inline Vector3<T> operator+(const Vector3<T> &a, const T &b)
 {
-  Vector3<T> v(a);
-  v.add(b);
-  return v;
+  Vector3<T> vec(a);
+  vec.add(b);
+  return vec;
 }
 
 /// Adds two vectors.
 template <class T>
-inline Vector3<T> operator+(const T &a, const Vector3<T> &b)
+[[nodiscard]] inline Vector3<T> operator+(const T &a, const Vector3<T> &b)
 {
   return b * a;
 }
 
 /// Sutracts @p b from @p a.
 template <class T>
-inline Vector3<T> operator-(const Vector3<T> &a, const Vector3<T> &b)
+[[nodiscard]] inline Vector3<T> operator-(const Vector3<T> &a, const Vector3<T> &b)
 {
-  Vector3<T> v(a);
-  v.subtract(b);
-  return v;
+  Vector3<T> vec(a);
+  vec.subtract(b);
+  return vec;
 }
 
 /// Adds two vectors.
 template <class T>
-inline Vector3<T> operator-(const Vector3<T> &a, const T &b)
+[[nodiscard]] inline Vector3<T> operator-(const Vector3<T> &a, const T &b)
 {
-  Vector3<T> v(a);
-  v.subtract(b);
-  return v;
+  Vector3<T> vec(a);
+  vec.subtract(b);
+  return vec;
 }
 
 /// Multiplies a vector by a scalar.
 template <class T>
-inline Vector3<T> operator*(const Vector3<T> &a, const T &b)
+[[nodiscard]] inline Vector3<T> operator*(const Vector3<T> &a, const T &b)
 {
-  Vector3<T> v(a);
-  v.multiply(b);
-  return v;
+  Vector3<T> vec(a);
+  vec.multiply(b);
+  return vec;
 }
 
 /// Multiplies a vector by a scalar.
 template <class T>
-inline Vector3<T> operator*(const T &a, const Vector3<T> &b)
+[[nodiscard]] inline Vector3<T> operator*(const T &a, const Vector3<T> &b)
 {
   return b * a;
 }
 
 /// Divides a vector by a scalar.
 template <class T>
-inline Vector3<T> operator/(const Vector3<T> &a, const T &b)
+[[nodiscard]] inline Vector3<T> operator/(const Vector3<T> &a, const T &b)
 {
-  Vector3<T> v(a);
-  v.divide(b);
-  return v;
-}
-
-
-template <typename T>
-inline bool Vector3<T>::operator==(const Vector3<T> &other) const
-{
-  return x == other.x && y == other.y && z == other.z;
-}
-
-
-template <typename T>
-inline bool Vector3<T>::operator!=(const Vector3<T> &other) const
-{
-  return x != other.x || y != other.y || z != other.z;
+  Vector3<T> vec(a);
+  vec.divide(b);
+  return vec;
 }
 
 
 template <typename T>
 inline bool Vector3<T>::isEqual(const Vector3<T> &other, const T &epsilon) const
 {
-  const T distanceSquared = std::abs((*this - other).magnitudeSquared());
-  return distanceSquared <= epsilon * epsilon;
+  const T distance_squared = std::abs((*this - other).magnitudeSquared());
+  return distance_squared <= epsilon * epsilon;
 }
 
 
 template <typename T>
 inline bool Vector3<T>::isZero(const T &epsilon) const
 {
-  return isEqual(zero, epsilon);
+  return isEqual(Zero, epsilon);
 }
 
 
@@ -415,20 +413,20 @@ inline Vector3<T> Vector3<T>::normalised(const T &epsilon) const
   T mag = magnitude();
   if (mag > epsilon)
   {
-    Vector3<T> v(*this);
-    v.divide(mag);
-    return v;
+    Vector3<T> vec(*this);
+    vec.divide(mag);
+    return vec;
   }
-  return zero;
+  return Zero;
 }
 
 
 template <typename T>
 inline Vector3<T> &Vector3<T>::add(const Vector3<T> &other)
 {
-  x += other.x;
-  y += other.y;
-  z += other.z;
+  x() += other.x();
+  y() += other.y();
+  z() += other.z();
   return *this;
 }
 
@@ -436,9 +434,9 @@ inline Vector3<T> &Vector3<T>::add(const Vector3<T> &other)
 template <typename T>
 inline Vector3<T> &Vector3<T>::add(const T &scalar)
 {
-  x += scalar;
-  y += scalar;
-  z += scalar;
+  x() += scalar;
+  y() += scalar;
+  z() += scalar;
   return *this;
 }
 
@@ -446,9 +444,9 @@ inline Vector3<T> &Vector3<T>::add(const T &scalar)
 template <typename T>
 inline Vector3<T> &Vector3<T>::subtract(const Vector3<T> &other)
 {
-  x -= other.x;
-  y -= other.y;
-  z -= other.z;
+  x() -= other.x();
+  y() -= other.y();
+  z() -= other.z();
   return *this;
 }
 
@@ -456,9 +454,9 @@ inline Vector3<T> &Vector3<T>::subtract(const Vector3<T> &other)
 template <typename T>
 inline Vector3<T> &Vector3<T>::subtract(const T &scalar)
 {
-  x -= scalar;
-  y -= scalar;
-  z -= scalar;
+  x() -= scalar;
+  y() -= scalar;
+  z() -= scalar;
   return *this;
 }
 
@@ -466,9 +464,9 @@ inline Vector3<T> &Vector3<T>::subtract(const T &scalar)
 template <typename T>
 inline Vector3<T> &Vector3<T>::multiply(const T &scalar)
 {
-  x *= scalar;
-  y *= scalar;
-  z *= scalar;
+  x() *= scalar;
+  y() *= scalar;
+  z() *= scalar;
   return *this;
 }
 
@@ -476,10 +474,10 @@ inline Vector3<T> &Vector3<T>::multiply(const T &scalar)
 template <typename T>
 inline Vector3<T> &Vector3<T>::divide(const T &scalar)
 {
-  const T div = T(1) / scalar;
-  x *= div;
-  y *= div;
-  z *= div;
+  const T div = static_cast<T>(1) / scalar;
+  x() *= div;
+  y() *= div;
+  z() *= div;
   return *this;
 }
 
@@ -487,18 +485,18 @@ inline Vector3<T> &Vector3<T>::divide(const T &scalar)
 template <typename T>
 inline T Vector3<T>::dot(const Vector3<T> &other) const
 {
-  return x * other.x + y * other.y + z * other.z;
+  return x() * other.x() + y() * other.y() + z() * other.z();
 }
 
 
 template <typename T>
 inline Vector3<T> Vector3<T>::cross(const Vector3<T> &other) const
 {
-  Vector3<T> v;
-  v.x = y * other.z - z * other.y;
-  v.y = z * other.x - x * other.z;
-  v.z = x * other.y - y * other.x;
-  return v;
+  Vector3<T> vec;
+  vec.x() = y() * other.z() - z() * other.y();
+  vec.y() = z() * other.x() - x() * other.z();
+  vec.z() = x() * other.y() - y() * other.x();
+  return vec;
 }
 
 
@@ -517,19 +515,19 @@ inline T Vector3<T>::magnitudeSquared() const
   return dot(*this);
 }
 
+// NOLINTEND(readability-identifier-length)
+
 
 template <typename T>
-const T Vector3<T>::Epsilon = T(1e-6);
+const Vector3<T> Vector3<T>::Zero(static_cast<T>(0));
 template <typename T>
-const Vector3<T> Vector3<T>::zero(T(0));
+const Vector3<T> Vector3<T>::One(static_cast<T>(1));
 template <typename T>
-const Vector3<T> Vector3<T>::one(T(1));
+const Vector3<T> Vector3<T>::AxisX(1, 0, 0);
 template <typename T>
-const Vector3<T> Vector3<T>::axisx(1, 0, 0);
+const Vector3<T> Vector3<T>::AxisY(0, 1, 0);
 template <typename T>
-const Vector3<T> Vector3<T>::axisy(0, 1, 0);
-template <typename T>
-const Vector3<T> Vector3<T>::axisz(0, 0, 1);
+const Vector3<T> Vector3<T>::AxisZ(0, 0, 1);
 }  // namespace tes
 
 #endif  // TES_CORE_VECTOR3_H

@@ -3,9 +3,6 @@
 //
 #include "CoreUtil.h"
 
-namespace
+namespace tes
 {
-#ifdef _MSC_VER
-int supressMsvcLinkWarning = 1;
-#endif  // _MSC_VER
-}  // namespace
+}  // namespace tes

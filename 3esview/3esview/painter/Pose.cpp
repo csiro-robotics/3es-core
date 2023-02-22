@@ -10,14 +10,16 @@
 namespace tes::view::painter
 {
 Pose::Pose(std::shared_ptr<BoundsCuller> culler, std::shared_ptr<shaders::ShaderLibrary> shaders)
-  : ShapePainter(std::move(culler), std::move(shaders), { Part{ solidMesh() } }, { Part{ wireframeMesh() } },
-                 { Part{ solidMesh() } }, ShapeCache::calcSphericalBounds)
+  : ShapePainter(std::move(culler), std::move(shaders), { Part{ solidMesh() } },
+                 { Part{ wireframeMesh() } }, { Part{ solidMesh() } },
+                 ShapeCache::calcSphericalBounds)
 {}
 
 Magnum::GL::Mesh Pose::solidMesh()
 {
-  static SimpleMesh build_mesh(0, 0, 0, DtTriangles,
-                               SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Colour | SimpleMesh::Index);
+  static SimpleMesh build_mesh(
+    0, 0, 0, DtTriangles,
+    SimpleMesh::Vertex | SimpleMesh::Normal | SimpleMesh::Colour | SimpleMesh::Index);
   static std::mutex guard;
 
   std::unique_lock<std::mutex> lock(guard);
@@ -40,8 +42,8 @@ Magnum::GL::Mesh Pose::solidMesh()
     const float body_length = 0.81f;
 
     unsigned base_index = unsigned(vertices.size());
-    arrow::solid(vertices_part, indices_part, normals_part, facets, head_radius, body_radius, body_length, length,
-                 Vector3f(1, 0, 0));
+    arrow::solid(vertices_part, indices_part, normals_part, facets, head_radius, body_radius,
+                 body_length, length, Vector3f(1, 0, 0));
 
     // Size buffers for 3 arrows.
     vertices.reserve(vertices_part.size() * 3);
@@ -55,7 +57,7 @@ Magnum::GL::Mesh Pose::solidMesh()
     std::copy(normals_part.begin(), normals_part.end(), normals.begin() + base_index);
     for (size_t i = 0; i < vertices.size(); ++i)
     {
-      colours.emplace_back(Colour(255, 0, 0).c);
+      colours.emplace_back(Colour(255, 0, 0).colour32());
     }
     for (const auto i : indices_part)
     {
@@ -63,8 +65,8 @@ Magnum::GL::Mesh Pose::solidMesh()
     }
 
     base_index = unsigned(vertices.size());
-    arrow::solid(vertices_part, indices_part, normals_part, facets, head_radius, body_radius, body_length, length,
-                 Vector3f(0, 1, 0));
+    arrow::solid(vertices_part, indices_part, normals_part, facets, head_radius, body_radius,
+                 body_length, length, Vector3f(0, 1, 0));
     vertices.resize(vertices.size() + vertices_part.size());
     normals.resize(normals.size() + normals_part.size());
     // Copy from temporary buffer.
@@ -72,7 +74,7 @@ Magnum::GL::Mesh Pose::solidMesh()
     std::copy(normals_part.begin(), normals_part.end(), normals.begin() + base_index);
     for (size_t i = 0; i < vertices.size(); ++i)
     {
-      colours.emplace_back(Colour(255, 0, 0).c);
+      colours.emplace_back(Colour(255, 0, 0).colour32());
     }
     for (const auto i : indices_part)
     {
@@ -80,8 +82,8 @@ Magnum::GL::Mesh Pose::solidMesh()
     }
 
     base_index = unsigned(vertices.size());
-    arrow::solid(vertices_part, indices_part, normals_part, facets, head_radius, body_radius, body_length, length,
-                 Vector3f(0, 0, 1));
+    arrow::solid(vertices_part, indices_part, normals_part, facets, head_radius, body_radius,
+                 body_length, length, Vector3f(0, 0, 1));
     vertices.resize(vertices.size() + vertices_part.size());
     normals.resize(normals.size() + normals_part.size());
     // Copy from temporary buffer.
@@ -89,7 +91,7 @@ Magnum::GL::Mesh Pose::solidMesh()
     std::copy(normals_part.begin(), normals_part.end(), normals.begin() + base_index);
     for (size_t i = 0; i < vertices.size(); ++i)
     {
-      colours.emplace_back(Colour(255, 0, 0).c);
+      colours.emplace_back(Colour(255, 0, 0).colour32());
     }
     for (const auto i : indices_part)
     {
@@ -111,7 +113,8 @@ Magnum::GL::Mesh Pose::solidMesh()
 
 Magnum::GL::Mesh Pose::wireframeMesh()
 {
-  // static SimpleMesh build_mesh(0, 0, 0, DtLines, SimpleMesh::Vertex | SimpleMesh::Colour | SimpleMesh::Index);
+  // static SimpleMesh build_mesh(0, 0, 0, DtLines, SimpleMesh::Vertex | SimpleMesh::Colour |
+  // SimpleMesh::Index);
   static SimpleMesh build_mesh(0, 0, 0, DtLines, SimpleMesh::Vertex | SimpleMesh::Index);
   static std::mutex guard;
 
@@ -121,7 +124,8 @@ Magnum::GL::Mesh Pose::wireframeMesh()
   if (build_mesh.vertexCount() == 0)
   {
     const std::array<Vector3f, 6> vertices = {
-      Vector3f(0, 0, 0), Vector3f(1, 0, 0), Vector3f(0, 0, 0), Vector3f(0, 1, 0), Vector3f(0, 0, 0), Vector3f(0, 0, 1),
+      Vector3f(0, 0, 0), Vector3f(1, 0, 0), Vector3f(0, 0, 0),
+      Vector3f(0, 1, 0), Vector3f(0, 0, 0), Vector3f(0, 0, 1),
     };
     // const std::array<uint32_t, 6> colours = {
     //   Colour(255, 0, 0).c, Colour(255, 0, 0).c, Colour(0, 255, 0).c,

@@ -40,6 +40,7 @@ public:
 
   NetworkThread(std::shared_ptr<ThirdEyeScene> tes, const std::string &host, uint16_t port,
                 bool allow_reconnect = true);
+  ~NetworkThread() override;
 
   /// The host to which we'll be connecting.
   /// @return The target host.
@@ -63,7 +64,8 @@ public:
 
   /// Check if at least one connection has been attempted.
   ///
-  /// From this, coupled with @s connected(), we can infer when we've failed to connect, vs not tried yet.
+  /// From this, coupled with @s connected(), we can infer when we've failed to connect, vs not
+  /// tried yet.
   ///
   /// @return True if a connection has been attempted.
   bool connectionAttempted() const { return _connection_attempted; }
@@ -80,8 +82,8 @@ public:
   /// @param frame The frame to jump, skip or step to.
   void setTargetFrame(FrameNumber frame) override;
 
-  /// Get the target frame to jump to. Zero the current frame is up to date; i.e., this is zero once the current frame
-  /// reaches the target frame.
+  /// Get the target frame to jump to. Zero the current frame is up to date; i.e., this is zero once
+  /// the current frame reaches the target frame.
   /// @return The target frame to jump to.
   FrameNumber targetFrame() const override;
 
@@ -126,13 +128,15 @@ private:
 
   /// Process a control packet.
   ///
-  /// This covers end of frame events, so the return value indicates how long to delay before the next
-  /// frame.
+  /// This covers end of frame events, so the return value indicates how long to delay before the
+  /// next frame.
   ///
   /// Handles the following messages:
-  /// - @c CIdFrame increments @p _currentFrame and @c _total_frames if less than current, then calls
+  /// - @c CIdFrame increments @p _currentFrame and @c _total_frames if less than current, then
+  /// calls
   ///   @c ThirdEyeScene::updateToFrame() .
-  /// - @c CIdCoordinateFrame updates @c _server_info then calls @c ThirdEyeScene::updateServerInfo() .
+  /// - @c CIdCoordinateFrame updates @c _server_info then calls @c
+  /// ThirdEyeScene::updateServerInfo() .
   /// - @c CIdFrameCount updates @c _total_frames.
   /// - @c CIdForceFrameFlush calls @c ThirdEyeScene::updateToFrame() with the @p _currentFrame.
   /// - @c CIdReset resets the @c _currentFrame and calls @c ThirdEyeScene::reset() .

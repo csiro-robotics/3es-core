@@ -22,9 +22,11 @@ void Message::updateServerInfo(const ServerInfoMessage &info)
 
 Magnum::Matrix4 Message::composeTransform(const ObjectAttributes &attrs)
 {
-  return Magnum::Matrix4::translation(Magnum::Vector3(attrs.position[0], attrs.position[1], attrs.position[2])) *
-         Magnum::Matrix4(Magnum::Quaternion(Magnum::Vector3(attrs.rotation[0], attrs.rotation[1], attrs.rotation[2]),
-                                            attrs.rotation[3])
+  return Magnum::Matrix4::translation(
+           Magnum::Vector3(attrs.position[0], attrs.position[1], attrs.position[2])) *
+         Magnum::Matrix4(Magnum::Quaternion(
+                           Magnum::Vector3(attrs.rotation[0], attrs.rotation[1], attrs.rotation[2]),
+                           attrs.rotation[3])
                            .toMatrix()) *
          Magnum::Matrix4::scaling(Magnum::Vector3(attrs.scale[0], attrs.scale[1], attrs.scale[2]));
 }

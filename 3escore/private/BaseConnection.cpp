@@ -4,44 +4,43 @@
 #include "BaseConnection.h"
 
 #include <3escore/CollatedPacket.h>
+#include <3escore/CoreUtil.h>
+#include <3escore/Debug.h>
 #include <3escore/Endian.h>
+#include <3escore/Log.h>
 #include <3escore/Resource.h>
 #include <3escore/ResourcePacker.h>
 #include <3escore/Rotation.h>
-#include <3escore/shapes/Shape.h>
 #include <3escore/TcpSocket.h>
 
+#include <3escore/shapes/Shape.h>
+
 #include <algorithm>
-#include <mutex>
 
-using namespace tes;
-
+namespace tes
+{
 namespace
 {
-const float kSecondsToMicroseconds = 1e6;
-}
+constexpr float kSecondsToMicroseconds = 1e6;
+}  // namespace
 
 BaseConnection::BaseConnection(const ServerSettings &settings)
-  : _packet(nullptr)
-  , _currentResource(new ResourcePacker)
-  , _secondsToTimeUnit(0)
-  , _serverFlags(settings.flags)
-  , _collation(new CollatedPacket((settings.flags & SF_Compress) != 0))
-  , _active(true)
+  : _current_resource(std::make_unique<ResourcePacker>())
+  , _server_flags(settings.flags)
+  , _collation(std::make_unique<CollatedPacket>((settings.flags & SFCompress) != 0))
 {
-  _packetBuffer.resize(settings.clientBufferSize);
-  _packet = new PacketWriter(_packetBuffer.data(), (uint16_t)_packetBuffer.size());
-  initDefaultServerInfo(&_serverInfo);
-  _secondsToTimeUnit = kSecondsToMicroseconds / (_serverInfo.timeUnit ? float(_serverInfo.timeUnit) : 1.0f);
-  _collation->setCompressionLevel(settings.compressionLevel);
+  _packet_buffer.resize(settings.client_buffer_size);
+  _packet = std::make_unique<PacketWriter>(_packet_buffer.data(),
+                                           int_cast<uint16_t>(_packet_buffer.size()));
+  initDefaultServerInfo(&_server_info);
+  _seconds_to_time_unit =
+    kSecondsToMicroseconds /
+    (_server_info.time_unit ? static_cast<float>(_server_info.time_unit) : 1.0f);
+  _collation->setCompressionLevel(settings.compression_level);
 }
 
 
-BaseConnection::~BaseConnection()
-{
-  delete _currentResource;
-  delete _packet;
-}
+BaseConnection::~BaseConnection() = default;
 
 
 void BaseConnection::setActive(bool enable)
@@ -63,20 +62,24 @@ bool BaseConnection::sendServerInfo(const ServerInfoMessage &info)
     return false;
   }
 
-  _serverInfo = info;
-  _secondsToTimeUnit = kSecondsToMicroseconds / (_serverInfo.timeUnit ? float(_serverInfo.timeUnit) : 1.0f);
+  _server_info = info;
+  _seconds_to_time_unit =
+    kSecondsToMicroseconds /
+    (_server_info.time_unit ? static_cast<float>(_server_info.time_unit) : 1.0f);
 
   if (isConnected())
   {
-    std::lock_guard<Lock> guard(_packetLock);
+    const std::lock_guard<Lock> guard(_packet_lock);
     _packet->reset(MtServerInfo, 0);
     if (info.write(*_packet))
     {
-      _packet->finalise();
-      std::lock_guard<Lock> sendGuard(_sendLock);
-      // Do not use collation buffer or compression for this message.
-      writeBytes(_packetBuffer.data(), _packet->packetSize());
-      return true;
+      if (_packet->finalise())
+      {
+        const std::lock_guard<Lock> send_guard(_send_lock);
+        // Do not use collation buffer or compression for this message.
+        writeBytes(_packet_buffer.data(), _packet->packetSize());
+        return true;
+      }
     }
   }
 
@@ -84,9 +87,9 @@ bool BaseConnection::sendServerInfo(const ServerInfoMessage &info)
 }
 
 
-int BaseConnection::send(const PacketWriter &packet, bool allowCollation)
+int BaseConnection::send(const PacketWriter &packet, bool allow_collation)
 {
-  return send(packet.data(), packet.packetSize(), allowCollation);
+  return send(packet.data(), packet.packetSize(), allow_collation);
 }
 
 
@@ -97,71 +100,71 @@ int BaseConnection::send(const CollatedPacket &collated)
     return 0;
   }
 
-  // Can't send compressed packets in this way.
-  if (collated.compressionEnabled())
+  // Must be finalised and uncompressed for this path..
+  if (!collated.isFinalised() || collated.compressionEnabled())
   {
     return -1;
   }
 
-  unsigned collatedBytes = 0;
-  const uint8_t *bytes = collated.buffer(collatedBytes);
+  unsigned collated_bytes = 0;
+  const uint8_t *bytes = collated.buffer(collated_bytes);
 
-  if (collatedBytes < CollatedPacket::InitialCursorOffset + sizeof(PacketHeader))
+  if (collated_bytes < CollatedPacket::InitialCursorOffset + sizeof(PacketHeader))
   {
     // Nothing to send.
     return 0;
   }
 
   // Use the packet lock to prevent other sends until the collated packet is flushed.
-  std::lock_guard<Lock> guard(_packetLock);
+  const std::lock_guard<Lock> guard(_packet_lock);
   // Extract each packet in turn.
   // Cycle each message and send.
-  const PacketHeader *packet = (const PacketHeader *)(bytes);
-  unsigned processedBytes = CollatedPacket::InitialCursorOffset;
-  unsigned packetSize = 0;
-  uint16_t payloadSize = 0;
-  bool crcPreset = false;
-  if (!(packet->flags & PF_NoCrc))
+  const auto *packet = reinterpret_cast<const PacketHeader *>(bytes);
+  unsigned processed_bytes = CollatedPacket::InitialCursorOffset;
+  unsigned packet_size = 0;
+  uint16_t payload_size = 0;
+  bool crc_present = false;
+  if (!(packet->flags & PFNoCrc))
   {
-    processedBytes -= unsigned(sizeof(PacketWriter::CrcType));
+    processed_bytes -= static_cast<unsigned>(sizeof(PacketWriter::CrcType));
   }
-  packet = (const PacketHeader *)(bytes + processedBytes);
-  while (processedBytes + sizeof(PacketHeader) < collatedBytes)
+  packet = reinterpret_cast<const PacketHeader *>(bytes + processed_bytes);
+  while (processed_bytes + sizeof(PacketHeader) < collated_bytes)
   {
     // Determine current packet size.
     // Get payload size.
-    payloadSize = packet->payloadSize;
-    networkEndianSwap(payloadSize);
+    payload_size = packet->payload_size;
+    networkEndianSwap(payload_size);
     // Add header size.
-    packetSize = payloadSize + unsigned(sizeof(PacketHeader));
+    packet_size = payload_size + static_cast<unsigned>(sizeof(PacketHeader));
     // Add Crc Size.
-    crcPreset = (packet->flags & PF_NoCrc) == 0;
-    packetSize += !!crcPreset * unsigned(sizeof(PacketWriter::CrcType));
+    crc_present = (packet->flags & PFNoCrc) == 0;
+    packet_size += !!crc_present * static_cast<unsigned>(sizeof(PacketWriter::CrcType));
 
     // Send packet.
-    if (packetSize + processedBytes > collatedBytes)
+    if (packet_size + processed_bytes > collated_bytes)
     {
       return -1;
     }
-    send((const uint8_t *)packet, int(packetSize));
+    send(reinterpret_cast<const uint8_t *>(packet), int_cast<int>(packet_size));
 
     // Next packet.
-    processedBytes += packetSize;
-    packet = (const PacketHeader *)(bytes + processedBytes);
+    processed_bytes += packet_size;
+    packet = reinterpret_cast<const PacketHeader *>(bytes + processed_bytes);
   }
 
-  return int(processedBytes);
+  return int_cast<int>(processed_bytes);
 }
 
 
-int BaseConnection::send(const uint8_t *data, int byteCount, bool allowCollation)
+int BaseConnection::send(const uint8_t *data, int byte_count, bool allow_collation)
 {
   if (!_active)
   {
     return 0;
   }
 
-  return writePacket(data, uint16_t(byteCount), allowCollation);
+  return writePacket(data, int_cast<uint16_t>(byte_count), allow_collation);
 }
 
 
@@ -172,73 +175,39 @@ int BaseConnection::create(const Shape &shape)
     return 0;
   }
 
-  // std::lock_guard<Lock> guard(_lock);
-  std::lock_guard<Lock> guard(_packetLock);
+  // const std::lock_guard<Lock> guard(_lock);
+  const std::lock_guard<Lock> guard(_packet_lock);
   if (shape.writeCreate(*_packet))
   {
+    // Send the create message.
     _packet->finalise();
-    writePacket(_packetBuffer.data(), _packet->packetSize(), true);
-    int writeSize = _packet->packetSize();
-    int wrote;
+    writePacket(_packet_buffer.data(), _packet->packetSize(), true);
+    int64_t total_bytes_written = _packet->packetSize();
 
-    // Write complex shape data.
+    // For complex shapes, we must also send data messages.
     if (shape.isComplex())
     {
-      unsigned progress = 0;
-      int res = 0;
-      while ((res = shape.writeData(*_packet, progress)) >= 0)
-      {
-        if (!_packet->finalise())
-        {
-          return -1;
-        }
-
-        wrote = writePacket(_packetBuffer.data(), _packet->packetSize(), true);
-
-        if (wrote < 0)
-        {
-          return -1;
-        }
-
-        writeSize += wrote;
-
-        if (res == 0)
-        {
-          break;
-        }
-      }
-
-      if (res == -1)
+      const int wrote = sendShapeData(shape);
+      if (wrote < 0)
       {
         return -1;
       }
+      total_bytes_written += wrote;
     }
 
-    // Collate and queue resources for persistent objects. Transient not allowed because
-    // destroy won't be called and references won't be released.
-    if (shape.id() != 0 && !shape.skipResources())
+    if (!shape.skipResources())
     {
-      const unsigned resCapacity = 8;
-      const Resource *resources[resCapacity];
-      unsigned totalResources = 0;
-      unsigned resCount = 0;
-      do
-      {
-        resCount = shape.enumerateResources(resources, resCapacity, totalResources);
-        for (unsigned i = 0; i < resCount; ++i)
-        {
-          referenceResource(resources[i]);
-        }
-        totalResources += resCount;
-      } while (resCount);
+      queueResources(shape);
     }
 
-    if (writeSize < std::numeric_limits<int>::max())
+    if (total_bytes_written > std::numeric_limits<int>::max())
     {
-      return writeSize;
+      log::warn("Large byte data transfer for shape ", shape.routingId(), ":", shape.id(), " - ",
+                total_bytes_written);
+      total_bytes_written = std::numeric_limits<int>::max();
     }
 
-    return std::numeric_limits<int>::max();
+    return static_cast<int>(total_bytes_written);
   }
   return -1;
 }
@@ -251,31 +220,26 @@ int BaseConnection::destroy(const Shape &shape)
     return 0;
   }
 
-  std::lock_guard<Lock> guard(_packetLock);
+  const std::lock_guard<Lock> guard(_packet_lock);
 
   // Remove resources for persistent objects. Transient won't have destroy called and
   // won't correctly release the resources. Check the ID because I'm paranoid.
   if (shape.id() && !shape.skipResources())
   {
-    const unsigned resCapacity = 8;
-    const Resource *resources[resCapacity];
-    unsigned totalResources = 0;
-    unsigned resCount = 0;
-    do
+    _resource_buffer.clear();
+    shape.enumerateResources(_resource_buffer);
+    for (const auto &resource : _resource_buffer)
     {
-      resCount = shape.enumerateResources(resources, resCapacity, totalResources);
-      for (unsigned i = 0; i < resCount; ++i)
-      {
-        releaseResource(resources[i]->uniqueKey());
-      }
-      totalResources += resCount;
-    } while (resCount);
+      releaseResource(resource->uniqueKey());
+    }
+    // clear buffer to avoid holding references.
+    _resource_buffer.clear();
   }
 
   if (shape.writeDestroy(*_packet))
   {
     _packet->finalise();
-    writePacket(_packetBuffer.data(), _packet->packetSize(), true);
+    writePacket(_packet_buffer.data(), _packet->packetSize(), true);
     return _packet->packetSize();
   }
   return -1;
@@ -289,71 +253,66 @@ int BaseConnection::update(const Shape &shape)
     return 0;
   }
 
-  std::lock_guard<Lock> guard(_packetLock);
+  const std::lock_guard<Lock> guard(_packet_lock);
   if (shape.writeUpdate(*_packet))
   {
     _packet->finalise();
 
-    writePacket(_packetBuffer.data(), _packet->packetSize(), true);
+    writePacket(_packet_buffer.data(), _packet->packetSize(), true);
     return _packet->packetSize();
   }
   return -1;
 }
 
 
-int BaseConnection::updateTransfers(unsigned byteLimit)
+int BaseConnection::updateTransfers(unsigned byte_limit)
 {
   if (!_active)
   {
     return 0;
   }
 
-  std::lock_guard<Lock> guard(_packetLock);
-  std::lock_guard<Lock> resource_guard(_resourceLock);
+  const std::lock_guard<Lock> guard(_packet_lock);
+  const std::lock_guard<Lock> resource_guard(_resource_lock);
   unsigned transferred = 0;
 
-  while ((!byteLimit || transferred < byteLimit) && (!_currentResource->isNull() || !_resourceQueue.empty()))
+  while ((!byte_limit || transferred < byte_limit) &&
+         (_current_resource->isValid() || !_resource_queue.empty()))
   {
-    bool startNext = false;
-    if (!_currentResource->isNull())
+    if (!_current_resource->isValid())
     {
-      if (_currentResource->nextPacket(*_packet, byteLimit ? byteLimit - transferred : 0))
+      if (!_resource_queue.empty())  // Should never be empty. Loop check this.
       {
-        _packet->finalise();
-        writePacket(_packet->data(), _packet->packetSize(), true);
-        transferred += _packet->packetSize();
-      }
-
-      // Completed
-      if (_currentResource->isNull())
-      {
-        uint64_t completedId = _currentResource->lastCompletedId();
-        startNext = true;
-        auto resourceInfo = _resources.find(completedId);
-        if (resourceInfo != _resources.end())
+        // Start the next resource transfer.
+        const uint64_t next_resource = _resource_queue.front();
+        _resource_queue.pop_front();
+        auto resource_info = _resources.find(next_resource);
+        if (resource_info != _resources.end())
         {
-          resourceInfo->second.sent = true;
+          auto &resource = resource_info->second.resource;
+          resource_info->second.started = true;
+          _current_resource->transfer(resource);
         }
       }
-    }
-    else
-    {
-      startNext = !_resourceQueue.empty();
+      continue;
     }
 
-    if (startNext)
+    if (_current_resource->nextPacket(*_packet, byte_limit ? byte_limit - transferred : 0))
     {
-      if (!_resourceQueue.empty())
+      _packet->finalise();
+      writePacket(_packet->data(), _packet->packetSize(), true);
+      transferred += _packet->packetSize();
+    }
+
+    // Check completion.
+    if (!_current_resource->isValid())
+    {
+      // Have completed
+      const uint64_t completed_id = _current_resource->lastCompletedId();
+      auto resource_info = _resources.find(completed_id);
+      if (resource_info != _resources.end())
       {
-        uint64_t nextResource = _resourceQueue.front();
-        _resourceQueue.pop_front();
-        auto resourceInfo = _resources.find(nextResource);
-        if (resourceInfo != _resources.end())
-        {
-          const Resource *resource = resourceInfo->second.resource;
-          resourceInfo->second.started = true;
-          _currentResource->transfer(resource);
-        }
+        resource_info->second.sent = true;
       }
     }
   }
@@ -372,78 +331,159 @@ int BaseConnection::updateFrame(float dt, bool flush)
   // std::lock_guard<Lock> guard(_lock);
   int wrote = -1;
   ControlMessage msg;
-  msg.controlFlags = !flush * CFFramePersist;
+  msg.control_flags = !flush * CFFramePersist;
   // Convert dt to desired time unit.
-  msg.value32 = uint32_t(dt * _secondsToTimeUnit);
+  msg.value32 = static_cast<uint32_t>(dt * _seconds_to_time_unit);
   msg.value64 = 0;
-  std::lock_guard<Lock> guard(_packetLock);
+  const std::lock_guard<Lock> guard(_packet_lock);
   // Send frame number too?
   _packet->reset(MtControl, CIdFrame);
   if (msg.write(*_packet))
   {
     _packet->finalise();
-    wrote = writePacket(_packetBuffer.data(), _packet->packetSize(), !(_serverFlags & SF_NakedFrameMessage));
+    wrote = writePacket(_packet_buffer.data(), _packet->packetSize(),
+                        !(_server_flags & SFNakedFrameMessage));
   }
   flushCollatedPacket();
   return wrote;
 }
 
 
-unsigned BaseConnection::referenceResource(const Resource *resource)
+unsigned BaseConnection::referenceResource(const ResourcePtr &resource)
 {
   if (!_active)
   {
     return 0;
   }
 
-  unsigned refCount = 0;
-  uint64_t resId = resource->uniqueKey();
-  std::lock_guard<Lock> resource_guard(_resourceLock);
-  auto existing = _resources.find(resId);
+  unsigned ref_count = 0;
+  const uint64_t resource_id = resource->uniqueKey();
+  const std::lock_guard<Lock> resource_guard(_resource_lock);
+  auto existing = _resources.find(resource_id);
   if (existing != _resources.end())
   {
-    refCount = ++existing->second.referenceCount;
+    ref_count = ++existing->second.reference_count;
   }
   else
   {
-    ResourceInfo info(resource);
-    _resources.insert(std::make_pair(resId, info));
-    _resourceQueue.push_back(resId);
-    refCount = 1;
+    _resources.emplace(std::make_pair(resource_id, ResourceInfo(resource)));
+    _resource_queue.push_back(resource_id);
+    ref_count = 1;
   }
 
-  return refCount;
+  return ref_count;
 }
 
 
-unsigned BaseConnection::releaseResource(const Resource *resource)
+unsigned BaseConnection::releaseResource(const ResourcePtr &resource)
 {
   if (!_active)
   {
     return 0;
   }
 
-  std::lock_guard<Lock> packet_guard(_packetLock);
+  const std::lock_guard<Lock> packet_guard(_packet_lock);
   return releaseResource(resource->uniqueKey());
 }
 
 
-unsigned BaseConnection::releaseResource(uint64_t resourceId)
+int BaseConnection::sendShapeData(const Shape &shape)
 {
-  unsigned refCount = 0;
-  std::lock_guard<Lock> resource_guard(_resourceLock);
-  auto existing = _resources.find(resourceId);
+  TES_ASSERT(shape.isComplex());
+  unsigned progress = 0;
+  int status = 0;
+  int total_bytes_written = 0;
+  while ((status = shape.writeData(*_packet, progress)) >= 0)
+  {
+    if (!_packet->finalise())
+    {
+      return -1;
+    }
+
+    const int wrote = writePacket(_packet_buffer.data(), _packet->packetSize(), true);
+
+    if (wrote < 0)
+    {
+      return -1;
+    }
+
+    total_bytes_written += wrote;
+
+    if (status == 0)
+    {
+      break;
+    }
+  }
+
+  if (status == -1)
+  {
+    return -1;
+  }
+
+  return total_bytes_written;
+}
+
+
+unsigned BaseConnection::queueResources(const Shape &shape)
+{
+  if (shape.isTransient())
+  {
+    checkResources(shape);
+    return 0;
+  }
+
+  _resource_buffer.clear();
+  const unsigned resource_count = shape.enumerateResources(_resource_buffer);
+  for (const auto &resource : _resource_buffer)
+  {
+    referenceResource(resource);
+  }
+  // clear buffer to avoid holding references.
+  _resource_buffer.clear();
+
+  return resource_count;
+}
+
+
+bool BaseConnection::checkResources(const Shape &shape)
+{
+  bool all_present = true;
+  _resource_buffer.clear();
+  shape.enumerateResources(_resource_buffer);
+  for (const auto &resource : _resource_buffer)
+  {
+    const auto search = _resources.find(resource->uniqueKey());
+    if (search == _resources.end())
+    {
+      all_present = false;
+      log::warn("Shape ", shape.routingId(), ":", shape.id(), " missing resource ",
+                resource->typeId(), ":", resource->id());
+    }
+  }
+  // clear buffer to avoid holding references.
+  _resource_buffer.clear();
+
+  return all_present;
+}
+
+
+unsigned BaseConnection::releaseResource(uint64_t resource_id)
+{
+  unsigned reference_count = 0;
+  const std::lock_guard<Lock> resource_guard(_resource_lock);
+  auto existing = _resources.find(resource_id);
   if (existing != _resources.end())
   {
-    if (existing->second.referenceCount > 1)
+    if (existing->second.reference_count > 1)
     {
-      refCount = --existing->second.referenceCount;
+      reference_count = --existing->second.reference_count;
     }
     else
     {
-      if (_currentResource->resource() && _currentResource->resource()->uniqueKey() == resourceId)
+      if (_current_resource->resource() &&
+          _current_resource->resource()->uniqueKey() == resource_id)
       {
-        _currentResource->cancel();
+        _current_resource->cancel();
       }
 
       if (existing->second.started || existing->second.sent)
@@ -452,20 +492,20 @@ unsigned BaseConnection::releaseResource(uint64_t resourceId)
         _packet->reset();
         existing->second.resource->destroy(*_packet);
         _packet->finalise();
-        writePacket(_packetBuffer.data(), _packet->packetSize(), true);
+        writePacket(_packet_buffer.data(), _packet->packetSize(), true);
       }
 
       _resources.erase(existing);
     }
   }
 
-  return refCount;
+  return reference_count;
 }
 
 
 void BaseConnection::flushCollatedPacket()
 {
-  std::lock_guard<Lock> guard(_sendLock);
+  const std::lock_guard<Lock> guard(_send_lock);
   flushCollatedPacketUnguarded();
 }
 
@@ -475,62 +515,63 @@ void BaseConnection::flushCollatedPacketUnguarded()
   if (_collation->collatedBytes())
   {
     _collation->finalise();
-    unsigned byteCount = 0;
-    const uint8_t *bytes = _collation->buffer(byteCount);
-    if (bytes && byteCount)
+    unsigned byte_count = 0;
+    const uint8_t *bytes = _collation->buffer(byte_count);
+    if (bytes && byte_count)
     {
-      writeBytes(bytes, (int)byteCount);
+      writeBytes(bytes, int_cast<int>((byte_count)));
     }
     _collation->reset();
   }
 }
 
 
-int BaseConnection::writePacket(const uint8_t *buffer, uint16_t byteCount, bool allowCollation)
+int BaseConnection::writePacket(const uint8_t *buffer, uint16_t byte_count, bool allow_collation)
 {
-  std::unique_lock<Lock> guard(_sendLock);
+  const std::unique_lock<Lock> guard(_send_lock);
 
-  if ((SF_Collate & _serverFlags) != 0 && !allowCollation)
+  if ((SFCollate & _server_flags) != 0 && !allow_collation)
   {
     flushCollatedPacketUnguarded();
   }
 
-  if ((SF_Collate & _serverFlags) == 0 || !allowCollation)
+  if ((SFCollate & _server_flags) == 0 || !allow_collation)
   {
-    return writeBytes(buffer, byteCount);
+    return writeBytes(buffer, byte_count);
   }
 
   // Add to the collection buffer.
-  if (byteCount >= _collation->availableBytes())
+  if (byte_count >= _collation->availableBytes())
   {
     flushCollatedPacketUnguarded();
   }
 
-  int sendCount = _collation->add(buffer, byteCount);
-  if (sendCount == -1)
+  int send_count = _collation->add(buffer, byte_count);
+  if (send_count == -1)
   {
     // Failed to collate. Packet may be too big to collated (due to collation overhead).
     // Flush the buffer, then send without collation.
     flushCollatedPacketUnguarded();
-    sendCount = writeBytes(buffer, byteCount);
+    send_count = writeBytes(buffer, byte_count);
   }
 
-  return sendCount;
+  return send_count;
 }
 
 
 void BaseConnection::ensurePacketBufferCapacity(size_t size)
 {
-  if (_packetBuffer.capacity() < size)
+  if (_packet_buffer.capacity() < size)
   {
     // Need to reallocated. Adjust packet pointer.
-    _packetBuffer.resize(size);
-    delete _packet;
-    _packet = new PacketWriter(_packetBuffer.data(), (uint16_t)_packetBuffer.size());
+    _packet_buffer.resize(size);
+    _packet = std::make_unique<PacketWriter>(_packet_buffer.data(),
+                                             int_cast<uint16_t>(_packet_buffer.size()));
   }
-  else if (_packetBuffer.size() < size)
+  else if (_packet_buffer.size() < size)
   {
     // Resize without reallocation. No buffer adjustments required.
-    _packetBuffer.resize(size);
+    _packet_buffer.resize(size);
   }
 }
+}  // namespace tes

@@ -3,6 +3,8 @@
 //
 #include "Crc.h"
 
+#include <array>
+
 namespace tes
 {
 // Crc code taken from http://www.barrgroup.com/Embedded-Systems/How-To/CRC-Calculation-C-Code
@@ -10,101 +12,107 @@ template <typename CRC>
 class CrcCalc
 {
 public:
-  CrcCalc(CRC initialRemainder, CRC finalXorValue, CRC polynomial);
+  CrcCalc(CRC initial_remainder, CRC final_xor_value, CRC polynomial) noexcept;
 
-  CRC crc(const uint8_t *message, size_t byteCount) const;
+  CRC crc(const uint8_t *message, size_t byte_count) const;
 
-  inline CRC operator()(const uint8_t *message, size_t byteCount) const { return crc(message, byteCount); }
+  inline CRC operator()(const uint8_t *message, size_t byte_count) const
+  {
+    return crc(message, byte_count);
+  }
 
 private:
-  CRC _initialRemainder;
-  CRC _finalXorValue;
-  CRC _crcTable[256];
+  CRC _initial_remainder;
+  CRC _final_xor_value;
+  std::array<CRC, 256> _crc_table;
 
-  void initTable(CRC polynomial);
+  void initTable(CRC polynomial) noexcept;
 
-  const CRC Width = (8 * sizeof(CRC));
-  const CRC TopBit = CRC(1 << ((8 * sizeof(CRC)) - 1));
+  static constexpr CRC kWidth = (8 * sizeof(CRC));
+  static constexpr CRC kTopBit = static_cast<CRC>(1u << ((8u * sizeof(CRC)) - 1));
 };
 
 
 template <typename CRC>
-CrcCalc<CRC>::CrcCalc(CRC initialRemainder, CRC finalXorValue, CRC polynomial)
-  : _initialRemainder(initialRemainder)
-  , _finalXorValue(finalXorValue)
+CrcCalc<CRC>::CrcCalc(CRC initial_remainder, CRC final_xor_value, CRC polynomial) noexcept
+  : _initial_remainder(initial_remainder)
+  , _final_xor_value(final_xor_value)
 {
   initTable(polynomial);
 }
 
 
 template <typename CRC>
-CRC CrcCalc<CRC>::crc(const uint8_t *message, size_t byteCount) const
+CRC CrcCalc<CRC>::crc(const uint8_t *message, size_t byte_count) const
 {
   uint8_t data;
-  CRC remainder = _initialRemainder;
+  CRC remainder = _initial_remainder;
 
   // Divide the message by the polynomial, a byte at a time.
-  for (size_t byte = 0u; byte < byteCount; ++byte)
+  for (size_t byte = 0u; byte < byte_count; ++byte)
   {
-    data = uint8_t(message[byte] ^ (remainder >> (Width - 8)));
-    remainder = CRC(_crcTable[data] ^ (remainder << 8));
+    // NOLINTBEGIN(hicpp-signed-bitwise)
+    data = static_cast<uint8_t>(message[byte] ^ (remainder >> (kWidth - 8u)));
+    remainder = static_cast<CRC>(_crc_table[data] ^ (remainder << 8u));
+    // NOLINTEND(hicpp-signed-bitwise)
   }
 
   // The final remainder is the CRC.
-  return remainder ^ _finalXorValue;
+  return remainder ^ _final_xor_value;
 }
 
 
 template <typename CRC>
-void CrcCalc<CRC>::initTable(CRC polynomial)
+void CrcCalc<CRC>::initTable(CRC polynomial) noexcept
 {
-  CRC remainder;
+  CRC remainder = 0;
 
   // Compute the remainder of each possible dividend.
-  for (int dividend = 0; dividend < 256; ++dividend)
+  for (unsigned dividend = 0; dividend < _crc_table.size(); ++dividend)
   {
     // Start with the dividend followed by zeros.
-    remainder = CRC(dividend << (Width - 8));
+    remainder = static_cast<CRC>(dividend << (kWidth - 8u));
 
     // Perform modulo-2 division, a bit at a time.
     for (uint8_t bit = 8; bit > 0; --bit)
     {
       // Try to divide the current data bit.
-      if (remainder & TopBit)
+      if (remainder & kTopBit)
       {
-        remainder = CRC((remainder << 1) ^ polynomial);
+        // NOLINTNEXTLINE(hicpp-signed-bitwise)
+        remainder = static_cast<CRC>((remainder << 1u) ^ polynomial);
       }
       else
       {
-        remainder = CRC(remainder << 1);
+        remainder = static_cast<CRC>(remainder << 1u);
       }
     }
 
     // Store the result into the table.
-    _crcTable[dividend] = remainder;
+    _crc_table[dividend] = remainder;
   }
 }
 
 
-static CrcCalc<uint8_t> Crc8(0xFFu, 0u, 0x21u);
-static CrcCalc<uint16_t> Crc16(0xFFFFu, 0u, 0x1021u);
-static CrcCalc<uint32_t> Crc32(0xFFFFFFFFu, 0xFFFFFFFFu, 0x04C11DB7u);
+static const CrcCalc<uint8_t> kCrc8(0xFFu, 0u, 0x21u);
+static const CrcCalc<uint16_t> kCrc16(0xFFFFu, 0u, 0x1021u);
+static const CrcCalc<uint32_t> kCrc32(0xFFFFFFFFu, 0xFFFFFFFFu, 0x04C11DB7u);
 
 
-uint8_t crc8(const uint8_t *message, size_t byteCount)
+uint8_t crc8(const uint8_t *message, size_t byte_count)
 {
-  return Crc8(message, byteCount);
+  return kCrc8(message, byte_count);
 }
 
 
-uint16_t crc16(const uint8_t *message, size_t byteCount)
+uint16_t crc16(const uint8_t *message, size_t byte_count)
 {
-  return Crc16(message, byteCount);
+  return kCrc16(message, byte_count);
 }
 
 
-uint32_t crc32(const uint8_t *message, size_t byteCount)
+uint32_t crc32(const uint8_t *message, size_t byte_count)
 {
-  return Crc32(message, byteCount);
+  return kCrc32(message, byte_count);
 }
 }  // namespace tes

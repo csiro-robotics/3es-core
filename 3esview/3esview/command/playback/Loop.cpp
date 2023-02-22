@@ -26,7 +26,7 @@ CommandResult Loop::invoke(Viewer &viewer, const ExecInfo &info, const Args &arg
     return { CommandResult::Code::Failed, "Invalid data thread" };
   }
   const auto loop = arg<bool>(0, args);
-  stream->setLooping(true);
+  stream->setLooping(loop);
   return { CommandResult::Code::Ok };
 }
 }  // namespace tes::view::command::playback
