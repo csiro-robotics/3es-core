@@ -17,10 +17,10 @@
 #include <thread>
 #include <vector>
 
-// Note: this program is provided as a C++ implementation of command line packet recording. It is equivalent to the
-// 3esrec program which is part of the C#/dotnet 3es project. It is recommended that the C# version be use as there are
-// not significant performance differences when running with the '-m-' option (passthrough) and the C# code is more
-// fully featured.
+// Note: this program is provided as a C++ implementation of command line packet recording. It is
+// equivalent to the 3esrec program which is part of the C#/dotnet 3es project. It is recommended
+// that the C# version be use as there are not significant performance differences when running with
+// the '-m-' option (passthrough) and the C# code is more fully featured.
 
 #define PACKET_TIMING 0
 
@@ -43,71 +43,26 @@ class TesRec
   static const unsigned PacketLimit = 500u;
 #endif  // PACKET_TIMING
 public:
-  bool quit() const
-  {
-    return _quit;
-  }
-  bool argsOk() const
-  {
-    return _argsOk;
-  }
-  bool showUsage() const
-  {
-    return _showUsage;
-  }
-  bool connected() const
-  {
-    return _connected;
-  }
-  bool persist() const
-  {
-    return _persist;
-  }
-  bool overwrite() const
-  {
-    return _overwrite;
-  }
-  bool quiet() const
-  {
-    return _quiet;
-  }
+  bool quit() const { return _quit; }
+  bool argsOk() const { return _argsOk; }
+  bool showUsage() const { return _showUsage; }
+  bool connected() const { return _connected; }
+  bool persist() const { return _persist; }
+  bool overwrite() const { return _overwrite; }
+  bool quiet() const { return _quiet; }
 
-  Mode decodeMode() const
-  {
-    return _decodeMode;
-  }
+  Mode decodeMode() const { return _decodeMode; }
 
-  unsigned totalFrames() const
-  {
-    return _totalFrames;
-  }
+  unsigned totalFrames() const { return _totalFrames; }
   // IPEndPoint ServerEndPoint { get; private set; }
-  const std::string &outputPrefix() const
-  {
-    return _outputPrefix;
-  }
-  static const char *defaultPrefix()
-  {
-    return "tes";
-  }
-  static uint16_t defaultPort()
-  {
-    return 33500;
-  }
-  static const char *defaultIP()
-  {
-    return "127.0.0.1";
-  }
+  const std::string &outputPrefix() const { return _outputPrefix; }
+  static const char *defaultPrefix() { return "tes"; }
+  static uint16_t defaultPort() { return 33500; }
+  static const char *defaultIP() { return "127.0.0.1"; }
 
-  static const char **defaultArgs()
-  {
-    return s_defaultArgs;
-  }
+  static const char **defaultArgs() { return s_defaultArgs; }
 
-  static const char **modeArgStrings()
-  {
-    return s_modeArgStrings;
-  }
+  static const char **modeArgStrings() { return s_modeArgStrings; }
 
   static const char *modeToArg(Mode m);
 
@@ -119,10 +74,7 @@ public:
 
   void run(FrameDisplay *frameDisplay);
 
-  void requestQuit()
-  {
-    _quit = true;
-  }
+  void requestQuit() { _quit = true; }
 
 private:
   std::unique_ptr<TcpSocket> attemptConnection();
@@ -375,7 +327,8 @@ void TesRec::run(FrameDisplay *frameDisplay)
             PacketReader decodedPacket(decodedPacketHeader);
             bool exportPacket = true;
 
-            // Console.WriteLine("Msg: {0} {1}", completedPacket.Header.RoutingID, completedPacket.Header.MessageID);
+            // Console.WriteLine("Msg: {0} {1}", completedPacket.Header.RoutingID,
+            // completedPacket.Header.MessageID);
             switch (completedPacket.routingId())
             {
             case MtControl:
@@ -466,7 +419,8 @@ std::unique_ptr<std::iostream> TesRec::createOutputWriter()
   std::string filePath = generateNewOutputFile();
   if (filePath.empty())
   {
-    printf("Unable to generate a numbered file name using the prefix: %s. Try cleaning up the output directory.\n",
+    printf("Unable to generate a numbered file name using the prefix: %s. Try cleaning up the "
+           "output directory.\n",
            _outputPrefix.c_str());
     return nullptr;
   }
@@ -499,8 +453,8 @@ std::unique_ptr<std::iostream> TesRec::createOutputWriter()
   //     stream = new CollationStream(fileStream, false);
   //     break;
   //   case Mode.FileCompression:
-  //     stream = new GZipStream(fileStream, CompressionMode.Compress, CompressionLevel.BestCompression);
-  //     break;
+  //     stream = new GZipStream(fileStream, CompressionMode.Compress,
+  //     CompressionLevel.BestCompression); break;
   //   case Mode.Uncompressed:
   //     stream = fileStream;
   //     break;
