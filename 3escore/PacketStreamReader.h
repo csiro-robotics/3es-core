@@ -40,7 +40,7 @@ public:
 
   /// Check if the stream is at the end of file.
   /// @return True if at end of file.
-  [[nodiscard]] bool isEof() const { return _stream && _stream->eof(); }
+  [[nodiscard]] bool isEof() const { return !_stream || _stream->eof(); }
 
   /// (Re)set the stream to read from.
   /// @param stream The stream to read from.

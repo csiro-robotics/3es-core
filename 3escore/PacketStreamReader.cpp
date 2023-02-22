@@ -119,8 +119,12 @@ size_t PacketStreamReader::readMore(size_t more_count)
 
   auto have_count = _buffer.size();
   _buffer.resize(have_count + more_count);
-  const auto read_count = _stream->readsome(reinterpret_cast<char *>(_buffer.data()) + have_count,
-                                            int_cast<unsigned>(more_count));
+  // Note(KS): I was using readsome() because that returns the count read, but it was also not
+  // working as expected. Using read() and with tellg() will do.
+  const auto start_pos = _stream->tellg();
+  _stream->read(reinterpret_cast<char *>(_buffer.data()) + have_count,
+                int_cast<unsigned>(more_count));
+  const auto read_count = _stream->tellg() - start_pos;
   _buffer.resize(have_count + read_count);
   return read_count;
 }
