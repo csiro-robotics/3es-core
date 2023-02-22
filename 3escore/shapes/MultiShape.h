@@ -106,7 +106,7 @@ inline MultiShape::MultiShape(Iter shapes_begin, Iter shapes_end, const Transfor
 
 
 inline MultiShape::MultiShape(MultiShape &&other) noexcept
-  : Shape(other)
+  : Shape(std::move(other))
   , _shapes(std::move(other._shapes))
   , _own_shapes(std::exchange(other._own_shapes, false))
 {}

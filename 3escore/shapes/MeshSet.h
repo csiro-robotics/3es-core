@@ -116,11 +116,11 @@ private:
     {}
     Part(MeshResourcePtr resource, Transform transform)
       : resource(std::move(resource))
-      , transform(transform)
+      , transform(std::move(transform))
     {}
-    Part(MeshResourcePtr resource, Transform transform, Colour colour)
+    Part(MeshResourcePtr resource, Transform transform, const Colour &colour)
       : resource(std::move(resource))
-      , transform(transform)
+      , transform(std::move(transform))
       , colour(colour)
     {}
   };

@@ -208,10 +208,13 @@ public:
   /// For @c DtPoints , this also clears @c setColourByHeight().
   ///
   /// @param colours The colours array.
-  MeshShape &setColours(const uint32_t *colours)
+  MeshShape &setColours(DataBuffer colour_buffer)
   {
-    setColourByHeight(false);
-    _colours = std::move(DataBuffer(colours, _vertices.count()));
+    if (colour_buffer.count() >= vertices().count())
+    {
+      setColourByHeight(false);
+      _colours = std::move(colour_buffer);
+    }
     return *this;
   }
 

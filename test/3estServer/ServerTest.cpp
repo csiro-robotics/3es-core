@@ -25,17 +25,17 @@
 #include <thread>
 #include <vector>
 
-using namespace tes;
+// NOLINTBEGIN(readability-magic-numbers, readability-function-cognitive-complexity)
 
 namespace
 {
-bool quit = false;
+bool g_quit = false;
 
 void onSignal(int arg)
 {
   if (arg == SIGINT || arg == SIGTERM)
   {
-    quit = true;
+    g_quit = true;
   }
 }
 }  // namespace
@@ -69,15 +69,15 @@ enum Categories
 class ShapeMover
 {
 public:
-  ShapeMover(std::shared_ptr<Shape> shape)
+  ShapeMover(std::shared_ptr<tes::Shape> shape)
     : _shape(std::move(shape))
   {}
 
-  virtual inline ~ShapeMover() {}
+  virtual ~ShapeMover() = default;
 
-  inline std::shared_ptr<Shape> shape() { return _shape; }
-  inline std::shared_ptr<const Shape> shape() const { return _shape; }
-  inline void setShape(std::shared_ptr<Shape> shape)
+  [[nodiscard]] std::shared_ptr<tes::Shape> shape() { return _shape; }
+  [[nodiscard]] std::shared_ptr<const tes::Shape> shape() const { return _shape; }
+  void setShape(std::shared_ptr<tes::Shape> shape)
   {
     _shape = std::move(shape);
     onShapeChange();
@@ -95,64 +95,68 @@ protected:
   virtual void onShapeChange() {}
 
 private:
-  std::shared_ptr<Shape> _shape;
+  std::shared_ptr<tes::Shape> _shape;
 };
 
 
 class Oscilator : public ShapeMover
 {
 public:
-  inline Oscilator(std::shared_ptr<Shape> shape, float amplitude = 1.0f, float period = 5.0f,
-                   const Vector3f &axis = Vector3f(0, 0, 1))
+  Oscilator(std::shared_ptr<tes::Shape> shape, float amplitude = 1.0f, float period = 5.0f,
+            const tes::Vector3f &axis = tes::Vector3f(0, 0, 1))
     : ShapeMover(std::move(shape))
-    , _referencePos(Vector3f::Zero)
+    , _reference_pos(tes::Vector3f::Zero)
     , _axis(axis)
     , _amplitude(amplitude)
     , _period(period)
   {
     if (!this->shape())
     {
-      _referencePos = Vector3f(this->shape()->position());
+      _reference_pos = tes::Vector3f(this->shape()->position());
     }
     onShapeChange();
   }
 
-  inline const Vector3f &axis() const { return _axis; }
-  inline const Vector3f &referencePos() const { return _referencePos; }
-  inline float amplitude() const { return _amplitude; }
-  inline float period() const { return _period; }
+  [[nodiscard]] const tes::Vector3f &axis() const { return _axis; }
+  [[nodiscard]] const tes::Vector3f &referencePos() const { return _reference_pos; }
+  [[nodiscard]] float amplitude() const { return _amplitude; }
+  [[nodiscard]] float period() const { return _period; }
 
-  void reset() override { _referencePos = shape() ? Vector3f(shape()->position()) : _referencePos; }
+  void reset() override
+  {
+    _reference_pos = shape() ? tes::Vector3f(shape()->position()) : _reference_pos;
+  }
 
   void update(float time, float dt) override
   {
     TES_UNUSED(dt);
-    Vector3f pos = _referencePos + _amplitude * std::sin(time) * _axis;
+    const tes::Vector3f pos = _reference_pos + _amplitude * std::sin(time) * _axis;
     shape()->setPosition(pos);
   }
 
 protected:
   void onShapeChange() override
   {
-    _referencePos = (shape()) ? Vector3f(shape()->position()) : _referencePos;
+    _reference_pos = (shape()) ? tes::Vector3f(shape()->position()) : _reference_pos;
   }
 
 private:
-  Vector3f _referencePos;
-  Vector3f _axis;
-  float _amplitude;
-  float _period;
+  tes::Vector3f _reference_pos;
+  tes::Vector3f _axis;
+  float _amplitude = 1.0f;
+  float _period = 5.0f;
 };
 
 
-std::shared_ptr<MeshResource> createTestMesh()
+std::shared_ptr<tes::MeshResource> createTestMesh()
 {
-  auto mesh = std::make_shared<SimpleMesh>(
-    1, 4, 6, DtTriangles, SimpleMesh::Vertex | SimpleMesh::Index | SimpleMesh::Colour);
-  mesh->setVertex(0, Vector3f(-0.5f, 0, -0.5f));
-  mesh->setVertex(1, Vector3f(0.5f, 0, -0.5f));
-  mesh->setVertex(2, Vector3f(0.5f, 0, 0.5f));
-  mesh->setVertex(3, Vector3f(-0.5f, 0, 0.5f));
+  auto mesh = std::make_shared<tes::SimpleMesh>(
+    1, 4, 6, tes::DtTriangles,
+    tes::SimpleMesh::Vertex | tes::SimpleMesh::Index | tes::SimpleMesh::Colour);
+  mesh->setVertex(0, tes::Vector3f(-0.5f, 0, -0.5f));
+  mesh->setVertex(1, tes::Vector3f(0.5f, 0, -0.5f));
+  mesh->setVertex(2, tes::Vector3f(0.5f, 0, 0.5f));
+  mesh->setVertex(3, tes::Vector3f(-0.5f, 0, 0.5f));
 
   mesh->setIndex(0, 0);
   mesh->setIndex(1, 1);
@@ -166,28 +170,28 @@ std::shared_ptr<MeshResource> createTestMesh()
   mesh->setColour(2, 0xff00ffff);
   mesh->setColour(3, 0xffffffff);
 
-  // mesh->setNormal(0, Vector3f(0, 1, 0));
-  // mesh->setNormal(1, Vector3f(0, 1, 0));
-  // mesh->setNormal(2, Vector3f(0, 1, 0));
-  // mesh->setNormal(3, Vector3f(0, 1, 0));
+  // mesh->setNormal(0, tes::Vector3f(0, 1, 0));
+  // mesh->setNormal(1, tes::Vector3f(0, 1, 0));
+  // mesh->setNormal(2, tes::Vector3f(0, 1, 0));
+  // mesh->setNormal(3, tes::Vector3f(0, 1, 0));
 
   return mesh;
 }
 
 
-std::shared_ptr<MeshResource> createTestCloud(float draw_scale = 0.0f)
+std::shared_ptr<tes::MeshResource> createTestCloud(float draw_scale = 0.0f)
 {
-  auto cloud = std::make_shared<PointCloud>(2);  // Considered a Mesh for ID purposes.
+  auto cloud = std::make_shared<tes::PointCloud>(2);  // Considered a Mesh for ID purposes.
   cloud->resize(8);
 
-  cloud->setPoint(0, Vector3f(0, 0, 0), Vector3f(0, 0, 1), Colour(0, 0, 0));
-  cloud->setPoint(1, Vector3f(1, 0, 0), Vector3f(0, 0, 1), Colour(255, 0, 0));
-  cloud->setPoint(2, Vector3f(0, 1, 0), Vector3f(0, 0, 1), Colour(0, 255, 0));
-  cloud->setPoint(3, Vector3f(0, 0, 1), Vector3f(0, 0, 1), Colour(0, 0, 255));
-  cloud->setPoint(4, Vector3f(1, 1, 0), Vector3f(0, 0, 1), Colour(255, 255, 0));
-  cloud->setPoint(5, Vector3f(0, 1, 1), Vector3f(0, 0, 1), Colour(0, 255, 255));
-  cloud->setPoint(6, Vector3f(1, 0, 1), Vector3f(0, 0, 1), Colour(255, 0, 255));
-  cloud->setPoint(7, Vector3f(1, 1, 1), Vector3f(0, 0, 1), Colour(255, 255, 255));
+  cloud->setPoint(0, tes::Vector3f(0, 0, 0), tes::Vector3f(0, 0, 1), tes::Colour(0, 0, 0));
+  cloud->setPoint(1, tes::Vector3f(1, 0, 0), tes::Vector3f(0, 0, 1), tes::Colour(255, 0, 0));
+  cloud->setPoint(2, tes::Vector3f(0, 1, 0), tes::Vector3f(0, 0, 1), tes::Colour(0, 255, 0));
+  cloud->setPoint(3, tes::Vector3f(0, 0, 1), tes::Vector3f(0, 0, 1), tes::Colour(0, 0, 255));
+  cloud->setPoint(4, tes::Vector3f(1, 1, 0), tes::Vector3f(0, 0, 1), tes::Colour(255, 255, 0));
+  cloud->setPoint(5, tes::Vector3f(0, 1, 1), tes::Vector3f(0, 0, 1), tes::Colour(0, 255, 255));
+  cloud->setPoint(6, tes::Vector3f(1, 0, 1), tes::Vector3f(0, 0, 1), tes::Colour(255, 0, 255));
+  cloud->setPoint(7, tes::Vector3f(1, 1, 1), tes::Vector3f(0, 0, 1), tes::Colour(255, 255, 255));
 
   cloud->setDrawScale(draw_scale);
 
@@ -209,266 +213,270 @@ bool haveOption(const char *opt, int argc, const char **argv)
 }
 
 
-void createAxes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
+void createAxes(unsigned &next_id, std::vector<std::shared_ptr<tes::Shape>> &shapes,
                 std::vector<std::shared_ptr<ShapeMover>> &movers,
-                std::vector<std::shared_ptr<Resource>> &resources, int argc, const char **argv)
+                std::vector<std::shared_ptr<tes::Resource>> &resources, int argc, const char **argv)
 {
   TES_UNUSED(movers);
   TES_UNUSED(resources);
   if (!haveOption("noaxes", argc, argv))
   {
-    const float arrowLength = 1.0f;
-    const float arrowRadius = 0.025f;
-    const Vector3f pos(0.0f);
-    std::shared_ptr<Arrow> arrow;
+    const float arrow_length = 1.0f;
+    const float arrow_radius = 0.025f;
+    const tes::Vector3f pos(0.0f);
+    std::shared_ptr<tes::Arrow> arrow;
 
-    arrow = std::make_shared<Arrow>(nextId++,
-                                    Directional(pos, Vector3f(1, 0, 0), arrowRadius, arrowLength));
-    arrow->setColour(Colour(Colour::Red));
+    arrow = std::make_shared<tes::Arrow>(
+      next_id++, tes::Directional(pos, tes::Vector3f(1, 0, 0), arrow_radius, arrow_length));
+    arrow->setColour(tes::Colour(tes::Colour::Red));
     shapes.emplace_back(arrow);
 
-    arrow = std::make_shared<Arrow>(nextId++,
-                                    Directional(pos, Vector3f(0, 1, 0), arrowRadius, arrowLength));
-    arrow->setColour(Colour(Colour::ForestGreen));
+    arrow = std::make_shared<tes::Arrow>(
+      next_id++, tes::Directional(pos, tes::Vector3f(0, 1, 0), arrow_radius, arrow_length));
+    arrow->setColour(tes::Colour(tes::Colour::ForestGreen));
     shapes.emplace_back(arrow);
 
-    arrow = std::make_shared<Arrow>(nextId++,
-                                    Directional(pos, Vector3f(0, 0, 1), arrowRadius, arrowLength));
-    arrow->setColour(Colour(Colour::DodgerBlue));
+    arrow = std::make_shared<tes::Arrow>(
+      next_id++, tes::Directional(pos, tes::Vector3f(0, 0, 1), arrow_radius, arrow_length));
+    arrow->setColour(tes::Colour(tes::Colour::DodgerBlue));
     shapes.emplace_back(arrow);
   }
 }
 
 
-void createShapes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
+void createShapes(unsigned &next_id, std::vector<std::shared_ptr<tes::Shape>> &shapes,
                   std::vector<std::shared_ptr<ShapeMover>> &movers,
-                  std::vector<std::shared_ptr<Resource>> &resources, int argc, const char **argv)
+                  std::vector<std::shared_ptr<tes::Resource>> &resources, int argc,
+                  const char **argv)
 {
-  bool allShapes = haveOption("all", argc, argv);
-  bool noMove = haveOption("nomove", argc, argv);
-  size_t initialShapeCount = shapes.size();
+  const bool all_shapes = haveOption("all", argc, argv);
+  const bool no_move = haveOption("nomove", argc, argv);
+  const size_t initial_shape_count = shapes.size();
 
-  if (allShapes || haveOption("arrow", argc, argv))
+  if (all_shapes || haveOption("arrow", argc, argv))
   {
-    auto arrow = std::make_shared<Arrow>(Id(nextId++, CatArrow));
+    auto arrow = std::make_shared<tes::Arrow>(tes::Id(next_id++, CatArrow));
     arrow->setRadius(0.5f);
     arrow->setLength(1.0f);
-    arrow->setColour(Colour(Colour::SeaGreen));
+    arrow->setColour(tes::Colour(tes::Colour::SeaGreen));
     shapes.emplace_back(arrow);
-    if (!noMove)
+    if (!no_move)
     {
       movers.emplace_back(std::make_shared<Oscilator>(arrow, 2.0f, 2.5f));
     }
   }
 
-  if (allShapes || haveOption("box", argc, argv))
+  if (all_shapes || haveOption("box", argc, argv))
   {
-    auto box = std::make_shared<Box>(Id(nextId++, CatBox));
-    box->setScale(Vector3f(0.45f));
-    box->setColour(Colour(Colour::MediumSlateBlue));
+    auto box = std::make_shared<tes::Box>(tes::Id(next_id++, CatBox));
+    box->setScale(tes::Vector3f(0.45f));
+    box->setColour(tes::Colour(tes::Colour::MediumSlateBlue));
     shapes.emplace_back(box);
-    if (!noMove)
+    if (!no_move)
     {
       movers.emplace_back(std::make_shared<Oscilator>(box, 2.0f, 2.5f));
     }
   }
 
-  if (allShapes || haveOption("capsule", argc, argv))
+  if (all_shapes || haveOption("capsule", argc, argv))
   {
-    auto capsule = std::make_shared<Capsule>(Id(nextId++, CatCapsule), Directional::identity());
+    auto capsule =
+      std::make_shared<tes::Capsule>(tes::Id(next_id++, CatCapsule), tes::Directional::identity());
     capsule->setLength(2.0f);
     capsule->setRadius(0.3f);
-    capsule->setColour(Colour(Colour::LavenderBlush));
+    capsule->setColour(tes::Colour(tes::Colour::LavenderBlush));
     shapes.emplace_back(capsule);
-    if (!noMove)
+    if (!no_move)
     {
       movers.emplace_back(std::make_shared<Oscilator>(capsule, 2.0f, 2.5f));
     }
   }
 
-  if (allShapes || haveOption("cone", argc, argv))
+  if (all_shapes || haveOption("cone", argc, argv))
   {
-    auto cone = std::make_shared<Cone>(Id(nextId++, CatCone));
+    auto cone = std::make_shared<tes::Cone>(tes::Id(next_id++, CatCone));
     cone->setLength(2.0f);
     cone->setRadius(0.25f);
-    cone->setColour(Colour(Colour::SandyBrown));
+    cone->setColour(tes::Colour(tes::Colour::SandyBrown));
     shapes.emplace_back(cone);
-    if (!noMove)
+    if (!no_move)
     {
       movers.emplace_back(std::make_shared<Oscilator>(cone, 2.0f, 2.5f));
     }
   }
 
-  if (allShapes || haveOption("cylinder", argc, argv))
+  if (all_shapes || haveOption("cylinder", argc, argv))
   {
-    auto cylinder = std::make_shared<Cylinder>(Id(nextId++, CatCylinder));
-    cylinder->setScale(Vector3f(0.45f));
-    cylinder->setColour(Colour(Colour::FireBrick));
+    auto cylinder = std::make_shared<tes::Cylinder>(tes::Id(next_id++, CatCylinder));
+    cylinder->setScale(tes::Vector3f(0.45f));
+    cylinder->setColour(tes::Colour(tes::Colour::FireBrick));
     shapes.emplace_back(cylinder);
-    if (!noMove)
+    if (!no_move)
     {
       movers.emplace_back(std::make_shared<Oscilator>(cylinder, 2.0f, 2.5f));
     }
   }
 
-  if (allShapes || haveOption("plane", argc, argv))
+  if (all_shapes || haveOption("plane", argc, argv))
   {
-    auto plane = std::make_shared<Plane>(Id(nextId++, CatPlane));
-    plane->setNormal(Vector3f(1.0f, 1.0f, 0.0f).normalised());
+    auto plane = std::make_shared<tes::Plane>(tes::Id(next_id++, CatPlane));
+    plane->setNormal(tes::Vector3f(1.0f, 1.0f, 0.0f).normalised());
     plane->setScale(1.5f);
     plane->setNormalLength(0.5f);
-    plane->setColour(Colour(Colour::LightSlateGrey));
+    plane->setColour(tes::Colour(tes::Colour::LightSlateGrey));
     shapes.emplace_back(plane);
-    if (!noMove)
+    if (!no_move)
     {
       movers.emplace_back(std::make_shared<Oscilator>(plane, 2.0f, 2.5f));
     }
   }
 
-  if (allShapes || haveOption("pose", argc, argv))
+  if (all_shapes || haveOption("pose", argc, argv))
   {
-    auto pose = std::make_shared<Pose>(Id(nextId++, CatPose));
-    pose->setRotation(Quaternionf().setAxisAngle(Vector3f::AxisZ, float(0.25 * M_PI)));
+    auto pose = std::make_shared<tes::Pose>(tes::Id(next_id++, CatPose));
+    pose->setRotation(
+      tes::Quaternionf().setAxisAngle(tes::Vector3f::AxisZ, static_cast<float>(0.25 * M_PI)));
     shapes.emplace_back(pose);
-    if (!noMove)
+    if (!no_move)
     {
       movers.emplace_back(std::make_shared<Oscilator>(pose, 2.0f, 2.5f));
     }
   }
 
-  if (allShapes || haveOption("sphere", argc, argv))
+  if (all_shapes || haveOption("sphere", argc, argv))
   {
-    auto sphere = std::make_shared<Sphere>(Id(nextId++, CatSphere));
+    auto sphere = std::make_shared<tes::Sphere>(tes::Id(next_id++, CatSphere));
     sphere->setRadius(0.75f);
-    sphere->setColour(Colour(Colour::Coral));
+    sphere->setColour(tes::Colour(tes::Colour::Coral));
     shapes.emplace_back(sphere);
-    if (!noMove)
+    if (!no_move)
     {
       movers.emplace_back(std::make_shared<Oscilator>(sphere, 2.0f, 2.5f));
     }
   }
 
-  if (allShapes || haveOption("star", argc, argv))
+  if (all_shapes || haveOption("star", argc, argv))
   {
-    auto star = std::make_shared<Star>(Id(nextId++, CatStar));
+    auto star = std::make_shared<tes::Star>(tes::Id(next_id++, CatStar));
     star->setRadius(0.75f);
-    star->setColour(Colour(Colour::DarkGreen));
+    star->setColour(tes::Colour(tes::Colour::DarkGreen));
     shapes.emplace_back(star);
-    if (!noMove)
+    if (!no_move)
     {
       movers.emplace_back(std::make_shared<Oscilator>(star, 2.0f, 2.5f));
     }
   }
 
-  if (allShapes || haveOption("lines", argc, argv))
+  if (all_shapes || haveOption("lines", argc, argv))
   {
-    static const Vector3f lineSet[] = { Vector3f(0, 0, 0), Vector3f(0, 0, 1),
-                                        Vector3f(0, 0, 1), Vector3f(0.25f, 0, 0.8f),
-                                        Vector3f(0, 0, 1), Vector3f(-0.25f, 0, 0.8f) };
-    const unsigned lineVertexCount = sizeof(lineSet) / sizeof(lineSet[0]);
-    auto lines = std::make_shared<MeshShape>(DtLines, Id(nextId++, CatLines),
-                                             DataBuffer(lineSet, lineVertexCount));
+    const std::array<tes::Vector3f, 6> line_set = {
+      tes::Vector3f(0, 0, 0),        tes::Vector3f(0, 0, 1), tes::Vector3f(0, 0, 1),
+      tes::Vector3f(0.25f, 0, 0.8f), tes::Vector3f(0, 0, 1), tes::Vector3f(-0.25f, 0, 0.8f)
+    };
+    auto lines = std::make_shared<tes::MeshShape>(tes::DtLines, tes::Id(next_id++, CatLines),
+                                                  tes::DataBuffer(line_set));
     shapes.emplace_back(lines);
-    // if (!noMove)
+    // if (!no_move)
     // {
     //   movers.emplace_back(std::make_shared<Oscilator>(mesh, 2.0f, 2.5f));
     // }
   }
 
-  if (allShapes || haveOption("triangles", argc, argv))
+  if (all_shapes || haveOption("triangles", argc, argv))
   {
-    static const Vector3f triangleSet[] = {
-      Vector3f(0, 0, 0),      Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1), Vector3f(0, 0, 0),
-      Vector3f(-0.25f, 0, 1), Vector3f(0, 0.25f, 1), Vector3f(0, 0, 0),     Vector3f(0, -0.25f, 1),
-      Vector3f(-0.25f, 0, 1), Vector3f(0, 0, 0),     Vector3f(0.25f, 0, 1), Vector3f(0, -0.25f, 1)
+    const std::array<tes::Vector3f, 12> triangle_set = {
+      tes::Vector3f(0, 0, 0), tes::Vector3f(0, 0.25f, 1),  tes::Vector3f(0.25f, 0, 1),
+      tes::Vector3f(0, 0, 0), tes::Vector3f(-0.25f, 0, 1), tes::Vector3f(0, 0.25f, 1),
+      tes::Vector3f(0, 0, 0), tes::Vector3f(0, -0.25f, 1), tes::Vector3f(-0.25f, 0, 1),
+      tes::Vector3f(0, 0, 0), tes::Vector3f(0.25f, 0, 1),  tes::Vector3f(0, -0.25f, 1)
     };
-    const unsigned triVertexCount = sizeof(triangleSet) / sizeof(triangleSet[0]);
-    static const uint32_t colours[] = {
-      Colour(Colour::Red).colour32(),   Colour(Colour::Red).colour32(),
-      Colour(Colour::Red).colour32(),   Colour(Colour::Green).colour32(),
-      Colour(Colour::Green).colour32(), Colour(Colour::Green).colour32(),
-      Colour(Colour::Blue).colour32(),  Colour(Colour::Blue).colour32(),
-      Colour(Colour::Blue).colour32(),  Colour(Colour::White).colour32(),
-      Colour(Colour::White).colour32(), Colour(Colour::White).colour32()
+    const std::array<tes::Colour, triangle_set.size()> colours = {
+      tes::Colour(tes::Colour::Red),   tes::Colour(tes::Colour::Red),
+      tes::Colour(tes::Colour::Red),   tes::Colour(tes::Colour::Green),
+      tes::Colour(tes::Colour::Green), tes::Colour(tes::Colour::Green),
+      tes::Colour(tes::Colour::Blue),  tes::Colour(tes::Colour::Blue),
+      tes::Colour(tes::Colour::Blue),  tes::Colour(tes::Colour::White),
+      tes::Colour(tes::Colour::White), tes::Colour(tes::Colour::White)
     };
-    auto triangles = std::make_shared<MeshShape>(DtTriangles, Id(nextId++, CatTriangles),
-                                                 DataBuffer(triangleSet, triVertexCount));
+    auto triangles = std::make_shared<tes::MeshShape>(
+      tes::DtTriangles, tes::Id(next_id++, CatTriangles), tes::DataBuffer(triangle_set));
     triangles->setColours(colours);
     triangles->duplicateArrays();
     shapes.emplace_back(triangles);
-    // if (!noMove)
+    // if (!no_move)
     // {
     //   movers.emplace_back(std::make_shared<Oscilator>(mesh, 2.0f, 2.5f));
     // }
   }
 
-  if (allShapes || haveOption("mesh", argc, argv))
+  if (all_shapes || haveOption("mesh", argc, argv))
   {
-    auto meshRes = createTestMesh();
-    resources.emplace_back(meshRes);
-    const unsigned partCount = 2;
-    auto mesh = std::make_shared<MeshSet>(Id(nextId++, CatMesh), partCount);
-    mesh->setPart(0, meshRes, Matrix4f::Identity, Colour(Colour::YellowGreen));
-    mesh->setPart(1, meshRes, Matrix4f::translation(Vector3f(0, 0, 1.5f)), Colour(Colour::SkyBlue));
+    auto mesh_res = createTestMesh();
+    resources.emplace_back(mesh_res);
+    const unsigned part_count = 2;
+    auto mesh = std::make_shared<tes::MeshSet>(tes::Id(next_id++, CatMesh), part_count);
+    mesh->setPart(0, mesh_res, tes::Matrix4f::Identity, tes::Colour(tes::Colour::YellowGreen));
+    mesh->setPart(1, mesh_res, tes::Matrix4f::translation(tes::Vector3f(0, 0, 1.5f)),
+                  tes::Colour(tes::Colour::SkyBlue));
     shapes.emplace_back(mesh);
-    // if (!noMove)
+    // if (!no_move)
     // {
     //   movers.emplace_back(std::make_shared<Oscilator>(mesh, 2.0f, 2.5f));
     // }
     std::cout << "make mesh" << std::endl;
   }
 
-  if (allShapes || haveOption("points", argc, argv))
+  if (all_shapes || haveOption("points", argc, argv))
   {
-    static const Vector3f pts[] = { Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1),
-                                    Vector3f(-0.25f, 0, 1), Vector3f(0, -0.25f, 1),
-                                    Vector3f(0, -0.25f, 1) };
-    const unsigned pointsCount = sizeof(pts) / sizeof(pts[0]);
-    static const uint32_t colours[] = { Colour(Colour::Black).colour32(),
-                                        Colour(Colour::Red).colour32(),
-                                        Colour(Colour::Green).colour32(),
-                                        Colour(Colour::Blue).colour32(),
-                                        Colour(Colour::White).colour32() };
-    auto points =
-      std::make_shared<MeshShape>(DtPoints, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
+    const std::array<tes::Vector3f, 5> pts = {
+      tes::Vector3f(0, 0.25f, 1), tes::Vector3f(0.25f, 0, 1), tes::Vector3f(-0.25f, 0, 1),
+      tes::Vector3f(0, -0.25f, 1), tes::Vector3f(0, -0.25f, 1)
+    };
+    const std::array<tes::Colour, pts.size()> colours = { tes::Colour(tes::Colour::Black),
+                                                          tes::Colour(tes::Colour::Red),
+                                                          tes::Colour(tes::Colour::Green),
+                                                          tes::Colour(tes::Colour::Blue),
+                                                          tes::Colour(tes::Colour::White) };
+    auto points = std::make_shared<tes::MeshShape>(tes::DtPoints, tes::Id(next_id++, CatPoints),
+                                                   tes::DataBuffer(pts));
     points->setColours(colours);
     points->setDrawScale(3.0f);
     shapes.emplace_back(points);
-    // if (!noMove)
+    // if (!no_move)
     // {
     //   movers.emplace_back(std::make_shared<Oscilator>(mesh, 2.0f, 2.5f));
     // }
   }
 
-  if (allShapes || haveOption("voxels", argc, argv))
+  if (all_shapes || haveOption("voxels", argc, argv))
   {
-    static const Vector3f pts[] = { Vector3f(0, 0.25f, 1), Vector3f(0.25f, 0, 1),
-                                    Vector3f(-0.25f, 0, 1), Vector3f(0, -0.25f, 1),
-                                    Vector3f(0, -0.25f, 1) };
-    const unsigned pointsCount = sizeof(pts) / sizeof(pts[0]);
-    static const uint32_t colours[] = { Colour(Colour::Black).colour32(),
-                                        Colour(Colour::Red).colour32(),
-                                        Colour(Colour::Green).colour32(),
-                                        Colour(Colour::Blue).colour32(),
-                                        Colour(Colour::White).colour32() };
-    auto points =
-      std::make_shared<MeshShape>(DtVoxels, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
+    const std::array<tes::Vector3f, 5> pts = {
+      tes::Vector3f(0, 0.25f, 1), tes::Vector3f(0.25f, 0, 1), tes::Vector3f(-0.25f, 0, 1),
+      tes::Vector3f(0, -0.25f, 1), tes::Vector3f(0, -0.25f, 1)
+    };
+    const std::array<tes::Colour, pts.size()> colours = { tes::Colour(tes::Colour::Black),
+                                                          tes::Colour(tes::Colour::Red),
+                                                          tes::Colour(tes::Colour::Green),
+                                                          tes::Colour(tes::Colour::Blue),
+                                                          tes::Colour(tes::Colour::White) };
+    auto points = std::make_shared<tes::MeshShape>(tes::DtVoxels, tes::Id(next_id++, CatPoints),
+                                                   tes::DataBuffer(pts));
     points->setColours(colours);
     points->setDrawScale(0.2f);
     shapes.emplace_back(points);
-    // if (!noMove)
+    // if (!no_move)
     // {
     //   movers.emplace_back(std::make_shared<Oscilator>(mesh, 2.0f, 2.5f));
     // }
   }
 
-  if (allShapes || haveOption("cloud", argc, argv))
+  if (all_shapes || haveOption("cloud", argc, argv))
   {
     auto cloud = createTestCloud(16.0f);
-    auto points = std::make_shared<MeshSet>(cloud, Id(nextId++, CatPoints));
+    auto points = std::make_shared<tes::MeshSet>(cloud, tes::Id(next_id++, CatPoints));
     shapes.emplace_back(points);
     resources.emplace_back(cloud);
-    // if (!noMove)
+    // if (!no_move)
     // {
     //   movers.emplace_back(std::make_shared<Oscilator>(points, 2.0f, 2.5f));
     // }
@@ -477,73 +485,73 @@ void createShapes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
   if (haveOption("multi", argc, argv))
   {
     // Set the block size to ensure we are larger than the multi-shape packet size.
-    const int blockSize = 15;
-    const int manyCount = blockSize * blockSize * blockSize;
+    const int block_size = 15;
+    const int many_count = block_size * block_size * block_size;
     const float separation = 0.3f;
-    const float blockOffset = -0.5f * blockSize * separation;
+    const float block_offset = -0.5f * block_size * separation;
 
-    std::vector<std::shared_ptr<Shape>> manyShapes(manyCount);
-    unsigned id = nextId++;
+    std::vector<std::shared_ptr<tes::Shape>> many_shapes(many_count);
+    unsigned id = next_id++;
     unsigned i = 0;
-    for (int z = 0; z < blockSize; ++z)
+    for (int z = 0; z < block_size; ++z)
     {
-      for (int y = 0; y < blockSize; ++y)
+      for (int y = 0; y < block_size; ++y)
       {
-        for (int x = 0; x < blockSize; ++x)
+        for (int x = 0; x < block_size; ++x)
         {
-          Vector3f pos;
-          pos.x() = blockOffset + float(x) * separation;
-          pos.y() = blockOffset + float(y) * separation;
-          pos.z() = blockOffset + float(z) * separation;
+          tes::Vector3f pos;
+          pos.x() = block_offset + static_cast<float>(x) * separation;
+          pos.y() = block_offset + static_cast<float>(y) * separation;
+          pos.z() = block_offset + static_cast<float>(z) * separation;
 
-          auto capsule =
-            std::make_shared<Capsule>(Id(id, CatCapsule), Directional::identity(false));
+          auto capsule = std::make_shared<tes::Capsule>(tes::Id(id, CatCapsule),
+                                                        tes::Directional::identity(false));
           capsule->setLength(0.4f);
           capsule->setRadius(0.15f);
-          capsule->setColour(ColourSet::predefined(ColourSet::Standard).cycle(i));
+          capsule->setColour(tes::ColourSet::predefined(tes::ColourSet::Standard).cycle(i));
           capsule->setPosition(pos);
-          manyShapes[i++] = capsule;
+          many_shapes[i++] = capsule;
         }
       }
     }
 
-    auto shape =
-      std::make_shared<MultiShape>(manyShapes.begin(), manyShapes.end(), Vector3f(0, 10.0f, 0));
+    auto shape = std::make_shared<tes::MultiShape>(many_shapes.begin(), many_shapes.end(),
+                                                   tes::Vector3f(0, 10.0f, 0));
     // shape->takeOwnership();
     shapes.emplace_back(shape);
 
     // Clone the array for a second set and change the ID.
-    id = nextId++;
-    for (size_t i = 0; i < manyShapes.size(); ++i)
+    id = next_id++;
+    for (auto &shape : many_shapes)
     {
-      manyShapes[i] = manyShapes[i]->clone();
-      manyShapes[i]->setId(id);
+      shape = shape->clone();
+      shape->setId(id);
     }
-    shape =
-      std::make_shared<MultiShape>(manyShapes.begin(), manyShapes.end(), Vector3f(-10.0f, 5.0f, 0));
+    shape = std::make_shared<tes::MultiShape>(many_shapes.begin(), many_shapes.end(),
+                                              tes::Vector3f(-10.0f, 5.0f, 0));
     shape->takeOwnership();
     shapes.emplace_back(shape);
   }
 
   if (haveOption("wire", argc, argv))
   {
-    for (size_t i = initialShapeCount; i < shapes.size(); ++i)
+    for (size_t i = initial_shape_count; i < shapes.size(); ++i)
     {
       shapes[i]->setWireframe(true);
     }
   }
 
   // Position the shapes so they aren't all on top of one another.
-  if (shapes.size() > initialShapeCount)
+  if (shapes.size() > initial_shape_count)
   {
-    Vector3f pos(0.0f);
+    tes::Vector3f pos(0.0f);
     const float spacing = 2.0f;
-    pos.x() -= spacing * float((shapes.size() - initialShapeCount) / 2u);
+    pos.x() -= spacing * 0.5f * static_cast<float>(shapes.size() - initial_shape_count);
 
-    for (size_t i = initialShapeCount; i < shapes.size(); ++i)
+    for (size_t i = initial_shape_count; i < shapes.size(); ++i)
     {
       // Set position if not already set.
-      if (shapes[i]->position().isEqual(Vector3f::Zero))
+      if (shapes[i]->position().isEqual(tes::Vector3f::Zero))
       {
         shapes[i]->setPosition(pos);
         // std::cout << "Positioned " << typeid(*shapes[i]).name() << " at "
@@ -561,39 +569,40 @@ void createShapes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
 
 
   // Add text after positioning and mover changes to keep fixed positions.
-  if (allShapes || haveOption("text2d", argc, argv))
+  if (all_shapes || haveOption("text2d", argc, argv))
   {
-    std::shared_ptr<Text2D> text;
-    text = std::make_shared<Text2D>("Hello Screen", Id(nextId++, CatText2D),
-                                    Spherical(Vector3f(0.25f, 0.75f, 0.0f)));
+    std::shared_ptr<tes::Text2D> text;
+    text = std::make_shared<tes::Text2D>("Hello Screen", tes::Id(next_id++, CatText2D),
+                                         tes::Spherical(tes::Vector3f(0.25f, 0.75f, 0.0f)));
     shapes.emplace_back(text);
-    text = std::make_shared<Text2D>("Hello World 2D", Id(nextId++, CatText2D),
-                                    Spherical(Vector3f(1.0f, 1.0f, 1.0f)));
+    text = std::make_shared<tes::Text2D>("Hello World 2D", tes::Id(next_id++, CatText2D),
+                                         tes::Spherical(tes::Vector3f(1.0f, 1.0f, 1.0f)));
     text->setInWorldSpace(true);
     shapes.emplace_back(text);
   }
 
-  if (allShapes || haveOption("text3d", argc, argv))
+  if (all_shapes || haveOption("text3d", argc, argv))
   {
-    std::shared_ptr<Text3D> text;
-    text = std::make_shared<Text3D>(
-      "Hello World 3D", Id(nextId++, CatText3D),
-      Directional(Vector3f(-1.0f, -1.0f, 1.0f), Vector3f(0, 1, 0), 1.0f, 8.0f));
+    std::shared_ptr<tes::Text3D> text;
+    text = std::make_shared<tes::Text3D>(
+      "Hello World 3D", tes::Id(next_id++, CatText3D),
+      tes::Directional(tes::Vector3f(-1.0f, -1.0f, 1.0f), tes::Vector3f(0, 1, 0), 1.0f, 8.0f));
     shapes.emplace_back(text);
-    text = std::make_shared<Text3D>("Hello World 3D Facing", Id(nextId++, CatText3D),
-                                    Directional(Vector3f(-1.0f, -1.0f, 0.0f), 1.0f, 8.0f));
+    text = std::make_shared<tes::Text3D>(
+      "Hello World 3D Facing", tes::Id(next_id++, CatText3D),
+      tes::Directional(tes::Vector3f(-1.0f, -1.0f, 0.0f), 1.0f, 8.0f));
     text->setScreenFacing(true);
     shapes.emplace_back(text);
   }
 
   // Did we create anything?
-  if (initialShapeCount == shapes.size())
+  if (initial_shape_count == shapes.size())
   {
     // Nothing created. Create the default shape by providing some fake arguments.
-    const char *defaultArgv[] = { "this arg is not read", "sphere" };
+    std::array<const char *, 2> default_argv = { "this arg is not read", "sphere" };
 
-    createShapes(nextId, shapes, movers, resources, sizeof(defaultArgv) / sizeof(defaultArgv[0]),
-                 defaultArgv);
+    createShapes(next_id, shapes, movers, resources, static_cast<int>(default_argv.size()),
+                 default_argv.data());
   }
 }
 
@@ -636,40 +645,40 @@ void showUsage(int argc, char **argv)
 }
 
 
-int main(int argc, char **argvNonConst)
+int main(int argc, char **argv_non_const)
 {
-  const char **argv = const_cast<const char **>(argvNonConst);
+  const char **argv = const_cast<const char **>(argv_non_const);
   signal(SIGINT, &onSignal);
   signal(SIGTERM, &onSignal);
 
   if (haveOption("help", argc, argv))
   {
-    showUsage(argc, argvNonConst);
+    showUsage(argc, argv_non_const);
     return 0;
   }
 
-  ServerInfoMessage info;
-  initDefaultServerInfo(&info);
-  info.coordinate_frame = XYZ;
-  unsigned serverFlags = SFDefaultNoCompression;
+  tes::ServerInfoMessage info;
+  tes::initDefaultServerInfo(&info);
+  info.coordinate_frame = tes::XYZ;
+  unsigned server_flags = tes::SFDefaultNoCompression;
   if (haveOption("compress", argc, argv))
   {
-    serverFlags |= SFCompress;
+    server_flags |= tes::SFCompress;
   }
-  auto server = Server::create(ServerSettings(serverFlags), &info);
+  auto server = tes::Server::create(tes::ServerSettings(server_flags), &info);
 
-  std::vector<std::shared_ptr<Shape>> shapes;
+  std::vector<std::shared_ptr<tes::Shape>> shapes;
   std::vector<std::shared_ptr<ShapeMover>> movers;
-  std::vector<std::shared_ptr<Resource>> resources;
+  std::vector<std::shared_ptr<tes::Resource>> resources;
 
-  unsigned nextId = 1;
-  createAxes(nextId, shapes, movers, resources, argc, argv);
-  createShapes(nextId, shapes, movers, resources, argc, argv);
+  unsigned next_id = 1;
+  createAxes(next_id, shapes, movers, resources, argc, argv);
+  createShapes(next_id, shapes, movers, resources, argc, argv);
 
-  const unsigned targetFrameTimeMs = 1000 / 30;
+  const unsigned target_frame_time_ms = 1000 / 30;
   float time = 0;
-  auto lastTime = std::chrono::system_clock::now();
-  auto onNewConnection = [&shapes](Server & /*server*/, Connection &connection) {
+  auto last_time = std::chrono::system_clock::now();
+  auto on_new_connection = [&shapes](tes::Server & /*server*/, tes::Connection &connection) {
     // Test categories API.
     defineCategory(&connection, "3D", Cat3D, CatRoot, true);
     defineCategory(&connection, "Text", CatText, CatRoot, true);
@@ -696,7 +705,7 @@ int main(int argc, char **argvNonConst)
     }
   };
 
-  server->connectionMonitor()->setConnectionCallback(onNewConnection);
+  server->connectionMonitor()->setConnectionCallback(on_new_connection);
 
   if (!server->connectionMonitor()->start(tes::ConnectionMode::Asynchronous))
   {
@@ -717,14 +726,15 @@ int main(int argc, char **argvNonConst)
     server->create(*shape);
   }
 
-  while (!quit)
+  while (!g_quit)
   {
     auto now = std::chrono::system_clock::now();
-    auto elapsed = now - lastTime;
+    auto elapsed = now - last_time;
 
-    lastTime = now;
-    float dt =
-      float(std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()) * 1e-6f;
+    last_time = now;
+    const float dt =
+      static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()) *
+      1e-6f;
     time += dt;
 
     for (auto &mover : movers)
@@ -745,11 +755,12 @@ int main(int argc, char **argvNonConst)
     fflush(stdout);
 
     now = std::chrono::system_clock::now();
-    elapsed = now - lastTime;
-    unsigned elapsedMs =
-      unsigned(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
-    unsigned sleepTimeMs = (elapsedMs <= targetFrameTimeMs) ? targetFrameTimeMs - elapsedMs : 0u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
+    elapsed = now - last_time;
+    const unsigned elapsed_ms =
+      static_cast<unsigned>(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
+    const unsigned sleep_time_ms =
+      (elapsed_ms <= target_frame_time_ms) ? target_frame_time_ms - elapsed_ms : 0u;
+    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_ms));
   }
 
   movers.clear();
@@ -769,3 +780,5 @@ int main(int argc, char **argvNonConst)
 
   return 0;
 }
+
+// NOLINTEND(readability-magic-numbers, readability-function-cognitive-complexity)

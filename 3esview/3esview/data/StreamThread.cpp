@@ -139,7 +139,7 @@ void StreamThread::run()
     }
 
     at_frame_boundary = false;  // Tracks when we reach a frame boundary.
-    while (!at_frame_boundary && _stream_reader->isOk() && !_stream_reader->isEof())
+    while (!_quitFlag && !at_frame_boundary && _stream_reader->isOk() && !_stream_reader->isEof())
     {
       auto packet_header = _stream_reader->extractPacket();
       if (packet_header)

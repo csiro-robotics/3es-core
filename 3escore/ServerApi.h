@@ -22,8 +22,8 @@
 #endif  // TES_ENABLE
 
 #include <functional>
-#include <string>
 #include <memory>
+#include <string>
 
 /// @ingroup tescpp
 /// @defgroup tesserverapi 3rd Eye Scene Server API
@@ -427,7 +427,7 @@ inline void defineCategory(Connection *connection, const std::string &name, uint
     msg.parent_id = static_cast<uint16_t>(parent_id);
     msg.default_active = (active) ? 1 : 0;
     const size_t name_len = name.length();
-    msg.name_length = (uint16_t)((name_len <= 0xffffu) ? name_len : 0xffffu);
+    msg.name_length = static_cast<uint16_t>((name_len <= 0xffffu) ? name_len : 0xffffu);
     msg.name = name.c_str();
     tes::sendMessage(*connection, tes::MtCategory, tes::CategoryNameMessage::MessageId, msg);
   }

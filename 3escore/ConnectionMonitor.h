@@ -7,8 +7,8 @@
 #include "CoreConfig.h"
 
 #include <functional>
-#include <string>
 #include <memory>
+#include <string>
 
 namespace tes
 {
