@@ -536,7 +536,7 @@ TEST(Shapes, Mesh)
                       Transform(Vector3f(1.2f, 2.3f, 3.4f),
                                 Quaternionf().setAxisAngle(Vector3f(1, 1, 1), degToRad(18.0f)),
                                 Vector3f(1.0f, 1.2f, 0.8f)))
-              .setColours(colours.data()));
+              .setColours(colours));
 }
 
 TEST(Shapes, Plane)
