@@ -12,10 +12,19 @@ namespace tes
 {
 /// Marker value identifying a packet header in local Endian.
 extern const uint32_t TES_CORE_API kPacketMarker;
-/// Expected packet major version local Endian.
+/// Packet encoding major version local Endian.
 extern const uint16_t TES_CORE_API kPacketVersionMajor;
-/// Expected packet minor version local Endian.
+/// Packet encoding minor version local Endian.
 extern const uint16_t TES_CORE_API kPacketVersionMinor;
+
+/// Packet decoding major compatibility version local Endian.
+///
+/// This is the minimum supported version number.
+extern const uint16_t TES_CORE_API kPacketCompatibilityVersionMajor;
+/// Packet decoding minor compatibility version local Endian.
+///
+/// This is the minimum supported version number.
+extern const uint16_t TES_CORE_API kPacketCompatibilityVersionMinor;
 
 /// Flag values for @c PacketHeader objects.
 enum PacketFlag : unsigned

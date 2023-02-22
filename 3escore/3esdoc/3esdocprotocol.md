@@ -75,7 +75,7 @@ Star              | 70        | A star shape.
 Arrow             | 71        | An arrow shape made from a conical head and cylindrical body.
 Mesh Shape        | 72        | A single mesh object made up of vertices and indices with a specified draw type or topology.
 Mesh Set          | 73        | A collection of mesh objects created via Mesh Routing ID. A mesh set supports more complex mesh structures than Mesh Set allowing multiple shared mesh resources. Meshes themselves support vertex colour and vertex normals.  See TODO "mesh resources".
-Point Cloud       | 74        | Similar to a mesh set, a point cloud shape supports a single, shared point cloud mesh resource.
+(Deprecated)      | 74        | Was used for a PointCloudShape, now deprecated. Use `MeshShape` and `MeshSet` with points drawing mode.
 Text 3D           | 75        | Supports text with full 3D positioning and scale, with optional billboarding.
 Text 2D           | 76        | Supports 2D text either located in screen space, or located in 3D and projected into screen space.
 Pose              | 77        | Some representation of a position and orientation making a pose. May be visualised as a set of oriented axes.
@@ -304,9 +304,9 @@ Data Buffer       | varies    | The remainder of the payload is a vertex buffer.
 The vertex buffer payloads have certain expectations placed on them.
 
 Message           | Description
------------------ | -----------------------------------------------------------
+----------------- | --------------------------------------------------------------------------------------------------
 Vertex            | Triples of Float32, Float64, PackedFloat16 or PackedFloat32
-Vertex Colour     | UInt32 colours. See [colour encoding](#colour-encoding).
+Vertex Colour     | UInt32 colours. See [colour encoding](#colour-encoding). 4xUInt8 encoding is optionally supported.
 Index             | Any integer type
 Normal            | Triples of Float32, Float64, PackedFloat16 or PackedFloat32
 UV                | Pairs of Float32, Float64, PackedFloat16 or PackedFloat32
@@ -318,6 +318,8 @@ From this we see that each message identifies the target mesh resource, an index
 - offset 60000, count 20000
 
 > The maths above is suspect. 30000 may be the incorrect payload count.
+
+Colours may optionally be encoded using a UInt8 per channel, ordered RGBA (low to high byte), which is equivalent to the UInt32 network endian encoding. The 32-bit encoding is preferred.
 
 ## Camera messages {#camera-messages}
 
@@ -438,7 +440,6 @@ Star              | No        | No            | Pivot is at the centre, rotation
 Arrow             | No        | Yes           | Pivot is at the arrow base. Default direction is (0, 0, 1) away from the base.
 Mesh Shape        | Yes       | No            | Writes additional data.
 Mesh Set          | No        | No            | Writes additional data.
-Point Cloud       | Yes       | No            | Writes additional data.
 Text 3D           | No        | Yes\*         | Supports user flags. Writes additional data. Position may defaults to screen space with (0, 0) the upper left corer and (1, 1) the lower right (Z ignored).
 Text 2D           | No        | Yes\*         | Supports user flags. Writes additional data.
 
