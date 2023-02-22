@@ -339,7 +339,7 @@ TEST(Buffer, Colour)
 {
   const size_t colour_count = 1024;
   std::vector<Colour> colours;
-  std::vector<uint8_t> reference;
+  std::vector<uint32_t> reference;
 
   colours.reserve(colour_count);
   reference.reserve(colour_count * 4);
@@ -347,26 +347,23 @@ TEST(Buffer, Colour)
   for (size_t i = 0; i < colour_count; ++i)
   {
     colours.emplace_back(ColourSet::predefined(ColourSet::WebSafe).cycle(i));
-    reference.emplace_back(colours.back().storage()[0]);
-    reference.emplace_back(colours.back().storage()[1]);
-    reference.emplace_back(colours.back().storage()[2]);
-    reference.emplace_back(colours.back().storage()[3]);
+    reference.emplace_back(colours.back().colour32());
   }
 
   // Populate the buffer from a Vector3 array and test reading as all types.
   DataBuffer buffer(colours);
-  testBufferReadAsType<uint8_t>(buffer, reference, "std::vector<Colour>");
+  testBufferReadAsType<uint32_t>(buffer, reference, "std::vector<Colour>");
 
   // Reinitialise the buffer from Vector3 pointer.
   buffer = DataBuffer(colours.data(), colours.size());
-  testBufferReadAsType<uint8_t>(buffer, reference, "Colour*");
+  testBufferReadAsType<uint32_t>(buffer, reference, "Colour*");
 
   // Reinitialise from real array
-  buffer = DataBuffer(reference, 4);
-  testBufferReadAsType<uint8_t>(buffer, reference, "std::vector<uint8_t>");
+  buffer = DataBuffer(reference);
+  testBufferReadAsType<uint32_t>(buffer, reference, "std::vector<uint32_t>");
 
   // Reinitialise from real array
-  buffer = DataBuffer(reference.data(), reference.size() / 4, 4);
-  testBufferReadAsType<uint8_t>(buffer, reference, "uint8_t*");
+  buffer = DataBuffer(reference.data(), reference.size());
+  testBufferReadAsType<uint32_t>(buffer, reference, "uint32_t*");
 }
 }  // namespace tes

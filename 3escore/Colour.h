@@ -23,12 +23,22 @@ class TES_CORE_API Colour
 {
 public:
   /// Channel index enumeration.
+  ///
+  /// Note the channel ordering depends on the machine endian. This supports implicit conversion to
+  /// and from @c uint32_t colour such as when used in the @c DataBuffer .
   enum class Channel : int
   {
+#if TES_IS_BIG_ENDIAN
     R = 0,  ///< Red channel index.
     G = 1,  ///< Green channel index.
     B = 2,  ///< Blue channel index.
     A = 3   ///< Alpha channel index.
+#else       // TES_IS_BIG_ENDIAN
+    A = 0,  ///< Alpha channel index.
+    B = 1,  ///< Blue channel index.
+    G = 2,  ///< Green channel index.
+    R = 3   ///< Red channel index.
+#endif      // TES_IS_BIG_ENDIAN
   };
 
   enum NamedColour : unsigned;
@@ -276,7 +286,6 @@ public:
     static constexpr int kGreenIndex = static_cast<int>(Channel::G);
     static constexpr int kBlueIndex = static_cast<int>(Channel::B);
     static constexpr int kAlphaIndex = static_cast<int>(Channel::A);
-#if TES_IS_BIG_ENDIAN
     static constexpr unsigned kRedShift =
       (static_cast<unsigned>(Channel::R) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
     static constexpr unsigned kGreenShift =
@@ -285,16 +294,6 @@ public:
       (static_cast<unsigned>(Channel::B) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
     static constexpr unsigned kAlphaShift =
       (static_cast<unsigned>(Channel::A) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
-#else   // TES_IS_BIG_ENDIAN
-    static constexpr unsigned kRedShift =
-      (3 - static_cast<unsigned>(Channel::R) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
-    static constexpr unsigned kGreenShift =
-      (3 - static_cast<unsigned>(Channel::G) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
-    static constexpr unsigned kBlueShift =
-      (3 - static_cast<unsigned>(Channel::B) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
-    static constexpr unsigned kAlphaShift =
-      (3 - static_cast<unsigned>(Channel::A) * static_cast<unsigned>(sizeof(uint8_t))) * 8u;
-#endif  // TES_IS_BIG_ENDIAN
 
     uint32_t operator()(const std::array<uint8_t, 4> &storage) const;
     void operator()(uint32_t colour, std::array<uint8_t, 4> &storage) const;

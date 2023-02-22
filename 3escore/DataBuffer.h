@@ -25,11 +25,11 @@
   class DataBufferPrimitiveTypeInfo<_type>  \
   {                                         \
   public:                                   \
-    static DataStreamType type()            \
+    constexpr static DataStreamType type()  \
     {                                       \
       return _type_name;                    \
     }                                       \
-    static size_t size()                    \
+    constexpr static size_t size()          \
     {                                       \
       return sizeof(_type);                 \
     }                                       \
@@ -47,10 +47,10 @@ class DataBufferPrimitiveTypeInfo
 public:
   /// Query the @c DataStreamType corresponding to @c T .
   /// @return The corresponding primitive type.
-  static DataStreamType type() { return DctNone; }
+  constexpr static DataStreamType type() { return DctNone; }
   /// Query the byte size of @c T .
   /// @return The byte size of @c T .
-  static size_t size() { return 0; }
+  constexpr static size_t size() { return 0; }
 };
 
 STREAM_TYPE_INFO(int8_t, DctInt8);
@@ -453,8 +453,7 @@ public:
 
   /// Construct from a @c Colour array using borrowed memory.
   ///
-  /// Each colour is represented by a set of 4 component @c uint8_t entries {red, green, blue,
-  /// alpha}.
+  /// Each colour is represented by a single @c uint32_t value as encoded by @c Colour::colour32().
   ///
   /// @param c The colour array.
   /// @param count The number of elements in @p c.
@@ -462,8 +461,7 @@ public:
 
   /// Construct from a @c Colour @c std::array using borrowed memory.
   ///
-  /// Each colour is represented by a set of 4 component @c uint8_t entries {red, green, blue,
-  /// alpha}.
+  /// Each colour is represented by a single @c uint32_t value as encoded by @c Colour::colour32().
   ///
   /// @tparam Count The number of elements in @p c.
   /// @param c The colour array.
@@ -582,9 +580,9 @@ public:
   /// Vector3f while the
   /// @c component_count is used in the range [0, 2] to extract the XYZ values.
   ///
-  /// @note This only supports reading primitive types, meaning that template types of @c
-  /// Vector3&lt;T&gt; and @c Colour are not supported. Use @c float or @c double for @c
-  /// Vector3&lt;T&gt; buffers and @c uint32_t for @c Colour .
+  /// @note This only supports reading primitive types, meaning that template types of @c Vector3<T>
+  /// and @c Colour are not supported. Use @c float or @c double for @c Vector<T> buffers and
+  /// @c uint32_t for @c Colour
   template <typename T>
   T get(size_t element_index, size_t component_index = 0) const;
 
@@ -599,9 +597,9 @@ public:
   /// @c componentCount() greater than 1. The items are read in a tightly packed fasion into @p dst
   /// .
   ///
-  /// @note This only supports reading primitive types, meaning that template types of @c
-  /// Vector3&lt;T&gt; and @c Colour are not supported. Use @c float or @c double for @c
-  /// Vector3&lt;T&gt; buffers and @c uint32_t for @c Colour .
+  /// @note This only supports reading primitive types, meaning that template types of @c Vector3<T>
+  /// and @c Colour are not supported. Use @c float or @c double for @c Vector3<T> buffers and
+  /// @c uint32_t for @c Colour .
   ///
   /// @param element_index The index of the element in the buffer to start reading from.
   /// @param element_count The number of elements to read.
@@ -841,16 +839,14 @@ private:
 
   const void *_stream = nullptr;
   unsigned _count = 0;  ///< Number of vertices in the @p _stream .
-  uint8_t _component_count =
-    1;  ///< Number of primitive type component elements in each vertex. E.g., Vector3 has 3.
+  /// Number of primitive type component elements in each vertex. E.g., Vector3 has 3.
+  uint8_t _component_count = 1;
   /// Number of primitive type elements between each vertex. For any densely packed array this value
-  /// will match
-  /// @c _component_count . For aligned, or interleaved arrays, this valid will be larger than @c
-  /// _component_count .
+  /// will match  @c _component_count . For aligned, or interleaved arrays, this valid will be
+  /// larger than @c _component_count .
   ///
   /// For example, an array of 16 byte aligned @c float3 vertices will have a @c _component_count of
-  /// 3 and a
-  /// @c _element_stride of 4.
+  /// 3 and a @c _element_stride of 4.
   uint8_t _element_stride = 1;
   /// Size of the primitive @c _type stored in @c stream .
   uint8_t _primitive_type_size = 0;

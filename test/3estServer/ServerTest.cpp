@@ -180,14 +180,14 @@ std::shared_ptr<MeshResource> createTestCloud(float draw_scale = 0.0f)
   auto cloud = std::make_shared<PointCloud>(2);  // Considered a Mesh for ID purposes.
   cloud->resize(8);
 
-  cloud->setPoint(0, Vector3f(0, 0, 0), Vector3f(0, 0, 1), Colour(0, 255, 255));
-  cloud->setPoint(1, Vector3f(1, 0, 0), Vector3f(0, 0, 1), Colour(0, 255, 255));
-  cloud->setPoint(2, Vector3f(0, 1, 0), Vector3f(0, 0, 1), Colour(255, 255, 255));
-  cloud->setPoint(3, Vector3f(0, 0, 1), Vector3f(0, 0, 1), Colour(0, 255, 255));
-  cloud->setPoint(4, Vector3f(1, 1, 0), Vector3f(0, 0, 1), Colour(0, 0, 0));
+  cloud->setPoint(0, Vector3f(0, 0, 0), Vector3f(0, 0, 1), Colour(0, 0, 0));
+  cloud->setPoint(1, Vector3f(1, 0, 0), Vector3f(0, 0, 1), Colour(255, 0, 0));
+  cloud->setPoint(2, Vector3f(0, 1, 0), Vector3f(0, 0, 1), Colour(0, 255, 0));
+  cloud->setPoint(3, Vector3f(0, 0, 1), Vector3f(0, 0, 1), Colour(0, 0, 255));
+  cloud->setPoint(4, Vector3f(1, 1, 0), Vector3f(0, 0, 1), Colour(255, 255, 0));
   cloud->setPoint(5, Vector3f(0, 1, 1), Vector3f(0, 0, 1), Colour(0, 255, 255));
-  cloud->setPoint(6, Vector3f(1, 0, 1), Vector3f(0, 0, 1), Colour(0, 255, 255));
-  cloud->setPoint(7, Vector3f(1, 1, 1), Vector3f(0, 0, 1), Colour(0, 255, 255));
+  cloud->setPoint(6, Vector3f(1, 0, 1), Vector3f(0, 0, 1), Colour(255, 0, 255));
+  cloud->setPoint(7, Vector3f(1, 1, 1), Vector3f(0, 0, 1), Colour(255, 255, 255));
 
   cloud->setDrawScale(draw_scale);
 
@@ -455,7 +455,6 @@ void createShapes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
       std::make_shared<MeshShape>(DtVoxels, Id(nextId++, CatPoints), DataBuffer(pts, pointsCount));
     points->setColours(colours);
     points->setDrawScale(0.2f);
-    // points->setUniformNormal(tes::Vector3f(0.2f));
     shapes.emplace_back(points);
     // if (!noMove)
     // {
@@ -463,7 +462,7 @@ void createShapes(unsigned &nextId, std::vector<std::shared_ptr<Shape>> &shapes,
     // }
   }
 
-  if (allShapes || haveOption("cloud", argc, argv) || haveOption("cloudpart", argc, argv))
+  if (allShapes || haveOption("cloud", argc, argv))
   {
     auto cloud = createTestCloud(16.0f);
     auto points = std::make_shared<MeshSet>(cloud, Id(nextId++, CatPoints));

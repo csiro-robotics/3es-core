@@ -104,13 +104,15 @@ inline DataBuffer::DataBuffer(const Vector3d *v, size_t count)
 inline DataBuffer::DataBuffer(const Colour *c, size_t count)
   : _stream(c ? c->storage().data() : nullptr)
   , _count(int_cast<unsigned>(count))
-  , _component_count(4)
-  , _element_stride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint8_t)))
-  , _primitive_type_size(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint8_t>::size()))
-  , _type(DctUInt8)
+  , _component_count(1)
+  , _element_stride(1)
+  , _primitive_type_size(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint32_t>::size()))
+  , _type(DctUInt32)
   , _flags(0)
-  , _affordances(detail::DataBufferAffordancesT<uint8_t>::instance())
-{}
+  , _affordances(detail::DataBufferAffordancesT<uint32_t>::instance())
+{
+  static_assert(sizeof(Colour) == DataBufferPrimitiveTypeInfo<uint32_t>::size());
+}
 
 
 template <typename T>
@@ -151,13 +153,15 @@ inline DataBuffer::DataBuffer(const std::vector<Vector3d> &v)
 inline DataBuffer::DataBuffer(const std::vector<Colour> &colours)
   : _stream(colours.data()->storage().data())
   , _count(int_cast<unsigned>(colours.size()))
-  , _component_count(4)
-  , _element_stride(int_cast<uint8_t>(sizeof(Colour) / sizeof(uint8_t)))
-  , _primitive_type_size(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint8_t>::size()))
-  , _type(DctUInt8)
+  , _component_count(1)
+  , _element_stride(1)
+  , _primitive_type_size(int_cast<uint8_t>(DataBufferPrimitiveTypeInfo<uint32_t>::size()))
+  , _type(DctUInt32)
   , _flags(0)
-  , _affordances(detail::DataBufferAffordancesT<uint8_t>::instance())
-{}
+  , _affordances(detail::DataBufferAffordancesT<uint32_t>::instance())
+{
+  static_assert(sizeof(Colour) == DataBufferPrimitiveTypeInfo<uint32_t>::size());
+}
 
 inline DataBuffer::DataBuffer(DataBuffer &&other) noexcept
   : _stream(std::exchange(other._stream, nullptr))

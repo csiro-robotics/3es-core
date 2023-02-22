@@ -53,7 +53,7 @@ public:
   /// - @c DtPoints point size.
   /// - @c DtLines line width.
   /// - @c DtTriangles no effect.
-  /// - @c DtVoxels voxel size (cube edge length).
+  /// - @c DtVoxels voxel line width (cube size set by normals).
   [[nodiscard]] virtual float drawScale(int stream) const = 0;
   /// @overload
   [[nodiscard]] virtual float drawScale() const { return drawScale(0); }
