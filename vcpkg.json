@@ -34,9 +34,16 @@
           ]
         },
         {
-          "name": "magnum-extras",
+          "name": "imgui",
           "features": [
-            "ui"
+            "freetype",
+            "glfw-binding"
+          ]
+        },
+        {
+          "name": "magnum-integration",
+          "features": [
+            "imgui"
           ]
         },
         {

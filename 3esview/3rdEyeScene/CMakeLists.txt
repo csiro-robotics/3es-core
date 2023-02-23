@@ -4,11 +4,6 @@
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-# Version setup
-#-------------------------------------------------------------------------------
-# include(cmake/3es-version.cmake)
-
-#-------------------------------------------------------------------------------
 # 3rdEyeScene configuration options.
 #-------------------------------------------------------------------------------
 find_package(Corrade CONFIG REQUIRED Containers Main)
@@ -21,6 +16,14 @@ find_package(Magnum CONFIG REQUIRED
   Text
   # TgaImporter
   # Vk
+)
+# Seems there's a slight comability issue between ImGui and the Magnum integration thereof.
+# The Magnum integration looks for a target ImGui::ImGui, while it's actually imgui::imgui.
+# We find the package here and alias it resolve the issue.
+find_package(ImGui CONFIG REQUIRED)
+add_library(ImGui::ImGui ALIAS imgui::imgui)
+find_package(MagnumIntegration REQUIRED
+  ImGui
 )
 find_package(Threads)
 
@@ -69,6 +72,8 @@ target_link_libraries(3rdEyeScene
     Magnum::Magnum
     Magnum::Primitives
     Magnum::Shaders
+    MagnumIntegration::ImGui
+    imgui::imgui
     ${TES_MAGNUM_PLUGIN_LIBRARIES}
 )
 

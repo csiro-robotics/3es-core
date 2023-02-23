@@ -32,21 +32,57 @@ public:
 
   /// Get the default 3es server port.
   /// @return The default server port for 3es.
-  static uint16_t defaultPort();
+  [[nodiscard]] static uint16_t defaultPort();
 
   explicit Viewer(const Arguments &arguments);
   ~Viewer();
 
-  std::shared_ptr<ThirdEyeScene> tes() const { return _tes; }
+  [[nodiscard]] std::shared_ptr<ThirdEyeScene> tes() const { return _tes; }
 
-  const std::shared_ptr<DataThread> &dataThread() const { return _data_thread; }
+  [[nodiscard]] const std::shared_ptr<DataThread> &dataThread() const { return _data_thread; }
+  [[nodiscard]] std::shared_ptr<command::Set> commands() { return _commands; }
+  [[nodiscard]] const std::shared_ptr<command::Set> &commands() const { return _commands; }
+
 
   bool open(const std::filesystem::path &path);
   bool connect(const std::string &host, uint16_t port, bool allow_reconnect = true);
   bool closeOrDisconnect();
 
   void setContinuousSim(bool continuous);
-  bool continuousSim();
+  [[nodiscard]] bool continuousSim();
+
+protected:
+  /// Return value for @c onDrawStart()
+  enum class DrawMode
+  {
+    /// Normal drawing.
+    Normal,
+    /// Modal drawing - disable normal input mode and key responses.
+    /// Useful for when a UI has focus.
+    Modal
+  };
+
+  /// Hook function called at the start of @c drawEvent(). Allows extensions such as UI.
+  /// @param dt Time elapsed since the last draw (seconds).
+  /// @return The @c DrawMode to proceed with.
+  virtual DrawMode onDrawStart(float dt)
+  {
+    TES_UNUSED(dt);
+    return DrawMode::Normal;
+  }
+
+  /// Hook function called at the start of @c drawEvent() before @c swapBuffers(). Allows extensions
+  /// such as UI.
+  /// @param dt Time elapsed since the last draw (seconds).
+  virtual void onDrawComplete(float dt) { TES_UNUSED(dt); }
+
+  void drawEvent() override;
+  void viewportEvent(ViewportEvent &event) override;
+  void keyPressEvent(KeyEvent &event) override;
+  void keyReleaseEvent(KeyEvent &event) override;
+  void mousePressEvent(MouseEvent &event) override;
+  void mouseReleaseEvent(MouseEvent &event) override;
+  void mouseMoveEvent(MouseMoveEvent &event) override;
 
 private:
   enum class EdlParam
@@ -77,14 +113,6 @@ private:
     /// Start the UI and open a network connection.
     Host
   };
-
-  void drawEvent() override;
-  void viewportEvent(ViewportEvent &event) override;
-  void mousePressEvent(MouseEvent &event) override;
-  void mouseReleaseEvent(MouseEvent &event) override;
-  void mouseMoveEvent(MouseMoveEvent &event) override;
-  void keyPressEvent(KeyEvent &event) override;
-  void keyReleaseEvent(KeyEvent &event) override;
 
   bool checkEdlKeys(KeyEvent &event);
 

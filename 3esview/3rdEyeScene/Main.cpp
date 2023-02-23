@@ -1,3 +1,4 @@
-#include <3esview/Viewer.h>
 
-MAGNUM_APPLICATION_MAIN(tes::view::Viewer)
+#include "UIViewer.h"
+
+MAGNUM_APPLICATION_MAIN(tes::view::UIViewer)

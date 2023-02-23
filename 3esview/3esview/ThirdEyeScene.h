@@ -135,7 +135,23 @@ private:
   void initialiseHandlers();
   void initialiseShaders();
 
-  void drawShapes(float dt, const DrawParams &params);
+  void primaryRender(float dt, const DrawParams &params);
+
+  /// Primary drawing pass. Draws _main_draw_handlers with the FBO effect active.
+  /// @param dt Time since last render (seconds).
+  /// @param params Draw parameters.
+  void drawPrimary(float dt, const DrawParams &params);
+  /// Secondary drawing pass. Draws _secondary_draw_handlers using the main frame buffer.
+  /// @param dt Time since last render (seconds).
+  /// @param params Draw parameters.
+  void drawSecondary(float dt, const DrawParams &params);
+  /// Draw all items from @p drawers calling @c handler::Message::draw() for each
+  /// @c handler::Message::DrawPass .
+  /// @param dt Time since last render (seconds).
+  /// @param params Draw parameters.
+  /// @param drawers What to draw.
+  void draw(float dt, const DrawParams &params,
+            const std::vector<std::shared_ptr<handler::Message>> &drawers);
   void updateFpsDisplay(float dt, const DrawParams &params);
 
   std::shared_ptr<FboEffect> _active_fbo_effect;
@@ -146,9 +162,13 @@ private:
   std::shared_ptr<shaders::ShaderLibrary> _shader_library;
 
   std::unordered_map<ShapeHandlerIDs, std::shared_ptr<painter::ShapePainter>> _painters;
-  std::unordered_map<uint32_t, std::shared_ptr<handler::Message>> _messageHandlers;
+  std::unordered_map<uint32_t, std::shared_ptr<handler::Message>> _message_handlers;
   /// Message handers arranged by update order..
-  std::vector<std::shared_ptr<handler::Message>> _orderedMessageHandlers;
+  std::vector<std::shared_ptr<handler::Message>> _ordered_message_handlers;
+  /// Message handlers arranged by draw order, effected during the @c drawPrimary() call.
+  std::vector<std::shared_ptr<handler::Message>> _main_draw_handlers;
+  /// Message handlers arranged by draw order, effected during the @c drawSecondary() call.
+  std::vector<std::shared_ptr<handler::Message>> _secondary_draw_handlers;
   /// List of unknown message handlers for which we've raised warnings. Cleared on @c reset().
   std::unordered_set<uint32_t> _unknown_handlers;
 

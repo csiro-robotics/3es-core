@@ -40,13 +40,30 @@
 
 namespace tes::view
 {
+namespace
+{
+void focusCallback(GLFWwindow *window, int focused)
+{
+  auto *app = static_cast<Magnum::Platform::GlfwApplication *>(glfwGetWindowUserPointer(window));
+  auto *viewer = dynamic_cast<Viewer *>(app);
+  viewer = viewer;
+  if (viewer)
+  {
+    viewer->setContinuousSim(focused != 0);
+  }
+}
+}  // namespace
+
 uint16_t Viewer::defaultPort()
 {
   return ServerSettings().listen_port;
 }
 
 Viewer::Viewer(const Arguments &arguments)
-  : Magnum::Platform::Application{ arguments, Configuration{}.setTitle("3rd Eye Scene Viewer") }
+  : Magnum::Platform::Application{ arguments,
+                                   Configuration{}
+                                     .setTitle("3rd Eye Scene Viewer")
+                                     .setWindowFlags(Configuration::WindowFlag::Resizable) }
   , _tes(std::make_shared<ThirdEyeScene>())
   , _commands(std::make_shared<command::Set>())
   , _move_keys({
@@ -71,6 +88,7 @@ Viewer::Viewer(const Arguments &arguments)
     })
 {
   _edl_effect = std::make_shared<EdlEffect>(Magnum::GL::defaultFramebuffer.viewport());
+  // FIXME(KS): The EDL effect isn't palying nicely with the UI rendering.
   _tes->setActiveFboEffect(_edl_effect);
   command::registerDefaultCommands(*_commands);
 
@@ -78,6 +96,11 @@ Viewer::Viewer(const Arguments &arguments)
   {
     exit();
   }
+
+  // GLFW specific.
+  // Bind a callback to force continuous sim while focused.
+  // glfwSetWindowUserPointer(window(), this);
+  glfwSetWindowFocusCallback(window(), focusCallback);
 }
 
 
@@ -90,6 +113,7 @@ Viewer::~Viewer()
 bool Viewer::open(const std::filesystem::path &path)
 {
   closeOrDisconnect();
+  _tes->reset();
   std::ifstream file(path.string(), std::ios::binary);
   if (!file.is_open())
   {
@@ -106,6 +130,7 @@ bool Viewer::open(const std::filesystem::path &path)
 bool Viewer::connect(const std::string &host, uint16_t port, bool allow_reconnect)
 {
   closeOrDisconnect();
+  _tes->reset();
   auto net_thread = std::make_shared<NetworkThread>(_tes, host, port, allow_reconnect);
   _data_thread = net_thread;
   if (!allow_reconnect)
@@ -135,6 +160,11 @@ bool Viewer::closeOrDisconnect()
     _data_thread = nullptr;
     return true;
   }
+  else
+  {
+    // Reset existing data on second close/reset request.
+    _tes->reset();
+  }
   return false;
 }
 
@@ -153,6 +183,7 @@ void Viewer::setContinuousSim(bool continuous)
 
 bool Viewer::continuousSim()
 {
+  // Check forcing continuous mode.
   if (_continuous_sim || _mouse_rotation_active || _data_thread)
   {
     return true;
@@ -181,12 +212,22 @@ void Viewer::drawEvent()
   _last_sim_time = now;
   const float dt = std::chrono::duration_cast<std::chrono::duration<float>>(delta_time).count();
 
-  updateCamera(dt, _tes->camera());
+  const auto draw_mode = onDrawStart(dt);
 
+  if (draw_mode == DrawMode::Normal)
+  {
+    updateCamera(dt, _tes->camera());
+  }
+  else
+  {
+    _mouse_rotation_active = false;
+  }
   _tes->render(dt, windowSize());
 
+  onDrawComplete(dt);
+
   swapBuffers();
-  if (continuousSim())
+  if (continuousSim() || isTextInputActive())
   {
     redraw();
   }
@@ -195,43 +236,8 @@ void Viewer::drawEvent()
 
 void Viewer::viewportEvent(ViewportEvent &event)
 {
-  (void)event;
+  Magnum::GL::defaultFramebuffer.setViewport({ {}, event.framebufferSize() });
   _edl_effect->viewportChange(Magnum::GL::defaultFramebuffer.viewport());
-}
-
-
-void Viewer::mousePressEvent(MouseEvent &event)
-{
-  if (event.button() != MouseEvent::Button::Left)
-    return;
-
-  _mouse_rotation_active = true;
-  event.setAccepted();
-}
-
-
-void Viewer::mouseReleaseEvent(MouseEvent &event)
-{
-  _mouse_rotation_active = false;
-
-  event.setAccepted();
-  redraw();
-}
-
-
-void Viewer::mouseMoveEvent(MouseMoveEvent &event)
-{
-  using namespace Magnum::Math::Literals;
-  if (!(event.buttons() & MouseMoveEvent::Button::Left))
-  {
-    return;
-  }
-
-  _fly.updateMouse(float(event.relativePosition().x()), float(event.relativePosition().y()),
-                   _tes->camera());
-
-  event.setAccepted();
-  redraw();
 }
 
 
@@ -323,6 +329,41 @@ void Viewer::keyReleaseEvent(KeyEvent &event)
   {
     redraw();
   }
+}
+
+
+void Viewer::mousePressEvent(MouseEvent &event)
+{
+  if (event.button() != MouseEvent::Button::Left)
+    return;
+
+  _mouse_rotation_active = true;
+  event.setAccepted();
+}
+
+
+void Viewer::mouseReleaseEvent(MouseEvent &event)
+{
+  _mouse_rotation_active = false;
+
+  event.setAccepted();
+  redraw();
+}
+
+
+void Viewer::mouseMoveEvent(MouseMoveEvent &event)
+{
+  using namespace Magnum::Math::Literals;
+  if (!(event.buttons() & MouseMoveEvent::Button::Left))
+  {
+    return;
+  }
+
+  _fly.updateMouse(float(event.relativePosition().x()), float(event.relativePosition().y()),
+                   _tes->camera());
+
+  event.setAccepted();
+  redraw();
 }
 
 
