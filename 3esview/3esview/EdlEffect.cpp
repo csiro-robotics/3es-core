@@ -129,16 +129,15 @@ void EdlEffect::prepareFrame(const Magnum::Matrix4 &projection_matrix,
 void EdlEffect::completeFrame()
 {
   Magnum::Matrix4 projection;  // Identity.
-  Magnum::GL::Renderer::setDepthMask(false);
-  Magnum::GL::Renderer::setStencilMask(false);
   _imp->shader.setProjectionMatrix(projection)
+    .bindColourTexture(_imp->colour_texture)
+    .bindDepthBuffer(_imp->depth_texture)
     .setClipParams(_imp->near_clip, _imp->far_clip)
     .setRadius(_imp->settings.radius)
     .setLinearScale(_imp->settings.linear_scale)
     .setExponentialScale(_imp->settings.exponential_scale)
     .setLightDirection(_imp->settings.light_direction);
   _imp->shader.draw(_imp->mesh);
-  Magnum::GL::Renderer::setDepthMask(true);
 }
 
 
@@ -169,9 +168,6 @@ void EdlEffect::makeBuffers(const Magnum::Range2Di &viewport)
   _imp->frame_buffer.attachTexture(Magnum::GL::Framebuffer::BufferAttachment::Depth,
                                    _imp->depth_texture, 0);
 
-  _imp->shader
-    .bindColourTexture(_imp->colour_texture)  //
-    .bindDepthBuffer(_imp->depth_texture)     //
-    .setScreenParams(size);
+  _imp->shader.setScreenParams(size);
 }
 }  // namespace tes::view
