@@ -64,11 +64,14 @@ if(TES_BUILD_VIEWER)
   if(NOT WIN32 AND VCPKG_MANIFEST_FEATURES)
     find_package(MagnumPlugins CONFIG REQUIRED
       FreeTypeFont
+      PngImporter
     )
     find_package(freetype CONFIG REQUIRED)
     set(TES_MAGNUM_PLUGIN_LIBRARIES
       MagnumPlugins::FreeTypeFont
+      MagnumPlugins::PngImporter
       freetype
+      # libpng
     )
   endif(NOT WIN32 AND VCPKG_MANIFEST_FEATURES)
   add_subdirectory(3esview)

@@ -49,7 +49,8 @@
         {
           "name": "magnum-plugins",
           "features": [
-            "freetypefont"
+            "freetypefont",
+            "pngimporter"
           ]
         },
         "nativefiledialog"

@@ -163,17 +163,6 @@ void UIViewer::initialiseImGui()
 void UIViewer::initialisePlaybackUi()
 {
   auto playback = std::make_shared<ui::Playback>(*this);
-  playback->registerAction(ui::Playback::Stop, commands()->lookupName("stop").command);
-  playback->registerAction(ui::Playback::Record, commands()->lookupName("record").command);
-  playback->registerAction(ui::Playback::Play, commands()->lookupName("openFile").command);
-  playback->registerAction(ui::Playback::PauseResume, commands()->lookupName("openFile").command);
-  playback->registerAction(ui::Playback::SkipBack, commands()->lookupName("skipBackward").command);
-  playback->registerAction(ui::Playback::StepBack, commands()->lookupName("stepBackward").command);
-  playback->registerAction(ui::Playback::StepForward,
-                           commands()->lookupName("stepForward").command);
-  playback->registerAction(ui::Playback::SkipForward,
-                           commands()->lookupName("skipForward").command);
-
   _panels.emplace_back(playback);
 }
 

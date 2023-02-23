@@ -144,7 +144,7 @@ private:
   camera::Fly _fly;
 
   bool _mouse_rotation_active = false;
-  bool _continuous_sim = false;
+  bool _continuous_sim = true;
 
   std::vector<KeyAxis> _move_keys;
   std::vector<KeyAxis> _rotate_keys;
