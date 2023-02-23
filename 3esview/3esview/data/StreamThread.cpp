@@ -194,7 +194,9 @@ bool StreamThread::blockOnPause()
     std::unique_lock lock(_data_mutex);
     // Wait for unpause.
     _notify.wait(lock, [this] {
-      if (!_paused || targetFrame() != 0)
+      // Note: we can check _target_frame directly since the _data_mutex is locked while checking
+      // the condition variable.
+      if (!_paused || _target_frame.has_value())
       {
         return true;
       }
