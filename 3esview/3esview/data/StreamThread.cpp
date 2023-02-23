@@ -34,13 +34,6 @@ void StreamThread::setTargetFrame(FrameNumber frame)
   {
     std::scoped_lock guard(_data_mutex);
     _target_frame = frame;
-    if (_target_frame < _currentFrame)
-    {
-      // Reset and seek back.
-      _tes->reset();
-      _stream_reader->seek(0);
-      _currentFrame = 0;
-    }
   }
   // Ensure the thread wakes up to step the frame.
   // Note we have unlocked the mutex before the notify call.
@@ -113,7 +106,12 @@ void StreamThread::run()
       std::this_thread::sleep_until(next_frame_start);
       break;
     case TargetFrameState::Behind:  // Go back.
-      skipBack(target_frame);
+      // Reset and seek back.
+      _tes->reset();
+      _stream_reader->seek(0);
+      _currentFrame = 0;
+      // Check again.
+      continue;
       break;
     case TargetFrameState::Ahead:  // Catch up.
       _catchingUp = true;
