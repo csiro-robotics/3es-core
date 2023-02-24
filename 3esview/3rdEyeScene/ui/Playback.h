@@ -13,6 +13,7 @@
 #include <array>
 #include <initializer_list>
 #include <memory>
+#include <optional>
 
 namespace tes::view::command
 {
@@ -76,7 +77,8 @@ private:
     Pressed,
   };
 
-  void frameSlider();
+  void drawButtons();
+  void drawFrameSlider();
 
   /// Draw a button associated with the given action.
   /// @param action The button action.
@@ -95,7 +97,11 @@ private:
 
   ActionSet _actions;
   ActionIcons _action_icons;
+  std::weak_ptr<command::Command> _set_speed_command;
   std::weak_ptr<command::Command> _set_frame_command;
+  /// Frame number while being edited.
+  std::optional<int> _pending_frame;
+  std::optional<float> _pending_speed;
 
   static const ActionIconNames &actionIconNames();
 };

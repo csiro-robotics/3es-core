@@ -7,7 +7,7 @@
 #include <3escore/Log.h>
 
 #include <3esview/command/Set.h>
-#include <3esview/data/DataThread.h>
+#include <3esview/data/StreamThread.h>
 #include <3esview/Viewer.h>
 
 #include <Magnum/GL/TextureFormat.h>
@@ -36,6 +36,7 @@ Playback::Playback(Viewer &viewer)
   registerAction(ui::Playback::StepBack, viewer.commands()->lookupName("stepBackward").command);
   registerAction(ui::Playback::StepForward, viewer.commands()->lookupName("stepForward").command);
   registerAction(ui::Playback::SkipForward, viewer.commands()->lookupName("skipForward").command);
+  _set_speed_command = viewer.commands()->lookupName("playbackSpeed").command;
   _set_frame_command = viewer.commands()->lookupName("skipToFrame").command;
 }
 
@@ -55,14 +56,26 @@ void Playback::draw(Magnum::ImGuiIntegration::Context &ui)
 
   // ImGui::SetNextWindowPos();
   // ImGui::SetNextWindowSize();
+  setNextWindowPos({ 0, -kPanelSize }, Anchor::BottomLeft);
+  setNextWindowSize({ 0, kPanelSize }, Stretch::Horizontal);
   ImGui::Begin("Playback", nullptr,
                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-  setWindowPos({ 0, -kPanelSize }, Anchor::BottomLeft);
-  setWindowSize({ 0, -kPanelSize }, Stretch::Horizontal);
 
-  // Layout playback buttons horizontally.
-  // TODO(KS): use ImuGui::ImageButton()
-  // Start with the record/stop button
+
+  drawButtons();
+  drawFrameSlider();
+
+  auto pos = ImGui::GetWindowPos();
+
+  ImGui::End();
+}
+
+
+void Playback::drawButtons()
+{
+  // Layout playback buttons horizontally grouped.
+  const auto button_row_size = kButtonSize + 8;
+  ImGui::BeginChild("Playback buttons", ImVec2(uiViewportSize().x() * 0.75f, button_row_size));
   button({ { Action::Stop, "S" }, { Action::Record, "R" } });
   ImGui::SameLine();
   button({ { Action::Play, "P" }, { Action::Pause, "||" } });
@@ -74,13 +87,48 @@ void Playback::draw(Magnum::ImGuiIntegration::Context &ui)
   button(Action::StepForward, ">");
   ImGui::SameLine();
   button(Action::SkipForward, ">>");
+  ImGui::EndChild();
 
-  frameSlider();
+  ImGui::SameLine();  // Payback speed is on the same line.
 
-  ImGui::End();
+  // Playback speed UI.
+  float playback_speed = 1.0f;
+  auto stream_thread = std::dynamic_pointer_cast<tes::view::StreamThread>(_viewer.dataThread());
+  if (stream_thread)
+  {
+    playback_speed = stream_thread->playbackSpeed();
+  }
+
+  if (_pending_speed.has_value())
+  {
+    playback_speed = *_pending_speed;
+  }
+
+  ImGui::BeginChild("Playback speed", ImVec2{ 0, button_row_size });
+  if (ImGui::InputFloat("Speed", &playback_speed, 0.1f, 1.0f, "%.2f"))
+  {
+    _pending_speed = std::max(0.01f, std::min(playback_speed, 20.0f));
+  }
+  const bool edit_active = ImGui::IsItemActive();
+  ImGui::EndChild();
+
+  // Commit pending frame when neither input control is active.
+  if (_pending_speed.has_value() && !edit_active)
+  {
+    auto set_speed_command = _set_speed_command.lock();
+    if (set_speed_command)
+    {
+      if (set_speed_command->admissible(_viewer))
+      {
+        set_speed_command->invoke(_viewer, command::Args(*_pending_speed));
+      }
+    }
+    _pending_speed.reset();
+  }
 }
 
-void Playback::frameSlider()
+
+void Playback::drawFrameSlider()
 {
   int total_frames = 0;
   int current_frame = 0;
@@ -92,29 +140,56 @@ void Playback::frameSlider()
     total_frames = int_cast<int>(data_thread->totalFrames());
   }
 
+  // Pending frame number takes precedence over the actual current frame number.
+  if (_pending_frame.has_value())
+  {
+    current_frame = *_pending_frame;
+  }
+
   const auto frames_str = std::to_string(total_frames);
   auto set_frame_command = _set_frame_command.lock();
   const bool writable = set_frame_command && set_frame_command->admissible(_viewer);
 
-  bool write = false;
   int flags = 0;
 
   flags = (!writable) ? ImGuiSliderFlags_NoInput : 0;
-  write =
-    ImGui::SliderInt(frames_str.c_str(), &current_frame, 0, total_frames, "%d", flags) || write;
+  ImGui::BeginChild("Frame slider", ImVec2(uiViewportSize().x() * 0.75f, 0));
+  if (ImGui::SliderInt(frames_str.c_str(), &current_frame, 0, total_frames, "%d", flags))
+  {
+    _pending_frame = current_frame;
+  }
+  const bool slider_active = ImGui::IsItemActive();
+  ImGui::EndChild();
   ImGui::SameLine();
   flags = (!writable) ? ImGuiInputTextFlags_ReadOnly : 0;
-  write = ImGui::InputInt("F", &current_frame) || write;
+  ImGui::BeginChild("Frame edit");
+  if (ImGui::InputInt(frames_str.c_str(), &current_frame))
+  {
+    _pending_frame = std::max(-1, std::max(current_frame, total_frames));
+  }
+  const bool edit_active = ImGui::IsItemActive();
+  ImGui::EndChild();
 
-  if (write)
+  // Commit pending frame when neither input control is active.
+  if (_pending_frame.has_value() && !slider_active && !edit_active)
   {
     if (set_frame_command)
     {
       if (set_frame_command->admissible(_viewer))
       {
-        set_frame_command->invoke(_viewer, command::Args(int_cast<unsigned>(current_frame)));
+        // Wrap/clamp the pending frame number.
+        auto target_frame = *_pending_frame;
+        if (target_frame < 0)
+        {
+          target_frame += total_frames;
+        }
+        if (target_frame < total_frames)
+        {
+          set_frame_command->invoke(_viewer, command::Args(int_cast<unsigned>(target_frame)));
+        }
       }
     }
+    _pending_frame.reset();
   }
 }
 
@@ -128,11 +203,12 @@ Playback::ButtonResult Playback::button(Action action, const char *label, bool a
     bool pressed = false;
     if (_action_icons[action_idx].id())
     {
-      pressed = ImGui::ImageButton(&_action_icons[action_idx], ImVec2{ kButtonSize, kButtonSize });
+      pressed =
+        ImGui::ImageButton(label, &_action_icons[action_idx], ImVec2{ kButtonSize, kButtonSize });
     }
     else
     {
-      pressed = ImGui::Button(label);
+      pressed = ImGui::Button(label, ImVec2{ kButtonSize, kButtonSize });
     }
 
     if (pressed)
@@ -148,7 +224,12 @@ Playback::ButtonResult Playback::button(Action action, const char *label, bool a
   {
     if (_action_icons[action_idx].id())
     {
-      ImGui::Image(&_action_icons[action_idx], ImVec2{ kButtonSize, kButtonSize });
+      // Padding to make sure the images rendering the same size as the ImageButton equivalents.
+      // Determined empirically.
+      constexpr static int kDisableButtonPaddingX = 6;
+      constexpr static int kDisableButtonPaddingY = 4;
+      ImGui::Image(&_action_icons[action_idx], ImVec2{ kButtonSize + kDisableButtonPaddingX,
+                                                       kButtonSize + kDisableButtonPaddingY });
     }
     else
     {

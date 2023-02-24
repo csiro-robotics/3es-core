@@ -13,6 +13,7 @@
 #include "playback/SkipBackward.h"
 #include "playback/SkipForward.h"
 #include "playback/SkipToFrame.h"
+#include "playback/Speed.h"
 #include "playback/StepBackward.h"
 #include "playback/StepForward.h"
 #include "playback/Stop.h"
@@ -31,6 +32,7 @@ void registerDefaultCommands(Set &commands)
   commands.registerCommand(std::make_shared<playback::SkipBackward>(), Shortcut("ctrl+."));
   commands.registerCommand(std::make_shared<playback::SkipForward>(), Shortcut("ctrl+,"));
   commands.registerCommand(std::make_shared<playback::SkipToFrame>());
+  commands.registerCommand(std::make_shared<playback::Speed>());
   commands.registerCommand(std::make_shared<playback::StepBackward>(), Shortcut(","));
   commands.registerCommand(std::make_shared<playback::StepForward>(), Shortcut("."));
   commands.registerCommand(std::make_shared<playback::Stop>(), Shortcut("ctrl+R"));

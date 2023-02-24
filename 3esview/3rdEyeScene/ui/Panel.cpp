@@ -9,13 +9,15 @@
 
 namespace tes::view::ui
 {
-Magnum::Vector2i Panel::windowSize() const
+Magnum::Vector2i Panel::uiViewportSize() const
 {
-  return _viewer.windowSize();
+  return _viewer.windowSize() / _viewer.dpiScaling();
 }
 
-void Panel::setWindowPos(Magnum::Vector2i pos, Anchor anchor) const
+
+void Panel::setNextWindowPos(Magnum::Vector2i pos, Anchor anchor) const
 {
+  const auto viewport_size = uiViewportSize();
   // Fix left/right adjustment
   switch (anchor)
   {
@@ -29,13 +31,13 @@ void Panel::setWindowPos(Magnum::Vector2i pos, Anchor anchor) const
   case Anchor::BottomRight:
   case Anchor::CentreRight:
     // Right relative.
-    pos.x() += windowSize().x();
+    pos.x() += viewport_size.x();
     break;
   case Anchor::TopCentre:
   case Anchor::BottomCentre:
   case Anchor::Centre:
     // Centre relative.
-    pos.x() += windowSize().x() / 2;
+    pos.x() += viewport_size.x() / 2;
     break;
   }
 
@@ -52,22 +54,23 @@ void Panel::setWindowPos(Magnum::Vector2i pos, Anchor anchor) const
   case Anchor::BottomRight:
   case Anchor::BottomCentre:
     // Bottom relative.
-    pos.y() += windowSize().y();
+    pos.y() += viewport_size.y();
     break;
   case Anchor::CentreLeft:
   case Anchor::CentreRight:
   case Anchor::Centre:
     // Centre relative.
-    pos.y() += windowSize().y() / 2;
+    pos.y() += viewport_size.y() / 2;
     break;
   }
 
-  ImGui::SetWindowPos({ static_cast<float>(pos.x()), static_cast<float>(pos.y()) });
+  ImGui::SetNextWindowPos({ static_cast<float>(pos.x()), static_cast<float>(pos.y()) });
 }
 
 
-void Panel::setWindowSize(Magnum::Vector2i size, Stretch stretch) const
+void Panel::setNextWindowSize(Magnum::Vector2i size, Stretch stretch) const
 {
+  const auto viewport_size = uiViewportSize();
   switch (stretch)
   {
   default:
@@ -75,13 +78,13 @@ void Panel::setWindowSize(Magnum::Vector2i size, Stretch stretch) const
     // No change
     break;
   case Stretch::Horizontal:
-    size.x() += windowSize().x();
+    size.x() += viewport_size.x();
     break;
   case Stretch::Vertical:
-    size.y() += windowSize().y();
+    size.y() += viewport_size.y();
     break;
   }
 
-  ImGui::SetWindowSize({ static_cast<float>(size.x()), static_cast<float>(size.y()) });
+  ImGui::SetNextWindowSize({ static_cast<float>(size.x()), static_cast<float>(size.y()) });
 }
 }  // namespace tes::view::ui

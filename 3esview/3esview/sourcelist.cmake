@@ -30,6 +30,7 @@ list(APPEND PUBLIC_HEADERS
   command/playback/SkipBackward.h
   command/playback/SkipForward.h
   command/playback/SkipToFrame.h
+  command/playback/Speed.h
   command/playback/StepBackward.h
   command/playback/StepForward.h
   command/playback/Stop.h
@@ -97,6 +98,7 @@ list(APPEND SOURCES
   command/playback/SkipBackward.cpp
   command/playback/SkipForward.cpp
   command/playback/SkipToFrame.cpp
+  command/playback/Speed.cpp
   command/playback/StepBackward.cpp
   command/playback/StepForward.cpp
   command/playback/Stop.cpp

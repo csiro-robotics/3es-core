@@ -58,7 +58,7 @@ public:
   FrameNumber targetFrame() const override;
 
   /// Get the current frame number.
-  inline FrameNumber currentFrame() const override { return _currentFrame; }
+  FrameNumber currentFrame() const override { return _currentFrame; }
 
   FrameNumber totalFrames() const override
   {
@@ -69,8 +69,11 @@ public:
   void setLooping(bool loop) override;
   bool looping() const override;
 
+  void setPlaybackSpeed(float speed);
+  float playbackSpeed() const;
+
   /// Request the thread to quit. The thread may then be joined.
-  inline void stop() override
+  void stop() override
   {
     _quitFlag = true;
     unpause();
@@ -78,11 +81,11 @@ public:
 
   /// Check if a quit has been requested.
   /// @return True when a quit has been requested.
-  inline bool stopping() const { return _quitFlag; }
+  bool stopping() const { return _quitFlag; }
 
   /// Check if playback is paused.
   /// @return True if playback is paused.
-  inline bool paused() const override { return _paused; }
+  bool paused() const override { return _paused; }
   /// Pause playback.
   void pause() override;
   /// Unpause and resume playback.
@@ -157,6 +160,7 @@ private:
   std::atomic_bool _paused;
   bool _catchingUp = false;
   bool _looping = false;
+  float _playback_speed = 1.0f;
   std::optional<FrameNumber> _target_frame;
   FrameNumberAtomic _currentFrame = 0;
   /// The total number of frames in the stream, if know. Zero when unknown.

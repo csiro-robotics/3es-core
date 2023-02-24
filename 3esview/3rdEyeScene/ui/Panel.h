@@ -52,10 +52,12 @@ public:
 
   virtual void draw(Magnum::ImGuiIntegration::Context &ui) = 0;
 
-  void setWindowPos(Magnum::Vector2i pos, Anchor anchor = Anchor::TopLeft) const;
-  void setWindowSize(Magnum::Vector2i size, Stretch stretch = Stretch::None) const;
+  void setNextWindowPos(Magnum::Vector2i pos, Anchor anchor = Anchor::TopLeft) const;
+  void setNextWindowSize(Magnum::Vector2i size, Stretch stretch = Stretch::None) const;
 
-  Magnum::Vector2i windowSize() const;
+  /// Get the size of the viewport used to draw the UI. This may differ from the window size.
+  /// @return The UI viewport size.
+  Magnum::Vector2i uiViewportSize() const;
 
   Viewer &viewer() { return _viewer; }
   const Viewer &viewer() const { return _viewer; }

@@ -62,6 +62,20 @@ bool StreamThread::looping() const
 }
 
 
+void StreamThread::setPlaybackSpeed(float speed)
+{
+  std::scoped_lock guard(_data_mutex);
+  _playback_speed = std::max(0.01f, speed);
+}
+
+
+float StreamThread::playbackSpeed() const
+{
+  std::scoped_lock guard(_data_mutex);
+  return _playback_speed;
+}
+
+
 void StreamThread::pause()
 {
   _paused = true;
@@ -225,7 +239,8 @@ StreamThread::Clock::duration StreamThread::processControlMessage(PacketReader &
     _tes->updateToFrame(++_currentFrame);
     // Work out how long to the next frame.
     const auto dt = (msg.value32) ? msg.value32 : _server_info.default_frame_time;
-    return std::chrono::microseconds(_server_info.time_unit * dt);
+    return std::chrono::microseconds(
+      static_cast<uint64_t>(_server_info.time_unit * dt / _playback_speed));
   }
   case CIdCoordinateFrame:
     if (msg.value32 < CFCount)
@@ -243,7 +258,8 @@ StreamThread::Clock::duration StreamThread::processControlMessage(PacketReader &
     break;
   case CIdForceFrameFlush:
     _tes->updateToFrame(_currentFrame);
-    return std::chrono::microseconds(_server_info.time_unit * _server_info.default_frame_time);
+    return std::chrono::microseconds(static_cast<uint64_t>(
+      _server_info.time_unit * _server_info.default_frame_time / _playback_speed));
   case CIdReset:
     // This doesn't seem right any more. Need to check what the Unity viewer did with this. It may
     // be an artifact of the main thread needing to do so much work in Unity.
@@ -286,7 +302,7 @@ StreamThread::TargetFrameState StreamThread::checkTargetFrameState(FrameNumber &
 
   if (target_frame > current_frame)
   {
-    return TargetFrameState::Behind;
+    return TargetFrameState::Ahead;
   }
 
   _target_frame.reset();
