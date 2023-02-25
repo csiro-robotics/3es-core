@@ -30,7 +30,7 @@ CommandResult SkipForward::invoke(Viewer &viewer, const ExecInfo &info, const Ar
   stream->pause();
   if (stream->currentFrame() < stream->totalFrames())
   {
-    stream->setTargetFrame(stream->totalFrames());
+    stream->setTargetFrame(stream->totalFrames() - 1);
   }
   return { CommandResult::Code::Ok };
 }
