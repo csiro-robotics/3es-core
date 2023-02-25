@@ -3,7 +3,12 @@
 //
 #include "UIViewer.h"
 
+#include "ui/IconBar.h"
 #include "ui/Playback.h"
+#include "ui/command/ToggleCategories.h"
+#include "ui/command/ToggleConnect.h"
+#include "ui/command/ToggleLog.h"
+#include "ui/command/ToggleSettings.h"
 
 #include <3esview/command/Set.h>
 
@@ -139,6 +144,7 @@ void UIViewer::initialiseUi()
 {
   initialiseImGui();
   initialisePlaybackUi();
+  initialiseIconBarUi();
 }
 
 
@@ -157,6 +163,33 @@ void UIViewer::initialiseImGui()
       key = -1;
     }
   }
+}
+
+
+void UIViewer::initialiseIconBarUi()
+{
+  auto icon_bar = std::make_shared<ui::IconBar>(*this);
+  auto command_set = this->commands();
+
+  std::shared_ptr<command::Command> command;
+
+  command = std::make_shared<ui::command::ToggleCategories>(*icon_bar);
+  command_set->registerCommand(command);
+  icon_bar->registerCommand(ui::IconBar::View::Categories, command);
+
+  command = std::make_shared<ui::command::ToggleConnect>(*icon_bar);
+  command_set->registerCommand(command);
+  icon_bar->registerCommand(ui::IconBar::View::Connect, command);
+
+  command = std::make_shared<ui::command::ToggleLog>(*icon_bar);
+  command_set->registerCommand(command);
+  icon_bar->registerCommand(ui::IconBar::View::Log, command);
+
+  command = std::make_shared<ui::command::ToggleSettings>(*icon_bar);
+  command_set->registerCommand(command);
+  icon_bar->registerCommand(ui::IconBar::View::Settings, command);
+
+  _panels.emplace_back(icon_bar);
 }
 
 

@@ -275,9 +275,10 @@ void Playback::initialiseIcons()
 
 const Playback::ActionIconNames &Playback::actionIconNames()
 {
-  static Playback::ActionIconNames names = { "Record.png",      "Stop.png",       "Play.png",
-                                             "Pause.png",       "SkipBack.png",   "StepBack.png",
-                                             "StepForward.png", "SkipForward.png" };
+  static Playback::ActionIconNames names = {
+    "Record.png",   "Stop.png",     "Play.png",        "Pause.png",
+    "SkipBack.png", "StepBack.png", "StepForward.png", "SkipForward.png",
+  };
   return names;
 }
 }  // namespace tes::view::ui

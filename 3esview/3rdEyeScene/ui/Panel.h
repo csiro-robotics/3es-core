@@ -102,6 +102,13 @@ protected:
       , label(std::move(label))
       , command(command)
     {}
+    ButtonParams(Magnum::GL::Texture2D *icon, std::string label,
+                 tes::view::command::Command *command, const ImVec2 &size)
+      : icon(std::move(icon))
+      , label(std::move(label))
+      , command(command)
+      , size(size)
+    {}
     ButtonParams(const ButtonParams &other) = default;
     ButtonParams(ButtonParams &&other) = default;
 

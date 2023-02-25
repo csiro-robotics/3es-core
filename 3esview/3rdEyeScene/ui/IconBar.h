@@ -29,12 +29,12 @@ class IconBar : public Panel
 {
 public:
   constexpr static int kButtonSize = 24;
-  constexpr static int kPanelSize = 3 * kButtonSize;
+  constexpr static int kPanelSize = 2 * kButtonSize;
 
   /// An enumeration of the actions which can be triggered by the playback bar.
   ///
   /// @c Command objects are to be registered with each action to effect those actions.
-  enum Action : unsigned
+  enum View : unsigned
   {
     /// Open settings dialog
     Settings,
@@ -45,20 +45,36 @@ public:
     /// Show log
     Log,
 
-    /// Number of @c Actions - used for array sizes.
-    Count
+    /// Number of @c Views - used for array sizes.
+    Count,
+    /// Invalid value
+    Invalid = Count
   };
 
   IconBar(Viewer &viewer);
+
+  void closeActiveView();
+  void setActive(View view);
+  [[nodiscard]] View activeView() const;
+  [[nodiscard]] bool isActive(View view) const;
+
+  void registerCommand(View view, std::shared_ptr<tes::view::command::Command> command);
 
   void draw(Magnum::ImGuiIntegration::Context &ui) override;
 
 private:
   void initialiseIcons();
 
-  using ActionIcons = std::array<Magnum::GL::Texture2D, static_cast<unsigned>(Action::Count)>;
+  using ViewIcons = std::array<Magnum::GL::Texture2D, static_cast<unsigned>(View::Count)>;
+  using ViewCommands =
+    std::array<std::shared_ptr<tes::view::command::Command>, static_cast<unsigned>(View::Count)>;
+  using ViewIconNames = std::array<std::string, static_cast<unsigned>(View::Count)>;
 
-  ActionIcons _icons;
+  static const IconBar::ViewIconNames &viewIconNames();
+
+  ViewIcons _icons;
+  ViewCommands _commands;
+  View _active_view = View::Invalid;
 };
 }  // namespace tes::view::ui
 

@@ -63,6 +63,7 @@ protected:
 private:
   void initialiseUi();
   void initialiseImGui();
+  void initialiseIconBarUi();
   void initialisePlaybackUi();
 
   Magnum::ImGuiIntegration::Context _imgui{ Magnum::NoCreate };
