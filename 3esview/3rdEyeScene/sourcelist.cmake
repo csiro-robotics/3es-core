@@ -4,6 +4,8 @@ list(APPEND PUBLIC_HEADERS
 
 list(APPEND SOURCES
   ui/ImGui.h
+  ui/IconBar.cpp
+  ui/IconBar.h
   ui/Playback.cpp
   ui/Playback.h
   ui/Panel.cpp
