@@ -75,37 +75,30 @@ public:
   void draw(Magnum::ImGuiIntegration::Context &ui) override;
 
 private:
-  enum ButtonResult
-  {
-    Inactive,
-    Ok,
-    Pressed,
-  };
-
-  struct ButtonParams
+  struct PlaybackButtonParams
   {
     /// The button action to represent. Determines the icon unless using @c icon_alias .
     Action action = Action::Count;
     /// When valid, use this action's icon instead of that belonging to @c action .
     Action icon_alias = Action::Count;
     /// Button label - fallback for no icon.
-    const char *label;
+    std::string label;
 
-    ButtonParams() = default;
-    ButtonParams(Action action, const char *label)
+    PlaybackButtonParams() = default;
+    PlaybackButtonParams(Action action, const char *label)
       : action(action)
       , label(label)
     {}
-    ButtonParams(Action action, Action icon_alias, const char *label)
+    PlaybackButtonParams(Action action, Action icon_alias, const char *label)
       : action(action)
       , icon_alias(icon_alias)
       , label(label)
     {}
-    ButtonParams(const ButtonParams &other) = default;
-    ButtonParams(ButtonParams &&other) = default;
+    PlaybackButtonParams(const PlaybackButtonParams &other) = default;
+    PlaybackButtonParams(PlaybackButtonParams &&other) = default;
 
-    ButtonParams &operator=(const ButtonParams &other) = default;
-    ButtonParams &operator=(ButtonParams &&other) = default;
+    PlaybackButtonParams &operator=(const PlaybackButtonParams &other) = default;
+    PlaybackButtonParams &operator=(PlaybackButtonParams &&other) = default;
   };
 
   void drawButtons(DataThread *data_thread);
@@ -114,10 +107,10 @@ private:
   /// Draw a button associated with the given action.
   /// @param params Details of the button.
   /// @param allow_inactive When true, darws the action icon as inactive, otherwise draws nothing.
-  ButtonResult button(const ButtonParams &params, bool allow_inactive = true);
+  ButtonResult button(const PlaybackButtonParams &params, bool allow_inactive = true);
   /// Select a button from the list of @p candidates, using the first admissible option.
   /// @param candidates The button candidates.
-  ButtonResult button(std::initializer_list<ButtonParams> candidates);
+  ButtonResult button(std::initializer_list<PlaybackButtonParams> candidates);
 
   void initialiseIcons();
 

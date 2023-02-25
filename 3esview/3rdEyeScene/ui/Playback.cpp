@@ -52,10 +52,7 @@ void Playback::registerAction(Action action, std::shared_ptr<command::Command> c
 void Playback::draw(Magnum::ImGuiIntegration::Context &ui)
 {
   TES_UNUSED(ui);
-  using namespace Magnum::ImGuiIntegration;
 
-  // ImGui::SetNextWindowPos();
-  // ImGui::SetNextWindowSize();
   setNextWindowPos({ 0, -kPanelSize }, Anchor::BottomLeft);
   setNextWindowSize({ 0, kPanelSize }, Stretch::Horizontal);
   ImGui::Begin("Playback", nullptr,
@@ -199,59 +196,25 @@ void Playback::drawFrameSlider(DataThread *data_thread)
 }
 
 
-Playback::ButtonResult Playback::button(const ButtonParams &params, bool allow_inactive)
+Playback::ButtonResult Playback::button(const PlaybackButtonParams &params, bool allow_inactive)
 {
   const auto action_idx = static_cast<unsigned>(params.action);
   const auto icon_idx =
     (params.icon_alias != Action::Count) ? static_cast<unsigned>(params.icon_alias) : action_idx;
-  if (command(params.action) && command(params.action)->admissible(_viewer))
-  {
-    // Try for an image first.
-    bool pressed = false;
 
-    if (_action_icons[icon_idx].id())
-    {
-      pressed = ImGui::ImageButton(params.label, &_action_icons[icon_idx],
-                                   ImVec2{ kButtonSize, kButtonSize });
-    }
-    else
-    {
-      pressed = ImGui::Button(params.label, ImVec2{ kButtonSize, kButtonSize });
-    }
-
-    if (pressed)
-    {
-      command(params.action)->invoke(_viewer);
-      return ButtonResult::Pressed;
-    }
-    return ButtonResult::Ok;
-  }
-
-  // Draw inactive.
-  if (allow_inactive)
-  {
-    if (_action_icons[icon_idx].id())
-    {
-      // Padding to make sure the images rendering the same size as the ImageButton equivalents.
-      // Determined empirically.
-      constexpr static int kDisableButtonPaddingX = 6;
-      constexpr static int kDisableButtonPaddingY = 4;
-      ImGui::Image(&_action_icons[icon_idx], ImVec2{ kButtonSize + kDisableButtonPaddingX,
-                                                     kButtonSize + kDisableButtonPaddingY });
-    }
-    else
-    {
-      ImGui::Text(params.label);
-    }
-  }
-  return ButtonResult::Inactive;
+  ButtonParams super_params;
+  super_params.icon = &_action_icons[icon_idx];
+  super_params.label = params.label;
+  super_params.command = command(params.action).get();
+  super_params.size = { kButtonSize, kButtonSize };
+  return Panel::button(super_params, allow_inactive);
 }
 
 
-Playback::ButtonResult Playback::button(std::initializer_list<ButtonParams> candidates)
+Playback::ButtonResult Playback::button(std::initializer_list<PlaybackButtonParams> candidates)
 {
   Action first_action = Action::Count;
-  const ButtonParams *first_params = nullptr;
+  const PlaybackButtonParams *first_params = nullptr;
 
   for (const auto &params : candidates)
   {

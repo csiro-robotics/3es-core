@@ -3,6 +3,7 @@
 //
 #include "Panel.h"
 
+#include <3esview/command/Command.h>
 #include <3esview/Viewer.h>
 
 #include <Magnum/ImGuiIntegration/Context.hpp>
@@ -86,5 +87,54 @@ void Panel::setNextWindowSize(Magnum::Vector2i size, Stretch stretch) const
   }
 
   ImGui::SetNextWindowSize({ static_cast<float>(size.x()), static_cast<float>(size.y()) });
+}
+
+
+Panel::ButtonResult Panel::button(const ButtonParams &params, bool allow_inactive)
+{
+  const bool active = !params.command || params.command->admissible(_viewer);
+  if (active)
+  {
+    // Try for an image first.
+    bool pressed = false;
+
+    if (params.icon && params.icon->id())
+    {
+      pressed = ImGui::ImageButton(params.label.c_str(), params.icon, params.size);
+    }
+    else
+    {
+      pressed = ImGui::Button(params.label.c_str(), params.size);
+    }
+
+    if (pressed)
+    {
+      if (params.command)
+      {
+        params.command->invoke(_viewer);
+      }
+      return ButtonResult::Pressed;
+    }
+    return ButtonResult::Ok;
+  }
+
+  // Draw inactive.
+  if (allow_inactive)
+  {
+    if (params.icon && params.icon->id())
+    {
+      // Padding to make sure the images rendering the same size as the ImageButton equivalents.
+      // Determined empirically.
+      constexpr static int kDisableButtonPaddingX = 6;
+      constexpr static int kDisableButtonPaddingY = 4;
+      ImGui::Image(params.icon, ImVec2{ params.size.x + kDisableButtonPaddingX,
+                                        params.size.y + kDisableButtonPaddingY });
+    }
+    else
+    {
+      ImGui::Text(params.label.c_str());
+    }
+  }
+  return ButtonResult::Inactive;
 }
 }  // namespace tes::view::ui

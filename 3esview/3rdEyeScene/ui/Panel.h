@@ -8,7 +8,14 @@
 
 #include "ImGui.h"
 
+#include <Magnum/GL/Texture.h>
+
 #include <memory>
+
+namespace tes::view::command
+{
+class Command;
+}
 
 namespace Magnum::ImGuiIntegration
 {
@@ -63,6 +70,50 @@ public:
   const Viewer &viewer() const { return _viewer; }
 
 protected:
+  /// Result from @c button() function.
+  enum ButtonResult
+  {
+    /// Button is inactive. Rendered if @c allow_inactive was passed true.
+    ///
+    /// A button can only be inactive when @c ButtonParam::command is not null and is inadmissible.
+    Inactive,
+    /// Button was drawn, but not pressed.
+    Ok,
+    /// Button was pressed. The @c ButtonParams::command will have been invoked if not null.
+    Pressed,
+  };
+
+  /// Button parameterisation.
+  struct ButtonParams
+  {
+    /// Button icon (if any).
+    Magnum::GL::Texture2D *icon = nullptr;
+    /// Button label (required).
+    std::string label;
+    /// Command to execute when pressed (if any).
+    tes::view::command::Command *command = nullptr;
+    /// Explicit drawing size
+    ImVec2 size = { 0, 0 };
+
+    ButtonParams() = default;
+    ButtonParams(Magnum::GL::Texture2D *icon, std::string label,
+                 tes::view::command::Command *command = nullptr)
+      : icon(std::move(icon))
+      , label(std::move(label))
+      , command(command)
+    {}
+    ButtonParams(const ButtonParams &other) = default;
+    ButtonParams(ButtonParams &&other) = default;
+
+    ButtonParams &operator=(const ButtonParams &other) = default;
+    ButtonParams &operator=(ButtonParams &&other) = default;
+  };
+
+  /// Draw a button associated with the given action.
+  /// @param params Details of the button.
+  /// @param allow_inactive When true, draws the action icon as inactive, otherwise draws nothing.
+  ButtonResult button(const ButtonParams &params, bool allow_inactive = true);
+
   Viewer &_viewer;
 };
 }  // namespace tes::view::ui
