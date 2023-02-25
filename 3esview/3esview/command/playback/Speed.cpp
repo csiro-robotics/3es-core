@@ -1,7 +1,7 @@
 #include "Speed.h"
 
 #include <3esview/Viewer.h>
-#include <3esview/data/StreamThread.h>
+#include <3esview/data/DataThread.h>
 
 namespace tes::view::command::playback
 {
@@ -12,7 +12,7 @@ Speed::Speed()
 
 bool Speed::checkAdmissible(Viewer &viewer) const
 {
-  auto stream = std::dynamic_pointer_cast<tes::view::StreamThread>(viewer.dataThread());
+  auto stream = viewer.dataThread();
   return stream != nullptr && !stream->isLiveStream();
 }
 
@@ -20,7 +20,7 @@ bool Speed::checkAdmissible(Viewer &viewer) const
 CommandResult Speed::invoke(Viewer &viewer, const ExecInfo &info, const Args &args)
 {
   (void)info;
-  auto stream = std::dynamic_pointer_cast<tes::view::StreamThread>(viewer.dataThread());
+  auto stream = viewer.dataThread();
   if (!stream)
   {
     return { CommandResult::Code::Failed, "Invalid data thread" };

@@ -47,19 +47,6 @@ FrameNumber NetworkThread::targetFrame() const
 }
 
 
-void NetworkThread::setLooping(bool loop)
-{
-  // Not supported.
-  (void)loop;
-}
-
-
-bool NetworkThread::looping() const
-{
-  return false;
-}
-
-
 void NetworkThread::pause()
 {
   // Not supported.

@@ -15,11 +15,12 @@ namespace tes::view
 {
 /// Base class TES_VIEWER_API for thread objects used as message sources.
 ///
-/// A data thread is responsible for reading incoming data, generally over a network connection or from file, decoding
-/// data packages and routing them to the appropriate handlers. Note this implies the message handlers must be thread
-/// safe in their message handling.
+/// A data thread is responsible for reading incoming data, generally over a network connection or
+/// from file, decoding data packages and routing them to the appropriate handlers. Note this
+/// implies the message handlers must be thread safe in their message handling.
 ///
-/// For recorded streams, it is up to the @c DataThread implementation to maintain the correct packet timing.
+/// For recorded streams, it is up to the @c DataThread implementation to maintain the correct
+/// packet timing.
 class TES_VIEWER_API DataThread
 {
 public:
@@ -41,8 +42,8 @@ public:
   /// @param frame The frame to jump, skip or step to.
   virtual void setTargetFrame(FrameNumber frame) = 0;
 
-  /// Get the target frame to jump to. Zero the current frame is up to date; i.e., this is zero once the current frame
-  /// reaches the target frame.
+  /// Get the target frame to jump to. Zero the current frame is up to date; i.e., this is zero once
+  /// the current frame reaches the target frame.
   /// @return The target frame to jump to.
   virtual FrameNumber targetFrame() const = 0;
 
@@ -53,8 +54,19 @@ public:
   /// @return The total frame count.
   virtual FrameNumber totalFrames() const = 0;
 
+  /// Set playback mode to looping. Only applicable when @c isLiveStream() is false.
+  /// @param loop True to loop.
   virtual void setLooping(bool loop) = 0;
+  /// Query looping playback mode. Only applicable when @c isLiveStream() is false.
+  /// @return True when looping playback.
   virtual bool looping() const = 0;
+
+  /// Set playback speed factor. Only applicable when @c isLiveStream() is false.
+  /// @param speed The playback speed multiplier. Default to 1, must be greater than zero.
+  virtual void setPlaybackSpeed(float speed) = 0;
+  /// Query the playback factor. Only applicable when @c isLiveStream() is false.
+  /// @return The playback speed multiplier.
+  virtual float playbackSpeed() const = 0;
 
   virtual bool paused() const = 0;
   /// Pause playback.

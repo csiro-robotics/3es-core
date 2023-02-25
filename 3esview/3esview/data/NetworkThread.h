@@ -92,8 +92,11 @@ public:
 
   FrameNumber totalFrames() const override { return _currentFrame; }
 
-  void setLooping(bool loop) override;
-  bool looping() const override;
+  void setLooping(bool loop) override { (void)loop; }
+  bool looping() const override { return false; }
+
+  void setPlaybackSpeed(float speed) override { (void)speed; }
+  float playbackSpeed() const override { return 1.0f; }
 
   /// Request the thread to quit. The thread may then be joined.
   void stop() override
