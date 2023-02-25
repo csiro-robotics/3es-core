@@ -15,6 +15,11 @@
 #include <memory>
 #include <optional>
 
+namespace tes::view
+{
+class DataThread;
+}
+
 namespace tes::view::command
 {
 class Command;
@@ -77,16 +82,42 @@ private:
     Pressed,
   };
 
-  void drawButtons();
-  void drawFrameSlider();
+  struct ButtonParams
+  {
+    /// The button action to represent. Determines the icon unless using @c icon_alias .
+    Action action = Action::Count;
+    /// When valid, use this action's icon instead of that belonging to @c action .
+    Action icon_alias = Action::Count;
+    /// Button label - fallback for no icon.
+    const char *label;
+
+    ButtonParams() = default;
+    ButtonParams(Action action, const char *label)
+      : action(action)
+      , label(label)
+    {}
+    ButtonParams(Action action, Action icon_alias, const char *label)
+      : action(action)
+      , icon_alias(icon_alias)
+      , label(label)
+    {}
+    ButtonParams(const ButtonParams &other) = default;
+    ButtonParams(ButtonParams &&other) = default;
+
+    ButtonParams &operator=(const ButtonParams &other) = default;
+    ButtonParams &operator=(ButtonParams &&other) = default;
+  };
+
+  void drawButtons(DataThread *data_thread);
+  void drawFrameSlider(DataThread *data_thread);
 
   /// Draw a button associated with the given action.
-  /// @param action The button action.
-  /// @param label The button label.
-  ButtonResult button(Action action, const char *label, bool allow_inactive = true);
+  /// @param params Details of the button.
+  /// @param allow_inactive When true, darws the action icon as inactive, otherwise draws nothing.
+  ButtonResult button(const ButtonParams &params, bool allow_inactive = true);
   /// Select a button from the list of @p candidates, using the first admissible option.
   /// @param candidates The button candidates.
-  ButtonResult button(std::initializer_list<std::pair<Action, const char *>> candidates);
+  ButtonResult button(std::initializer_list<ButtonParams> candidates);
 
   void initialiseIcons();
 

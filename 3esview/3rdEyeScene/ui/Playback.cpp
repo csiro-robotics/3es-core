@@ -7,7 +7,7 @@
 #include <3escore/Log.h>
 
 #include <3esview/command/Set.h>
-#include <3esview/data/StreamThread.h>
+#include <3esview/data/DataThread.h>
 #include <3esview/Viewer.h>
 
 #include <Magnum/GL/TextureFormat.h>
@@ -62,8 +62,10 @@ void Playback::draw(Magnum::ImGuiIntegration::Context &ui)
                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
 
-  drawButtons();
-  drawFrameSlider();
+  auto data_thread = _viewer.dataThread();
+
+  drawButtons(data_thread.get());
+  drawFrameSlider(data_thread.get());
 
   auto pos = ImGui::GetWindowPos();
 
@@ -71,32 +73,36 @@ void Playback::draw(Magnum::ImGuiIntegration::Context &ui)
 }
 
 
-void Playback::drawButtons()
+void Playback::drawButtons(DataThread *data_thread)
 {
   // Layout playback buttons horizontally grouped.
   const auto button_row_size = kButtonSize + 8;
+
+  // Select which icon to use for the pause button based on paused state.
+  const auto play_pause_icon =
+    (data_thread && !data_thread->paused()) ? Action::Pause : Action::Play;
+
   ImGui::BeginChild("Playback buttons", ImVec2(uiViewportSize().x() * 0.75f, button_row_size));
   button({ { Action::Stop, "S" }, { Action::Record, "R" } });
   ImGui::SameLine();
-  button({ { Action::Play, "P" }, { Action::Pause, "||" } });
+  button({ { Action::Play, "P" }, { Action::Pause, play_pause_icon, "||" } });
   ImGui::SameLine();
-  button(Action::SkipBack, "<<");
+  button({ Action::SkipBack, "<<" });
   ImGui::SameLine();
-  button(Action::StepBack, "<");
+  button({ Action::StepBack, "<" });
   ImGui::SameLine();
-  button(Action::StepForward, ">");
+  button({ Action::StepForward, ">" });
   ImGui::SameLine();
-  button(Action::SkipForward, ">>");
+  button({ Action::SkipForward, ">>" });
   ImGui::EndChild();
 
   ImGui::SameLine();  // Payback speed is on the same line.
 
   // Playback speed UI.
   float playback_speed = 1.0f;
-  auto stream_thread = std::dynamic_pointer_cast<tes::view::StreamThread>(_viewer.dataThread());
-  if (stream_thread)
+  if (data_thread)
   {
-    playback_speed = stream_thread->playbackSpeed();
+    playback_speed = data_thread->playbackSpeed();
   }
 
   if (_pending_speed.has_value())
@@ -128,12 +134,11 @@ void Playback::drawButtons()
 }
 
 
-void Playback::drawFrameSlider()
+void Playback::drawFrameSlider(DataThread *data_thread)
 {
   int total_frames = 0;
   int current_frame = 0;
 
-  auto data_thread = _viewer.dataThread();
   if (data_thread)
   {
     current_frame = int_cast<int>(data_thread->currentFrame());
@@ -165,7 +170,7 @@ void Playback::drawFrameSlider()
   ImGui::BeginChild("Frame edit");
   if (ImGui::InputInt(frames_str.c_str(), &current_frame))
   {
-    _pending_frame = std::max(-1, std::max(current_frame, total_frames));
+    _pending_frame = std::max(-1, std::min(current_frame, total_frames));
   }
   const bool edit_active = ImGui::IsItemActive();
   ImGui::EndChild();
@@ -194,26 +199,29 @@ void Playback::drawFrameSlider()
 }
 
 
-Playback::ButtonResult Playback::button(Action action, const char *label, bool allow_inactive)
+Playback::ButtonResult Playback::button(const ButtonParams &params, bool allow_inactive)
 {
-  const auto action_idx = static_cast<unsigned>(action);
-  if (command(action) && command(action)->admissible(_viewer))
+  const auto action_idx = static_cast<unsigned>(params.action);
+  const auto icon_idx =
+    (params.icon_alias != Action::Count) ? static_cast<unsigned>(params.icon_alias) : action_idx;
+  if (command(params.action) && command(params.action)->admissible(_viewer))
   {
     // Try for an image first.
     bool pressed = false;
-    if (_action_icons[action_idx].id())
+
+    if (_action_icons[icon_idx].id())
     {
-      pressed =
-        ImGui::ImageButton(label, &_action_icons[action_idx], ImVec2{ kButtonSize, kButtonSize });
+      pressed = ImGui::ImageButton(params.label, &_action_icons[icon_idx],
+                                   ImVec2{ kButtonSize, kButtonSize });
     }
     else
     {
-      pressed = ImGui::Button(label, ImVec2{ kButtonSize, kButtonSize });
+      pressed = ImGui::Button(params.label, ImVec2{ kButtonSize, kButtonSize });
     }
 
     if (pressed)
     {
-      command(action)->invoke(_viewer);
+      command(params.action)->invoke(_viewer);
       return ButtonResult::Pressed;
     }
     return ButtonResult::Ok;
@@ -222,39 +230,37 @@ Playback::ButtonResult Playback::button(Action action, const char *label, bool a
   // Draw inactive.
   if (allow_inactive)
   {
-    if (_action_icons[action_idx].id())
+    if (_action_icons[icon_idx].id())
     {
       // Padding to make sure the images rendering the same size as the ImageButton equivalents.
       // Determined empirically.
       constexpr static int kDisableButtonPaddingX = 6;
       constexpr static int kDisableButtonPaddingY = 4;
-      ImGui::Image(&_action_icons[action_idx], ImVec2{ kButtonSize + kDisableButtonPaddingX,
-                                                       kButtonSize + kDisableButtonPaddingY });
+      ImGui::Image(&_action_icons[icon_idx], ImVec2{ kButtonSize + kDisableButtonPaddingX,
+                                                     kButtonSize + kDisableButtonPaddingY });
     }
     else
     {
-      ImGui::Text(label);
+      ImGui::Text(params.label);
     }
   }
   return ButtonResult::Inactive;
 }
 
 
-Playback::ButtonResult Playback::button(
-  std::initializer_list<std::pair<Action, const char *>> candidates)
+Playback::ButtonResult Playback::button(std::initializer_list<ButtonParams> candidates)
 {
   Action first_action = Action::Count;
-  const char *first_label = nullptr;
+  const ButtonParams *first_params = nullptr;
 
-  for (const auto &[action, label] : candidates)
+  for (const auto &params : candidates)
   {
-    if (!first_label)
+    if (!first_params)
     {
-      first_action = action;
-      first_label = label;
+      first_params = &params;
     }
     // Try draw the button, but don't allow inactive.
-    const auto result = button(action, label, false);
+    const auto result = button(params, false);
     if (result != ButtonResult::Inactive)
     {
       return result;
@@ -262,9 +268,9 @@ Playback::ButtonResult Playback::button(
   }
 
   // Nothing admissible. Draw the first item inactive.
-  if (first_label)
+  if (first_params)
   {
-    return button(first_action, first_label);
+    return button(*first_params, true);
   }
 
   return ButtonResult::Inactive;
