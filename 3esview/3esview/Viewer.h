@@ -4,6 +4,8 @@
 #include "3esview/ViewConfig.h"
 
 #include "camera/Fly.h"
+#include "handler/Camera.h"
+#include "settings/Settings.h"
 #include "ThirdEyeScene.h"
 
 #include <filesystem>
@@ -84,6 +86,11 @@ protected:
   void mouseReleaseEvent(MouseEvent &event) override;
   void mouseMoveEvent(MouseMoveEvent &event) override;
 
+  virtual void onReset();
+  virtual void onCameraSettingsChange(const settings::Settings::Config &config);
+  virtual void onRenderSettingsChange(const settings::Settings::Config &config);
+  virtual void onPlaybackSettingsChange(const settings::Settings::Config &config);
+
 private:
   enum class EdlParam
   {
@@ -116,7 +123,8 @@ private:
 
   bool checkEdlKeys(KeyEvent &event);
 
-  void updateCamera(float dt, camera::Camera &camera);
+  void updateCamera(float dt, bool allow_user_input);
+  void updateCameraInput(float dt, camera::Camera &camera);
 
   void checkShortcuts(KeyEvent &event);
   static bool checkShortcut(const command::Shortcut &shortcut, const KeyEvent &event);
@@ -141,6 +149,8 @@ private:
 
   Clock::time_point _last_sim_time = Clock::now();
 
+  camera::Camera _camera = {};
+  handler::Camera::CameraId _active_remote_camera = handler::Camera::kInvalidCameraId;
   camera::Fly _fly;
 
   bool _mouse_rotation_active = false;

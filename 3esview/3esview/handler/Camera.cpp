@@ -34,7 +34,6 @@ size_t Camera::enumerate(std::vector<CameraId> &camera_ids) const
   return camera_ids.size();
 }
 
-
 bool Camera::lookup(CameraId camera_id, tes::camera::Camera &camera) const
 {
   std::lock_guard guard(_mutex);
@@ -74,6 +73,7 @@ void Camera::endFrame(const FrameStamp &stamp)
     if (id < _cameras.size())
     {
       _cameras[id] = std::pair(camera, true);
+      _first_valid = std::min(_first_valid, id);
     }
   }
   _pending_cameras.clear();
@@ -101,7 +101,7 @@ void Camera::readMessage(PacketReader &reader)
   camera.position = Magnum::Vector3(msg.x, msg.y, msg.z);
   camera.clip_near = msg.near;
   camera.clip_far = msg.far;
-  camera.fov_horizontal = msg.fov;
+  camera.fov_horizontal_deg = msg.fov;
   camera.frame = tes::CoordinateFrame(_server_info.coordinate_frame);
 
   // Determine pitch and yaw by a deviation from the expected axis.
@@ -150,7 +150,7 @@ void Camera::serialise(Connection &out, ServerInfoMessage &info)
 
     msg.near = camera.clip_near;
     msg.far = camera.clip_far;
-    msg.fov = camera.fov_horizontal;
+    msg.fov = camera.fov_horizontal_deg;
 
     getWorldAxes(camera.frame, nullptr, &world_fwd, &world_up);
     calculateCameraAxes(camera.pitch, camera.yaw, world_fwd, world_up, dir, up);

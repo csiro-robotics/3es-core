@@ -23,6 +23,7 @@ class TES_VIEWER_API Camera : public Message
 {
 public:
   using CameraId = uint8_t;
+  constexpr static CameraId kInvalidCameraId = std::numeric_limits<CameraId>::max();
 
   Camera();
 
@@ -31,6 +32,7 @@ public:
   /// @return The number of cameras enumerated.
   size_t enumerate(std::vector<CameraId> &camera_ids) const;
 
+  [[nodiscard]] CameraId firstCameraId() const { return _first_valid; }
   bool lookup(CameraId camera_id, tes::camera::Camera &camera) const;
 
   void initialise() override;
@@ -73,11 +75,12 @@ private:
   mutable std::mutex _mutex;
   /// Array of cameras. The boolean indicates the validity of the entry.
   using CameraEntry = std::pair<tes::camera::Camera, bool>;
-  using CameraSet = std::array<CameraEntry, std::numeric_limits<uint8_t>::max()>;
+  using CameraSet = std::array<CameraEntry, std::numeric_limits<CameraId>::max()>;
   /// Main thread camera state.
   CameraSet _cameras;
   /// Pending thread camera state for next @c prepareFrame().
-  std::vector<std::pair<uint8_t, tes::camera::Camera>> _pending_cameras;
+  std::vector<std::pair<CameraId, tes::camera::Camera>> _pending_cameras;
+  CameraId _first_valid = 255u;
   ServerInfoMessage _server_info = {};
 };
 }  // namespace tes::view::handler

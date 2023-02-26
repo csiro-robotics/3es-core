@@ -70,6 +70,16 @@ void IconBar::registerCommand(View view, std::shared_ptr<tes::view::command::Com
 }
 
 
+void IconBar::registerView(View view, std::shared_ptr<Panel> panel)
+{
+  if (view != View::Invalid)
+  {
+    const auto view_idx = static_cast<unsigned>(view);
+    _panels[view_idx] = panel;
+  }
+}
+
+
 void IconBar::draw(Magnum::ImGuiIntegration::Context &ui)
 {
   TES_UNUSED(ui);
@@ -89,6 +99,15 @@ void IconBar::draw(Magnum::ImGuiIntegration::Context &ui)
   button({ &_icons[static_cast<unsigned>(View::Log)], "Log",
            _commands[static_cast<unsigned>(View::Log)].get(), icon_size });
   ImGui::End();
+
+  if (_active_view != View::Invalid)
+  {
+    const auto view_idx = static_cast<unsigned>(_active_view);
+    if (_panels[view_idx])
+    {
+      _panels[view_idx]->draw(ui);
+    }
+  }
 }
 
 

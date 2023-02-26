@@ -60,6 +60,15 @@ list(APPEND PUBLIC_HEADERS
   painter/Sphere.h
   painter/Star.h
   painter/Text.h
+  settings/Camera.h
+  settings/Colour.h
+  settings/Enum.h
+  settings/Log.h
+  settings/Numeric.h
+  settings/Playback.h
+  settings/Render.h
+  settings/Settings.h
+  settings/Values.h
   shaders/Edl.h
   shaders/Flat.h
   shaders/PointGeom.h
@@ -127,6 +136,7 @@ list(APPEND SOURCES
   painter/Sphere.cpp
   painter/Star.cpp
   painter/Text.cpp
+  settings/Settings.cpp
   shaders/Edl.cpp
   shaders/Edl.frag
   shaders/Edl.vert

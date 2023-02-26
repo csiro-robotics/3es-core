@@ -62,13 +62,20 @@ ThirdEyeScene::ThirdEyeScene()
   Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::ProgramPointSize);
   Magnum::GL::Renderer::setPointSize(8);
 
-  _camera.position = { 0, -5, 0 };
+  restoreSettings();
 
   _culler = std::make_shared<BoundsCuller>();
   // Initialise the font.
   initialiseFont();
   initialiseShaders();
   initialiseHandlers();
+
+  const auto config = _settings.config();
+  onCameraConfigChange(config);
+
+  _settings.addObserver(
+    settings::Settings::Category::Camera,
+    [this](const settings::Settings::Config &config) { onCameraConfigChange(config); });
 }
 
 
@@ -138,6 +145,10 @@ void ThirdEyeScene::reset()
     _reset = true;
     _reset_notify.wait(lock, [target_reset = _reset_marker + 1, this]()  //
                        { return _reset_marker >= target_reset; });
+  }
+  if (_reset_callback)
+  {
+    _reset_callback();
   }
 }
 
@@ -430,7 +441,8 @@ void ThirdEyeScene::initialiseHandlers()
   _painters.emplace(SIdPose, std::make_shared<painter::Pose>(_culler, _shader_library));
 
   _ordered_message_handlers.emplace_back(std::make_shared<handler::Category>());
-  _ordered_message_handlers.emplace_back(std::make_shared<handler::Camera>());
+  _camera_handler = std::make_shared<handler::Camera>();
+  _ordered_message_handlers.emplace_back(_camera_handler);
 
   _ordered_message_handlers.emplace_back(
     std::make_shared<handler::Shape>(SIdSphere, "sphere", _painters[SIdSphere]));
@@ -540,5 +552,25 @@ void ThirdEyeScene::updateFpsDisplay(float dt, const DrawParams &params)
   fps_text.transform = Magnum::Matrix4::translation(Magnum::Vector3(0.01f, 0.015f, 0.0f));
   fps_text.text = std::to_string(fps);
   _text_painter->draw2D(fps_text, params);
+}
+
+
+void ThirdEyeScene::onCameraConfigChange(const settings::Settings::Config &config)
+{
+  _camera.clip_far = config.camera.far_clip.value();
+  _camera.clip_near = config.camera.near_clip.value();
+  _camera.fov_horizontal_deg = config.camera.fov.value();
+}
+
+
+void ThirdEyeScene::restoreSettings()
+{
+  // TODO(KS): implement settings serialisation
+}
+
+
+void ThirdEyeScene::storeSettings()
+{
+  // TODO(KS): implement settings serialisation
 }
 }  // namespace tes::view

@@ -59,6 +59,7 @@ public:
   [[nodiscard]] bool isActive(View view) const;
 
   void registerCommand(View view, std::shared_ptr<tes::view::command::Command> command);
+  void registerView(View view, std::shared_ptr<Panel> panel);
 
   void draw(Magnum::ImGuiIntegration::Context &ui) override;
 
@@ -69,10 +70,12 @@ private:
   using ViewCommands =
     std::array<std::shared_ptr<tes::view::command::Command>, static_cast<unsigned>(View::Count)>;
   using ViewIconNames = std::array<std::string, static_cast<unsigned>(View::Count)>;
+  using ViewPanels = std::array<std::shared_ptr<Panel>, static_cast<unsigned>(View::Count)>;
 
   static const IconBar::ViewIconNames &viewIconNames();
 
   ViewIcons _icons;
+  ViewPanels _panels;
   ViewCommands _commands;
   View _active_view = View::Invalid;
 };

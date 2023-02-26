@@ -776,7 +776,7 @@ struct TES_CORE_API CameraMessage
   /// Far clip plane (optional). Zero or less implies an unspecified or unchanged value.
   float far;
   /// Horizontal field of view in degrees (optional). Zero or less implies an unspecified or
-  /// unchanged value.
+  /// unchanged value. Degrees.
   float fov;
 
   /// Read the message from the given <paramref name="reader"/>.
