@@ -22,14 +22,21 @@ namespace tes::view::settings
 {
 namespace
 {
-bool parse(const ryml::NodeRef &node, Bool &value)
+bool parse(const ryml::NodeRef &parent, Bool &value)
 {
-  if (node.empty())
+  if (parent.empty())
   {
     return true;
   }
 
-  std::string str = node.val().data();
+  const auto key = ryml::csubstr(value.label().c_str(), value.label().size());
+  const auto node = parent[key];
+  if (node.empty())
+  {
+    return false;
+  }
+
+  std::string str(node.val().data(), node.val().size());
   std::transform(str.begin(), str.end(), str.begin(), [](char ch) { return ::tolower(ch); });
   if (str == "1" || str == "on" || str == "yes" || str == "true")
   {
@@ -45,11 +52,18 @@ bool parse(const ryml::NodeRef &node, Bool &value)
 }
 
 
-bool parse(const ryml::NodeRef &node, Colour &value)
+bool parse(const ryml::NodeRef &parent, Colour &value)
 {
-  if (node.empty())
+  if (parent.empty())
   {
     return true;
+  }
+
+  const auto key = ryml::csubstr(value.label().c_str(), value.label().size());
+  const auto node = parent[key];
+  if (node.empty() || !node.type().is_map())
+  {
+    return false;
   }
 
   std::array<ryml::NodeRef, 3> nodes = {
@@ -63,7 +77,11 @@ bool parse(const ryml::NodeRef &node, Colour &value)
   auto colour = value.value();
   for (size_t i = 0; i < nodes.size(); ++i)
   {
-    std::string str = nodes[i].val().data();
+    if (nodes[i].empty())
+    {
+      return false;
+    }
+    const std::string str(nodes[i].val().data(), nodes[i].val().size());
     std::istringstream in(str);
     int channel = {};
     in >> channel;
@@ -82,14 +100,21 @@ bool parse(const ryml::NodeRef &node, Colour &value)
 
 
 template <typename T>
-bool parse(const ryml::NodeRef &node, Numeric<T> &value)
+bool parse(const ryml::NodeRef &parent, Numeric<T> &value)
 {
-  if (node.empty())
+  if (parent.empty())
   {
     return true;
   }
 
-  const std::string str = node.val().data();
+  const auto key = ryml::csubstr(value.label().c_str(), value.label().size());
+  const auto node = parent[key];
+  if (node.empty())
+  {
+    return false;
+  }
+
+  const std::string str(node.val().data(), node.val().size());
   std::istringstream in(str);
   auto temp = value.value();
 
@@ -105,15 +130,22 @@ bool parse(const ryml::NodeRef &node, Numeric<T> &value)
 
 
 template <typename E>
-bool parse(const ryml::NodeRef &node, Enum<E> &value)
+bool parse(const ryml::NodeRef &parent, Enum<E> &value)
 {
-  if (node.empty())
+  if (parent.empty())
   {
     return true;
   }
 
-  // use case insensitive compare
-  std::string str = node.val().at();
+  const auto key = ryml::csubstr(value.label().c_str(), value.label().size());
+  const auto node = parent[key];
+  if (node.empty())
+  {
+    return false;
+  }
+
+  // use case insensitive compare for enum
+  std::string str(node.val().data(), node.val().size());
   std::transform(str.begin(), str.end(), str.begin(), [](char ch) { return ::tolower(ch); });
 
   const auto named_values = value.namedValues();
@@ -132,47 +164,31 @@ bool parse(const ryml::NodeRef &node, Enum<E> &value)
 
 
 template <typename T>
-bool write(ryml::NodeRef &parent, T &prop)
-{
-  std::ostringstream out;
-  out << prop.value() << std::flush;
-  const auto str = out.str();
-  const ryml::csubstr rstr_val(str.c_str(), str.size());
-  parent[ryml::csubstr(prop.label().c_str(), prop.label().size())] = rstr_val;
-  return true;
-}
-
-
-bool write(ryml::NodeRef &parent, Bool &prop)
+bool write(ryml::NodeRef &parent, const T &prop)
 {
   const auto key = ryml::csubstr(prop.label().c_str(), prop.label().size());
-  if (prop.value())
-  {
-    parent[key] = "true";
-  }
-  else
-  {
-    parent[key] = "false";
-  }
+  parent[key] << prop.value();
   return true;
 }
 
 
-bool write(ryml::NodeRef &parent, Colour &prop)
+bool write(ryml::NodeRef &parent, const Bool &prop)
 {
-  auto node = parent[ryml::csubstr(prop.label().c_str(), prop.label().size())];
-  const std::array<std::pair<std::string, int>, 3> values = {
-    std::pair{ "red", static_cast<int>(prop.value().red()) },
-    std::pair{ "green", static_cast<int>(prop.value().green()) },
-    std::pair{ "blue", static_cast<int>(prop.value().blue()) },
-  };
+  const auto key = ryml::csubstr(prop.label().c_str(), prop.label().size());
+  parent[key] << (prop.value() ? "true" : "false");
+  return true;
+}
 
-  for (const auto &[name, value] : values)
-  {
-    const auto str_val = std::to_string(value);
-    const ryml::csubstr rstr_val(str_val.c_str(), str_val.size());
-    node[ryml::csubstr(name.c_str(), name.size())] = rstr_val;
-  }
+
+bool write(ryml::NodeRef &parent, const Colour &prop)
+{
+  const auto key = ryml::csubstr(prop.label().c_str(), prop.label().size());
+  auto node = parent[ryml::csubstr(prop.label().c_str(), prop.label().size())];
+  node |= ryml::MAP;
+
+  node["red"] << static_cast<int>(prop.value().red());
+  node["green"] << static_cast<int>(prop.value().green());
+  node["blue"] << static_cast<int>(prop.value().blue());
 
   return true;
 }
@@ -200,6 +216,7 @@ bool load(const ryml::NodeRef &node, Camera &camera)
 bool save(ryml::NodeRef node, const Camera &camera)
 {
   bool ok = true;
+  node |= ryml::MAP;
   ok = write(node, camera.invert_y) && ok;
   ok = write(node, camera.allow_remote_settings) && ok;
   ok = write(node, camera.near_clip) && ok;
@@ -221,6 +238,7 @@ bool load(const ryml::NodeRef &node, Log &log)
 bool save(ryml::NodeRef &node, const Log &log)
 {
   bool ok = true;
+  node |= ryml::MAP;
   ok = write(node, log.log_window_size) && ok;
   return ok;
 }
@@ -243,6 +261,7 @@ bool load(const ryml::NodeRef &node, Playback &playback)
 bool save(ryml::NodeRef &node, const Playback &playback)
 {
   bool ok = true;
+  node |= ryml::MAP;
   ok = write(node, playback.allow_key_frames) && ok;
   ok = write(node, playback.keyframe_every_mib) && ok;
   ok = write(node, playback.keyframe_every_frames) && ok;
@@ -270,6 +289,7 @@ bool load(const ryml::NodeRef &node, Render &render)
 bool save(ryml::NodeRef &node, const Render &render)
 {
   bool ok = true;
+  node |= ryml::MAP;
   ok = write(node, render.use_edl_shader) && ok;
   ok = write(node, render.edl_radius) && ok;
   ok = write(node, render.edl_exponential_scale) && ok;
@@ -352,7 +372,9 @@ bool save(const Settings::Config &config, const std::filesystem::path &path)
   bool ok = true;
 
   auto root = doc.rootref();
-  root.append_child() << ryml::key("camera") << "";
+  // Mark root as a map.
+  root |= ryml::MAP;
+
   ok = save(root["camera"], config.camera) && ok;
   ok = save(root["log"], config.log) && ok;
   ok = save(root["playback"], config.playback) && ok;

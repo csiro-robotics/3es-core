@@ -568,17 +568,17 @@ void ThirdEyeScene::onCameraConfigChange(const settings::Settings::Config &confi
 
 void ThirdEyeScene::restoreSettings()
 {
-  // settings::Settings::Config config = {};
-  // if (settings::load(config))
-  // {
-  //   _settings.update(config);
-  // }
+  settings::Settings::Config config = {};
+  if (settings::load(config))
+  {
+    _settings.update(config);
+  }
 }
 
 
 void ThirdEyeScene::storeSettings()
 {
-  // const auto config = _settings.config();
-  // settings::save(config);
+  const auto config = _settings.config();
+  settings::save(config);
 }
 }  // namespace tes::view
