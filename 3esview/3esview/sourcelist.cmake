@@ -63,6 +63,7 @@ list(APPEND PUBLIC_HEADERS
   settings/Camera.h
   settings/Colour.h
   settings/Enum.h
+  settings/Loader.h
   settings/Log.h
   settings/Numeric.h
   settings/Playback.h
@@ -136,6 +137,7 @@ list(APPEND SOURCES
   painter/Sphere.cpp
   painter/Star.cpp
   painter/Text.cpp
+  settings/Loader.cpp
   settings/Settings.cpp
   shaders/Edl.cpp
   shaders/Edl.frag
@@ -156,4 +158,5 @@ list(APPEND SOURCES
 )
 
 list(APPEND PRIVATE_SOURCES
+  3p/cfgpath.h
 )

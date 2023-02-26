@@ -24,6 +24,8 @@
 #include "painter/Star.h"
 #include "painter/Text.h"
 
+#include "settings/Loader.h"
+
 #include "shaders/Flat.h"
 #include "shaders/ShaderLibrary.h"
 #include "shaders/PointGeom.h"
@@ -81,6 +83,7 @@ ThirdEyeScene::ThirdEyeScene()
 
 ThirdEyeScene::~ThirdEyeScene()
 {
+  storeSettings();
   // Need an ordered cleanup.
   _message_handlers.clear();
   _ordered_message_handlers.clear();
@@ -565,12 +568,17 @@ void ThirdEyeScene::onCameraConfigChange(const settings::Settings::Config &confi
 
 void ThirdEyeScene::restoreSettings()
 {
-  // TODO(KS): implement settings serialisation
+  // settings::Settings::Config config = {};
+  // if (settings::load(config))
+  // {
+  //   _settings.update(config);
+  // }
 }
 
 
 void ThirdEyeScene::storeSettings()
 {
-  // TODO(KS): implement settings serialisation
+  // const auto config = _settings.config();
+  // settings::save(config);
 }
 }  // namespace tes::view

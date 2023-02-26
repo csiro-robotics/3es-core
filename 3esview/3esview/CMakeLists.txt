@@ -4,11 +4,6 @@
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-# Version setup
-#-------------------------------------------------------------------------------
-# include(cmake/3es-version.cmake)
-
-#-------------------------------------------------------------------------------
 # 3esview configuration options.
 #-------------------------------------------------------------------------------
 find_package(cxxopts CONFIG REQUIRED)
@@ -24,6 +19,7 @@ find_package(Magnum CONFIG REQUIRED
   # Vk
 )
 # find_package(MagnumExtras CONFIG REQUIRED)
+find_package(ryml CONFIG REQUIRED)
 find_package(Threads)
 # TODO(KS): Check the vcpkg version of nfd for generaly compability. It seems quite different.
 # A submodule or source import may be better for this one.
@@ -90,6 +86,7 @@ target_link_libraries(3esview
     $<BUILD_INTERFACE:Magnum::Primitives>
     $<BUILD_INTERFACE:Magnum::Shaders>
     $<BUILD_INTERFACE:Magnum::Text>
+    $<BUILD_INTERFACE:ryml::ryml>
     $<BUILD_INTERFACE:unofficial::nativefiledialog::nfd>)
 
 #-------------------------------------------------------------------------------
